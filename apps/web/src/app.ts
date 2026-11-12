@@ -6,6 +6,7 @@ import { api, setUnauthorizedHandler } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { BillingPage } from '@/pages/billing-page';
 import { DashboardPage } from '@/pages/dashboard-page';
+import { InvitePage } from '@/pages/invite-page';
 import { LoginPage } from '@/pages/login-page';
 import { MembersPage } from '@/pages/members-page';
 import { NotFoundPage } from '@/pages/not-found-page';
@@ -19,11 +20,17 @@ export type NavItem = {
   badge?: string;
 };
 
-const isLoginPath = (): boolean => /(^|\/)login\/?$/.test(window.location.pathname);
+/**
+ * Routes that are reachable without a session and render without the admin
+ * chrome. The invite link has to work for somebody who is not signed in yet
+ * — that is the whole point of a magic link.
+ */
+const isPublicPath = (): boolean => /(^|\/)(login|invite)\/?$/.test(window.location.pathname);
 
 @route({
   routes: [
     { path: 'login', component: LoginPage, title: 'Sign in' },
+    { path: 'invite', component: InvitePage, title: 'Accept invitation' },
     { path: ['', 'dashboard'], component: DashboardPage, title: 'Dashboard' },
     { path: 'projects', component: ProjectsPage, title: 'Projects' },
     { path: 'members', component: MembersPage, title: 'Members' },
@@ -53,16 +60,16 @@ export class App {
   apiState: 'checking' | 'live' | 'demo' = 'checking';
   search = '';
   /** Hides the admin chrome on the sign-in route (no double layout). */
-  isAuthRoute = isLoginPath();
+  isAuthRoute = isPublicPath();
 
   async attached(): Promise<void> {
     setUnauthorizedHandler(() => {
       this.auth.clear();
-      if (!isLoginPath()) void this.router.load('login');
+      if (!isPublicPath()) void this.router.load('login');
     });
 
     this.subscription = this.events.subscribe('au:router:navigation-end', () => {
-      this.isAuthRoute = isLoginPath();
+      this.isAuthRoute = isPublicPath();
       this.closeSidebar();
     });
 

@@ -1,9 +1,14 @@
 import type {
   AuthSession,
+  BillingOverview,
+  CreateInviteInput,
   CreateProjectInput,
+  Invite,
   LoginInput,
+  MembersResponse,
   Project,
   ProjectStatus,
+  Role,
   UpdateProjectInput,
 } from '@aureliajs/shared';
 
@@ -141,4 +146,41 @@ export const api = {
     }),
 
   logout: () => request<void>('/api/auth/logout', { method: 'POST' }),
+
+  /* Billing — Stripe Checkout runs on Stripe's hosted page, so the API only
+     hands back a URL and the browser follows it. */
+  billing: () => request<BillingOverview>('/api/billing'),
+
+  startCheckout: (plan: 'pro' | 'scale', interval: 'monthly' | 'yearly') =>
+    request<{ url: string }>('/api/billing/checkout', {
+      method: 'POST',
+      body: JSON.stringify({ plan, interval }),
+    }),
+
+  openPortal: () => request<{ url: string }>('/api/billing/portal', { method: 'POST' }),
+
+  /* Team */
+  members: () => request<MembersResponse>('/api/members'),
+
+  createInvite: (input: CreateInviteInput) =>
+    request<{ invite: Invite; acceptUrl: string }>('/api/invites', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+
+  listInvites: () => request<Invite[]>('/api/invites'),
+
+  acceptInvite: (token: string) =>
+    request<AuthSession>('/api/invites/accept', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
+
+  changeMemberRole: (userId: string, role: Role) =>
+    request<{ ok: boolean; role: Role }>(`/api/members/${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    }),
+
+  removeMember: (userId: string) => request<void>(`/api/members/${userId}`, { method: 'DELETE' }),
 };

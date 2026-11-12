@@ -13,6 +13,7 @@ export type SelectOption = { value: string; label: string };
       class.bind="classes"
       value.bind="value"
       disabled.bind="disabled"
+      aria-label.bind="ariaLabel"
     >
       <option if.bind="placeholder" value="">\${placeholder}</option>
       <option repeat.for="option of options" value.bind="option.value">\${option.label}</option>
@@ -31,6 +32,12 @@ export class UiSelect {
   @bindable placeholder = '';
   @bindable options: SelectOption[] = [];
   @bindable disabled = false;
+  /**
+   * Forwarded to the inner <select>. A containerless component has no host
+   * element in the DOM, so an `aria-label` attribute placed on the tag would
+   * be dropped — and an unlabelled select is unusable with a screen reader.
+   */
+  @bindable ariaLabel = '';
 
   get classes(): string {
     return cn(

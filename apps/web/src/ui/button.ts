@@ -38,6 +38,8 @@ export type ButtonSize = VariantProps<typeof buttonVariants>['size'];
     class.bind="classes"
     disabled.bind="disabled || loading"
     aria-busy.bind="loading ? 'true' : null"
+    aria-label.bind="ariaLabel"
+    title.bind="title"
   >
     <svg
       if.bind="loading"
@@ -59,6 +61,13 @@ export class UiButton {
   @bindable disabled = false;
   @bindable loading = false;
   @bindable full = false;
+  /**
+   * Forwarded to the inner <button>. The host is `display: contents`, so an
+   * `aria-label` attribute placed on the tag would never reach the focusable
+   * element — an icon-only button would have no accessible name at all.
+   */
+  @bindable ariaLabel = '';
+  @bindable title = '';
 
   get classes(): string {
     return cn(buttonVariants({ variant: this.variant, size: this.size }), this.full && 'w-full');

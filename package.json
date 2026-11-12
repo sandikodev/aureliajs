@@ -26,6 +26,7 @@
   "devDependencies": {
     "@playwright/test": "1.65.0",
     "oxlint": "1.93.0",
+    "postgres": "4.1.1",
     "prettier": "3.6.2",
     "typescript": "5.9.3"
   }

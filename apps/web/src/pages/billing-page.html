@@ -1,56 +1,87 @@
 <div>
   <h1 class="text-2xl font-semibold tracking-tight">Billing</h1>
   <p class="mt-1 text-sm text-muted-foreground">
-    Plan, usage and invoices. Stripe Checkout + webhooks land in milestone M5.
+    Plan, usage and invoices. Payments run on Stripe's hosted checkout — card data never touches this app.
   </p>
 </div>
 
-<div class="mt-4">
-  <ui-alert tone="info">
-    <ui-icon name="sparkles" size="16"></ui-icon>
+<div if.bind="checkoutResult" class="mt-4" data-testid="checkout-result">
+  <ui-alert tone.bind="checkoutResult === 'success' ? 'success' : 'info'">
+    <ui-icon name.bind="checkoutResult === 'success' ? 'check' : 'alert'" size="16"></ui-icon>
     <span class="flex-1">
-      Billing is intentionally inert in this milestone. The API surface and env keys are already scaffolded (<code
-        class="rounded bg-black/5 px-1 py-0.5 font-mono text-[12px] dark:bg-white/10"
-        >STRIPE_*</code
-      >), so wiring test-mode Checkout is configuration, not redesign.
+      ${checkoutResult === 'success' ? 'Payment received — your plan is being activated.' : 'Checkout cancelled. Nothing
+      was charged.'}
     </span>
-    <ui-badge variant="outline">M5</ui-badge>
-  </ui-alert>
-</div>
-
-<div if.bind="notice" class="mt-4">
-  <ui-alert tone="info">
-    <ui-icon name="creditCard" size="16"></ui-icon>
-    <span class="flex-1">${notice}</span>
-    <button type="button" class="text-current/70 hover:text-current" click.trigger="notice = ''" aria-label="Dismiss">
+    <button
+      type="button"
+      class="text-current/70 hover:text-current"
+      click.trigger="dismissResult()"
+      aria-label="Dismiss"
+    >
       <ui-icon name="x" size="14"></ui-icon>
     </button>
   </ui-alert>
 </div>
 
-<div class="mt-5 grid gap-4 lg:grid-cols-3">
-  <div class="lg:col-span-2 space-y-4">
+<div if.bind="notice" class="mt-4" data-testid="billing-notice">
+  <ui-alert tone="success">
+    <ui-icon name="check" size="16"></ui-icon>
+    <span class="flex-1">${notice}</span>
+  </ui-alert>
+</div>
+
+<div if.bind="error" class="mt-4" data-testid="billing-error">
+  <ui-alert tone="destructive">
+    <ui-icon name="alert" size="16"></ui-icon>
+    <span class="flex-1">${error}</span>
+  </ui-alert>
+</div>
+
+<div if.bind="isLoading" class="mt-5 grid gap-4 lg:grid-cols-3">
+  <div class="lg:col-span-2">
+    <ui-skeleton width="100%" height="14rem" rounded="rounded-xl"></ui-skeleton>
+  </div>
+  <div>
+    <ui-skeleton width="100%" height="14rem" rounded="rounded-xl"></ui-skeleton>
+  </div>
+</div>
+
+<div if.bind="!isLoading && overview" class="mt-5 grid gap-4 lg:grid-cols-3">
+  <div class="space-y-4 lg:col-span-2">
     <ui-card>
       <ui-card-header>
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
             <ui-card-title>Current plan</ui-card-title>
-            <ui-card-description>Renews monthly on the 1st</ui-card-description>
+            <ui-card-description> ${isPaid ? `Renews ${renewsOn}` : 'No active subscription'} </ui-card-description>
           </div>
-          <ui-badge variant="success">${plan} · active</ui-badge>
+          <span data-testid="subscription-status">
+            <ui-badge variant.bind="statusTone">${statusLabel}</ui-badge>
+          </span>
         </div>
       </ui-card-header>
       <ui-card-content>
         <div class="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p class="text-3xl font-semibold tracking-tight tabular-nums">
-              ${price}<span class="text-sm font-normal text-muted-foreground">/mo</span>
+            <p class="text-3xl font-semibold tracking-tight tabular-nums" data-testid="current-plan">${planLabel}</p>
+            <p class="mt-1 text-xs text-muted-foreground">
+              Up to ${overview.limits.seats} seats and ${overview.limits.projects} projects
             </p>
-            <p class="mt-1 text-xs text-muted-foreground">Up to ${seatsLimit} seats and ${projectsLimit} projects</p>
           </div>
-          <div class="flex gap-2">
-            <ui-button variant="outline" size="sm" click.trigger="announcement()">Manage payment</ui-button>
-            <ui-button size="sm" click.trigger="announcement()">Upgrade to Scale</ui-button>
+          <div class="flex flex-wrap gap-2">
+            <ui-button variant="outline" size="sm" disabled.bind="busy || !isPaid" click.trigger="openPortal()">
+              <ui-icon name="creditCard" size="15"></ui-icon>
+              Manage payment
+            </ui-button>
+            <ui-button
+              if.bind="!isPaid"
+              size="sm"
+              disabled.bind="busy || !canBuyMonthly"
+              click.trigger="checkout('pro', 'monthly')"
+            >
+              <ui-icon name="sparkles" size="15"></ui-icon>
+              Upgrade to Pro
+            </ui-button>
           </div>
         </div>
 
@@ -58,19 +89,19 @@
           <div>
             <div class="flex items-center justify-between text-xs">
               <span class="text-muted-foreground">Projects</span>
-              <span class="font-medium tabular-nums">${projectsUsed} / ${projectsLimit}</span>
+              <span class="font-medium tabular-nums"> ${overview.usage.projects} / ${overview.limits.projects} </span>
             </div>
             <div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-              <div class="h-full rounded-full bg-primary" style="width: ${projectPercent}%"></div>
+              <div class="h-full rounded-full bg-primary" style="width: ${projectsPercent}%"></div>
             </div>
           </div>
           <div>
             <div class="flex items-center justify-between text-xs">
               <span class="text-muted-foreground">Seats</span>
-              <span class="font-medium tabular-nums">${seatsUsed} / ${seatsLimit}</span>
+              <span class="font-medium tabular-nums">${overview.usage.seats} / ${overview.limits.seats}</span>
             </div>
             <div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-              <div class="h-full rounded-full bg-primary" style="width: ${seatPercent}%"></div>
+              <div class="h-full rounded-full bg-primary" style="width: ${seatsPercent}%"></div>
             </div>
           </div>
         </div>
@@ -80,9 +111,15 @@
     <ui-card>
       <ui-card-header>
         <ui-card-title>Invoices</ui-card-title>
-        <ui-card-description>Downloadable PDFs are generated by Stripe in production</ui-card-description>
+        <ui-card-description>Generated and hosted by Stripe</ui-card-description>
       </ui-card-header>
-      <div class="mt-3 overflow-x-auto">
+      <div if.bind="overview.invoices.length === 0" class="px-5 py-8 text-center">
+        <p class="text-[13px] text-muted-foreground">No invoices yet.</p>
+        <p class="mt-1 text-[12px] text-muted-foreground">
+          Invoices appear here once Stripe has billed this workspace.
+        </p>
+      </div>
+      <div if.bind="overview.invoices.length > 0" class="mt-3 overflow-x-auto">
         <table class="w-full min-w-[520px] text-sm">
           <thead>
             <tr class="border-y bg-muted/40">
@@ -101,14 +138,22 @@
             </tr>
           </thead>
           <tbody>
-            <tr repeat.for="invoice of invoices" class="border-b last:border-0">
-              <td class="px-5 py-3 font-mono text-[12px]">${invoice.id}</td>
-              <td class="px-5 py-3 text-[13px] text-muted-foreground">${invoice.date}</td>
+            <tr repeat.for="invoice of overview.invoices" class="border-b last:border-0">
+              <td class="px-5 py-3 font-mono text-[12px]">
+                <a
+                  if.bind="invoice.invoiceUrl"
+                  href.bind="invoice.invoiceUrl"
+                  target="_blank"
+                  rel="noreferrer"
+                  class="underline underline-offset-2"
+                  >${invoice.id}</a
+                >
+                <span if.bind="!invoice.invoiceUrl">${invoice.id}</span>
+              </td>
+              <td class="px-5 py-3 text-[13px] text-muted-foreground">${invoiceDate(invoice.date)}</td>
               <td class="px-5 py-3 text-right text-[13px] font-medium tabular-nums">${amount(invoice.amountCents)}</td>
               <td class="px-5 py-3 text-right">
-                <ui-badge variant.bind="invoice.status === 'paid' ? 'success' : 'warning'">
-                  ${invoice.status}
-                </ui-badge>
+                <ui-badge variant.bind="invoiceStatus(invoice.status)">${invoice.status}</ui-badge>
               </td>
             </tr>
           </tbody>
@@ -120,8 +165,48 @@
   <div class="space-y-4">
     <ui-card>
       <ui-card-header>
+        <ui-card-title>Plans</ui-card-title>
+        <ui-card-description>Switching opens Stripe Checkout</ui-card-description>
+      </ui-card-header>
+      <ui-card-content>
+        <div class="space-y-3">
+          <div
+            repeat.for="tier of tiers"
+            class="rounded-lg border p-3 ${tier.id === plan ? 'border-primary bg-primary/5' : ''}"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <div class="min-w-0">
+                <p class="text-[13px] font-medium">${tier.label}</p>
+                <p class="text-[11px] text-muted-foreground">${tier.priceLabel}</p>
+              </div>
+              <ui-button
+                if.bind="tier.id !== 'free' && tier.id !== plan"
+                variant="outline"
+                size="sm"
+                disabled.bind="busy"
+                click.trigger="checkout(tier.id === 'scale' ? 'scale' : 'pro', tier.id === 'scale' ? 'yearly' : 'monthly')"
+              >
+                ${tier.id === 'scale' ? 'Upgrade' : 'Choose'}
+              </ui-button>
+              <ui-badge if.bind="tier.id === plan" variant="success">Current</ui-badge>
+            </div>
+            <ul class="mt-2 space-y-1">
+              <li
+                repeat.for="feature of tier.features"
+                class="flex items-center gap-1.5 text-[12px] text-muted-foreground"
+              >
+                <ui-icon name="check" size="12"></ui-icon> ${feature}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </ui-card-content>
+    </ui-card>
+
+    <ui-card>
+      <ui-card-header>
         <ui-card-title>Payment method</ui-card-title>
-        <ui-card-description>Test card ends with 4242</ui-card-description>
+        <ui-card-description>Managed inside the Stripe portal</ui-card-description>
       </ui-card-header>
       <ui-card-content>
         <div class="flex items-center gap-3 rounded-lg border bg-muted/30 px-3 py-2.5">
@@ -129,23 +214,33 @@
             <ui-icon name="creditCard" size="17"></ui-icon>
           </span>
           <div class="min-w-0">
-            <p class="text-[13px] font-medium">Visa ending 4242</p>
-            <p class="text-[11px] text-muted-foreground">Expires 12 / 2030</p>
+            <p class="text-[13px] font-medium">${isPaid ? 'Card on file' : 'No card on file'}</p>
+            <p class="text-[11px] text-muted-foreground">
+              ${isPaid ? 'Update it in the Stripe portal' : 'Add one when you subscribe'}
+            </p>
           </div>
         </div>
-        <p class="mt-3 text-[11px] text-muted-foreground">Billing email: ${billingEmail}</p>
+        <ui-button
+          class="mt-3"
+          variant="outline"
+          size="sm"
+          full
+          disabled.bind="busy || !isPaid"
+          click.trigger="openPortal()"
+        >
+          Open billing portal
+        </ui-button>
       </ui-card-content>
     </ui-card>
 
     <ui-card>
       <ui-card-header>
-        <ui-card-title>Why this page exists</ui-card-title>
+        <ui-card-title>How this is wired</ui-card-title>
       </ui-card-header>
       <ui-card-content>
         <p class="text-[13px] leading-relaxed text-muted-foreground">
-          Most “Aurelia developers” stop at a todo list. Billing is where product work actually hurts: idempotent
-          webhooks, plan limits and entitlement checks. Showing the seam — and naming what is intentionally deferred —
-          is the point.
+          Checkout runs on Stripe's hosted page, so no card data reaches this server. Every plan change arrives as a
+          signed webhook, is recorded once in an idempotency ledger, and only then flips the workspace plan.
         </p>
       </ui-card-content>
     </ui-card>

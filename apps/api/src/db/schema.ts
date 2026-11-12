@@ -1,4 +1,5 @@
 import {
+  boolean,
   date,
   index,
   integer,
@@ -12,7 +13,7 @@ import {
 
 export const roleEnum = pgEnum('role', ['owner', 'admin', 'member']);
 export const projectStatusEnum = pgEnum('project_status', ['planning', 'active', 'paused', 'done']);
-export const planEnum = pgEnum('plan', ['free', 'pro']);
+export const planEnum = pgEnum('plan', ['free', 'pro', 'scale']);
 
 const createdAt = timestamp('created_at', { withTimezone: true }).defaultNow().notNull();
 const updatedAt = timestamp('updated_at', { withTimezone: true }).defaultNow().notNull();
@@ -39,10 +40,22 @@ export const workspaces = pgTable(
     plan: planEnum('plan').default('free').notNull(),
     stripeCustomerId: text('stripe_customer_id'),
     stripeSubscriptionId: text('stripe_subscription_id'),
+    /** Mirrors the Stripe subscription state; `none` means never subscribed. */
+    subscriptionStatus: text('subscription_status').default('none').notNull(),
+    /** End of the current billing period, used to show "renews on ...". */
+    subscriptionCurrentPeriodEnd: timestamp('subscription_current_period_end', {
+      withTimezone: true,
+    }),
+    subscriptionCancelAtPeriodEnd: boolean('subscription_cancel_at_period_end')
+      .default(false)
+      .notNull(),
     trialEndsAt: timestamp('trial_ends_at', { withTimezone: true }),
     createdAt,
   },
-  (t) => [uniqueIndex('workspaces_slug_unique').on(t.slug)],
+  (t) => [
+    uniqueIndex('workspaces_slug_unique').on(t.slug),
+    index('workspaces_stripe_customer_idx').on(t.stripeCustomerId),
+  ],
 );
 
 export const memberships = pgTable(
@@ -129,6 +142,30 @@ export const auditLogs = pgTable(
     createdAt,
   },
   (t) => [index('audit_logs_workspace_created_idx').on(t.workspaceId, t.createdAt)],
+);
+
+/**
+ * Idempotency ledger for Stripe webhooks.
+ *
+ * Stripe delivers events at-least-once: the same `checkout.session.completed`
+ * can arrive twice, and if we naively apply the plan change twice the audit
+ * trail lies about what happened. The event id is the primary key, so the
+ * insert itself is the dedupe — a second delivery hits a constraint violation
+ * and we return 200 without re-applying the side effect.
+ */
+export const stripeEvents = pgTable(
+  'stripe_events',
+  {
+    /** Stripe event id (`evt_...`). */
+    id: text('id').primaryKey(),
+    type: text('type').notNull(),
+    workspaceId: uuid('workspace_id').references(() => workspaces.id, {
+      onDelete: 'set null',
+    }),
+    /** Unix seconds when we processed it — handy when debugging a missed event. */
+    processedAt: timestamp('processed_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index('stripe_events_type_idx').on(t.type)],
 );
 
 export type UserRow = typeof users.$inferSelect;

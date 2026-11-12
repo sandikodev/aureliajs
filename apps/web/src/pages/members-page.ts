@@ -1,116 +1,152 @@
-import { customElement } from 'aurelia';
+import { customElement, resolve } from 'aurelia';
+import type { Invite, Member, Role } from '@aureliajs/shared';
 import template from './members-page.html';
-import { emailSchema, type Role } from '@aureliajs/shared';
-import { relativeTime } from '@/lib/utils';
+import { api, ApiError } from '@/services/api';
+import { AuthService } from '@/services/auth';
 
-type MemberRow = {
-  id: string;
-  name: string;
+type InviteForm = {
   email: string;
   role: Role;
-  status: 'active' | 'invited';
-  joinedAt: string;
 };
-
-const iso = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString();
 
 @customElement({ name: 'members-page', template })
 export class MembersPage {
-  members: MemberRow[] = [
-    {
-      id: 'm1',
-      name: 'Demo Operator',
-      email: 'demo@aureliajs.dev',
-      role: 'owner',
-      status: 'active',
-      joinedAt: iso(180),
-    },
-    {
-      id: 'm2',
-      name: 'Ayu Prameswari',
-      email: 'ayu@northwind.test',
-      role: 'admin',
-      status: 'active',
-      joinedAt: iso(120),
-    },
-    {
-      id: 'm3',
-      name: 'Daniel Okafor',
-      email: 'daniel@northwind.test',
-      role: 'member',
-      status: 'active',
-      joinedAt: iso(54),
-    },
-    {
-      id: 'm4',
-      name: 'Mira Sørensen',
-      email: 'mira@northwind.test',
-      role: 'member',
-      status: 'active',
-      joinedAt: iso(21),
-    },
-    {
-      id: 'm5',
-      name: 'Kenji Watanabe',
-      email: 'kenji@northwind.test',
-      role: 'member',
-      status: 'invited',
-      joinedAt: iso(2),
-    },
-  ];
+  private readonly auth = resolve(AuthService);
 
-  invite = { email: '', role: 'member' as Role };
+  members: Member[] = [];
+  invites: Invite[] = [];
+
+  seatLimit = 0;
+  seatUsed = 0;
+
+  invite: InviteForm = { email: '', role: 'member' };
+
+  isLoading = true;
+  isInviting = false;
   error = '';
   notice = '';
+  /** The last invite link we created, so the owner can copy it. */
+  lastInviteUrl = '';
 
   readonly roleOptions = [
-    { value: 'member', label: 'Member — can edit projects' },
-    { value: 'admin', label: 'Admin — can manage members' },
+    { value: 'member', label: 'Member' },
+    { value: 'admin', label: 'Admin' },
+    { value: 'owner', label: 'Owner' },
   ];
 
-  get seatsUsed(): number {
-    return this.members.length;
+  get canManage(): boolean {
+    return this.auth.canManage;
   }
 
-  get seatsLimit(): number {
-    return 10;
+  get canInvite(): boolean {
+    return this.auth.role === 'owner';
   }
 
   get seatsPercent(): number {
-    return Math.round((this.seatsUsed / this.seatsLimit) * 100);
+    if (this.seatLimit === 0) return 0;
+    return Math.min(100, Math.round((this.seatUsed / this.seatLimit) * 100));
   }
 
-  inviteMember(): void {
+  get pendingInvites(): Invite[] {
+    return this.invites.filter((invite) => invite.state === 'pending');
+  }
+
+  async attached(): Promise<void> {
+    await this.load();
+  }
+
+  async load(): Promise<void> {
+    this.isLoading = true;
+    this.error = '';
+    try {
+      const [members, invites] = await Promise.all([
+        api.members(),
+        this.canInvite || this.auth.role === 'admin'
+          ? api.listInvites().catch(() => [] as Invite[])
+          : Promise.resolve([] as Invite[]),
+      ]);
+
+      this.members = members.members;
+      this.seatLimit = members.seatLimit;
+      this.seatUsed = members.seatUsed;
+      this.invites = invites;
+    } catch (cause) {
+      this.error =
+        cause instanceof ApiError ? cause.message : 'Could not load the team. Is the API running?';
+      this.members = [];
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  /**
+   * Create an invitation and show the accept link.
+   *
+   * There is no mail server in this project, so the link is surfaced in the
+   * UI and written to the clipboard. In production this would be the body of
+   * an email and the token would never reach the browser.
+   */
+  async inviteMember(): Promise<void> {
     this.error = '';
     this.notice = '';
-    const parsed = emailSchema.safeParse(this.invite.email);
-    if (!parsed.success) {
-      this.error = 'Enter a valid work email address.';
+    this.lastInviteUrl = '';
+
+    const email = this.invite.email.trim().toLowerCase();
+    if (!email || !email.includes('@')) {
+      this.error = 'Enter a valid email address.';
       return;
     }
-    if (this.members.some((member) => member.email === parsed.data)) {
-      this.error = 'That person is already in this workspace.';
-      return;
+
+    this.isInviting = true;
+    try {
+      const { acceptUrl } = await api.createInvite({ email, role: this.invite.role });
+      this.lastInviteUrl = acceptUrl;
+      this.notice = `Invitation created for ${email}.`;
+      this.invite = { email: '', role: 'member' };
+
+      try {
+        await navigator.clipboard.writeText(acceptUrl);
+        this.notice += ' The accept link was copied to your clipboard.';
+      } catch {
+        // Clipboard access can be denied; the link is still shown below.
+      }
+
+      await this.load();
+    } catch (cause) {
+      this.error = cause instanceof ApiError ? cause.message : 'Could not create the invitation.';
+    } finally {
+      this.isInviting = false;
     }
-    this.members = [
-      ...this.members,
-      {
-        id: `local-${Date.now()}`,
-        name: parsed.data.split('@')[0] ?? parsed.data,
-        email: parsed.data,
-        role: this.invite.role,
-        status: 'invited',
-        joinedAt: new Date().toISOString(),
-      },
-    ];
-    this.notice = `Invite queued for ${parsed.data}. Email delivery lands in M1.`;
-    this.invite = { email: '', role: 'member' };
   }
 
-  joined(member: MemberRow): string {
-    return member.status === 'invited'
-      ? `invited ${relativeTime(member.joinedAt)}`
-      : `joined ${relativeTime(member.joinedAt)}`;
+  async changeRole(member: Member, role: Role): Promise<void> {
+    this.error = '';
+    this.notice = '';
+
+    if (role === member.role) return;
+
+    try {
+      await api.changeMemberRole(member.id, role);
+      this.notice = `${member.name} is now ${this.roleLabel(role)}.`;
+      await this.load();
+    } catch (cause) {
+      this.error = cause instanceof ApiError ? cause.message : 'Could not change that role.';
+    }
+  }
+
+  async removeMember(member: Member): Promise<void> {
+    this.error = '';
+    this.notice = '';
+
+    if (!confirm(`Remove ${member.name} from this workspace?`)) return;
+
+    try {
+      await api.removeMember(member.id);
+      this.notice = `${member.name} was removed from the workspace.`;
+      await this.load();
+    } catch (cause) {
+      this.error = cause instanceof ApiError ? cause.message : 'Could not remove that member.';
+    }
   }
 
   roleLabel(role: Role): string {
@@ -119,5 +155,32 @@ export class MembersPage {
 
   roleVariant(role: Role): 'default' | 'secondary' | 'outline' {
     return role === 'owner' ? 'default' : role === 'admin' ? 'secondary' : 'outline';
+  }
+
+  inviteStateLabel(state: Invite['state']): string {
+    return state === 'pending' ? 'Pending' : state === 'accepted' ? 'Accepted' : 'Expired';
+  }
+
+  inviteStateVariant(state: Invite['state']): 'warning' | 'success' | 'outline' {
+    return state === 'pending' ? 'warning' : state === 'accepted' ? 'success' : 'outline';
+  }
+
+  joined(member: Member): string {
+    const days = Math.max(
+      0,
+      Math.floor((Date.now() - new Date(member.joinedAt).getTime()) / 86_400_000),
+    );
+    if (days === 0) return 'joined today';
+    if (days === 1) return 'joined yesterday';
+    if (days < 30) return `joined ${days} days ago`;
+    const months = Math.floor(days / 30);
+    return `joined ${months} month${months === 1 ? '' : 's'} ago`;
+  }
+
+  expiresIn(invite: Invite): string {
+    const hours = Math.floor((new Date(invite.expiresAt).getTime() - Date.now()) / 3_600_000);
+    if (hours <= 0) return 'expired';
+    if (hours < 24) return `expires in ${hours}h`;
+    return `expires in ${Math.floor(hours / 24)}d`;
   }
 }

@@ -1,11 +1,12 @@
 # Aurelia Ops
 
 A working multi-tenant SaaS admin dashboard built with **Aurelia 2 + TypeScript**, **Tailwind CSS 4**,
-**Hono**, **Drizzle** and **Postgres**.
+**Hono**, **Drizzle** and **Postgres**, with **Stripe** billing on top.
 
 It exists because Aurelia 2 has very few public, production-shaped examples. This is one: a dashboard
-with a real API, 1 000 seeded rows, server-side filtering/pagination, an audited domain object and a
-component library — not another todo list.
+with a real API, 1 000 seeded rows, server-side filtering/pagination, session auth, working team
+invitations, Stripe Checkout + signed webhooks, an audited domain object and a component library — not
+another todo list.
 
 ![Dashboard, light theme](docs/screenshots/dashboard-light.png)
 
@@ -13,9 +14,12 @@ component library — not another todo list.
 | ------------------------------------------------------ | ----------------------------------------------------------- |
 | ![Projects table](docs/screenshots/projects-light.png) | ![Billing in dark theme](docs/screenshots/billing-dark.png) |
 
-> **Status: M0 (foundation) complete.** M1 auth is implemented: session cookie + Argon2id hashes, `/api/auth/me` returns `200` with `{user:null,workspace:null,role:null}` when signed out, protected routes guard to `owner`/`admin`, and the UI chrome hides on the login route. The tenancy seam is fully wired.
+> **Status: M0–M5 implemented.** Auth (session cookie + Argon2id), team management (invite → magic link
+> → membership → session), Stripe billing (hosted Checkout, customer portal, signature-verified
+> idempotent webhooks) and per-plan entitlements are all wired end to end and covered by e2e tests.
 
-> **Demo account:** `demo@aureliajs.dev` / `demo-password-123`. Log in to access the dashboard; the UI chrome (sidebar/header/footer) reveals upon authentication.
+> **Demo account:** `demo@aureliajs.dev` / `demo-password-123`. The seeded workspace is _Northwind Studio_
+> on the `pro` plan with 4 members and 1 000 projects.
 
 **Requirements:** Node.js ≥ 22, pnpm 11, Docker (for Postgres).
 
@@ -32,9 +36,6 @@ Open <http://localhost:4600>. The API health check is at <http://localhost:4601/
 
 No Docker? Point `DATABASE_URL` at any Postgres 16 instance and run the same migration/seed commands.
 
-**Demo account (seeded, used by M1 auth):** `demo@aureliajs.dev` / `demo-password-123`.
-There is no login screen yet, so the UI currently runs as the seeded owner.
-
 ### If the API is down
 
 The UI falls back to deterministic sample data and shows a **Demo data** banner. It never silently
@@ -44,17 +45,18 @@ pretends to be live — that distinction matters when the demo is used in a sale
 
 ## What works right now
 
-| Area          | Behaviour                                                                                                            |
-| ------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Dashboard     | KPI cards, throughput chart, status breakdown, recent audit activity                                                 |
-| Projects      | 1 000 seeded rows, debounced server-side search, status filter, sort, pagination                                     |
-| Projects CRUD | Native `<dialog>` create/edit, inline validation from the shared Zod schema, CSV export                              |
-| Members       | Role-aware table, invite flow UI (not yet persisted — M2)                                                            |
-| Billing       | Plan comparison and current usage (no Stripe checkout yet — M5)                                                      |
-| Settings      | Workspace/profile forms, theme preference                                                                            |
-| Theming       | Light/dark tokens, persisted, no flash on first paint                                                                |
-| Auth seam     | Session cookie + Argon2id hashes; `/api/auth/me` returns 200 with nulls when signed out; chrome hides on login route |
-| Errors        | One typed error contract shared by client and server                                                                 |
+| Area          | Behaviour                                                                                                                    |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Dashboard     | KPI cards, throughput chart, status breakdown, recent audit activity                                                         |
+| Projects      | 1 000 seeded rows, debounced server-side search, status filter, sort, pagination                                             |
+| Projects CRUD | Native `<dialog>` create/edit, inline validation from the shared Zod schema, CSV export, audit log on every write            |
+| Auth          | Session cookie (HttpOnly, hashed at rest), Argon2id passwords, `/api/auth/me` returns 200 with nulls when signed out         |
+| Team          | Owner invites an email → magic link → account created → membership → signed in. Role change, member removal, seat accounting |
+| Billing       | Stripe-hosted Checkout, customer portal, signature-verified idempotent webhooks, plan limits enforced from one shared table  |
+| Entitlements  | `PLAN_LIMITS` lives in the shared package: the API enforces it and the UI renders it, so they cannot disagree                |
+| Settings      | Workspace/profile forms, theme preference                                                                                    |
+| Theming       | Light/dark tokens, persisted, no flash on first paint                                                                        |
+| Errors        | One typed error contract shared by client and server                                                                         |
 
 **Verification**
 
@@ -65,13 +67,56 @@ pnpm test           # unit tests (vitest)
 pnpm build          # production build of all packages
 
 pnpm exec playwright install chromium   # once
-pnpm exec playwright test               # e2e against the dev server
+pnpm exec playwright test               # 17 e2e tests against the dev server
 ```
 
 The Playwright suite covers the shell, routing, the 404 fallback, theme toggle, cross-field validation,
-and a full create → row appears → delete round trip. Every test fails on a browser console error.
+a create → row appears → delete round trip, the full invite → accept → role change → removal path, and
+the billing webhook (invalid signature rejected, a valid event applied exactly once).
 
-Production build: **~145 kB gzipped JS**, **~9 kB gzipped CSS**.
+Production build: **~150 kB gzipped JS**, **~9 kB gzipped CSS**.
+
+---
+
+## Stripe setup (optional)
+
+The dashboard runs without Stripe; billing endpoints then answer `503` with an actionable message
+instead of crashing. To try the real checkout:
+
+1. **Copy the keys** from <https://dashboard.stripe.com/test/apikeys> into `.env`:
+
+   ```dotenv
+   STRIPE_SECRET_KEY=sk_test_...
+   STRIPE_PUBLISHABLE_KEY=pk_test_...
+   ```
+
+2. **Create a product and prices** — Dashboard → **More → Product catalog** → _Add product_ →
+   _Flat-rate / Recurring_. Create one monthly price and one yearly price, then copy each `price_…` id:
+
+   ```dotenv
+   STRIPE_PRICE_MONTHLY=price_...
+   STRIPE_PRICE_YEARLY=price_...
+   STRIPE_PRICE_SCALE=price_...      # optional, annual Scale tier
+   ```
+
+3. **Activate the customer portal** — Dashboard → **Settings → Billing → Portal** → _Activate portal_.
+   Without this, the "Manage payment" button fails with a Stripe configuration error.
+
+4. **Forward webhooks locally** — install the [Stripe CLI](https://docs.stripe.com/stripe-cli), then:
+
+   ```bash
+   stripe login
+   stripe listen --forward-to localhost:4601/api/billing/webhook \
+     --events checkout.session.completed,customer.subscription.updated,customer.subscription.deleted,invoice.paid,invoice.payment_failed
+   ```
+
+   Copy the printed `whsec_…` into `.env` as `STRIPE_WEBHOOK_SECRET`. The secret is stable across
+   restarts.
+
+5. **Pay with the test card** `4242 4242 4242 4242`, any future expiry, any CVC, any postal code.
+
+> The webhook endpoint authenticates with the `stripe-signature` header, not a session cookie, so it is
+> registered **before** the tenancy middleware — the same reason `/api/invites/accept` is public.
 
 ---
 
@@ -85,6 +130,7 @@ Production build: **~145 kB gzipped JS**, **~9 kB gzipped CSS**.
 | Hono                        | Small, typed, runs on Node and edge runtimes.                                            |
 | Drizzle + Postgres          | SQL-shaped queries with types; migrations are checked in.                                |
 | Zod (shared package)        | One schema validates the web form _and_ the API request.                                 |
+| Stripe Checkout (hosted)    | Card data never touches our server — no PCI scope, and the API only returns a URL.       |
 | Native `<dialog>`           | Focus management and backdrop for free, no dependency.                                   |
 
 ### Aurelia 2 specifics that cost time (documented so they don't cost yours)
@@ -97,8 +143,10 @@ Production build: **~145 kB gzipped JS**, **~9 kB gzipped CSS**.
 - `<base href="/">` is required for deep links (`/projects` on a hard reload).
 - A page property named `loading` collides with the router lifecycle hook and is called as a function.
 - `<slot>` needs shadow DOM; use `<au-slot>` for lightweight projection.
-- Containerless components do not receive event bindings. `ui-button` keeps its host element and uses
-  `display: contents`, so `click.trigger` works without changing layout.
+- Containerless components do not receive event bindings, and **attributes on their host are dropped**.
+  `ui-button` keeps its host element and uses `display: contents`, so `click.trigger` works without
+  changing layout; `ui-select` and `ui-button` forward `aria-label` to the real focusable element
+  because an `aria-label` on the tag would otherwise never reach it.
 
 ---
 
@@ -106,9 +154,9 @@ Production build: **~145 kB gzipped JS**, **~9 kB gzipped CSS**.
 
 ```
 apps/web        Aurelia 2, Vite 8, Tailwind 4 — UI kit, pages, router
-apps/api        Hono, Zod, Drizzle — REST API, tenancy middleware, audit log
-packages/shared Zod schemas, types, formatters — single source of truth
-e2e             Playwright smoke + CRUD tests
+apps/api        Hono, Zod, Drizzle — REST API, tenancy middleware, Stripe, audit log
+packages/shared Zod schemas, types, plan limits — single source of truth
+e2e             Playwright smoke + billing + team tests
 docs            architecture, case study, Upwork strategy
 ```
 
@@ -117,7 +165,7 @@ Portfolio write-up: [`docs/case-study.md`](docs/case-study.md).
 
 The tenancy seam is the most important file to read:
 [`apps/api/src/middleware/tenant.ts`](apps/api/src/middleware/tenant.ts). Routes only ever call
-`tenantOf(c)`; M1 replaces that file with session-cookie verification and nothing else changes.
+`tenantOf(c)`; the session cookie, the workspace and the role are resolved in exactly one place.
 
 ---
 
@@ -126,14 +174,14 @@ The tenancy seam is the most important file to read:
 ```
 apps/web/src/
   ui/            button, input, select, card, badge, alert, avatar, icon, …
-  pages/         dashboard, projects, members, billing, settings, 404
-  services/      typed API client, theme service
+  pages/         dashboard, projects, members, billing, settings, invite, 404
+  services/      typed API client, auth service, theme service
   lib/           icons, demo data, formatters
 apps/api/src/
-  routes/        health, overview, projects
+  routes/        health, auth, overview, projects, invites, members, billing
   db/            schema, migrations, seed
   middleware/    tenant resolution
-  lib/           error contract
+  lib/           error contract, session, workspace, stripe, plan limits
 ```
 
 ---
@@ -142,14 +190,15 @@ apps/api/src/
 
 Being explicit here is part of the work sample:
 
-- **M1 — Auth.** Argon2id hashes, `sessions` and `invites` tables exist; login routes and guarded
-  pages do not. The tenancy middleware is a labelled placeholder (`x-workspace-id`, first workspace).
-- **M2 — Persisted invites/members.** The pages show the UI contract only.
-- **M5 — Billing.** Stripe env keys are scaffolded; no checkout or webhooks yet. Entitlements depend
-  on identity, so auth comes first.
-- **i18n.** Copy is centralized but not extracted to locale files.
-- **No unit tests yet.** The e2e suite covers the critical paths; unit tests land with the auth work,
-  where they matter most.
+- **No mail server.** Invitations return an accept link that the UI surfaces (and copies to the
+  clipboard) instead of being emailed. The token never needs to exist server-side in plaintext.
+- **One workspace per user in practice.** The schema and the tenancy middleware support many; the UI
+  workspace switcher is still a stub.
+- **Scale tier pricing.** `STRIPE_PRICE_SCALE` is optional; without it the Scale button reports that
+  the tier is not available instead of failing at the Stripe call.
+- **i18n.** Copy is centralized in templates but not extracted to locale files.
+- **No seat enforcement on invite.** The seat limit is displayed and the plan limit is enforced for
+  projects, but inviting past the seat limit is not blocked yet.
 
 ---
 

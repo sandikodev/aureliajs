@@ -6,6 +6,9 @@ import { env, isProd } from './env.js';
 import { errorResponse } from './lib/errors.js';
 import { tenant } from './middleware/tenant.js';
 import { authRoutes } from './routes/auth.js';
+import { billingRoutes, publicBillingRoutes } from './routes/billing.js';
+import { invitesRoutes, publicInviteRoutes } from './routes/invites.js';
+import { membersRoutes } from './routes/members.js';
 import { healthRoutes } from './routes/health.js';
 import { overviewRoutes } from './routes/overview.js';
 import { projectRoutes } from './routes/projects.js';
@@ -35,11 +38,20 @@ export function createApp() {
 
   const api = new Hono();
   // Auth routes are registered before the tenant middleware on purpose: a
-  // request without a session must be able to reach login/logout/me.
+  // request without a session must be able to reach login/logout/me/invites.
   api.route('/', authRoutes);
+  // The Stripe webhook and the invite acceptance are also registered before
+  // the tenant middleware: neither sends our session cookie. The Stripe
+  // webhook authenticates with the `stripe-signature` header, the invite
+  // acceptance with the one-time token in its body.
+  api.route('/', publicBillingRoutes);
+  api.route('/', publicInviteRoutes);
   api.use('*', tenant());
   api.route('/', overviewRoutes);
   api.route('/', projectRoutes);
+  api.route('/', invitesRoutes);
+  api.route('/', membersRoutes);
+  api.route('/', billingRoutes);
 
   app.route('/api', api);
 

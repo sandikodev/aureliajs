@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { getDb, schema } from '../db/client.js';
 import { issuesFromZod, notFound } from '../lib/errors.js';
+import { limitsFor } from '../lib/plan-limits.js';
 import { requireRole, tenantOf } from '../middleware/tenant.js';
 
 const toIso = (value: Date | string | null) =>
@@ -120,22 +121,30 @@ projectRoutes.post(
     const input = c.req.valid('json');
     const db = getDb();
 
-    if (tenant.plan === 'free') {
-      const [row] = await db
-        .select({ value: count() })
-        .from(schema.projects)
-        .where(eq(schema.projects.workspaceId, tenant.workspaceId));
-      if (Number(row?.value ?? 0) >= 3) {
-        return c.json(
-          {
-            error: {
-              code: 'plan_limit_reached',
-              message: 'The free plan is limited to 3 projects. Upgrade to add more.',
-            },
+    // Plan limits live in one place (lib/plan-limits.ts) so the API and the
+    // UI can never disagree about how many projects a plan includes.
+    const limits = limitsFor(tenant.plan);
+    const [row] = await db
+      .select({ value: count() })
+      .from(schema.projects)
+      .where(eq(schema.projects.workspaceId, tenant.workspaceId));
+
+    if (Number(row?.value ?? 0) >= limits.projects) {
+      return c.json(
+        {
+          error: {
+            code: 'plan_limit_reached',
+            message: `The ${tenant.plan} plan is limited to ${limits.projects} projects. Upgrade to add more.`,
+            issues: [
+              {
+                path: 'projects',
+                message: `${limits.projects} of ${limits.projects} used`,
+              },
+            ],
           },
-          402,
-        );
-      }
+        },
+        402,
+      );
     }
 
     const [created] = await db

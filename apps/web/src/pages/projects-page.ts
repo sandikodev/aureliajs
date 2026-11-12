@@ -217,10 +217,10 @@ export class ProjectsPage {
       if (this.isEditing && this.editingId) {
         const { project } = await api.updateProject(this.editingId, parsed.data);
         this.items = this.items.map((row) => (row.id === project.id ? project : row));
-        this.notice = `Updated “${project.name}”.`;
+        this.notice = `Updated "${project.name}".`;
       } else {
         const { project } = await api.createProject(parsed.data);
-        this.notice = `Created “${project.name}”.`;
+        this.notice = `Created "${project.name}".`;
         await this.load();
       }
       this.dialogEl.close();
@@ -273,7 +273,7 @@ export class ProjectsPage {
     if (!confirm(`Delete “${project.name}”? This cannot be undone.`)) return;
     try {
       await api.deleteProject(project.id);
-      this.notice = `Deleted “${project.name}”.`;
+      this.notice = `Deleted "${project.name}".`;
       await this.load();
     } catch {
       this.items = this.items.filter((row) => row.id !== project.id);

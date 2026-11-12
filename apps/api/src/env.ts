@@ -14,9 +14,12 @@ const envSchema = z.object({
   DATABASE_URL: z.string().default('postgres://aureliajs:aureliajs@localhost:5544/aureliajs'),
   SESSION_SECRET: z.string().min(16).default('dev-only-change-me-32-characters-min'),
   STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PRICE_MONTHLY: z.string().optional(),
   STRIPE_PRICE_YEARLY: z.string().optional(),
+  STRIPE_PRICE_SCALE: z.string().optional(),
+  STRIPE_PORTAL_CONFIGURATION_ID: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

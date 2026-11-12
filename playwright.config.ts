@@ -1,4 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync } from 'node:fs';
+
+// The billing suite needs STRIPE_WEBHOOK_SECRET to sign a test webhook
+// payload, so the repo-root .env has to be available before the config runs.
+const rootEnv = new URL('./.env', import.meta.url);
+if (existsSync(rootEnv)) {
+  process.loadEnvFile(rootEnv.pathname);
+}
 
 /**
  * Starts the web + API dev servers unless they are already running.

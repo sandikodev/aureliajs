@@ -14,6 +14,9 @@ importers:
       oxlint:
         specifier: 1.93.0
         version: 1.93.0
+      postgres:
+        specifier: 4.1.1
+        version: 4.1.1
       prettier:
         specifier: 3.6.2
         version: 3.6.2
@@ -44,6 +47,9 @@ importers:
       postgres:
         specifier: 4.1.1
         version: 4.1.1
+      stripe:
+        specifier: 23.1.0
+        version: 23.1.0(@types/node@24.10.1)
       zod:
         specifier: 4.6.7
         version: 4.6.7
@@ -1525,6 +1531,15 @@ packages:
   std-env@4.3.0:
     resolution: {integrity: sha512-OtU/EgQ1kIm5KwqQpBC6ZEMXrZRui11w8zgfTWp8cdO9B8OaPsbA8bTHO2P+HNo1VlUTGMVBwPhydu6poeXiag==}
 
+  stripe@23.1.0:
+    resolution: {integrity: sha512-fVUfMSfTPoukfoV//MUKAx2+YxyKmYaYtnAL9VkfnHfaPNQylFdWZMD+zgUFerI8rjbaiER8Vzj2XEUQ2AhAsQ==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@types/node': '>=20'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+
   tailwind-merge@3.7.0:
     resolution: {integrity: sha512-XPPUyAc+cvspz3lHTcR/QgPfW2A0lv/xQNIjX3HGhLR+Nq2lHaLq5MtTesHn8GUr3W3DguT2KT5x3NVgRtYwmA==}
 
@@ -2647,6 +2662,10 @@ snapshots:
   source-map@0.7.6: {}
 
   std-env@4.3.0: {}
+
+  stripe@23.1.0(@types/node@24.10.1):
+    optionalDependencies:
+      '@types/node': 24.10.1
 
   tailwind-merge@3.7.0: {}
 

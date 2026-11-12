@@ -23,7 +23,7 @@ test.beforeEach(async ({ page }) => {
   if (!response.ok()) {
     // If login fails (e.g. API not running), the tests that follow will just
     // run against the unauthenticated state; that's acceptable for smoke coverage.
-    console.error(`Login failed: ${response.status()} ${await response.text().slice(0, 200)}`);
+    console.error(`Login failed: status=${response.status()}`);
   }
 });
 
@@ -89,12 +89,12 @@ test('creates and deletes a project end to end', async ({ page }) => {
   await page.getByRole('button', { name: 'Create project' }).click();
 
   await expect(page.getByRole('dialog')).toBeHidden();
-  await expect(page.getByText(`Created “${name}”.`)).toBeVisible();
+  await expect(page.getByText(`Created "${name}"`)).toBeVisible();
   const row = page.getByRole('row').filter({ hasText: name });
   await expect(row).toHaveCount(1);
 
   await row.getByLabel('Project actions').click();
   await page.getByRole('button', { name: 'Delete' }).click();
-  await expect(page.getByText(`Deleted “${name}”.`)).toBeVisible();
+  await expect(page.getByText(`Deleted "${name}"`)).toBeVisible();
   await expect(page.getByRole('row').filter({ hasText: name })).toHaveCount(0);
 });

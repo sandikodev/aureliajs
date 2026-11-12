@@ -8,6 +8,13 @@
       "when": 1794476079368,
       "tag": "0000_married_roland_deschain",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794481600171,
+      "tag": "0001_billing_stripe",
+      "breakpoints": true
     }
   ]
 }

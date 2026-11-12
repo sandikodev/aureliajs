@@ -49,14 +49,77 @@ export const sessionUserSchema = userSchema.extend({
   role: roleSchema.nullable(),
 });
 export type SessionUser = z.infer<typeof sessionUserSchema>;
+/**
+ * The three plan tiers. `free` is what a workspace gets before it ever
+ * checks out; `pro` and `scale` are unlocked by a Stripe subscription.
+ */
+export const planSchema = z.enum(['free', 'pro', 'scale']);
+export type Plan = z.infer<typeof planSchema>;
+
 export const workspaceSchema = z.object({
   id: idSchema,
   name: z.string().min(1).max(80),
   slug: slugSchema,
-  plan: z.enum(['free', 'pro']).default('free'),
+  plan: planSchema,
   trialEndsAt: z.iso.datetime().nullable().default(null),
 });
 export type Workspace = z.infer<typeof workspaceSchema>;
+
+/* ------------------------------------------------------------------ */
+/* Billing                                                             */
+/* ------------------------------------------------------------------ */
+
+/** What each plan is allowed to do. The API enforces these, the UI renders them. */
+export const PLAN_LIMITS: Record<Plan, { projects: number; seats: number }> = {
+  free: { projects: 3, seats: 3 },
+  pro: { projects: 5000, seats: 10 },
+  scale: { projects: 50000, seats: 50 },
+};
+
+export const billingIntervalSchema = z.enum(['monthly', 'yearly']);
+export type BillingInterval = z.infer<typeof billingIntervalSchema>;
+
+/** Stripe subscription states we care about, mapped to what the UI shows. */
+export const subscriptionStatusSchema = z
+  .enum(['none', 'trialing', 'active', 'past_due', 'unpaid', 'incomplete', 'canceled', 'paused'])
+  .default('none');
+export type SubscriptionStatus = z.infer<typeof subscriptionStatusSchema>;
+
+export const checkoutRequestSchema = z.object({
+  plan: z.enum(['pro', 'scale']),
+  interval: billingIntervalSchema.default('monthly'),
+});
+export type CheckoutRequest = z.infer<typeof checkoutRequestSchema>;
+
+export const billingOverviewSchema = z.object({
+  plan: planSchema,
+  limits: z.object({ projects: z.number().int(), seats: z.number().int() }),
+  usage: z.object({
+    projects: z.number().int(),
+    seats: z.number().int(),
+  }),
+  subscription: z.object({
+    status: subscriptionStatusSchema,
+    currentPeriodEnd: z.iso.datetime().nullable(),
+    cancelAtPeriodEnd: z.boolean(),
+  }),
+  /** Which price ids are actually configured, so the UI can hide dead buttons. */
+  availablePrices: z.object({
+    monthly: z.boolean(),
+    yearly: z.boolean(),
+    scale: z.boolean(),
+  }),
+  invoices: z.array(
+    z.object({
+      id: z.string(),
+      date: z.iso.datetime(),
+      amountCents: z.number().int(),
+      status: z.string(),
+      invoiceUrl: z.string().nullable(),
+    }),
+  ),
+});
+export type BillingOverview = z.infer<typeof billingOverviewSchema>;
 
 /* ------------------------------------------------------------------ */
 /* Projects (the demo domain)                                          */
@@ -116,6 +179,45 @@ export const registerSchema = loginSchema.extend({
   workspaceName: z.string().trim().min(1).max(80),
 });
 export type RegisterInput = z.infer<typeof registerSchema>;
+
+/* ------------------------------------------------------------------ */
+/* Team (members & invitations)                                        */
+/* ------------------------------------------------------------------ */
+
+export const memberSchema = z.object({
+  id: idSchema,
+  name: z.string().min(1).max(80),
+  email: emailSchema,
+  avatarUrl: z.url().nullable().default(null),
+  role: roleSchema,
+  status: z.enum(['active', 'invited']),
+  joinedAt: z.iso.datetime(),
+});
+export type Member = z.infer<typeof memberSchema>;
+
+export const membersResponseSchema = z.object({
+  members: z.array(memberSchema),
+  seatLimit: z.number().int(),
+  seatUsed: z.number().int(),
+});
+export type MembersResponse = z.infer<typeof membersResponseSchema>;
+
+export const createInviteSchema = z.object({
+  email: emailSchema,
+  role: roleSchema.default('member'),
+});
+export type CreateInviteInput = z.infer<typeof createInviteSchema>;
+
+export const inviteSchema = z.object({
+  id: idSchema,
+  email: emailSchema,
+  role: roleSchema,
+  expiresAt: z.iso.datetime(),
+  createdAt: z.iso.datetime(),
+  acceptedAt: z.iso.datetime().nullable(),
+  state: z.enum(['pending', 'accepted', 'expired']),
+});
+export type Invite = z.infer<typeof inviteSchema>;
 
 /* ------------------------------------------------------------------ */
 /* Errors                                                              */

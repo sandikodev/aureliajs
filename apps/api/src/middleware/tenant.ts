@@ -1,4 +1,4 @@
-import type { Role } from '@aureliajs/shared';
+import type { Plan, Role } from '@aureliajs/shared';
 import type { Context, MiddlewareHandler } from 'hono';
 import { getCookie } from 'hono/cookie';
 import { HttpError, forbidden, unauthorized, unavailable } from '../lib/errors.js';
@@ -8,7 +8,7 @@ import { resolveWorkspace } from '../lib/workspace.js';
 export type TenantScope = {
   workspaceId: string;
   workspaceName: string;
-  plan: 'free' | 'pro';
+  plan: Plan;
   userId: string;
   actorName: string;
   role: Role;
