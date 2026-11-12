@@ -1,0 +1,36 @@
+import { defineConfig, devices } from '@playwright/test';
+
+/**
+ * Starts the web + API dev servers unless they are already running.
+ * CI provides Postgres separately (see .github/workflows/ci.yml) and runs
+ * migrations + seed before this config is used.
+ */
+export default defineConfig({
+  testDir: './e2e',
+  timeout: 30_000,
+  expect: { timeout: 7_000 },
+  fullyParallel: false,
+  retries: process.env.CI ? 2 : 0,
+  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : [['list']],
+  use: {
+    baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:4600',
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
+  },
+  webServer: process.env.E2E_BASE_URL
+    ? undefined
+    : {
+        command: 'pnpm dev',
+        url: 'http://localhost:4600',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+        stdout: 'ignore',
+        stderr: 'pipe',
+      },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
+});

@@ -1,0 +1,318 @@
+<div class="flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight">Projects</h1>
+    <p class="mt-1 text-sm text-muted-foreground">
+      ${total} projects in this workspace — search, filter and edit without leaving the page.
+    </p>
+  </div>
+  <div class="flex items-center gap-2">
+    <ui-button variant="outline" size="sm" click.trigger="exportCsv()">
+      <ui-icon name="download" size="15"></ui-icon> Export page
+    </ui-button>
+    <ui-button size="sm" click.trigger="openCreate()">
+      <ui-icon name="plus" size="15"></ui-icon> New project
+    </ui-button>
+  </div>
+</div>
+
+<div if.bind="demo" class="mt-4">
+  <ui-alert tone="warning">
+    <ui-icon name="alert" size="16"></ui-icon>
+    <span>
+      API offline — using local demo data. Changes are kept in memory only. Run
+      <code class="rounded bg-black/5 px-1 py-0.5 font-mono text-[12px] dark:bg-white/10"
+        >pnpm db:up &amp;&amp; pnpm db:migrate &amp;&amp; pnpm db:seed</code
+      >
+      to go live.
+    </span>
+  </ui-alert>
+</div>
+
+<div if.bind="notice" class="mt-4">
+  <ui-alert tone="success">
+    <ui-icon name="check" size="16"></ui-icon>
+    <span class="flex-1">${notice}</span>
+    <button type="button" class="text-current/70 hover:text-current" click.trigger="notice = ''" aria-label="Dismiss">
+      <ui-icon name="x" size="14"></ui-icon>
+    </button>
+  </ui-alert>
+</div>
+
+<div if.bind="error" class="mt-4">
+  <ui-alert tone="destructive">
+    <ui-icon name="alert" size="16"></ui-icon>
+    <span class="flex-1">${error}</span>
+    <button type="button" class="text-current/70 hover:text-current" click.trigger="error = ''" aria-label="Dismiss">
+      <ui-icon name="x" size="14"></ui-icon>
+    </button>
+  </ui-alert>
+</div>
+
+<!-- Filters -->
+<div class="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
+  <div class="relative flex-1">
+    <span class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-muted-foreground">
+      <ui-icon name="search" size="15"></ui-icon>
+    </span>
+    <input
+      type="search"
+      class="h-9 w-full rounded-md border border-input bg-transparent pr-3 pl-8 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 dark:bg-input/30"
+      placeholder="Search by project or owner…"
+      aria-label="Search projects"
+      value.two-way="q"
+      input.trigger="onSearchInput()"
+    />
+  </div>
+  <div class="w-full sm:w-44">
+    <ui-select
+      value.two-way="status"
+      options.bind="statusOptions"
+      change.trigger="onFilterChange()"
+      aria-label="Filter by status"
+    ></ui-select>
+  </div>
+  <div class="w-full sm:w-44">
+    <ui-select
+      value.two-way="sort"
+      options.bind="[
+        { value: 'updated', label: 'Recently updated' },
+        { value: 'budget', label: 'Highest budget' },
+        { value: 'name', label: 'Name A–Z' }
+      ]"
+      change.trigger="onFilterChange()"
+      aria-label="Sort projects"
+    ></ui-select>
+  </div>
+</div>
+
+<!-- Table -->
+<ui-card>
+  <div class="overflow-x-auto">
+    <table class="w-full min-w-[840px] caption-bottom text-sm">
+      <thead>
+        <tr class="border-b">
+          <th
+            class="h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
+          >
+            Project
+          </th>
+          <th
+            class="h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
+          >
+            Status
+          </th>
+          <th
+            class="h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
+          >
+            Owner
+          </th>
+          <th
+            class="h-10 px-4 text-right align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
+          >
+            Budget
+          </th>
+          <th
+            class="h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
+          >
+            Due
+          </th>
+          <th
+            class="h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
+          >
+            Updated
+          </th>
+          <th class="h-10 w-12 px-4"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <template repeat.for="i of [1,2,3,4,5,6]">
+          <tr if.bind="isLoading" class="border-b last:border-0">
+            <td class="px-4 py-3"><div class="h-4 w-40 animate-pulse rounded bg-muted"></div></td>
+            <td class="px-4 py-3"><div class="h-5 w-16 animate-pulse rounded bg-muted"></div></td>
+            <td class="px-4 py-3"><div class="h-4 w-28 animate-pulse rounded bg-muted"></div></td>
+            <td class="px-4 py-3"><div class="ml-auto h-4 w-16 animate-pulse rounded bg-muted"></div></td>
+            <td class="px-4 py-3"><div class="h-4 w-20 animate-pulse rounded bg-muted"></div></td>
+            <td class="px-4 py-3"><div class="h-4 w-16 animate-pulse rounded bg-muted"></div></td>
+            <td class="px-4 py-3"></td>
+          </tr>
+        </template>
+
+        <tr if.bind="!isLoading && items.length === 0">
+          <td colspan="7" class="px-4 py-14 text-center">
+            <div class="mx-auto flex max-w-sm flex-col items-center gap-2">
+              <span class="grid size-11 place-items-center rounded-full bg-muted text-muted-foreground">
+                <ui-icon name="inbox" size="20"></ui-icon>
+              </span>
+              <p class="text-sm font-medium">No projects match these filters</p>
+              <p class="text-xs text-muted-foreground">Try clearing the search box or switching the status filter.</p>
+              <ui-button variant="outline" size="sm" click.trigger="resetFilters()"> Reset filters </ui-button>
+            </div>
+          </td>
+        </tr>
+
+        <template repeat.for="project of items">
+          <tr if.bind="!isLoading" class="border-b transition-colors last:border-0 hover:bg-muted/40">
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-2.5">
+                <span
+                  class="grid size-8 shrink-0 place-items-center rounded-md border bg-muted/50 text-muted-foreground"
+                >
+                  <ui-icon name="folder" size="15"></ui-icon>
+                </span>
+                <div class="min-w-0">
+                  <p class="truncate font-medium">${project.name}</p>
+                  <p class="text-[11px] text-muted-foreground">#${project.id.slice(0, 8)}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-4 py-3">
+              <ui-badge variant.bind="statusMeta[project.status].variant">
+                ${statusMeta[project.status].label}
+              </ui-badge>
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-2">
+                <ui-avatar name.bind="project.ownerName" size="sm"></ui-avatar>
+                <span class="truncate text-[13px]">${project.ownerName}</span>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-right font-medium tabular-nums">${budget(project)}</td>
+            <td class="px-4 py-3">
+              <span class="${isOverdue(project) ? 'text-destructive' : 'text-muted-foreground'} text-[13px]">
+                ${due(project)}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-[13px] text-muted-foreground">${updated(project)}</td>
+            <td class="px-4 py-3 text-right">
+              <details class="relative inline-block text-left">
+                <summary
+                  class="inline-flex size-8 cursor-pointer list-none items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+                  aria-label="Project actions"
+                >
+                  <ui-icon name="ellipsis" size="16"></ui-icon>
+                </summary>
+                <div
+                  class="absolute right-0 z-20 mt-1 w-36 rounded-lg border bg-popover p-1 text-left text-popover-foreground shadow-md"
+                >
+                  <button
+                    type="button"
+                    class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[13px] hover:bg-accent"
+                    click.trigger="openEdit(project)"
+                  >
+                    <ui-icon name="settings" size="14"></ui-icon> Edit
+                  </button>
+                  <button
+                    if.bind="auth.canManage"
+                    type="button"
+                    class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[13px] text-destructive hover:bg-destructive/10"
+                    click.trigger="remove(project)"
+                  >
+                    <ui-icon name="x" size="14"></ui-icon> Delete
+                  </button>
+                </div>
+              </details>
+            </td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3">
+    <p class="text-xs text-muted-foreground">
+      Showing <span class="font-medium text-foreground tabular-nums">${rangeStart}–${rangeEnd}</span> of
+      <span class="font-medium text-foreground tabular-nums">${total}</span>
+    </p>
+    <div class="flex items-center gap-2">
+      <ui-button variant="outline" size="sm" disabled.bind="!canPrev" click.trigger="goToPage(page - 1)">
+        Previous
+      </ui-button>
+      <span class="text-xs text-muted-foreground tabular-nums">Page ${page} / ${totalPages}</span>
+      <ui-button variant="outline" size="sm" disabled.bind="!canNext" click.trigger="goToPage(page + 1)">
+        Next
+      </ui-button>
+    </div>
+  </div>
+</ui-card>
+
+<!-- Create / edit dialog -->
+<dialog
+  ref="dialogEl"
+  class="w-[min(92vw,32rem)] rounded-xl border bg-background p-0 text-foreground shadow-2xl"
+  aria-labelledby="project-dialog-title"
+>
+  <form submit.trigger="save()">
+    <div class="border-b px-5 py-4">
+      <h2 id="project-dialog-title" class="text-base font-semibold">${dialogTitle}</h2>
+      <p class="mt-0.5 text-xs text-muted-foreground">
+        Shared Zod schema validates this form and the API request — one source of truth.
+      </p>
+    </div>
+
+    <div class="space-y-4 px-5 py-4">
+      <div class="space-y-1.5">
+        <ui-label for="project-name">Name</ui-label>
+        <ui-input
+          id="project-name"
+          value.two-way="form.name"
+          placeholder="Billing revamp"
+          invalid.bind="!!fieldErrors['name']"
+        ></ui-input>
+        <p if.bind="fieldErrors['name']" class="text-xs text-destructive">${fieldErrors['name']}</p>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="space-y-1.5">
+          <ui-label for="project-owner">Owner</ui-label>
+          <ui-input
+            id="project-owner"
+            value.two-way="form.ownerName"
+            placeholder="Ayu Prameswari"
+            invalid.bind="!!fieldErrors['ownerName']"
+          ></ui-input>
+          <p if.bind="fieldErrors['ownerName']" class="text-xs text-destructive">${fieldErrors['ownerName']}</p>
+        </div>
+        <div class="space-y-1.5">
+          <ui-label for="project-status">Status</ui-label>
+          <ui-select
+            id="project-status"
+            value.two-way="form.status"
+            options.bind="[
+              { value: 'planning', label: 'Planning' },
+              { value: 'active', label: 'Active' },
+              { value: 'paused', label: 'Paused' },
+              { value: 'done', label: 'Done' }
+            ]"
+          ></ui-select>
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="space-y-1.5">
+          <ui-label for="project-budget">Budget (USD)</ui-label>
+          <ui-input
+            id="project-budget"
+            type="number"
+            value.two-way="form.budget"
+            placeholder="12000"
+            invalid.bind="!!fieldErrors['budgetCents']"
+          ></ui-input>
+          <p if.bind="fieldErrors['budgetCents']" class="text-xs text-destructive">${fieldErrors['budgetCents']}</p>
+        </div>
+        <div class="space-y-1.5">
+          <ui-label for="project-due">Due date</ui-label>
+          <ui-input id="project-due" type="date" value.two-way="form.dueDate"></ui-input>
+        </div>
+      </div>
+
+      <p if.bind="error" class="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">${error}</p>
+    </div>
+
+    <div class="flex justify-end gap-2 border-t px-5 py-3.5">
+      <ui-button variant="outline" size="sm" type="button" click.trigger="closeDialog()">Cancel</ui-button>
+      <ui-button size="sm" type="submit" loading.bind="saving">
+        ${isEditing ? 'Save changes' : 'Create project'}
+      </ui-button>
+    </div>
+  </form>
+</dialog>

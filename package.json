@@ -1,0 +1,32 @@
+{
+  "name": "aureliajs",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@11.1.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @aureliajs/shared build && pnpm -r --parallel --stream dev",
+    "dev:web": "pnpm --filter @aureliajs/web dev",
+    "dev:api": "pnpm --filter @aureliajs/api dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "test:e2e": "playwright test",
+    "lint": "oxlint .",
+    "format": "prettier --write .",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:generate": "pnpm --filter @aureliajs/api db:generate",
+    "db:migrate": "pnpm --filter @aureliajs/api db:migrate",
+    "db:seed": "pnpm --filter @aureliajs/api db:seed"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "oxlint": "1.93.0",
+    "prettier": "3.6.2",
+    "typescript": "5.9.3"
+  }
+}

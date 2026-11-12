@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aurelia Ops — SaaS admin dashboard</title>
+    <meta
+      name="description"
+      content="A production-shaped SaaS admin dashboard built with Aurelia 2, TypeScript, Tailwind CSS and Hono."
+    />
+    <meta name="theme-color" content="#0a0a0a" />
+    <!-- The router resolves routes relative to <base>; without it, deep links
+         (e.g. /projects) are treated as the root path on a hard reload. -->
+    <base href="/" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script>
+      // Apply the saved theme before first paint to avoid a flash of the wrong theme.
+      try {
+        var stored = localStorage.getItem('aurelia-ops-theme');
+        var dark = stored ? stored === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.classList.toggle('dark', dark);
+      } catch (_) {}
+    </script>
+  </head>
+  <body class="h-full">
+    <app-root></app-root>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,102 @@
+<div>
+  <h1 class="text-2xl font-semibold tracking-tight">Settings</h1>
+  <p class="mt-1 text-sm text-muted-foreground">Workspace preferences and localisation.</p>
+</div>
+
+<div if.bind="notice" class="mt-4">
+  <ui-alert tone="success"><ui-icon name="check" size="16"></ui-icon><span>${notice}</span></ui-alert>
+</div>
+<div if.bind="error" class="mt-4">
+  <ui-alert tone="destructive"><ui-icon name="alert" size="16"></ui-icon><span>${error}</span></ui-alert>
+</div>
+
+<div class="mt-5 grid gap-4 lg:grid-cols-3">
+  <div class="lg:col-span-2 space-y-4">
+    <ui-card>
+      <ui-card-header>
+        <ui-card-title>Workspace</ui-card-title>
+        <ui-card-description>Shown in the sidebar and on invoices</ui-card-description>
+      </ui-card-header>
+      <ui-card-content>
+        <form class="space-y-4" submit.trigger="save()">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="space-y-1.5">
+              <ui-label for="ws-name">Name</ui-label>
+              <ui-input id="ws-name" value.two-way="workspace.name"></ui-input>
+            </div>
+            <div class="space-y-1.5">
+              <ui-label for="ws-slug">Slug</ui-label>
+              <ui-input id="ws-slug" value.two-way="workspace.slug"></ui-input>
+              <p class="text-[11px] text-muted-foreground">Used in URLs and API headers.</p>
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <ui-button type="submit" size="sm">Save changes</ui-button>
+          </div>
+        </form>
+      </ui-card-content>
+    </ui-card>
+
+    <ui-card>
+      <ui-card-header>
+        <ui-card-title>Notifications</ui-card-title>
+        <ui-card-description>Email is stubbed until the delivery adapter lands</ui-card-description>
+      </ui-card-header>
+      <ui-card-content>
+        <label class="flex items-center justify-between gap-4 rounded-lg border px-3 py-2.5">
+          <span>
+            <span class="block text-[13px] font-medium">Weekly digest</span>
+            <span class="block text-[12px] text-muted-foreground">Overdue projects and budget burn, every Monday</span>
+          </span>
+          <input type="checkbox" class="size-4 accent-foreground" checked.bind="weeklyDigest" />
+        </label>
+        <p class="mt-3 text-[11px] text-muted-foreground">
+          The checkbox is real; the email pipeline is deliberately deferred. Naming the gap is cheaper than faking it.
+        </p>
+      </ui-card-content>
+    </ui-card>
+  </div>
+
+  <div class="space-y-4">
+    <ui-card>
+      <ui-card-header>
+        <ui-card-title>Appearance</ui-card-title>
+        <ui-card-description>Saved to localStorage, applied before first paint</ui-card-description>
+      </ui-card-header>
+      <ui-card-content>
+        <div class="flex items-center justify-between gap-3">
+          <span class="text-[13px]">Theme</span>
+          <ui-button variant="outline" size="sm" click.trigger="toggleTheme()">
+            <ui-icon name.bind="themeLabel === 'Dark' ? 'sun' : 'moon'" size="14"></ui-icon>
+            ${themeLabel}
+          </ui-button>
+        </div>
+      </ui-card-content>
+    </ui-card>
+
+    <ui-card>
+      <ui-card-header>
+        <ui-card-title>Language</ui-card-title>
+        <ui-card-description>@aurelia/i18n wiring lands in M6</ui-card-description>
+      </ui-card-header>
+      <ui-card-content>
+        <ui-select value.two-way="language" options.bind="languages" aria-label="Language"></ui-select>
+        <p class="mt-2 text-[11px] text-muted-foreground">
+          English + Bahasa Indonesia are the target locales. Copy lives in one place so translation is a data change,
+          not a refactor.
+        </p>
+      </ui-card-content>
+    </ui-card>
+
+    <ui-card>
+      <ui-card-header>
+        <ui-card-title>Danger zone</ui-card-title>
+      </ui-card-header>
+      <ui-card-content>
+        <p class="text-[12px] text-muted-foreground">Deleting a workspace removes projects and audit logs.</p>
+        <ui-button variant="destructive" size="sm" full disabled.bind="true"> Delete workspace </ui-button>
+        <p class="mt-2 text-[11px] text-muted-foreground">Requires a confirmation token — wired with auth in M1.</p>
+      </ui-card-content>
+    </ui-card>
+  </div>
+</div>

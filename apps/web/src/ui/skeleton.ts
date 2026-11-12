@@ -1,0 +1,21 @@
+import { bindable, customElement } from 'aurelia';
+import { cn } from '@/lib/utils';
+
+@customElement({
+  name: 'ui-skeleton',
+  containerless: true,
+  template: `<div class.bind="classes" style.bind="style" aria-hidden="true"></div>`,
+})
+export class UiSkeleton {
+  @bindable width = '100%';
+  @bindable height = '1rem';
+  @bindable rounded = 'rounded-md';
+
+  get classes(): string {
+    return cn('animate-pulse bg-muted', this.rounded);
+  }
+
+  get style(): string {
+    return `width:${this.width};height:${this.height}`;
+  }
+}

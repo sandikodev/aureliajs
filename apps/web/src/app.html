@@ -1,0 +1,188 @@
+<div class="flex min-h-dvh bg-background">
+  <!-- Mobile overlay -->
+  <div
+    if.bind="sidebarOpen && !isAuthRoute"
+    class="fixed inset-0 z-30 bg-black/50 lg:hidden"
+    click.trigger="closeSidebar()"
+    aria-hidden="true"
+  ></div>
+
+  <!-- Sidebar -->
+  <aside
+    if.bind="!isAuthRoute"
+    class="fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-200 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}"
+    aria-label="Primary"
+  >
+    <div class="flex h-14 items-center gap-2.5 border-b border-sidebar-border px-4">
+      <span class="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+        <ui-icon name="sparkles" size="17"></ui-icon>
+      </span>
+      <div class="min-w-0 leading-tight">
+        <p class="truncate text-sm font-semibold">Aurelia Ops</p>
+        <p class="truncate text-[11px] text-muted-foreground">SaaS admin starter</p>
+      </div>
+    </div>
+
+    <div class="p-3">
+      <details class="group relative">
+        <summary
+          class="flex cursor-pointer list-none items-center gap-2.5 rounded-lg border border-sidebar-border bg-background/60 px-2.5 py-2 text-left transition-colors hover:bg-sidebar-accent"
+        >
+          <span
+            class="grid size-8 shrink-0 place-items-center rounded-md bg-foreground text-[11px] font-semibold text-background"
+          >
+            ${auth.workspaceInitials}
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="block truncate text-[13px] font-medium">${auth.workspace?.name ?? 'Workspace'}</span>
+            <span class="block truncate text-[11px] text-muted-foreground"
+              >${auth.workspace?.plan === 'pro' ? 'Pro' : 'Free'} workspace</span
+            >
+          </span>
+          <ui-icon name="chevronDown" size="14"></ui-icon>
+        </summary>
+        <div
+          class="absolute inset-x-0 top-full z-20 mt-1 rounded-lg border bg-popover p-1 text-popover-foreground shadow-md"
+        >
+          <p class="px-2 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Workspaces</p>
+          <button
+            class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-[13px] hover:bg-accent"
+            type="button"
+          >
+            <ui-icon name="check" size="14"></ui-icon> ${auth.workspace?.name ?? 'Workspace'}
+          </button>
+          <button
+            class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-[13px] text-muted-foreground hover:bg-accent"
+            type="button"
+          >
+            <ui-icon name="plus" size="14"></ui-icon> Create workspace
+          </button>
+        </div>
+      </details>
+    </div>
+
+    <nav class="flex-1 space-y-1 px-3 pb-4">
+      <p class="px-2 pt-2 pb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Workspace</p>
+      <a
+        repeat.for="item of nav"
+        load.bind="item.href"
+        class="nav-link flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        click.trigger="closeSidebar()"
+      >
+        <ui-icon name.bind="item.icon" size="17"></ui-icon>
+        <span class="flex-1">${item.label}</span>
+      </a>
+
+      <p class="px-2 pt-4 pb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Resources</p>
+      <a
+        href="https://aurelia.io"
+        target="_blank"
+        rel="noreferrer"
+        class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+      >
+        <ui-icon name="arrowUpRight" size="17"></ui-icon>
+        <span class="flex-1">Aurelia docs</span>
+      </a>
+    </nav>
+
+    <div class="border-t border-sidebar-border p-3">
+      <div class="flex items-center gap-2 rounded-lg px-1 py-1">
+        <ui-avatar name.bind="auth.user?.name ?? '?'"></ui-avatar>
+        <div class="min-w-0 flex-1 leading-tight">
+          <p class="truncate text-[13px] font-medium">${auth.user?.name ?? 'Signed out'}</p>
+          <p class="truncate text-[11px] text-muted-foreground">${auth.user?.email ?? ''}</p>
+        </div>
+        <span
+          class="size-2 shrink-0 rounded-full ${apiState === 'live' ? 'bg-emerald-500' : apiState === 'demo' ? 'bg-amber-500' : 'bg-muted-foreground'}"
+          title.bind="apiState === 'live' ? 'API connected' : apiState === 'demo' ? 'Demo data — API offline' : 'Checking API'"
+        ></span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main column -->
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header
+      if.bind="!isAuthRoute"
+      class="sticky top-0 z-20 flex h-14 items-center gap-2 border-b bg-background/85 px-4 backdrop-blur lg:px-6"
+    >
+      <button
+        type="button"
+        class="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground lg:hidden"
+        click.trigger="toggleSidebar()"
+        aria-label="Open navigation"
+      >
+        <ui-icon name="panelLeft" size="18"></ui-icon>
+      </button>
+
+      <form class="relative hidden max-w-sm flex-1 sm:block" submit.trigger="submitSearch()">
+        <span class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-muted-foreground">
+          <ui-icon name="search" size="15"></ui-icon>
+        </span>
+        <input
+          type="search"
+          class="h-9 w-full rounded-md border border-input bg-transparent pr-3 pl-8 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 dark:bg-input/30"
+          placeholder="Search projects…"
+          aria-label="Search all projects"
+          value.bind="search"
+        />
+      </form>
+
+      <div class="ml-auto flex items-center gap-1">
+        <span
+          if.bind="apiState === 'demo'"
+          class="hidden items-center gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[11px] font-medium text-amber-700 sm:flex dark:text-amber-300"
+        >
+          <ui-icon name="alert" size="13"></ui-icon> Demo data
+        </span>
+        <ui-theme-toggle></ui-theme-toggle>
+        <button
+          type="button"
+          class="relative inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+          aria-label="Notifications"
+        >
+          <ui-icon name="bell" size="18"></ui-icon>
+          <span class="absolute top-2 right-2.5 size-1.5 rounded-full bg-destructive"></span>
+        </button>
+        <div class="mx-1 h-6 w-px bg-border"></div>
+        <details class="group relative">
+          <summary class="flex cursor-pointer list-none items-center gap-2 rounded-md p-1 hover:bg-accent">
+            <ui-avatar name.bind="auth.user?.name ?? '?'" size="sm"></ui-avatar>
+            <span class="hidden sm:block"><ui-icon name="chevronDown" size="14"></ui-icon></span>
+          </summary>
+          <div
+            class="absolute right-0 top-full z-20 mt-1 w-52 rounded-lg border bg-popover p-1 text-popover-foreground shadow-md"
+          >
+            <div class="px-2 py-1.5">
+              <p class="text-[13px] font-medium">${auth.user?.name ?? 'Signed out'}</p>
+              <p class="truncate text-[11px] text-muted-foreground">${auth.user?.email ?? ''}</p>
+            </div>
+            <div class="my-1 h-px bg-border"></div>
+            <a load="settings" class="flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] hover:bg-accent">
+              <ui-icon name="settings" size="15"></ui-icon> Settings
+            </a>
+            <a load="billing" class="flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] hover:bg-accent">
+              <ui-icon name="creditCard" size="15"></ui-icon> Billing
+            </a>
+            <div class="my-1 h-px bg-border"></div>
+            <button
+              type="button"
+              class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] text-muted-foreground hover:bg-accent"
+              click.trigger="signOut()"
+            >
+              <ui-icon name="logOut" size="15"></ui-icon> Sign out
+            </button>
+          </div>
+        </details>
+      </div>
+    </header>
+
+    <main class="w-full flex-1 ${isAuthRoute ? '' : 'mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-8'}">
+      <au-viewport></au-viewport>
+    </main>
+
+    <footer if.bind="!isAuthRoute" class="border-t px-4 py-4 text-[11px] text-muted-foreground lg:px-8">
+      <p>Aurelia 2 · TypeScript · Tailwind CSS · Hono — built as a working portfolio, not a mockup.</p>
+    </footer>
+  </div>
+</div>

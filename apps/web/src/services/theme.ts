@@ -1,0 +1,52 @@
+import { singleton } from 'aurelia';
+
+type Mode = 'light' | 'dark';
+
+const STORAGE_KEY = 'aurelia-ops-theme';
+
+@singleton()
+export class ThemeService {
+  private mode: Mode = 'light';
+
+  constructor() {
+    const stored = this.read();
+    const prefersDark =
+      typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches;
+    this.apply(stored ?? (prefersDark ? 'dark' : 'light'), false);
+  }
+
+  get current(): Mode {
+    return this.mode;
+  }
+
+  get isDark(): boolean {
+    return this.mode === 'dark';
+  }
+
+  toggle(): Mode {
+    this.apply(this.mode === 'dark' ? 'light' : 'dark');
+    return this.mode;
+  }
+
+  private apply(mode: Mode, persist = true): void {
+    this.mode = mode;
+    document.documentElement.classList.toggle('dark', mode === 'dark');
+    document.documentElement.style.colorScheme = mode;
+    if (persist) {
+      try {
+        localStorage.setItem(STORAGE_KEY, mode);
+      } catch {
+        /* private mode — ignore */
+      }
+    }
+  }
+
+  private read(): Mode | null {
+    try {
+      const value = localStorage.getItem(STORAGE_KEY);
+      return value === 'dark' || value === 'light' ? value : null;
+    } catch {
+      return null;
+    }
+  }
+}
