@@ -3,6 +3,7 @@ import type {
   BillingOverview,
   CreateInviteInput,
   CreateProjectInput,
+  CreateWorkspaceInput,
   Invite,
   LoginInput,
   MembersResponse,
@@ -10,6 +11,8 @@ import type {
   ProjectStatus,
   Role,
   UpdateProjectInput,
+  UpdateWorkspaceInput,
+  WorkspaceSummary,
 } from '@aureliajs/shared';
 
 export type OverviewStats = {
@@ -31,7 +34,30 @@ export type ActivityItem = {
   createdAt: string;
 };
 
-export type Overview = { stats: OverviewStats; activity: ActivityItem[] };
+export type Period = 'last-7' | 'last-30' | 'quarter';
+
+export type Overview = {
+  period: Period;
+  periodDays: number;
+  stats: OverviewStats;
+  /** Projects created per month, oldest first. */
+  trend: { month: string; value: number }[];
+  activity: ActivityItem[];
+};
+
+export type WorkspaceList = {
+  workspaces: WorkspaceSummary[];
+  activeWorkspaceId: string;
+};
+
+export type CurrentWorkspace = {
+  id: string;
+  name: string;
+  slug: string;
+  plan: 'free' | 'pro' | 'scale';
+  role: Role;
+  settings: { locale: 'en' | 'id'; weeklyDigest: boolean };
+};
 
 export type PaginatedProjects = {
   items: Project[];
@@ -106,7 +132,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
-  overview: () => request<Overview>('/api/overview'),
+  overview: (period: Period = 'last-30') => request<Overview>(`/api/overview?period=${period}`),
 
   listProjects: (query: ProjectQuery = {}) => {
     const params = new URLSearchParams();
@@ -183,4 +209,29 @@ export const api = {
     }),
 
   removeMember: (userId: string) => request<void>(`/api/members/${userId}`, { method: 'DELETE' }),
+
+  /* Workspaces */
+  workspaces: () => request<WorkspaceList>('/api/workspaces'),
+
+  currentWorkspace: () => request<CurrentWorkspace>('/api/workspaces/current'),
+
+  updateWorkspace: (input: UpdateWorkspaceInput) =>
+    request<CurrentWorkspace>('/api/workspaces/current', {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    }),
+
+  createWorkspace: (input: CreateWorkspaceInput) =>
+    request<{ workspace: WorkspaceSummary }>('/api/workspaces', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+
+  deleteWorkspace: () => request<void>('/api/workspaces/current', { method: 'DELETE' }),
+
+  switchWorkspace: (workspaceId: string) =>
+    request<AuthSession>('/api/auth/switch-workspace', {
+      method: 'POST',
+      body: JSON.stringify({ workspaceId }),
+    }),
 };

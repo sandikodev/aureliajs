@@ -3,11 +3,25 @@ import { IRouter } from '@aurelia/router';
 import template from './invite-page.html';
 import { api, ApiError } from '@/services/api';
 import { AuthService } from '@/services/auth';
+import { I18nService } from '@/services/i18n';
 
 @customElement({ name: 'invite-page', template })
 export class InvitePage {
   private readonly router = resolve(IRouter);
   private readonly auth = resolve(AuthService);
+  readonly i18n = resolve(I18nService);
+
+  /** The message catalog — see the note on `App.copy`. */
+  get copy() {
+    this.i18n.track();
+    return this.i18n.strings;
+  }
+
+  /** The confirmation, with the workspace name interpolated. */
+  get acceptedText(): string {
+    this.i18n.track();
+    return this.i18n.t('invite.accepted', { workspace: this.workspaceName });
+  }
 
   state: 'working' | 'accepted' | 'failed' = 'working';
   error = '';
@@ -17,7 +31,7 @@ export class InvitePage {
     const token = new URLSearchParams(window.location.search).get('token');
     if (!token) {
       this.state = 'failed';
-      this.error = 'This link is missing its invite token.';
+      this.error = this.i18n.t('invite.failed');
       return;
     }
 
@@ -29,10 +43,7 @@ export class InvitePage {
       this.state = 'accepted';
     } catch (cause) {
       this.state = 'failed';
-      this.error =
-        cause instanceof ApiError
-          ? cause.message
-          : 'Could not accept this invitation. It may have expired.';
+      this.error = cause instanceof ApiError ? cause.message : this.i18n.t('invite.expired');
     }
   }
 

@@ -1,16 +1,14 @@
 <div class="flex flex-wrap items-end justify-between gap-3">
   <div>
-    <h1 class="text-2xl font-semibold tracking-tight">Projects</h1>
-    <p class="mt-1 text-sm text-muted-foreground">
-      ${total} projects in this workspace — search, filter and edit without leaving the page.
-    </p>
+    <h1 class="text-2xl font-semibold tracking-tight">${copy['projects.title']}</h1>
+    <p class="mt-1 text-sm text-muted-foreground">${subtitleText}</p>
   </div>
   <div class="flex items-center gap-2">
     <ui-button variant="outline" size="sm" click.trigger="exportCsv()">
-      <ui-icon name="download" size="15"></ui-icon> Export page
+      <ui-icon name="download" size="15"></ui-icon> ${copy['projects.export']}
     </ui-button>
     <ui-button size="sm" click.trigger="openCreate()">
-      <ui-icon name="plus" size="15"></ui-icon> New project
+      <ui-icon name="plus" size="15"></ui-icon> ${copy['projects.new']}
     </ui-button>
   </div>
 </div>
@@ -18,13 +16,7 @@
 <div if.bind="demo" class="mt-4">
   <ui-alert tone="warning">
     <ui-icon name="alert" size="16"></ui-icon>
-    <span>
-      API offline — using local demo data. Changes are kept in memory only. Run
-      <code class="rounded bg-black/5 px-1 py-0.5 font-mono text-[12px] dark:bg-white/10"
-        >pnpm db:up &amp;&amp; pnpm db:migrate &amp;&amp; pnpm db:seed</code
-      >
-      to go live.
-    </span>
+    <span>${copy['projects.demoBanner']}</span>
   </ui-alert>
 </div>
 
@@ -68,19 +60,15 @@
       value.two-way="status"
       options.bind="statusOptions"
       change.trigger="onFilterChange()"
-      aria-label="Filter by status"
+      aria-label.bind="copy['projects.filterStatus']"
     ></ui-select>
   </div>
   <div class="w-full sm:w-44">
     <ui-select
       value.two-way="sort"
-      options.bind="[
-        { value: 'updated', label: 'Recently updated' },
-        { value: 'budget', label: 'Highest budget' },
-        { value: 'name', label: 'Name A–Z' }
-      ]"
+      options.bind="sortOptions"
       change.trigger="onFilterChange()"
-      aria-label="Sort projects"
+      aria-label.bind="copy['projects.sort']"
     ></ui-select>
   </div>
 </div>
@@ -94,32 +82,32 @@
           <th
             class="h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
           >
-            Project
+            ${copy['projects.columnName']}
           </th>
           <th
             class="h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
           >
-            Status
+            ${copy['projects.columnStatus']}
           </th>
           <th
             class="h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
           >
-            Owner
+            ${copy['projects.columnOwner']}
           </th>
           <th
             class="h-10 px-4 text-right align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
           >
-            Budget
+            ${copy['projects.columnBudget']}
           </th>
           <th
             class="h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
           >
-            Due
+            ${copy['projects.columnDue']}
           </th>
           <th
             class="h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
           >
-            Updated
+            ${copy['projects.columnUpdated']}
           </th>
           <th class="h-10 w-12 px-4"></th>
         </tr>
@@ -143,9 +131,11 @@
               <span class="grid size-11 place-items-center rounded-full bg-muted text-muted-foreground">
                 <ui-icon name="inbox" size="20"></ui-icon>
               </span>
-              <p class="text-sm font-medium">No projects match these filters</p>
-              <p class="text-xs text-muted-foreground">Try clearing the search box or switching the status filter.</p>
-              <ui-button variant="outline" size="sm" click.trigger="resetFilters()"> Reset filters </ui-button>
+              <p class="text-sm font-medium">${copy['projects.empty']}</p>
+              <p class="text-xs text-muted-foreground">${copy['projects.emptyHint']}</p>
+              <ui-button variant="outline" size="sm" click.trigger="resetFilters()">
+                ${copy['projects.clearFilters']}
+              </ui-button>
             </div>
           </td>
         </tr>
@@ -219,10 +209,7 @@
   </div>
 
   <div class="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3">
-    <p class="text-xs text-muted-foreground">
-      Showing <span class="font-medium text-foreground tabular-nums">${rangeStart}–${rangeEnd}</span> of
-      <span class="font-medium text-foreground tabular-nums">${total}</span>
-    </p>
+    <p class="text-xs text-muted-foreground">${showingLabel}</p>
     <div class="flex items-center gap-2">
       <ui-button variant="outline" size="sm" disabled.bind="!canPrev" click.trigger="goToPage(page - 1)">
         Previous
@@ -244,14 +231,12 @@
   <form submit.trigger="save()">
     <div class="border-b px-5 py-4">
       <h2 id="project-dialog-title" class="text-base font-semibold">${dialogTitle}</h2>
-      <p class="mt-0.5 text-xs text-muted-foreground">
-        Shared Zod schema validates this form and the API request — one source of truth.
-      </p>
+      <p class="mt-0.5 text-xs text-muted-foreground">${copy['projects.dialogHint']}</p>
     </div>
 
     <div class="space-y-4 px-5 py-4">
       <div class="space-y-1.5">
-        <ui-label for="project-name">Name</ui-label>
+        <ui-label for="project-name">${copy['projects.fieldName']}</ui-label>
         <ui-input
           id="project-name"
           value.two-way="form.name"
@@ -263,7 +248,7 @@
 
       <div class="grid gap-4 sm:grid-cols-2">
         <div class="space-y-1.5">
-          <ui-label for="project-owner">Owner</ui-label>
+          <ui-label for="project-owner">${copy['projects.columnOwner']}</ui-label>
           <ui-input
             id="project-owner"
             value.two-way="form.ownerName"
@@ -273,23 +258,14 @@
           <p if.bind="fieldErrors['ownerName']" class="text-xs text-destructive">${fieldErrors['ownerName']}</p>
         </div>
         <div class="space-y-1.5">
-          <ui-label for="project-status">Status</ui-label>
-          <ui-select
-            id="project-status"
-            value.two-way="form.status"
-            options.bind="[
-              { value: 'planning', label: 'Planning' },
-              { value: 'active', label: 'Active' },
-              { value: 'paused', label: 'Paused' },
-              { value: 'done', label: 'Done' }
-            ]"
-          ></ui-select>
+          <ui-label for="project-status">${copy['projects.columnStatus']}</ui-label>
+          <ui-select id="project-status" value.two-way="form.status" options.bind="dialogStatusOptions"></ui-select>
         </div>
       </div>
 
       <div class="grid gap-4 sm:grid-cols-2">
         <div class="space-y-1.5">
-          <ui-label for="project-budget">Budget (USD)</ui-label>
+          <ui-label for="project-budget">${copy['projects.fieldBudget']}</ui-label>
           <ui-input
             id="project-budget"
             type="number"
@@ -300,7 +276,7 @@
           <p if.bind="fieldErrors['budgetCents']" class="text-xs text-destructive">${fieldErrors['budgetCents']}</p>
         </div>
         <div class="space-y-1.5">
-          <ui-label for="project-due">Due date</ui-label>
+          <ui-label for="project-due">${copy['projects.fieldDue']}</ui-label>
           <ui-input id="project-due" type="date" value.two-way="form.dueDate"></ui-input>
         </div>
       </div>
@@ -309,9 +285,11 @@
     </div>
 
     <div class="flex justify-end gap-2 border-t px-5 py-3.5">
-      <ui-button variant="outline" size="sm" type="button" click.trigger="closeDialog()">Cancel</ui-button>
+      <ui-button variant="outline" size="sm" type="button" click.trigger="closeDialog()"
+        >${copy['projects.cancel']}</ui-button
+      >
       <ui-button size="sm" type="submit" loading.bind="saving">
-        ${isEditing ? 'Save changes' : 'Create project'}
+        ${isEditing ? copy['projects.save'] : copy['projects.create']}
       </ui-button>
     </div>
   </form>

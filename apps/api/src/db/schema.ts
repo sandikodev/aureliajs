@@ -3,6 +3,7 @@ import {
   date,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -10,6 +11,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
+import type { WorkspaceSettings } from '@aureliajs/shared';
 
 export const roleEnum = pgEnum('role', ['owner', 'admin', 'member']);
 export const projectStatusEnum = pgEnum('project_status', ['planning', 'active', 'paused', 'done']);
@@ -50,6 +52,11 @@ export const workspaces = pgTable(
       .default(false)
       .notNull(),
     trialEndsAt: timestamp('trial_ends_at', { withTimezone: true }),
+    /** Per-workspace preferences (locale, weekly digest). */
+    settings: jsonb('settings')
+      .$type<WorkspaceSettings>()
+      .default({ locale: 'en', weeklyDigest: true })
+      .notNull(),
     createdAt,
   },
   (t) => [

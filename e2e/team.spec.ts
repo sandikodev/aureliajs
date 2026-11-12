@@ -19,7 +19,42 @@ async function login(page: Page) {
   expect(response.ok(), 'demo login should succeed').toBeTruthy();
 }
 
+/**
+ * Remove a member again.
+ *
+ * Without this the suite leaves people behind, and the seat limit is reached
+ * halfway through the next run — which is how a test that depends on a clean
+ * database turns into one that fails for the wrong reason.
+ */
+async function removeMember(page: Page, email: string): Promise<void> {
+  const members = await (await page.request.get('/api/members')).json();
+  const target = members.members.find((m: { email: string }) => m.email === email);
+  if (!target) return;
+
+  await page.request.delete(`/api/members/${target.id}`, {
+    headers: { 'content-type': 'application/json' },
+  });
+}
+
 test.describe('team', () => {
+  /**
+   * Revoke any invitation left behind by an earlier run.
+   *
+   * An open invitation reserves a seat, so six of them would push the
+   * workspace over its seat limit and every later test would fail for the
+   * wrong reason.
+   */
+  test.beforeEach(async ({ page }) => {
+    await login(page);
+
+    const open = await (await page.request.get('/api/invites')).json();
+    for (const invite of open) {
+      if (invite.state === 'pending') {
+        await page.request.delete(`/api/invites?id=${invite.id}`).catch(() => {});
+      }
+    }
+  });
+
   test.afterAll(async () => {
     await closeDb();
   });
@@ -33,7 +68,7 @@ test.describe('team', () => {
     const body = await response.json();
     expect(body.seatUsed).toBeGreaterThan(0);
     expect(body.seatLimit).toBeGreaterThan(0);
-    expect(body.members.length).toBe(body.seatUsed);
+    expect(body.members.length).toBe(body.memberCount);
     expect(body.members[0]).toMatchObject({
       id: expect.any(String),
       name: expect.any(String),
@@ -90,6 +125,9 @@ test.describe('team', () => {
     expect(reuse.status()).toBe(409);
 
     await invitee.close();
+
+    // Leave the workspace the way we found it.
+    await removeMember(page, INVITEE_EMAIL);
   });
 
   test('a member can be demoted and removed by the owner', async ({ page }) => {
@@ -135,6 +173,7 @@ test.describe('team', () => {
     expect(afterRemoveSession.status()).toBe(401);
 
     await invitee.close();
+    await removeMember(page, email);
   });
 
   test('a member cannot invite or change roles', async ({ page }) => {
@@ -167,5 +206,52 @@ test.describe('team', () => {
     expect(roleAttempt.status()).toBe(403);
 
     await memberContext.close();
+  });
+
+  test('inviting more people than the plan allows is refused', async ({ page }) => {
+    await login(page);
+
+    // Revoke any invitation left behind by an earlier run so the seat
+    // count starts from the real number of members.
+    const open = await (await page.request.get('/api/invites')).json();
+    for (const invite of open) {
+      if (invite.state === 'pending') {
+        await page.request.delete(`/api/invites?id=${invite.id}`).catch(() => {});
+      }
+    }
+
+    const members = await (await page.request.get('/api/members')).json();
+    const limit = members.seatLimit;
+
+    // Fill the remaining seats with open invitations.
+    const created: string[] = [];
+    for (let i = members.seatUsed; i < limit; i += 1) {
+      const response = await page.request.post('/api/invites', {
+        data: { email: `e2e-seat-${i}-${Date.now()}@northwind.test`, role: 'member' },
+        headers: { 'content-type': 'application/json' },
+      });
+      expect(response.status(), `invite ${i} should succeed`).toBe(201);
+      created.push((await response.json()).invite.email);
+    }
+
+    // One more must be refused with the seat-limit code.
+    const overflow = await page.request.post('/api/invites', {
+      data: { email: `e2e-overflow-${Date.now()}@northwind.test`, role: 'member' },
+      headers: { 'content-type': 'application/json' },
+    });
+    expect(overflow.status()).toBe(402);
+    const body = await overflow.json();
+    expect(body.error.code).toBe('seat_limit_reached');
+    expect(body.error.message).toContain(String(limit));
+
+    // The UI says so before the user even tries.
+    await page.goto('/members');
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByTestId('seats-full')).toBeVisible();
+
+    // Clean up the invitations we created.
+    for (const email of created) {
+      await page.request.delete(`/api/invites?email=${encodeURIComponent(email)}`).catch(() => {});
+    }
   });
 });

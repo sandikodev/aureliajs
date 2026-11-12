@@ -1,8 +1,9 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { and, eq } from 'drizzle-orm';
+import { and, count, eq, isNull } from 'drizzle-orm';
 import { getDb, schema } from '../db/client.js';
 import { badRequest, conflict, forbidden, notFound } from '../lib/errors.js';
+import { limitsFor } from '../lib/plan-limits.js';
 import { tenantOf } from '../middleware/tenant.js';
 
 export const memberRoutes = new Hono();
@@ -28,7 +29,17 @@ memberRoutes.get('/members', async (c) => {
     .innerJoin(schema.users, eq(schema.users.id, schema.memberships.userId))
     .where(eq(schema.memberships.workspaceId, tenant.workspaceId));
 
-  const seatLimit = tenant.plan === 'free' ? 3 : tenant.plan === 'pro' ? 10 : 50;
+  const seatLimit = limitsFor(tenant.plan).seats;
+
+  // An open invitation already reserves a seat, so it counts towards the
+  // usage. Showing "4 of 10" while six invitations are outstanding would
+  // make the limit look further away than it is.
+  const [pendingRow] = await db
+    .select({ value: count() })
+    .from(schema.invites)
+    .where(
+      and(eq(schema.invites.workspaceId, tenant.workspaceId), isNull(schema.invites.acceptedAt)),
+    );
 
   return c.json({
     members: rows.map((row) => ({
@@ -41,7 +52,9 @@ memberRoutes.get('/members', async (c) => {
       joinedAt: row.joinedAt.toISOString(),
     })),
     seatLimit,
-    seatUsed: rows.length,
+    seatUsed: rows.length + Number(pendingRow?.value ?? 0),
+    memberCount: rows.length,
+    pendingInvites: Number(pendingRow?.value ?? 0),
   });
 });
 

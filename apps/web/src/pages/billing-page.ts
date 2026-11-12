@@ -2,41 +2,47 @@ import { formatCents, PLAN_LIMITS, type BillingOverview, type Plan } from '@aure
 import { customElement } from 'aurelia';
 import template from './billing-page.html';
 import { api, ApiError } from '@/services/api';
+import { I18nService } from '@/services/i18n';
+import { resolve } from 'aurelia';
 
 type PlanTier = {
   id: Plan;
-  label: string;
-  priceLabel: string;
-  blurb: string;
-  features: string[];
+  labelKey: 'billing.planFree' | 'billing.planPro' | 'billing.planScale';
+  priceKey: 'billing.priceFree' | 'billing.pricePro' | 'billing.priceScale';
+  blurbKey: 'billing.planFreeBlurb' | 'billing.planProBlurb' | 'billing.planScaleBlurb';
 };
 
 const PLAN_TIERS: PlanTier[] = [
   {
     id: 'free',
-    label: 'Free',
-    priceLabel: '$0',
-    blurb: 'For trying the dashboard with a small team.',
-    features: ['3 projects', '3 seats', 'Community support'],
+    labelKey: 'billing.planFree',
+    priceKey: 'billing.priceFree',
+    blurbKey: 'billing.planFreeBlurb',
   },
   {
     id: 'pro',
-    label: 'Pro',
-    priceLabel: '$49/mo',
-    blurb: 'For a studio running delivery on a daily basis.',
-    features: ['5 000 projects', '10 seats', 'Stripe billing', 'Audit trail'],
+    labelKey: 'billing.planPro',
+    priceKey: 'billing.pricePro',
+    blurbKey: 'billing.planProBlurb',
   },
   {
     id: 'scale',
-    label: 'Scale',
-    priceLabel: '$499/mo',
-    blurb: 'For teams that need room to grow.',
-    features: ['50 000 projects', '50 seats', 'Everything in Pro', 'Priority support'],
+    labelKey: 'billing.planScale',
+    priceKey: 'billing.priceScale',
+    blurbKey: 'billing.planScaleBlurb',
   },
 ];
 
 @customElement({ name: 'billing-page', template })
 export class BillingPage {
+  readonly i18n = resolve(I18nService);
+
+  /** The message catalog — see the note on `App.copy`. */
+  get copy() {
+    this.i18n.track();
+    return this.i18n.strings;
+  }
+
   overview: BillingOverview | null = null;
 
   isLoading = true;
@@ -131,7 +137,9 @@ export class BillingPage {
   }
 
   get planLabel(): string {
-    return PLAN_TIERS.find((tier) => tier.id === this.plan)?.label ?? 'Free';
+    this.i18n.track();
+    const tier = PLAN_TIERS.find((t) => t.id === this.plan);
+    return tier ? this.i18n.t(tier.labelKey) : this.i18n.t('billing.planFree');
   }
 
   get isPaid(): boolean {
@@ -143,24 +151,18 @@ export class BillingPage {
   }
 
   get statusLabel(): string {
-    switch (this.subscriptionStatus) {
-      case 'active':
-        return 'Active';
-      case 'trialing':
-        return 'Trialing';
-      case 'past_due':
-        return 'Past due';
-      case 'unpaid':
-        return 'Unpaid';
-      case 'incomplete':
-        return 'Incomplete';
-      case 'canceled':
-        return 'Canceled';
-      case 'paused':
-        return 'Paused';
-      default:
-        return 'No subscription';
-    }
+    this.i18n.track();
+    const map: Record<string, string> = {
+      active: 'billing.statusActive',
+      trialing: 'billing.statusTrialing',
+      past_due: 'billing.statusPastDue',
+      unpaid: 'billing.statusUnpaid',
+      incomplete: 'billing.statusIncomplete',
+      canceled: 'billing.statusCanceled',
+      paused: 'billing.statusPaused',
+      none: 'billing.statusNone',
+    };
+    return this.i18n.t((map[this.subscriptionStatus] ?? 'billing.statusNone') as never);
   }
 
   get statusTone(): 'success' | 'warning' | 'destructive' | 'outline' {
@@ -181,7 +183,77 @@ export class BillingPage {
   get renewsOn(): string {
     const end = this.overview?.subscription.currentPeriodEnd;
     if (!end) return '';
-    return new Date(end).toLocaleDateString('en-US', {
+    return this.formatDate(end);
+  }
+
+  /** "Renews 1 Nov 2026" */
+  get renewsOnLabel(): string {
+    this.i18n.track();
+    const end = this.overview?.subscription.currentPeriodEnd;
+    if (!end) return this.i18n.t('billing.noSubscription');
+    return this.i18n.t('billing.renewsOn', { date: this.formatDate(end) });
+  }
+
+  /** "Up to 10 seats and 5 000 projects" */
+  get limitsLabel(): string {
+    this.i18n.track();
+    if (!this.overview) return '';
+    return this.i18n.t('billing.upTo', {
+      seats: this.overview.limits.seats,
+      projects: this.overview.limits.projects,
+    });
+  }
+
+  /** "42 / 5000" */
+  get projectsUsageLabel(): string {
+    this.i18n.track();
+    if (!this.overview) return '';
+    return this.i18n.t('billing.projectsUsed', {
+      used: this.overview.usage.projects,
+      limit: this.overview.limits.projects,
+    });
+  }
+
+  /** "4 / 10" */
+  get seatsUsageLabel(): string {
+    this.i18n.track();
+    if (!this.overview) return '';
+    return this.i18n.t('billing.seatsUsed', {
+      used: this.overview.usage.seats,
+      limit: this.overview.limits.seats,
+    });
+  }
+
+  /** The plan tier's label, from the catalog. */
+  tierLabel(tier: (typeof PLAN_TIERS)[number]): string {
+    this.i18n.track();
+    return this.i18n.t(tier.labelKey);
+  }
+
+  tierPrice(tier: (typeof PLAN_TIERS)[number]): string {
+    this.i18n.track();
+    return this.i18n.t(tier.priceKey);
+  }
+
+  /**
+   * The feature list for a tier.
+   *
+   * The numbers come from the shared `PLAN_LIMITS`, so the pricing table
+   * cannot claim a limit the API does not enforce.
+   */
+  tierFeatures(plan: Plan): string[] {
+    this.i18n.track();
+    const limits = PLAN_LIMITS[plan];
+    return [
+      this.i18n.t('billing.featureProjects', {
+        count: limits.projects.toLocaleString(this.i18n.locale),
+      }),
+      this.i18n.t('billing.featureSeats', { count: limits.seats }),
+    ];
+  }
+
+  private formatDate(iso: string): string {
+    return new Date(iso).toLocaleDateString(this.i18n.locale === 'id' ? 'id-ID' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -213,15 +285,11 @@ export class BillingPage {
   }
 
   amount(cents: number): string {
-    return formatCents(cents);
+    return formatCents(cents, this.i18n.locale === 'id' ? 'id-ID' : 'en-US');
   }
 
   invoiceDate(iso: string): string {
-    return new Date(iso).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    return this.formatDate(iso);
   }
 
   invoiceStatus(status: string): 'success' | 'warning' | 'outline' {

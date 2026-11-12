@@ -17,6 +17,21 @@
     Skip to content
   </a>
 
+  <div if.bind="workspaceNotice" class="fixed right-4 bottom-4 z-50 w-80" data-testid="billing-notice">
+    <ui-alert tone="success">
+      <ui-icon name="check" size="16"></ui-icon>
+      <span class="flex-1">${workspaceNotice}</span>
+      <button
+        type="button"
+        class="text-current/70 hover:text-current"
+        click.trigger="workspaceNotice = ''"
+        aria-label="Dismiss"
+      >
+        <ui-icon name="x" size="14"></ui-icon>
+      </button>
+    </ui-alert>
+  </div>
+
   <!-- Mobile overlay -->
   <div
     if.bind="sidebarOpen && !isAuthRoute"
@@ -45,6 +60,7 @@
       <details class="group relative">
         <summary
           class="flex cursor-pointer list-none items-center gap-2.5 rounded-lg border border-sidebar-border bg-background/60 px-2.5 py-2 text-left transition-colors hover:bg-sidebar-accent"
+          data-testid="workspace-switcher"
         >
           <span
             class="grid size-8 shrink-0 place-items-center rounded-md bg-foreground text-[11px] font-semibold text-background"
@@ -68,25 +84,38 @@
         <div
           class="absolute inset-x-0 top-full z-20 mt-1 rounded-lg border bg-popover p-1 text-popover-foreground shadow-md"
         >
-          <p class="px-2 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Workspaces</p>
+          <p class="px-2 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+            ${copy['app.workspaces']}
+          </p>
           <button
+            repeat.for="workspace of workspaces"
             class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-[13px] hover:bg-accent"
             type="button"
+            disabled.bind="workspace.isActive || switchingWorkspace"
+            click.trigger="switchTo(workspace)"
           >
-            <ui-icon name="check" size="14"></ui-icon> ${auth.workspace?.name ?? 'Workspace'}
+            <ui-icon if.bind="workspace.isActive" name="check" size="14"></ui-icon>
+            <span class="flex-1 truncate">${workspace.name}</span>
+            <span class="text-[11px] text-muted-foreground">${workspace.plan}</span>
           </button>
+          <p if.bind="workspaces.length === 0" class="px-2 py-2 text-[12px] text-muted-foreground">
+            ${copy['app.noWorkspaces']}
+          </p>
           <button
             class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-[13px] text-muted-foreground hover:bg-accent"
             type="button"
+            click.trigger="createWorkspace()"
           >
-            <ui-icon name="plus" size="14"></ui-icon> Create workspace
+            <ui-icon name="plus" size="14"></ui-icon> ${copy['app.createWorkspace']}
           </button>
         </div>
       </details>
     </div>
 
     <nav class="flex-1 space-y-1 px-3 pb-4">
-      <p class="px-2 pt-2 pb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Workspace</p>
+      <p class="px-2 pt-2 pb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+        ${copy['app.workspaceNav']}
+      </p>
       <a
         repeat.for="item of nav"
         load.bind="item.href"
@@ -97,7 +126,9 @@
         <span class="flex-1">${item.label}</span>
       </a>
 
-      <p class="px-2 pt-4 pb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Resources</p>
+      <p class="px-2 pt-4 pb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+        ${copy['app.resources']}
+      </p>
       <a
         href="https://aurelia.io"
         target="_blank"
@@ -105,7 +136,7 @@
         class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
       >
         <ui-icon name="arrowUpRight" size="17"></ui-icon>
-        <span class="flex-1">Aurelia docs</span>
+        <span class="flex-1">${copy['app.aureliaDocs']}</span>
       </a>
     </nav>
 
@@ -113,12 +144,18 @@
       <div class="flex items-center gap-2 rounded-lg px-1 py-1">
         <ui-avatar name.bind="auth.user?.name ?? '?'"></ui-avatar>
         <div class="min-w-0 flex-1 leading-tight">
-          <p class="truncate text-[13px] font-medium">${auth.user?.name ?? 'Signed out'}</p>
+          <p class="truncate text-[13px] font-medium">${auth.user?.name ?? copy['app.signedOut']}</p>
           <p class="truncate text-[11px] text-muted-foreground">${auth.user?.email ?? ''}</p>
         </div>
         <span
           class="size-2 shrink-0 rounded-full ${apiState === 'live' ? 'bg-emerald-500' : apiState === 'demo' ? 'bg-amber-500' : 'bg-muted-foreground'}"
-          title.bind="apiState === 'live' ? 'API connected' : apiState === 'demo' ? 'Demo data — API offline' : 'Checking API'"
+          title.bind="
+            apiState === 'live'
+              ? copy['app.apiConnected']
+              : apiState === 'demo'
+                ? copy['app.apiOffline']
+                : copy['app.checkingApi']
+          "
         ></span>
       </div>
     </div>
@@ -134,7 +171,7 @@
         type="button"
         class="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground lg:hidden"
         click.trigger="toggleSidebar()"
-        aria-label="Open navigation"
+        aria-label.bind="copy['app.openNavigation']"
       >
         <ui-icon name="panelLeft" size="18"></ui-icon>
       </button>
@@ -146,8 +183,8 @@
         <input
           type="search"
           class="h-9 w-full rounded-md border border-input bg-transparent pr-3 pl-8 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 dark:bg-input/30"
-          placeholder="Search projects…"
-          aria-label="Search all projects"
+          placeholder.bind="copy['projects.searchPlaceholder']"
+          aria-label.bind="copy['app.searchAllProjects']"
           value.bind="search"
         />
       </form>
@@ -157,45 +194,105 @@
           if.bind="apiState === 'demo'"
           class="hidden items-center gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[11px] font-medium text-amber-700 sm:flex dark:text-amber-300"
         >
-          <ui-icon name="alert" size="13"></ui-icon> Demo data
+          <ui-icon name="alert" size="13"></ui-icon> ${copy['app.demoData']}
         </span>
         <ui-theme-toggle></ui-theme-toggle>
-        <button
-          type="button"
-          class="relative inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
-          aria-label="Notifications"
-        >
-          <ui-icon name="bell" size="18"></ui-icon>
-          <span class="absolute top-2 right-2.5 size-1.5 rounded-full bg-destructive"></span>
-        </button>
+
+        <!--
+          The bell opens the audit trail. It used to be a dead button with a
+          permanent red dot; now it shows what actually happened and the dot
+          only appears when something happened in the last day.
+        -->
+        <details class="group relative">
+          <summary
+            class="relative inline-flex size-9 list-none items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+            aria-label.bind="copy['app.notifications']"
+            data-testid="notifications"
+          >
+            <ui-icon name="bell" size="18"></ui-icon>
+            <span
+              if.bind="hasRecentActivity"
+              class="absolute top-2 right-2.5 size-1.5 rounded-full bg-destructive"
+              aria-hidden="true"
+            ></span>
+          </summary>
+          <div
+            class="absolute right-0 top-full z-20 mt-1 w-72 rounded-lg border bg-popover p-1 text-popover-foreground shadow-md"
+          >
+            <p class="px-2 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+              ${copy['dashboard.recentActivity']}
+            </p>
+            <p if.bind="activity.length === 0" class="px-2 py-3 text-[12px] text-muted-foreground">
+              ${copy['dashboard.emptyActivity']}
+            </p>
+            <ul class="max-h-72 overflow-y-auto">
+              <li repeat.for="item of activity" class="border-t px-2 py-2 first:border-t-0">
+                <p class="truncate text-[12px]">
+                  <span class="font-medium">${item.actorName}</span>
+                  <span class="text-muted-foreground">${item.target}</span>
+                </p>
+                <p class="text-[11px] text-muted-foreground">${relativeTime(item.createdAt)}</p>
+              </li>
+            </ul>
+          </div>
+        </details>
+
         <div class="mx-1 h-6 w-px bg-border"></div>
         <details class="group relative">
-          <summary class="flex cursor-pointer list-none items-center gap-2 rounded-md p-1 hover:bg-accent">
+          <summary
+            class="flex cursor-pointer list-none items-center gap-2 rounded-md p-1 hover:bg-accent"
+            data-testid="account-menu"
+          >
             <ui-avatar name.bind="auth.user?.name ?? '?'" size="sm"></ui-avatar>
             <span class="hidden sm:block"><ui-icon name="chevronDown" size="14"></ui-icon></span>
-            <span class="sr-only">Account menu for ${auth.user?.name ?? 'signed out user'}</span>
+            <span class="sr-only">${accountMenuText}</span>
           </summary>
           <div
             class="absolute right-0 top-full z-20 mt-1 w-52 rounded-lg border bg-popover p-1 text-popover-foreground shadow-md"
           >
             <div class="px-2 py-1.5">
-              <p class="text-[13px] font-medium">${auth.user?.name ?? 'Signed out'}</p>
+              <p class="text-[13px] font-medium">${auth.user?.name ?? copy['app.signedOut']}</p>
               <p class="truncate text-[11px] text-muted-foreground">${auth.user?.email ?? ''}</p>
             </div>
             <div class="my-1 h-px bg-border"></div>
-            <a load="settings" class="flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] hover:bg-accent">
-              <ui-icon name="settings" size="15"></ui-icon> Settings
+            <a
+              load.bind="'settings'"
+              class="flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] hover:bg-accent"
+            >
+              <ui-icon name="settings" size="15"></ui-icon> ${copy['app.settings']}
             </a>
-            <a load="billing" class="flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] hover:bg-accent">
-              <ui-icon name="creditCard" size="15"></ui-icon> Billing
+            <a load.bind="'billing'" class="flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] hover:bg-accent">
+              <ui-icon name="creditCard" size="15"></ui-icon> ${copy['app.billing']}
             </a>
+            <div class="my-1 h-px bg-border"></div>
+            <!--
+              The language switcher lives in the account menu as well as on
+              the settings page: a reader who hits a paragraph they cannot
+              understand should not have to go looking for a settings form.
+            -->
+            <div class="px-2 py-1.5">
+              <p class="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                ${copy['settings.language']}
+              </p>
+              <div class="mt-1 flex gap-1">
+                <button
+                  repeat.for="option of localeOptions"
+                  type="button"
+                  class="rounded-md px-2 py-1 text-[12px] hover:bg-accent ${i18n.locale === option.value ? 'bg-accent font-medium' : 'text-muted-foreground'}"
+                  click.trigger="changeLocale(option.value)"
+                  aria-pressed.bind="i18n.locale === option.value"
+                >
+                  ${option.label}
+                </button>
+              </div>
+            </div>
             <div class="my-1 h-px bg-border"></div>
             <button
               type="button"
               class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] text-muted-foreground hover:bg-accent"
               click.trigger="signOut()"
             >
-              <ui-icon name="logOut" size="15"></ui-icon> Sign out
+              <ui-icon name="logOut" size="15"></ui-icon> ${copy['app.signOut']}
             </button>
           </div>
         </details>
@@ -211,7 +308,35 @@
     </main>
 
     <footer if.bind="!isAuthRoute" class="border-t px-4 py-4 text-[11px] text-muted-foreground lg:px-8">
-      <p>Aurelia 2 · TypeScript · Tailwind CSS · Hono — built as a working portfolio, not a mockup.</p>
+      <p>${copy['app.footer']}</p>
     </footer>
   </div>
+
+  <!-- Create a workspace -->
+  <dialog
+    ref="workspaceDialogEl"
+    class="w-[min(92vw,28rem)] rounded-xl border bg-background p-0 text-foreground shadow-2xl"
+    aria-labelledby="workspace-dialog-title"
+  >
+    <form submit.trigger="saveWorkspace()">
+      <div class="border-b px-5 py-4">
+        <h2 id="workspace-dialog-title" class="text-base font-semibold">${copy['app.createWorkspace']}</h2>
+      </div>
+
+      <div class="space-y-4 px-5 py-4">
+        <div class="space-y-1.5">
+          <ui-label for="workspace-name">${copy['settings.name']}</ui-label>
+          <ui-input id="workspace-name" value.two-way="newWorkspace.name" placeholder="Acme Studio"></ui-input>
+        </div>
+        <p if.bind="workspaceError" class="text-xs text-destructive">${workspaceError}</p>
+      </div>
+
+      <div class="flex justify-end gap-2 border-t px-5 py-3">
+        <ui-button type="button" variant="outline" size="sm" click.trigger="workspaceDialogEl.close()">
+          ${copy['common.cancel']}
+        </ui-button>
+        <ui-button type="submit" size="sm" loading.bind="creatingWorkspace"> ${copy['app.createWorkspace']} </ui-button>
+      </div>
+    </form>
+  </dialog>
 </div>

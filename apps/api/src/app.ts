@@ -12,6 +12,7 @@ import { membersRoutes } from './routes/members.js';
 import { healthRoutes } from './routes/health.js';
 import { overviewRoutes } from './routes/overview.js';
 import { projectRoutes } from './routes/projects.js';
+import { workspaceRoutes } from './routes/workspaces.js';
 
 export function createApp() {
   const app = new Hono();
@@ -52,6 +53,7 @@ export function createApp() {
   api.route('/', invitesRoutes);
   api.route('/', membersRoutes);
   api.route('/', billingRoutes);
+  api.route('/', workspaceRoutes);
 
   app.route('/api', api);
 

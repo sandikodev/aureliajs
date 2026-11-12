@@ -2,6 +2,7 @@ import { authSessionSchema, loginSchema, type AuthSession } from '@aureliajs/sha
 import { verify } from '@node-rs/argon2';
 import { and, eq, lt } from 'drizzle-orm';
 import { Hono } from 'hono';
+import { z } from 'zod';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { getDb, schema } from '../db/client.js';
 import { HttpError, unauthorized } from '../lib/errors.js';
@@ -123,4 +124,59 @@ authRoutes.post('/auth/logout', async (c) => {
   }
   deleteCookie(c, SESSION_COOKIE, { path: '/' });
   return c.body(null, 204);
+});
+
+/**
+ * `POST /api/auth/switch-workspace` — change the active workspace.
+ *
+ * The session row keeps the active workspace, so switching is a database
+ * update rather than a new cookie. The user must actually be a member of the
+ * target workspace — the switcher is not an escalation path.
+ */
+authRoutes.post('/auth/switch-workspace', async (c) => {
+  const body = await c.req.json().catch(() => null);
+  const parsed = z.object({ workspaceId: z.string().uuid() }).safeParse(body);
+  if (!parsed.success) {
+    throw new HttpError(400, 'validation_failed', 'A workspace id is required');
+  }
+
+  const token = getCookie(c, SESSION_COOKIE);
+  const session = await loadSession(token);
+  if (!session) throw unauthorized('Your session has expired. Sign in again.');
+
+  const db = getDb();
+  const [membership] = await db
+    .select({ role: schema.memberships.role })
+    .from(schema.memberships)
+    .where(
+      and(
+        eq(schema.memberships.userId, session.userId),
+        eq(schema.memberships.workspaceId, parsed.data.workspaceId),
+      ),
+    )
+    .limit(1);
+
+  if (!membership) {
+    throw new HttpError(403, 'forbidden', 'You are not a member of that workspace');
+  }
+
+  await db
+    .update(schema.sessions)
+    .set({ activeWorkspaceId: parsed.data.workspaceId })
+    .where(eq(schema.sessions.tokenHash, hashSessionToken(token!)));
+
+  const workspace = await resolveWorkspace(session.userId, parsed.data.workspaceId);
+
+  return c.json(
+    toSession(
+      {
+        id: session.userId,
+        email: session.email,
+        name: session.name,
+        avatarUrl: session.avatarUrl,
+        createdAt: session.createdAt,
+      },
+      workspace,
+    ),
+  );
 });

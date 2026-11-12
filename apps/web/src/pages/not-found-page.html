@@ -2,12 +2,9 @@
   <span class="grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
     <ui-icon name="inbox" size="22"></ui-icon>
   </span>
-  <h1 class="mt-4 text-xl font-semibold tracking-tight">Page not found</h1>
-  <p class="mt-1 text-sm text-muted-foreground">
-    The route does not exist. The fallback route renders this page instead of a blank screen — small detail, big
-    difference when a client clicks a stale link.
-  </p>
-  <a href="dashboard" class="mt-5">
-    <ui-button size="sm">Back to dashboard</ui-button>
+  <h1 class="mt-4 text-xl font-semibold tracking-tight">${copy['notFound.title']}</h1>
+  <p class="mt-1 text-sm text-muted-foreground">${copy['notFound.description']}</p>
+  <a load.bind="'dashboard'" class="mt-5">
+    <ui-button size="sm">${copy['notFound.back']}</ui-button>
   </a>
 </div>

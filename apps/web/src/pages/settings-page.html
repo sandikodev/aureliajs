@@ -1,37 +1,47 @@
 <div>
-  <h1 class="text-2xl font-semibold tracking-tight">Settings</h1>
-  <p class="mt-1 text-sm text-muted-foreground">Workspace preferences and localisation.</p>
+  <h1 class="text-2xl font-semibold tracking-tight">${copy['settings.title']}</h1>
+  <p class="mt-1 text-sm text-muted-foreground">${copy['settings.subtitle']}</p>
 </div>
 
-<div if.bind="notice" class="mt-4">
-  <ui-alert tone="success"><ui-icon name="check" size="16"></ui-icon><span>${notice}</span></ui-alert>
+<div if.bind="notice" class="mt-4" data-testid="settings-notice">
+  <ui-alert tone="success">
+    <ui-icon name="check" size="16"></ui-icon>
+    <span>${notice}</span>
+  </ui-alert>
 </div>
-<div if.bind="error" class="mt-4">
-  <ui-alert tone="destructive"><ui-icon name="alert" size="16"></ui-icon><span>${error}</span></ui-alert>
+
+<div if.bind="error" class="mt-4" data-testid="settings-error">
+  <ui-alert tone="destructive">
+    <ui-icon name="alert" size="16"></ui-icon>
+    <span>${error}</span>
+  </ui-alert>
 </div>
 
 <div class="mt-5 grid gap-4 lg:grid-cols-3">
-  <div class="lg:col-span-2 space-y-4">
+  <div class="space-y-4 lg:col-span-2">
     <ui-card>
       <ui-card-header>
-        <ui-card-title>Workspace</ui-card-title>
-        <ui-card-description>Shown in the sidebar and on invoices</ui-card-description>
+        <ui-card-title>${copy['settings.workspace']}</ui-card-title>
+        <ui-card-description>${copy['settings.workspaceDescription']}</ui-card-description>
       </ui-card-header>
       <ui-card-content>
         <form class="space-y-4" submit.trigger="save()">
           <div class="grid gap-4 sm:grid-cols-2">
             <div class="space-y-1.5">
-              <ui-label for="ws-name">Name</ui-label>
-              <ui-input id="ws-name" value.two-way="workspace.name"></ui-input>
+              <ui-label for="ws-name">${copy['settings.name']}</ui-label>
+              <ui-input id="ws-name" value.two-way="workspace.name" disabled.bind="!canRename"></ui-input>
             </div>
             <div class="space-y-1.5">
-              <ui-label for="ws-slug">Slug</ui-label>
-              <ui-input id="ws-slug" value.two-way="workspace.slug"></ui-input>
-              <p class="text-[11px] text-muted-foreground">Used in URLs and API headers.</p>
+              <ui-label for="ws-slug">${copy['settings.slug']}</ui-label>
+              <ui-input id="ws-slug" value.two-way="workspace.slug" disabled.bind="!canRename"></ui-input>
+              <p class="text-[11px] text-muted-foreground">${copy['settings.slugHint']}</p>
             </div>
           </div>
+          <p if.bind="!canRename" class="text-[12px] text-muted-foreground">${copy['members.inviteOnlyOwner']}</p>
           <div class="flex justify-end">
-            <ui-button type="submit" size="sm">Save changes</ui-button>
+            <ui-button type="submit" size="sm" loading.bind="saving" disabled.bind="!canRename">
+              ${copy['settings.save']}
+            </ui-button>
           </div>
         </form>
       </ui-card-content>
@@ -39,20 +49,23 @@
 
     <ui-card>
       <ui-card-header>
-        <ui-card-title>Notifications</ui-card-title>
-        <ui-card-description>Email is stubbed until the delivery adapter lands</ui-card-description>
+        <ui-card-title>${copy['settings.preferences']}</ui-card-title>
+        <ui-card-description>${copy['settings.preferencesDescription']}</ui-card-description>
       </ui-card-header>
       <ui-card-content>
         <label class="flex items-center justify-between gap-4 rounded-lg border px-3 py-2.5">
           <span>
-            <span class="block text-[13px] font-medium">Weekly digest</span>
-            <span class="block text-[12px] text-muted-foreground">Overdue projects and budget burn, every Monday</span>
+            <span class="block text-[13px] font-medium">${copy['settings.weeklyDigest']}</span>
+            <span class="block text-[12px] text-muted-foreground"> ${copy['settings.weeklyDigestDescription']} </span>
           </span>
-          <input type="checkbox" class="size-4 accent-foreground" checked.bind="weeklyDigest" />
+          <input
+            type="checkbox"
+            class="size-4 accent-foreground"
+            checked.bind="weeklyDigest"
+            change.trigger="save()"
+            aria-label.bind="copy['settings.weeklyDigest']"
+          />
         </label>
-        <p class="mt-3 text-[11px] text-muted-foreground">
-          The checkbox is real; the email pipeline is deliberately deferred. Naming the gap is cheaper than faking it.
-        </p>
       </ui-card-content>
     </ui-card>
   </div>
@@ -60,8 +73,8 @@
   <div class="space-y-4">
     <ui-card>
       <ui-card-header>
-        <ui-card-title>Appearance</ui-card-title>
-        <ui-card-description>Saved to localStorage, applied before first paint</ui-card-description>
+        <ui-card-title>${copy['settings.appearance']}</ui-card-title>
+        <ui-card-description>${copy['settings.appearanceDescription']}</ui-card-description>
       </ui-card-header>
       <ui-card-content>
         <div class="flex items-center justify-between gap-3">
@@ -76,26 +89,38 @@
 
     <ui-card>
       <ui-card-header>
-        <ui-card-title>Language</ui-card-title>
-        <ui-card-description>@aurelia/i18n wiring lands in M6</ui-card-description>
+        <ui-card-title>${copy['settings.language']}</ui-card-title>
+        <ui-card-description>${copy['settings.languageDescription']}</ui-card-description>
       </ui-card-header>
       <ui-card-content>
-        <ui-select value.two-way="language" options.bind="languages" aria-label="Language"></ui-select>
-        <p class="mt-2 text-[11px] text-muted-foreground">
-          English + Bahasa Indonesia are the target locales. Copy lives in one place so translation is a data change,
-          not a refactor.
-        </p>
+        <ui-select
+          value.bind="i18n.locale"
+          options.bind="languages"
+          change.trigger="onLocaleChange($event.target.value)"
+          aria-label.bind="copy['settings.language']"
+        ></ui-select>
+        <p class="mt-2 text-[11px] text-muted-foreground">${copy['settings.preferencesDescription']}</p>
       </ui-card-content>
     </ui-card>
 
     <ui-card>
       <ui-card-header>
-        <ui-card-title>Danger zone</ui-card-title>
+        <ui-card-title>${copy['settings.danger']}</ui-card-title>
+        <ui-card-description>${copy['settings.dangerDescription']}</ui-card-description>
       </ui-card-header>
       <ui-card-content>
-        <p class="text-[12px] text-muted-foreground">Deleting a workspace removes projects and audit logs.</p>
-        <ui-button variant="destructive" size="sm" full disabled.bind="true"> Delete workspace </ui-button>
-        <p class="mt-2 text-[11px] text-muted-foreground">Requires a confirmation token — wired with auth in M1.</p>
+        <ui-button
+          variant="destructive"
+          size="sm"
+          full
+          disabled.bind="!canDelete || deleting"
+          loading.bind="deleting"
+          click.trigger="deleteWorkspace()"
+          data-testid="delete-workspace"
+        >
+          ${copy['settings.deleteWorkspace']}
+        </ui-button>
+        <p class="mt-2 text-[11px] text-muted-foreground">${copy['settings.deleteBlockedByPlan']}</p>
       </ui-card-content>
     </ui-card>
   </div>

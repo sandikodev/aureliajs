@@ -7,10 +7,11 @@ import {
 import { customElement, resolve } from 'aurelia';
 import template from './projects-page.html';
 import { DEMO_PROJECTS } from '@/lib/demo-data';
-import { STATUS_META, STATUS_OPTIONS } from '@/lib/status';
+import { STATUS_META } from '@/lib/status';
 import { formatDate, relativeTime } from '@/lib/utils';
 import { api, ApiError } from '@/services/api';
 import { AuthService } from '@/services/auth';
+import { I18nService } from '@/services/i18n';
 
 type FormState = {
   name: string;
@@ -32,6 +33,103 @@ const emptyForm = (): FormState => ({
 export class ProjectsPage {
   dialogEl!: HTMLDialogElement;
   readonly auth = resolve(AuthService);
+  readonly i18n = resolve(I18nService);
+
+  /**
+   * The translator, exposed through a view-model getter so the binding
+   * re-evaluates when the locale changes.
+   */
+  get t() {
+    // Read the locale inside this observed getter so the binding is
+    // registered as a dependency of it.
+    this.i18n.track();
+    return this.i18n.t;
+  }
+
+  /** The message catalog — see the note on `App.copy`. */
+  get copy() {
+    this.i18n.track();
+    return this.i18n.strings;
+  }
+
+  /** The page subtitle, with the project count interpolated. */
+  get subtitleText(): string {
+    this.i18n.track();
+    return this.i18n.t('projects.subtitle', { count: this.total });
+  }
+
+  /** "Showing 1–10 of 84" */
+  get showingLabel(): string {
+    this.i18n.track();
+    return this.i18n.t('projects.showing', {
+      from: this.rangeStart,
+      to: this.rangeEnd,
+      total: this.total,
+    });
+  }
+
+  /**
+   * The status metadata, with the label taken from the message catalog.
+   *
+   * The variant and the dot colour are presentation, not copy, so they stay
+   * in the shared module; only the label is translated.
+   */
+  get statusMeta() {
+    this.i18n.track();
+    return Object.fromEntries(
+      (Object.keys(STATUS_META) as ProjectStatus[]).map((status) => [
+        status,
+        { ...STATUS_META[status], label: this.i18n.t(`status.${status}` as never) },
+      ]),
+    ) as Record<ProjectStatus, { label: string; variant: string; dot: string }>;
+  }
+
+  /** The status labels for the filter and the dialog, from the catalog. */
+  get statusOptions(): { value: ProjectStatus; label: string }[] {
+    this.i18n.track();
+    return (['planning', 'active', 'paused', 'done'] as ProjectStatus[]).map((value) => ({
+      value,
+      label: this.i18n.t(`status.${value}` as never),
+    }));
+  }
+
+  /** The same list for the create/edit dialog. */
+  get dialogStatusOptions(): { value: ProjectStatus; label: string }[] {
+    return this.statusOptions;
+  }
+
+  get sortOptions(): { value: 'updated' | 'budget' | 'name'; label: string }[] {
+    this.i18n.track();
+    return (
+      [
+        { value: 'updated', key: 'sort.updated' },
+        { value: 'budget', key: 'sort.budget' },
+        { value: 'name', key: 'sort.name' },
+      ] as const
+    ).map((option) => ({ value: option.value, label: this.i18n.t(option.key) }));
+  }
+
+  /** "New project" / "Edit project" */
+  get dialogTitle(): string {
+    this.i18n.track();
+    return this.isEditing ? this.i18n.t('projects.dialogEdit') : this.i18n.t('projects.dialogNew');
+  }
+
+  /** A success or error notice, in the current language. */
+  private notify(
+    key: 'projects.created' | 'projects.updated' | 'projects.deleted',
+    name: string,
+  ): void {
+    this.i18n.track();
+    this.notice = this.i18n.t(key, { name });
+  }
+
+  private notifyLocal(
+    key: 'projects.createdLocal' | 'projects.updatedLocal' | 'projects.deletedLocal',
+  ): void {
+    this.i18n.track();
+    this.notice = this.i18n.t(key);
+  }
 
   items: Project[] = [];
   total = 0;
@@ -52,9 +150,6 @@ export class ProjectsPage {
   editingId: string | null = null;
   form: FormState = emptyForm();
   fieldErrors: Record<string, string> = {};
-
-  readonly statusOptions = STATUS_OPTIONS;
-  readonly statusMeta = STATUS_META;
 
   private searchTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -80,10 +175,6 @@ export class ProjectsPage {
 
   get isEditing(): boolean {
     return this.editingId !== null;
-  }
-
-  get dialogTitle(): string {
-    return this.isEditing ? 'Edit project' : 'New project';
   }
 
   async attached(): Promise<void> {
@@ -217,19 +308,17 @@ export class ProjectsPage {
       if (this.isEditing && this.editingId) {
         const { project } = await api.updateProject(this.editingId, parsed.data);
         this.items = this.items.map((row) => (row.id === project.id ? project : row));
-        this.notice = `Updated "${project.name}".`;
+        this.notify('projects.updated', project.name);
       } else {
         const { project } = await api.createProject(parsed.data);
-        this.notice = `Created "${project.name}".`;
+        this.notify('projects.created', project.name);
         await this.load();
       }
       this.dialogEl.close();
     } catch (error) {
       if (this.demo) {
         this.applyLocalMutation(parsed.data);
-        this.notice = this.isEditing
-          ? 'Updated locally (demo mode).'
-          : 'Created locally (demo mode).';
+        this.notifyLocal(this.isEditing ? 'projects.updatedLocal' : 'projects.createdLocal');
         this.dialogEl.close();
       } else if (error instanceof ApiError) {
         this.error = error.message;
@@ -273,13 +362,13 @@ export class ProjectsPage {
     if (!confirm(`Delete “${project.name}”? This cannot be undone.`)) return;
     try {
       await api.deleteProject(project.id);
-      this.notice = `Deleted "${project.name}".`;
+      this.notify('projects.deleted', project.name);
       await this.load();
     } catch {
       this.items = this.items.filter((row) => row.id !== project.id);
       this.total = Math.max(0, this.total - 1);
       this.demo = true;
-      this.notice = 'Deleted locally (demo mode).';
+      this.notifyLocal('projects.deletedLocal');
     }
   }
 
@@ -319,6 +408,7 @@ export class ProjectsPage {
     anchor.download = `projects-page-${this.page}.csv`;
     anchor.click();
     URL.revokeObjectURL(url);
-    this.notice = 'CSV exported for the current page.';
+    this.i18n.track();
+    this.notice = this.i18n.t('projects.exportDone');
   }
 }

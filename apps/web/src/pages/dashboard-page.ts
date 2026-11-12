@@ -1,19 +1,62 @@
-import { customElement } from 'aurelia';
+import { customElement, resolve } from 'aurelia';
 import template from './dashboard-page.html';
 import { formatCents } from '@aureliajs/shared';
 import { DEMO_OVERVIEW } from '@/lib/demo-data';
 import { statusMeta } from '@/lib/status';
 import { relativeTime } from '@/lib/utils';
-import { api, type Overview } from '@/services/api';
-
-const TREND = [32, 41, 37, 52, 48, 63, 58, 74, 69, 83, 79, 96];
+import { api, type Overview, type Period } from '@/services/api';
+import { AuthService } from '@/services/auth';
+import { I18nService } from '@/services/i18n';
 
 @customElement({ name: 'dashboard-page', template })
 export class DashboardPage {
+  private readonly auth = resolve(AuthService);
+  readonly i18n = resolve(I18nService);
+
+  /**
+   * The translator, exposed through a view-model getter so the binding
+   * re-evaluates when the locale changes.
+   */
+  get t() {
+    // Read the locale inside this observed getter so the binding is
+    // registered as a dependency of it.
+    this.i18n.track();
+    return this.i18n.t;
+  }
+
+  /** The message catalog — see the note on `App.copy`. */
+  get copy() {
+    this.i18n.track();
+    return this.i18n.strings;
+  }
+
+  /** The subtitle, with the workspace name interpolated. */
+  get subtitleText(): string {
+    this.i18n.track();
+    return this.i18n.t('dashboard.subtitle', {
+      workspace: this.auth.workspace?.name ?? this.i18n.t('app.workspaceFallback'),
+    });
+  }
+
+  /** The chart's accessible name, with the trend delta interpolated. */
+  get throughputSummary(): string {
+    this.i18n.track();
+    return this.i18n.t('dashboard.throughputSummary', { delta: this.trendDelta });
+  }
+
   isLoading = true;
   demo = false;
   error = '';
   overview: Overview = DEMO_OVERVIEW;
+
+  /** The reporting window. Changing it re-queries the API. */
+  period: Period = 'last-30';
+
+  readonly periodOptions = [
+    { value: 'last-7', label: this.i18n.t('dashboard.periodLast7') },
+    { value: 'last-30', label: this.i18n.t('dashboard.periodLast30') },
+    { value: 'quarter', label: this.i18n.t('dashboard.periodQuarter') },
+  ];
 
   get stats() {
     return this.overview.stats;
@@ -45,12 +88,23 @@ export class DashboardPage {
     }));
   }
 
+  /**
+   * The throughput series comes from the API — projects created per month.
+   * The demo fallback keeps the same shape so the chart renders either way.
+   */
+  get trend(): number[] {
+    const series = this.overview.trend;
+    if (!series || series.length === 0) return DEMO_OVERVIEW.trend.map((point) => point.value);
+    return series.map((point) => point.value);
+  }
+
   get trendPoints(): Array<{ x: number; y: number }> {
     const width = 480;
     const height = 150;
-    const max = Math.max(...TREND);
-    const step = width / (TREND.length - 1);
-    return TREND.map((value, index) => ({
+    const series = this.trend;
+    const max = Math.max(...series, 1);
+    const step = width / Math.max(1, series.length - 1);
+    return series.map((value, index) => ({
       x: Math.round(index * step),
       y: Math.round(height - (value / max) * (height - 20)),
     }));
@@ -62,13 +116,16 @@ export class DashboardPage {
 
   get trendArea(): string {
     const points = this.trendPoints;
+    if (points.length === 0) return '';
     const last = points[points.length - 1]!;
     return `${this.trendLine} L${last.x} 160 L0 160 Z`;
   }
 
   get trendDelta(): number {
-    const first = TREND[0] ?? 1;
-    const last = TREND[TREND.length - 1] ?? first;
+    const series = this.trend;
+    const first = series[0] ?? 0;
+    const last = series[series.length - 1] ?? first;
+    if (first === 0) return last === 0 ? 0 : 100;
     return Math.round(((last - first) / first) * 100);
   }
 
@@ -80,7 +137,7 @@ export class DashboardPage {
     this.isLoading = true;
     this.error = '';
     try {
-      this.overview = await api.overview();
+      this.overview = await api.overview(this.period);
       this.demo = false;
     } catch {
       this.overview = DEMO_OVERVIEW;
@@ -89,6 +146,13 @@ export class DashboardPage {
     } finally {
       this.isLoading = false;
     }
+  }
+
+  /** Switch the reporting window — the numbers behind the cards follow. */
+  async onPeriodChange(period: Period): Promise<void> {
+    if (period === this.period) return;
+    this.period = period;
+    await this.load();
   }
 
   ago(iso: string): string {
@@ -102,7 +166,16 @@ export class DashboardPage {
       'project.deleted': 'deleted a project',
       'project.status_changed': 'changed a status',
       'member.invited': 'invited a teammate',
-      'billing.plan_upgraded': 'upgraded the plan',
+      'member.invite_accepted': 'accepted an invitation',
+      'member.role_changed': 'changed a role',
+      'member.removed': 'removed a member',
+      'billing.checkout_started': 'started a checkout',
+      'billing.plan_activated': 'activated a plan',
+      'billing.plan_changed': 'changed the plan',
+      'billing.invoice_paid': 'paid an invoice',
+      'billing.invoice_failed': 'had a failed invoice',
+      'workspace.updated': 'updated the workspace',
+      'workspace.created': 'created a workspace',
     };
     return map[action] ?? action;
   }

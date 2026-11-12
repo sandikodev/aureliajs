@@ -1,0 +1,1 @@
+ALTER TABLE "workspaces" ADD COLUMN "settings" jsonb DEFAULT '{"locale":"en","weeklyDigest":true}'::jsonb NOT NULL;

@@ -4,6 +4,7 @@ import { IRouter } from '@aurelia/router';
 import { loginSchema } from '@aureliajs/shared';
 import { ApiError } from '@/services/api';
 import { AuthService } from '@/services/auth';
+import { I18nService } from '@/services/i18n';
 
 const DEMO_EMAIL = 'demo@aureliajs.dev';
 const DEMO_PASSWORD = 'demo-password-123';
@@ -12,12 +13,19 @@ const DEMO_PASSWORD = 'demo-password-123';
 export class LoginPage {
   private readonly auth = resolve(AuthService);
   private readonly router = resolve(IRouter);
+  readonly i18n = resolve(I18nService);
 
   email = '';
   password = '';
   submitting = false;
   error = '';
   fieldErrors: Record<string, string> = {};
+
+  /** The message catalog — see the note on `App.copy`. */
+  get copy() {
+    this.i18n.track();
+    return this.i18n.strings;
+  }
 
   async attached(): Promise<void> {
     if (await this.auth.refresh()) {
@@ -52,12 +60,12 @@ export class LoginPage {
       if (cause instanceof ApiError) {
         this.error =
           cause.status === 401
-            ? 'Email or password is incorrect.'
+            ? this.i18n.t('login.failed')
             : cause.status === 0
               ? 'Cannot reach the API. Is `pnpm dev:api` running?'
               : cause.message;
       } else {
-        this.error = 'Could not sign in. Try again.';
+        this.error = this.i18n.t('common.error');
       }
     } finally {
       this.submitting = false;

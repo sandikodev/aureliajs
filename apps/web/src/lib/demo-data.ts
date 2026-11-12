@@ -1,5 +1,5 @@
 import type { Project, ProjectStatus } from '@aureliajs/shared';
-import type { ActivityItem, OverviewStats } from '@/services/api';
+import type { ActivityItem, Overview, OverviewStats } from '@/services/api';
 
 /**
  * Deterministic sample data used only when the API is not running.
@@ -105,4 +105,19 @@ export const DEMO_STATS: OverviewStats = (() => {
   };
 })();
 
-export const DEMO_OVERVIEW = { stats: DEMO_STATS, activity: DEMO_ACTIVITY };
+/** Twelve months of delivery volume, used only when the API is unreachable. */
+const DEMO_TREND = [32, 41, 37, 52, 48, 63, 58, 74, 69, 83, 79, 96].map((value, index) => {
+  const date = new Date();
+  date.setUTCDate(1);
+  date.setUTCHours(0, 0, 0, 0);
+  date.setUTCMonth(date.getUTCMonth() - (11 - index));
+  return { month: date.toISOString().slice(0, 7), value };
+});
+
+export const DEMO_OVERVIEW: Overview = {
+  period: 'last-30',
+  periodDays: 30,
+  stats: DEMO_STATS,
+  trend: DEMO_TREND,
+  activity: DEMO_ACTIVITY,
+};

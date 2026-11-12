@@ -181,9 +181,45 @@ export const registerSchema = loginSchema.extend({
 export type RegisterInput = z.infer<typeof registerSchema>;
 
 /* ------------------------------------------------------------------ */
-/* Team (members & invitations)                                        */
+/* Workspaces                                                          */
 /* ------------------------------------------------------------------ */
 
+export const localeSchema = z.enum(['en', 'id']);
+export type Locale = z.infer<typeof localeSchema>;
+
+/** Per-workspace preferences. Stored as JSONB on the workspace row. */
+export const workspaceSettingsSchema = z.object({
+  locale: localeSchema.default('en'),
+  weeklyDigest: z.boolean().default(true),
+});
+export type WorkspaceSettings = z.infer<typeof workspaceSettingsSchema>;
+
+export const updateWorkspaceSchema = z.object({
+  name: z.string().trim().min(2).max(80).optional(),
+  slug: slugSchema.optional(),
+  settings: workspaceSettingsSchema.partial().optional(),
+});
+export type UpdateWorkspaceInput = z.infer<typeof updateWorkspaceSchema>;
+
+export const createWorkspaceSchema = z.object({
+  name: z.string().trim().min(2).max(80),
+  slug: slugSchema.optional(),
+});
+export type CreateWorkspaceInput = z.infer<typeof createWorkspaceSchema>;
+
+export const workspaceSummarySchema = z.object({
+  id: idSchema,
+  name: z.string(),
+  slug: z.string(),
+  plan: planSchema,
+  role: roleSchema,
+  isActive: z.boolean(),
+});
+export type WorkspaceSummary = z.infer<typeof workspaceSummarySchema>;
+
+/* ------------------------------------------------------------------ */
+/* Team (members & invitations)                                        */
+/* ------------------------------------------------------------------ */
 export const memberSchema = z.object({
   id: idSchema,
   name: z.string().min(1).max(80),
@@ -198,7 +234,10 @@ export type Member = z.infer<typeof memberSchema>;
 export const membersResponseSchema = z.object({
   members: z.array(memberSchema),
   seatLimit: z.number().int(),
+  /** Members plus open invitations — an invitation already reserves a seat. */
   seatUsed: z.number().int(),
+  memberCount: z.number().int(),
+  pendingInvites: z.number().int(),
 });
 export type MembersResponse = z.infer<typeof membersResponseSchema>;
 

@@ -1,8 +1,9 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, count, eq, isNull } from 'drizzle-orm';
 import { getDb, schema } from '../db/client.js';
 import { HttpError, badRequest, conflict, notFound } from '../lib/errors.js';
+import { limitsFor } from '../lib/plan-limits.js';
 import { env } from '../env.js';
 import { hash } from '@node-rs/argon2';
 import { createHash, randomBytes } from 'node:crypto';
@@ -80,6 +81,31 @@ invitesRoutes.post('/invites', async (c) => {
     if (membership) {
       throw conflict('That person is already a member of this workspace');
     }
+  }
+
+  // The seat limit is a hard limit: an open invitation already reserves a
+  // seat, so it counts towards the total.
+  const seatLimit = limitsFor(tenant.plan).seats;
+  const [seatRow] = await db
+    .select({ value: count() })
+    .from(schema.memberships)
+    .where(eq(schema.memberships.workspaceId, tenant.workspaceId));
+
+  const [pendingRow] = await db
+    .select({ value: count() })
+    .from(schema.invites)
+    .where(
+      and(eq(schema.invites.workspaceId, tenant.workspaceId), isNull(schema.invites.acceptedAt)),
+    );
+
+  const used = Number(seatRow?.value ?? 0) + Number(pendingRow?.value ?? 0);
+  if (used >= seatLimit) {
+    throw new HttpError(
+      402,
+      'seat_limit_reached',
+      `The ${tenant.plan} plan includes ${seatLimit} seats. Upgrade the plan to invite more people.`,
+      [{ path: 'seats', message: `${used} of ${seatLimit} seats used` }],
+    );
   }
 
   // An open invite for the same email replaces the old one, so the person
@@ -165,6 +191,52 @@ invitesRoutes.get('/invites', async (c) => {
           : 'pending',
     })),
   );
+});
+
+/**
+ * `DELETE /api/invites` — revoke an open invitation.
+ *
+ * An invitation is a credential: the token in it signs the invited person
+ * in. Revoking it has to actually remove the token, not just hide the row.
+ */
+invitesRoutes.delete('/invites', async (c) => {
+  const tenant = c.get('tenant');
+  if (tenant.role !== 'owner') {
+    throw new HttpError(403, 'forbidden', 'Only the workspace owner can revoke invitations');
+  }
+
+  const email = c.req.query('email')?.toLowerCase();
+  const id = c.req.query('id');
+  if (!email && !id) {
+    throw badRequest('An email or an invitation id is required');
+  }
+
+  const db = getDb();
+  const filters = [eq(schema.invites.workspaceId, tenant.workspaceId)];
+
+  if (id) {
+    filters.push(eq(schema.invites.id, id));
+  } else {
+    filters.push(eq(schema.invites.email, email!));
+  }
+
+  const deleted = await db
+    .delete(schema.invites)
+    .where(and(...filters))
+    .returning({ email: schema.invites.email });
+
+  if (deleted.length === 0) {
+    throw notFound('No matching invitation');
+  }
+
+  await db.insert(schema.auditLogs).values({
+    workspaceId: tenant.workspaceId,
+    actorName: tenant.actorName,
+    action: 'member.invite_revoked',
+    target: deleted[0]!.email,
+  });
+
+  return c.body(null, 204);
 });
 
 /**

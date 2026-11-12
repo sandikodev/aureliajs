@@ -56,12 +56,12 @@
         <p class="text-sm font-semibold">Aurelia Ops</p>
       </div>
 
-      <h2 class="text-xl font-semibold tracking-tight">Sign in</h2>
-      <p class="mt-1 text-sm text-muted-foreground">Use the seeded demo account or your own workspace credentials.</p>
+      <h2 class="text-xl font-semibold tracking-tight">${copy['login.title']}</h2>
+      <p class="mt-1 text-sm text-muted-foreground">${copy['login.subtitle']}</p>
 
       <form class="mt-6 space-y-4" submit.trigger="submit()" novalidate>
         <div class="space-y-1.5">
-          <ui-label for="login-email">Email</ui-label>
+          <ui-label for="login-email">${copy['login.email']}</ui-label>
           <ui-input
             id="login-email"
             type="email"
@@ -74,7 +74,7 @@
         </div>
 
         <div class="space-y-1.5">
-          <ui-label for="login-password">Password</ui-label>
+          <ui-label for="login-password">${copy['login.password']}</ui-label>
           <ui-input
             id="login-password"
             type="password"
@@ -94,11 +94,11 @@
           ${error}
         </p>
 
-        <ui-button type="submit" full.bind="true" loading.bind="submitting"> Sign in </ui-button>
+        <ui-button type="submit" full.bind="true" loading.bind="submitting"> ${copy['login.submit']} </ui-button>
       </form>
 
       <div class="mt-5 rounded-lg border bg-muted/40 p-3">
-        <p class="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Demo account</p>
+        <p class="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">${copy['login.demoHint']}</p>
         <p class="mt-1 font-mono text-[12px]">demo@aureliajs.dev</p>
         <p class="font-mono text-[12px]">demo-password-123</p>
         <button

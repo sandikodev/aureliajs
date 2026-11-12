@@ -3,6 +3,7 @@ import type { Invite, Member, Role } from '@aureliajs/shared';
 import template from './members-page.html';
 import { api, ApiError } from '@/services/api';
 import { AuthService } from '@/services/auth';
+import { I18nService } from '@/services/i18n';
 
 type InviteForm = {
   email: string;
@@ -12,6 +13,7 @@ type InviteForm = {
 @customElement({ name: 'members-page', template })
 export class MembersPage {
   private readonly auth = resolve(AuthService);
+  readonly i18n = resolve(I18nService);
 
   members: Member[] = [];
   invites: Invite[] = [];
@@ -34,6 +36,42 @@ export class MembersPage {
     { value: 'owner', label: 'Owner' },
   ];
 
+  /** The message catalog — see the note on `App.copy`. */
+  get copy() {
+    this.i18n.track();
+    return this.i18n.strings;
+  }
+
+  /** "5 of 10 seats" */
+  get seatsLabel(): string {
+    this.i18n.track();
+    return this.i18n.t('members.seats', { used: this.seatUsed, limit: this.seatLimit });
+  }
+
+  /** "5 used" */
+  get seatsUsedLabel(): string {
+    this.i18n.track();
+    return this.i18n.t('members.seatsUsed', { used: this.seatUsed });
+  }
+
+  /** "10 total" */
+  get seatsTotalLabel(): string {
+    this.i18n.track();
+    return this.i18n.t('members.seatsTotal', { limit: this.seatLimit });
+  }
+
+  /** The accessible name of a member's role dropdown. */
+  changeRoleLabel(name: string): string {
+    this.i18n.track();
+    return this.i18n.t('members.changeRole', { name });
+  }
+
+  /** The accessible name of a member's remove button. */
+  removeLabel(name: string): string {
+    this.i18n.track();
+    return this.i18n.t('members.remove', { name });
+  }
+
   get canManage(): boolean {
     return this.auth.canManage;
   }
@@ -49,6 +87,11 @@ export class MembersPage {
 
   get pendingInvites(): Invite[] {
     return this.invites.filter((invite) => invite.state === 'pending');
+  }
+
+  /** True when every seat on the plan is taken (members + open invites). */
+  get atSeatLimit(): boolean {
+    return this.seatUsed >= this.seatLimit;
   }
 
   async attached(): Promise<void> {
@@ -150,7 +193,9 @@ export class MembersPage {
   }
 
   roleLabel(role: Role): string {
-    return role === 'owner' ? 'Owner' : role === 'admin' ? 'Admin' : 'Member';
+    this.i18n.track();
+    const key = role === 'owner' ? 'role.owner' : role === 'admin' ? 'role.admin' : 'role.member';
+    return this.i18n.t(key);
   }
 
   roleVariant(role: Role): 'default' | 'secondary' | 'outline' {
@@ -158,7 +203,14 @@ export class MembersPage {
   }
 
   inviteStateLabel(state: Invite['state']): string {
-    return state === 'pending' ? 'Pending' : state === 'accepted' ? 'Accepted' : 'Expired';
+    this.i18n.track();
+    const key =
+      state === 'pending'
+        ? 'members.invitePending'
+        : state === 'accepted'
+          ? 'members.inviteAccepted'
+          : 'members.inviteExpired';
+    return this.i18n.t(key);
   }
 
   inviteStateVariant(state: Invite['state']): 'warning' | 'success' | 'outline' {

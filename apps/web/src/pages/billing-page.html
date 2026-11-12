@@ -1,16 +1,13 @@
 <div>
-  <h1 class="text-2xl font-semibold tracking-tight">Billing</h1>
-  <p class="mt-1 text-sm text-muted-foreground">
-    Plan, usage and invoices. Payments run on Stripe's hosted checkout — card data never touches this app.
-  </p>
+  <h1 class="text-2xl font-semibold tracking-tight">${copy['billing.title']}</h1>
+  <p class="mt-1 text-sm text-muted-foreground">${copy['billing.subtitle']}</p>
 </div>
 
 <div if.bind="checkoutResult" class="mt-4" data-testid="checkout-result">
   <ui-alert tone.bind="checkoutResult === 'success' ? 'success' : 'info'">
     <ui-icon name.bind="checkoutResult === 'success' ? 'check' : 'alert'" size="16"></ui-icon>
     <span class="flex-1">
-      ${checkoutResult === 'success' ? 'Payment received — your plan is being activated.' : 'Checkout cancelled. Nothing
-      was charged.'}
+      ${checkoutResult === 'success' ? copy['billing.checkoutSuccess'] : copy['billing.checkoutCancelled']}
     </span>
     <button
       type="button"
@@ -52,8 +49,8 @@
       <ui-card-header>
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <ui-card-title>Current plan</ui-card-title>
-            <ui-card-description> ${isPaid ? `Renews ${renewsOn}` : 'No active subscription'} </ui-card-description>
+            <ui-card-title>${copy['billing.currentPlan']}</ui-card-title>
+            <ui-card-description> ${renewsOnLabel} </ui-card-description>
           </div>
           <span data-testid="subscription-status">
             <ui-badge variant.bind="statusTone">${statusLabel}</ui-badge>
@@ -64,14 +61,12 @@
         <div class="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p class="text-3xl font-semibold tracking-tight tabular-nums" data-testid="current-plan">${planLabel}</p>
-            <p class="mt-1 text-xs text-muted-foreground">
-              Up to ${overview.limits.seats} seats and ${overview.limits.projects} projects
-            </p>
+            <p class="mt-1 text-xs text-muted-foreground">${limitsLabel}</p>
           </div>
           <div class="flex flex-wrap gap-2">
             <ui-button variant="outline" size="sm" disabled.bind="busy || !isPaid" click.trigger="openPortal()">
               <ui-icon name="creditCard" size="15"></ui-icon>
-              Manage payment
+              ${copy['billing.managePayment']}
             </ui-button>
             <ui-button
               if.bind="!isPaid"
@@ -80,7 +75,7 @@
               click.trigger="checkout('pro', 'monthly')"
             >
               <ui-icon name="sparkles" size="15"></ui-icon>
-              Upgrade to Pro
+              ${copy['billing.upgradePro']}
             </ui-button>
           </div>
         </div>
@@ -89,7 +84,7 @@
           <div>
             <div class="flex items-center justify-between text-xs">
               <span class="text-muted-foreground">Projects</span>
-              <span class="font-medium tabular-nums"> ${overview.usage.projects} / ${overview.limits.projects} </span>
+              <span class="font-medium tabular-nums"> ${projectsUsageLabel} </span>
             </div>
             <div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
               <div class="h-full rounded-full bg-primary" style="width: ${projectsPercent}%"></div>
@@ -98,7 +93,7 @@
           <div>
             <div class="flex items-center justify-between text-xs">
               <span class="text-muted-foreground">Seats</span>
-              <span class="font-medium tabular-nums">${overview.usage.seats} / ${overview.limits.seats}</span>
+              <span class="font-medium tabular-nums">${seatsUsageLabel}</span>
             </div>
             <div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
               <div class="h-full rounded-full bg-primary" style="width: ${seatsPercent}%"></div>
@@ -110,30 +105,28 @@
 
     <ui-card>
       <ui-card-header>
-        <ui-card-title>Invoices</ui-card-title>
-        <ui-card-description>Generated and hosted by Stripe</ui-card-description>
+        <ui-card-title>${copy['billing.invoices']}</ui-card-title>
+        <ui-card-description>${copy['billing.invoicesDescription']}</ui-card-description>
       </ui-card-header>
       <div if.bind="overview.invoices.length === 0" class="px-5 py-8 text-center">
-        <p class="text-[13px] text-muted-foreground">No invoices yet.</p>
-        <p class="mt-1 text-[12px] text-muted-foreground">
-          Invoices appear here once Stripe has billed this workspace.
-        </p>
+        <p class="text-[13px] text-muted-foreground">${copy['billing.invoicesEmpty']}</p>
+        <p class="mt-1 text-[12px] text-muted-foreground">${copy['billing.invoicesEmptyHint']}</p>
       </div>
       <div if.bind="overview.invoices.length > 0" class="mt-3 overflow-x-auto">
-        <table class="w-full min-w-[520px] text-sm">
+        <table class="w-full min-w-130 text-sm">
           <thead>
             <tr class="border-y bg-muted/40">
               <th class="px-5 py-2.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                Invoice
+                ${copy['billing.invoiceColumn']}
               </th>
               <th class="px-5 py-2.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                Date
+                ${copy['billing.invoiceDate']}
               </th>
               <th class="px-5 py-2.5 text-right text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                Amount
+                ${copy['billing.invoiceAmount']}
               </th>
               <th class="px-5 py-2.5 text-right text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                Status
+                ${copy['billing.invoiceStatus']}
               </th>
             </tr>
           </thead>
@@ -165,8 +158,8 @@
   <div class="space-y-4">
     <ui-card>
       <ui-card-header>
-        <ui-card-title>Plans</ui-card-title>
-        <ui-card-description>Switching opens Stripe Checkout</ui-card-description>
+        <ui-card-title>${copy['billing.plans']}</ui-card-title>
+        <ui-card-description>${copy['billing.plansDescription']}</ui-card-description>
       </ui-card-header>
       <ui-card-content>
         <div class="space-y-3">
@@ -176,8 +169,8 @@
           >
             <div class="flex items-center justify-between gap-2">
               <div class="min-w-0">
-                <p class="text-[13px] font-medium">${tier.label}</p>
-                <p class="text-[11px] text-muted-foreground">${tier.priceLabel}</p>
+                <p class="text-[13px] font-medium">${tierLabel(tier)}</p>
+                <p class="text-[11px] text-muted-foreground">${tierPrice(tier)}</p>
               </div>
               <ui-button
                 if.bind="tier.id !== 'free' && tier.id !== plan"
@@ -186,13 +179,13 @@
                 disabled.bind="busy"
                 click.trigger="checkout(tier.id === 'scale' ? 'scale' : 'pro', tier.id === 'scale' ? 'yearly' : 'monthly')"
               >
-                ${tier.id === 'scale' ? 'Upgrade' : 'Choose'}
+                ${tier.id === 'scale' ? copy['billing.upgrade'] : copy['billing.choose']}
               </ui-button>
-              <ui-badge if.bind="tier.id === plan" variant="success">Current</ui-badge>
+              <ui-badge if.bind="tier.id === plan" variant="success">${copy['billing.current']}</ui-badge>
             </div>
             <ul class="mt-2 space-y-1">
               <li
-                repeat.for="feature of tier.features"
+                repeat.for="feature of tierFeatures(tier.id)"
                 class="flex items-center gap-1.5 text-[12px] text-muted-foreground"
               >
                 <ui-icon name="check" size="12"></ui-icon> ${feature}
@@ -205,8 +198,8 @@
 
     <ui-card>
       <ui-card-header>
-        <ui-card-title>Payment method</ui-card-title>
-        <ui-card-description>Managed inside the Stripe portal</ui-card-description>
+        <ui-card-title>${copy['billing.paymentMethod']}</ui-card-title>
+        <ui-card-description>${copy['billing.paymentMethodDescription']}</ui-card-description>
       </ui-card-header>
       <ui-card-content>
         <div class="flex items-center gap-3 rounded-lg border bg-muted/30 px-3 py-2.5">
@@ -214,9 +207,9 @@
             <ui-icon name="creditCard" size="17"></ui-icon>
           </span>
           <div class="min-w-0">
-            <p class="text-[13px] font-medium">${isPaid ? 'Card on file' : 'No card on file'}</p>
+            <p class="text-[13px] font-medium">${isPaid ? copy['billing.cardOnFile'] : copy['billing.noCard']}</p>
             <p class="text-[11px] text-muted-foreground">
-              ${isPaid ? 'Update it in the Stripe portal' : 'Add one when you subscribe'}
+              ${isPaid ? copy['billing.cardHint'] : copy['billing.addCardHint']}
             </p>
           </div>
         </div>
@@ -228,20 +221,17 @@
           disabled.bind="busy || !isPaid"
           click.trigger="openPortal()"
         >
-          Open billing portal
+          ${copy['billing.openPortal']}
         </ui-button>
       </ui-card-content>
     </ui-card>
 
     <ui-card>
       <ui-card-header>
-        <ui-card-title>How this is wired</ui-card-title>
+        <ui-card-title>${copy['billing.wiringTitle']}</ui-card-title>
       </ui-card-header>
       <ui-card-content>
-        <p class="text-[13px] leading-relaxed text-muted-foreground">
-          Checkout runs on Stripe's hosted page, so no card data reaches this server. Every plan change arrives as a
-          signed webhook, is recorded once in an idempotency ledger, and only then flips the workspace plan.
-        </p>
+        <p class="text-[13px] leading-relaxed text-muted-foreground">${copy['billing.wiringDescription']}</p>
       </ui-card-content>
     </ui-card>
   </div>

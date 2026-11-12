@@ -69,7 +69,9 @@
   --accent: oklch(0.371 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
+  /* Dark text on the bright red: white on it is only 2.76:1, which fails
+     WCAG AA for the 12px label on the destructive button. */
+  --destructive-foreground: oklch(0.145 0 0);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 16%);
   --ring: oklch(0.556 0 0);
@@ -213,10 +215,14 @@
     backdrop-filter: blur(2px);
   }
 
-  /* `ui-button` keeps a host element so click/disabled bindings work; with
-     `display: contents` the inner <button> still participates in the parent
-     flex/grid layout exactly as if the host were not there. */
-  ui-button {
+  /* `ui-button`, `ui-select` and `ui-input` keep their host element so the
+     parent's click/change/input bindings work — Aurelia does not attach
+     those to a containerless component. With `display: contents` the inner
+     control still participates in the parent flex/grid layout exactly as if
+     the host were not there. */
+  ui-button,
+  ui-select,
+  ui-input {
     display: contents;
   }
 

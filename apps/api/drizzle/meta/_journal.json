@@ -15,6 +15,13 @@
       "when": 1794481600171,
       "tag": "0001_billing_stripe",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794483539708,
+      "tag": "0002_workspace_settings",
+      "breakpoints": true
     }
   ]
 }

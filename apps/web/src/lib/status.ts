@@ -2,6 +2,14 @@ import type { ProjectStatus } from '@aureliajs/shared';
 
 type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning';
 
+/**
+ * Presentation metadata for a project status.
+ *
+ * The `label` is the English fallback: it is what the API stores and what
+ * the shared status enum means. The UI overrides it with the translated
+ * label from the message catalog, so the badge reads correctly in every
+ * language without the enum having to know about i18n.
+ */
 export const STATUS_META: Record<
   ProjectStatus,
   { label: string; variant: BadgeVariant; dot: string }
