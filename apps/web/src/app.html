@@ -1,4 +1,22 @@
 <div class="flex min-h-dvh bg-background">
+  <!--
+    The skip link is the first focusable element on the page. Without it a
+    keyboard user has to tab through the whole sidebar on every navigation.
+    It is visually hidden until it receives focus.
+
+    `external` tells the Aurelia router to ignore this href — a fragment
+    link is not a route, and the router would otherwise swallow the click
+    and hand focus to the page heading instead.
+  -->
+  <a
+    href="#main-content"
+    external
+    class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"
+    click.trigger="skipToContent($event)"
+  >
+    Skip to content
+  </a>
+
   <!-- Mobile overlay -->
   <div
     if.bind="sidebarOpen && !isAuthRoute"
@@ -38,6 +56,12 @@
             <span class="block truncate text-[11px] text-muted-foreground"
               >${auth.workspace?.plan === 'pro' ? 'Pro' : 'Free'} workspace</span
             >
+            <!--
+              Visually hidden rather than aria-label: WCAG 2.5.3 (Label in
+              Name) requires the accessible name to contain the visible text,
+              and an aria-label that replaces it fails the check.
+            -->
+            <span class="sr-only">— switch workspace</span>
           </span>
           <ui-icon name="chevronDown" size="14"></ui-icon>
         </summary>
@@ -149,6 +173,7 @@
           <summary class="flex cursor-pointer list-none items-center gap-2 rounded-md p-1 hover:bg-accent">
             <ui-avatar name.bind="auth.user?.name ?? '?'" size="sm"></ui-avatar>
             <span class="hidden sm:block"><ui-icon name="chevronDown" size="14"></ui-icon></span>
+            <span class="sr-only">Account menu for ${auth.user?.name ?? 'signed out user'}</span>
           </summary>
           <div
             class="absolute right-0 top-full z-20 mt-1 w-52 rounded-lg border bg-popover p-1 text-popover-foreground shadow-md"
@@ -177,7 +202,11 @@
       </div>
     </header>
 
-    <main class="w-full flex-1 ${isAuthRoute ? '' : 'mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-8'}">
+    <main
+      id="main-content"
+      tabindex="-1"
+      class="w-full flex-1 ${isAuthRoute ? '' : 'mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-8'}"
+    >
       <au-viewport></au-viewport>
     </main>
 

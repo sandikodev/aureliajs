@@ -14,7 +14,7 @@ export const badgeVariants = cva(
         success:
           'border-transparent bg-success/10 text-success dark:bg-success/20 dark:text-emerald-300',
         warning:
-          'border-transparent bg-warning/15 text-amber-700 dark:bg-warning/20 dark:text-amber-300',
+          'border-transparent bg-warning/15 text-amber-800 dark:bg-warning/20 dark:text-amber-200',
       },
     },
     defaultVariants: { variant: 'default' },

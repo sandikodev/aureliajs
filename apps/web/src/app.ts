@@ -61,6 +61,13 @@ export class App {
   search = '';
   /** Hides the admin chrome on the sign-in route (no double layout). */
   isAuthRoute = isPublicPath();
+  /**
+   * The first `navigation-end` is the initial page load, not a route change.
+   * Moving focus on that one would set the browser's sequential focus
+   * navigation starting point into the page body, so the very first Tab
+   * would skip the "Skip to content" link.
+   */
+  private hasNavigated = false;
 
   async attached(): Promise<void> {
     setUnauthorizedHandler(() => {
@@ -71,6 +78,11 @@ export class App {
     this.subscription = this.events.subscribe('au:router:navigation-end', () => {
       this.isAuthRoute = isPublicPath();
       this.closeSidebar();
+
+      if (this.hasNavigated) {
+        this.focusPageHeading();
+      }
+      this.hasNavigated = true;
     });
 
     const [authenticated] = await Promise.all([this.auth.refresh(), this.checkApi()]);
@@ -83,6 +95,56 @@ export class App {
   detached(): void {
     this.subscription?.dispose();
     setUnauthorizedHandler(null);
+  }
+
+  /**
+   * Move focus to the main region.
+   *
+   * Two things go wrong if this is left to the anchor's default behaviour:
+   * the Aurelia router intercepts the click and treats `#main-content` as a
+   * route change, and the resulting `navigation-end` hands focus straight
+   * back to the page heading. So the click is handled explicitly, the event
+   * is stopped before it reaches the router's delegated listener, and the
+   * URL is updated with `replaceState` — which does not fire `hashchange`.
+   */
+  skipToContent(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const main = document.getElementById('main-content');
+    if (!main) return;
+
+    main.focus();
+    main.scrollIntoView({ block: 'start' });
+
+    // Keep the link honest — the address bar still shows the fragment, so it
+    // can be copied and reloaded.
+    history.replaceState(
+      null,
+      '',
+      `${window.location.pathname}${window.location.search}#main-content`,
+    );
+  }
+
+  /**
+   * Move focus to the new page heading after a route change.
+   *
+   * A single-page app does not announce anything on navigation: the screen
+   * reader keeps reading whatever was focused last, so the user never finds
+   * out that the page changed. Focusing the `<h1>` gives them the page title
+   * and puts the caret at the top of the new content.
+   */
+  private focusPageHeading(): void {
+    // The viewport renders the new page asynchronously, so wait a tick.
+    requestAnimationFrame(() => {
+      const heading = document.querySelector<HTMLElement>('main h1');
+      if (!heading) return;
+
+      if (!heading.hasAttribute('tabindex')) {
+        heading.setAttribute('tabindex', '-1');
+      }
+      heading.focus({ preventScroll: false });
+    });
   }
 
   private async checkApi(): Promise<void> {

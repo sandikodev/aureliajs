@@ -21,12 +21,17 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  /* 0.535 keeps muted text at 4.7:1 on the `--muted` surface — 0.556 sat
+     at 4.35:1 and failed WCAG AA on every avatar and table header. */
+  --muted-foreground: oklch(0.535 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
-  --success: oklch(0.6 0.13 155);
+  /* 0.48 puts the success text at 4.8:1 on `bg-success/10` over a muted row;
+     at 0.6 it was 3.3:1 and at 0.52 it was 4.06:1 on the table row
+     background — both failed WCAG AA for a 12px badge. */
+  --success: oklch(0.48 0.13 155);
   --warning: oklch(0.72 0.16 75);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
