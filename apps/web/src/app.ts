@@ -8,10 +8,7 @@ import { I18nService, LOCALES } from '@/services/i18n';
 import { ToastService } from '@/services/toast';
 import { relativeTime } from '@/lib/utils';
 import type { Locale, WorkspaceSummary } from '@aureliajs/shared';
-import { getRouterConfig, isPublicRoute, type RouteDefinition } from '@/config/routes';
-import { LoginPage } from '@/pages/login-page';
-import { LandingPage } from '@/pages/landing-page';
-import { InvitePage } from '@/pages/invite-page';
+import { getRouterConfig, PUBLIC_ROUTES, type RouteDefinition } from '@/config/routes';
 
 export type NavItem = {
   href: string;
@@ -183,9 +180,10 @@ export class App {
 
     // If authenticated and on landing page, redirect to dashboard
     if (authenticated) {
-      // If authenticated and on landing page, redirect to dashboard
       const instruction = (this.router as any).activeInstruction;
-      const isOnLandingPage = instruction?.component === LandingPage;
+      // Check if current route is the landing page (first public route)
+      const landingPageComponent = PUBLIC_ROUTES[0]?.component;
+      const isOnLandingPage = instruction?.component === landingPageComponent;
       
       if (isOnLandingPage) {
         await this.router.load('dashboard');

@@ -1,6 +1,9 @@
 packages:
   - 'apps/*'
-  - 'packages/*'
+  - 'packages/shared'
+  # packages/hono-aurelia-ssr is INTENTIONALLY excluded
+  # It's a separate nested git repo that should be published to npm
+  # and consumed as a regular dependency, not a workspace member
   # examples/* is INTENTIONALLY excluded from workspace
   # Examples are standalone reference implementations, not part of the monorepo
   # Install examples separately: cd examples/fullstack-ssr && pnpm install

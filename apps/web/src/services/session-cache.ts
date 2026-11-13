@@ -12,15 +12,20 @@
  * Result: First page load is INSTANT (no spinner), then validates in background.
  */
 
+import type { User, Workspace } from '@aureliajs/shared';
+
 export interface CachedSession {
-  user: { id: string; email: string; name: string } | null;
-  workspace: { id: string; name: string; plan: 'free' | 'pro' | 'scale' } | null;
+  user: User | null;
+  workspace: Workspace | null;
   token: string;
-  expiresAt: number; // timestamp
 }
 
 const CACHE_KEY = 'aurelia-session-cache';
 const CACHE_VALIDITY = 24 * 60 * 60 * 1000; // 24 hours
+
+interface StoredSession extends CachedSession {
+  expiresAt: number; // timestamp for cache expiry
+}
 
 /**
  * Get cached session if it exists and hasn't expired.
@@ -31,7 +36,7 @@ export function getCachedSession(): CachedSession | null {
     const cached = localStorage.getItem(CACHE_KEY);
     if (!cached) return null;
 
-    const session: CachedSession = JSON.parse(cached);
+    const session: StoredSession = JSON.parse(cached);
 
     // Check if cache has expired
     if (session.expiresAt < Date.now()) {
@@ -39,7 +44,7 @@ export function getCachedSession(): CachedSession | null {
       return null;
     }
 
-    return session;
+    return { user: session.user, workspace: session.workspace, token: session.token };
   } catch {
     // Corrupted cache, clear it
     clearSessionCache();
@@ -53,9 +58,11 @@ export function getCachedSession(): CachedSession | null {
  */
 export function cacheSession(session: CachedSession): void {
   try {
-    // Extend expiry to current time + validity period
-    session.expiresAt = Date.now() + CACHE_VALIDITY;
-    localStorage.setItem(CACHE_KEY, JSON.stringify(session));
+    const stored: StoredSession = {
+      ...session,
+      expiresAt: Date.now() + CACHE_VALIDITY,
+    };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(stored));
   } catch {
     // localStorage quota exceeded, ignore
     console.warn('[session-cache] Failed to save session cache (quota?)');
