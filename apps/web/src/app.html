@@ -203,7 +203,7 @@
             <ui-icon name="search" size="16" class="text-muted-foreground"></ui-icon>
             <input
               type="text"
-              placeholder="${copy['app.search']}"
+              placeholder="${copy['app.searchAllProjects']}"
               value.bind="search"
               class="flex-1 bg-transparent text-[13px] placeholder:text-muted-foreground outline-none"
             />
@@ -259,9 +259,9 @@
                 repeat.for="locale of localeOptions"
                 class="block w-full rounded-md px-3 py-2 text-left text-[13px] transition-colors hover:bg-accent hover:text-accent-foreground"
                 active-class="bg-accent"
-                click.trigger="changeLocale(locale)"
+                click.trigger="changeLocale(locale.value)"
               >
-                ${locale}
+                ${locale.label}
               </button>
             </div>
           </details>
