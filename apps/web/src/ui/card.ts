@@ -61,7 +61,7 @@ export class UiCardDescription {}
 @customElement({
   name: 'ui-card-content',
   containerless: true,
-  template: `<div class="px-5 py-4"><au-slot></au-slot></div>`,
+  template: `<div class="px-5 pb-5"><au-slot></au-slot></div>`,
 })
 export class UiCardContent {}
 
