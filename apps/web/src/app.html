@@ -41,9 +41,9 @@
     - auth.isAuthenticated === true (user is signed in)
     - isAuthRoute === true (current route is protected or admin context)
     
-    Contains: sidebar, header, main content area
+    Contains: sidebar, header, main content area with viewport
   -->
-  <template if.bind="!loadingAuth && auth.isAuthenticated && isAuthRoute">
+  <div if.bind="!loadingAuth && auth.isAuthenticated && isAuthRoute" class="contents">
     <!-- Mobile sidebar backdrop -->
     <div
       if.bind="sidebarOpen"
@@ -273,7 +273,7 @@
         <au-viewport></au-viewport>
       </main>
     </div>
-  </template>
+  </div>
 
   <!--
     PUBLIC LAYOUT
@@ -284,9 +284,9 @@
     
     Contains: just the router viewport, minimal chrome.
   -->
-  <template if.bind="!loadingAuth && !isAuthRoute">
+  <div if.bind="!loadingAuth && !isAuthRoute" class="contents">
     <main id="main-content" class="flex-1">
       <au-viewport></au-viewport>
     </main>
-  </template>
+  </div>
 </div>

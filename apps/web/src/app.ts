@@ -179,7 +179,8 @@ export class App {
     this.updateLayoutState();
 
     // If authenticated and on landing page, redirect to dashboard
-    if (authenticated) {
+    // BUT: only if user hasn't manually navigated yet (respect user navigation)
+    if (authenticated && !this.hasNavigated) {
       const instruction = (this.router as any).activeInstruction;
       // Check if current route is the landing page (first public route)
       const landingPageComponent = PUBLIC_ROUTES[0]?.component;
