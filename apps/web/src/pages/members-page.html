@@ -10,13 +10,6 @@
   </ui-alert>
 </div>
 
-<div if.bind="error" class="mt-4" data-testid="team-error">
-  <ui-alert tone="destructive">
-    <ui-icon name="alert" size="16"></ui-icon>
-    <span class="flex-1">${error}</span>
-  </ui-alert>
-</div>
-
 <div if.bind="lastInviteUrl" class="mt-4" data-testid="invite-link">
   <ui-alert tone="info">
     <ui-icon name="link" size="16"></ui-icon>

@@ -7,6 +7,7 @@ import { relativeTime } from '@/lib/utils';
 import { api, type Overview, type Period } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { I18nService } from '@/services/i18n';
+import { ToastService } from '@/services/toast';
 
 /**
  * Overview Page
@@ -18,6 +19,7 @@ import { I18nService } from '@/services/i18n';
 export class OverviewPage {
   private readonly auth = resolve(AuthService);
   readonly i18n = resolve(I18nService);
+  private readonly toast = resolve(ToastService);
 
   /**
    * The translator, exposed through a view-model getter so the binding
@@ -52,7 +54,6 @@ export class OverviewPage {
 
   isLoading = true;
   demo = false;
-  error = '';
   overview: Overview = DEMO_OVERVIEW;
 
   /** The reporting window. Changing it re-queries the API. */
@@ -141,14 +142,12 @@ export class OverviewPage {
 
   async load(): Promise<void> {
     this.isLoading = true;
-    this.error = '';
     try {
       this.overview = await api.overview(this.period);
       this.demo = false;
     } catch {
       this.overview = DEMO_OVERVIEW;
       this.demo = true;
-      this.error = '';
     } finally {
       this.isLoading = false;
     }

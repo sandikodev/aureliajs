@@ -49,7 +49,6 @@ export class BillingPage {
 
   isLoading = true;
   busy = false;
-  error = '';
   demo = false;
 
   /** Set when Stripe redirects back to us after Checkout. */
@@ -69,7 +68,6 @@ export class BillingPage {
 
   async load(): Promise<void> {
     this.isLoading = true;
-    this.error = '';
     try {
       this.overview = await api.billing();
       this.demo = false;
@@ -77,45 +75,40 @@ export class BillingPage {
         this.toast.success('Payment received. Your plan is active — Stripe confirmed it via webhook.');
       }
     } catch (cause) {
-      this.error =
-        cause instanceof ApiError ? cause.message : 'Could not load billing information.';
+      this.toast.error(
+        cause instanceof ApiError ? cause.message : 'Could not load billing information.'
+      );
       this.overview = null;
     } finally {
       this.isLoading = false;
     }
   }
 
-  /**
-   * Start a Stripe Checkout session and follow the redirect.
-   *
-   * The card form lives on Stripe's hosted page, so nothing about the payment
-   * touches this app — we only ever receive a URL.
-   */
   async checkout(plan: 'pro' | 'scale', interval: 'monthly' | 'yearly'): Promise<void> {
-    this.error = '';
     this.busy = true;
     try {
       const { url } = await api.startCheckout(plan, interval);
       window.location.href = url;
     } catch (cause) {
       this.busy = false;
-      this.error =
+      this.toast.error(
         cause instanceof ApiError
           ? cause.message
-          : 'Could not start the checkout session. Is Stripe configured?';
+          : 'Could not start the checkout session. Is Stripe configured?'
+      );
     }
   }
 
-  /** Open the Stripe customer portal so the customer can manage the subscription. */
   async openPortal(): Promise<void> {
-    this.error = '';
     this.busy = true;
     try {
       const { url } = await api.openPortal();
       window.location.href = url;
     } catch (cause) {
       this.busy = false;
-      this.error = cause instanceof ApiError ? cause.message : 'Could not open the billing portal.';
+      this.toast.error(
+        cause instanceof ApiError ? cause.message : 'Could not open the billing portal.'
+      );
     }
   }
 

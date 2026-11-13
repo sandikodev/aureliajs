@@ -5,6 +5,7 @@ import { ThemeService } from '@/services/theme';
 import { I18nService, LOCALES } from '@/services/i18n';
 import { api, ApiError, type CurrentWorkspace } from '@/services/api';
 import { AuthService } from '@/services/auth';
+import { ToastService } from '@/services/toast';
 import type { Locale } from '@aureliajs/shared';
 
 @customElement({ name: 'settings-page', template })
@@ -13,6 +14,7 @@ export class SettingsPage {
   readonly i18n = resolve(I18nService);
   private readonly auth = resolve(AuthService);
   private readonly router = resolve(IRouter);
+  private readonly toast = resolve(ToastService);
 
   /** The workspace row, loaded from the API. */
   current: CurrentWorkspace | null = null;
@@ -24,7 +26,6 @@ export class SettingsPage {
   isLoading = true;
   saving = false;
   deleting = false;
-  error = '';
   notice = '';
 
   readonly languages = LOCALES;
@@ -67,7 +68,6 @@ export class SettingsPage {
 
   async load(): Promise<void> {
     this.isLoading = true;
-    this.error = '';
     try {
       const current = await api.currentWorkspace();
       this.current = current;
@@ -79,8 +79,7 @@ export class SettingsPage {
         this.i18n.setLocale(current.settings.locale);
       }
     } catch (cause) {
-      this.error =
-        cause instanceof ApiError ? cause.message : 'Could not load the workspace settings.';
+      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not load the workspace settings.');
     } finally {
       this.isLoading = false;
     }
@@ -93,18 +92,17 @@ export class SettingsPage {
    * teammate on the same workspace gets the same language.
    */
   async save(): Promise<void> {
-    this.error = '';
     this.notice = '';
 
     const name = this.workspace.name.trim();
     const slug = this.workspace.slug.trim();
 
     if (name.length < 2) {
-      this.error = this.i18n.t('settings.nameTooShort');
+      this.toast.error(this.i18n.t('settings.nameTooShort'));
       return;
     }
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-      this.error = this.i18n.t('settings.slugInvalid');
+      this.toast.error(this.i18n.t('settings.slugInvalid'));
       return;
     }
 
@@ -125,8 +123,7 @@ export class SettingsPage {
 
       this.notice = this.i18n.t('settings.saved');
     } catch (cause) {
-      this.error =
-        cause instanceof ApiError ? cause.message : 'Could not save the workspace settings.';
+      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not save the workspace settings.');
     } finally {
       this.saving = false;
     }
@@ -141,7 +138,6 @@ export class SettingsPage {
    * be open.
    */
   async onLocaleChange(locale: Locale): Promise<void> {
-    this.error = '';
     this.i18n.setLocale(locale);
 
     try {
@@ -150,8 +146,7 @@ export class SettingsPage {
       });
       this.current = updated;
     } catch (cause) {
-      this.error =
-        cause instanceof ApiError ? cause.message : 'Could not save the language preference.';
+      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not save the language preference.');
     }
   }
 
@@ -163,7 +158,6 @@ export class SettingsPage {
    * verbatim so the reason is never hidden.
    */
   async deleteWorkspace(): Promise<void> {
-    this.error = '';
     this.notice = '';
 
     const name = this.current?.name ?? '';
@@ -175,7 +169,7 @@ export class SettingsPage {
       await this.auth.logout();
       await this.router.load('login');
     } catch (cause) {
-      this.error = cause instanceof ApiError ? cause.message : 'Could not delete the workspace.';
+      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not delete the workspace.');
     } finally {
       this.deleting = false;
     }

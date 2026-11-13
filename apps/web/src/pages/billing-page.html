@@ -27,12 +27,6 @@
   </ui-alert>
 </div>
 
-<div if.bind="error" class="mt-4" data-testid="billing-error">
-  <ui-alert tone="destructive">
-    <ui-icon name="alert" size="16"></ui-icon>
-    <span class="flex-1">${error}</span>
-  </ui-alert>
-</div>
 
 <div if.bind="isLoading" class="mt-5 grid gap-4 lg:grid-cols-3">
   <div class="lg:col-span-2">

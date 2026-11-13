@@ -30,16 +30,6 @@
   </ui-alert>
 </div>
 
-<div if.bind="error" class="mt-4">
-  <ui-alert tone="destructive">
-    <ui-icon name="alert" size="16"></ui-icon>
-    <span class="flex-1">${error}</span>
-    <button type="button" class="text-current/70 hover:text-current" click.trigger="error = ''" aria-label="Dismiss">
-      <ui-icon name="x" size="14"></ui-icon>
-    </button>
-  </ui-alert>
-</div>
-
 <!-- Filters -->
 <div class="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
   <div class="relative flex-1">

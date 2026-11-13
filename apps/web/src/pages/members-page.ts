@@ -27,7 +27,6 @@ export class MembersPage {
 
   isLoading = true;
   isInviting = false;
-  error = '';
   /** The last invite link we created, so the owner can copy it. */
   lastInviteUrl = '';
 
@@ -101,7 +100,6 @@ export class MembersPage {
 
   async load(): Promise<void> {
     this.isLoading = true;
-    this.error = '';
     try {
       const [members, invites] = await Promise.all([
         api.members(),
@@ -115,8 +113,7 @@ export class MembersPage {
       this.seatUsed = members.seatUsed;
       this.invites = invites;
     } catch (cause) {
-      this.error =
-        cause instanceof ApiError ? cause.message : 'Could not load the team. Is the API running?';
+      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not load the team. Is the API running?');
       this.members = [];
     } finally {
       this.isLoading = false;
@@ -131,12 +128,11 @@ export class MembersPage {
    * an email and the token would never reach the browser.
    */
   async inviteMember(): Promise<void> {
-    this.error = '';
     this.lastInviteUrl = '';
 
     const email = this.invite.email.trim().toLowerCase();
     if (!email || !email.includes('@')) {
-      this.error = 'Enter a valid email address.';
+      this.toast.error('Enter a valid email address.');
       return;
     }
 
@@ -157,14 +153,13 @@ export class MembersPage {
       this.toast.success(message);
       await this.load();
     } catch (cause) {
-      this.error = cause instanceof ApiError ? cause.message : 'Could not create the invitation.';
+      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not create the invitation.');
     } finally {
       this.isInviting = false;
     }
   }
 
   async changeRole(member: Member, role: Role): Promise<void> {
-    this.error = '';
 
     if (role === member.role) return;
 
@@ -173,12 +168,11 @@ export class MembersPage {
       this.toast.success(`${member.name} is now ${this.roleLabel(role)}.`);
       await this.load();
     } catch (cause) {
-      this.error = cause instanceof ApiError ? cause.message : 'Could not change that role.';
+      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not change that role.');
     }
   }
 
   async removeMember(member: Member): Promise<void> {
-    this.error = '';
 
     if (!confirm(`Remove ${member.name} from this workspace?`)) return;
 
@@ -187,7 +181,7 @@ export class MembersPage {
       this.toast.success(`${member.name} was removed from the workspace.`);
       await this.load();
     } catch (cause) {
-      this.error = cause instanceof ApiError ? cause.message : 'Could not remove that member.';
+      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not remove that member.');
     }
   }
 

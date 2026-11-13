@@ -146,7 +146,6 @@ export class ProjectsPage {
   isLoading = true;
   demo = false;
   saving = false;
-  error = '';
 
   editingId: string | null = null;
   form: FormState = emptyForm();
@@ -191,7 +190,6 @@ export class ProjectsPage {
 
   async load(): Promise<void> {
     this.isLoading = true;
-    this.error = '';
     try {
       const result = await api.listProjects({
         page: this.page,
@@ -320,12 +318,12 @@ export class ProjectsPage {
         this.notifySuccessLocal(this.isEditing ? 'projects.updatedLocal' : 'projects.createdLocal');
         this.dialogEl.close();
       } else if (error instanceof ApiError) {
-        this.error = error.message;
+        this.toast.error(error.message);
         if (error.issues.length > 0) {
           this.fieldErrors = Object.fromEntries(error.issues.map((i) => [i.path, i.message]));
         }
       } else {
-        this.error = 'Could not save the project.';
+        this.toast.error('Could not save the project.');
       }
     } finally {
       this.saving = false;
