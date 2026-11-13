@@ -126,7 +126,7 @@
         <ul class="space-y-1">
           <li repeat.for="item of nav">
             <a
-              href="#${item.href}"
+              load.bind="item.href"
               class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground active:bg-sidebar-accent"
               active-class="bg-sidebar-accent"
             >
@@ -165,7 +165,7 @@
             class="absolute inset-x-0 bottom-full z-20 mb-1 rounded-lg border bg-popover p-1 text-popover-foreground shadow-md"
           >
             <a
-              href="#settings"
+              load="settings"
               class="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] transition-colors hover:bg-accent hover:text-accent-foreground"
             >
               <ui-icon name="settings" size="14"></ui-icon>
