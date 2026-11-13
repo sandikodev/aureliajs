@@ -89,18 +89,13 @@ export class App {
 
   /**
    * Whether the authenticated shell (sidebar + header) should render.
-   * Computed getter — no extra flags needed.
-   * - loadingAuth: spinner is showing, shell must not render
-   * - auth.isAuthenticated: session exists
-   * - !isPublicPath: current URL is a protected route
-   *
-   * URL path is always correct. router.activeInstruction is not reliable
-   * during the boot cycle, so we use window.location.pathname instead.
+   * Plain property — set explicitly after boot and on every navigation-end.
+   * NOT a computed getter: window.location is not observable by Aurelia.
    */
-  get showShell(): boolean {
-    if (this.loadingAuth) return false;
-    if (!this.auth.isAuthenticated) return false;
-    return !this.isPublicPath(window.location.pathname);
+  showShell = false;
+
+  private updateShell(): void {
+    this.showShell = this.auth.isAuthenticated && !this.isPublicPath(window.location.pathname);
   }
 
   /**
@@ -137,6 +132,7 @@ export class App {
     });
 
     this.subscription = this.events.subscribe('au:router:navigation-end', () => {
+      this.updateShell();
       this.closeSidebar();
       if (this.auth.isAuthenticated && !this.isPublicPath(window.location.pathname)) {
         void this.loadActivity();
@@ -157,8 +153,9 @@ export class App {
       await this.router.load(`login?returnUrl=${returnUrl}`);
     }
 
-    // Unblock rendering — showShell now evaluates correctly
+    // Unblock rendering — updateShell() sets correct layout state
     this.loadingAuth = false;
+    this.updateShell();
 
     if (authenticated) {
       void Promise.all([this.loadActivity(), this.loadWorkspaces()]);
