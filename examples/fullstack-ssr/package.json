@@ -1,0 +1,29 @@
+{
+  "name": "hono-aurelia-ssr-example",
+  "version": "0.0.1",
+  "description": "Minimal Hono + Aurelia SSR example following Hono conventions (single server)",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@hono/aurelia-ssr": "workspace:*",
+    "aurelia": "^2.0.0-rc.2",
+    "hono": "^4.13.18"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.13",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^1.6.1"
+  }
+}
