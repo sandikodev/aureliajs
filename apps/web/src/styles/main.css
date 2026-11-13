@@ -4,6 +4,51 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ------------------------------------------------------------------ */
+/* Aurelia custom elements — browser renders unknown elements as inline */
+/* Must be block so flex/grid sizing, border-radius, and h-full work   */
+/* ------------------------------------------------------------------ */
+au-viewport {
+  display: block;
+  width: 100%;
+}
+
+app-root {
+  display: block;
+  min-height: 100dvh;
+}
+
+/* ui-* components that are grid/flex children must be block */
+ui-card,
+ui-alert,
+ui-badge,
+ui-avatar,
+ui-button,
+ui-input,
+ui-select,
+ui-label,
+ui-separator,
+ui-skeleton,
+ui-textarea,
+ui-toaster,
+ui-icon {
+  display: block;
+}
+
+/* Icons sit inside text/flex rows — inline-flex keeps them aligned */
+ui-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+/* Cards must fill grid cell height so all cards in a row are equal */
+ui-card {
+  height: 100%;
+}
+
+/* ------------------------------------------------------------------ */
 /* Design tokens — shadcn/ui "new-york" neutral palette, oklch         */
 /* ------------------------------------------------------------------ */
 

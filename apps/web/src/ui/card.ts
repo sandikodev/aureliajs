@@ -33,7 +33,7 @@ export class UiCard {
   @bindable padded = false;
 
   get classes(): string {
-    return cn('rounded-xl border bg-card text-card-foreground shadow-sm', this.padded ? 'p-5' : '');
+    return cn('rounded-xl border bg-card text-card-foreground shadow-sm h-full', this.padded ? 'p-5' : '');
   }
 }
 
