@@ -59,43 +59,53 @@ Single route handler that serves HTML (SSR) or JSON (SPA fallback).
 
 ---
 
-## Phase 4: Example Monorepo (Week 3-4)
+## Phase 4: Clean Example Monorepo (Week 3-4)
 
 ### Goal
-Real working example showing the complete pattern.
+Create a **reference example** showing SSR pattern in clean Hono conventions.
+Keep existing `apps/{web,api}` as-is. Build new minimal example alongside.
 
 ### Deliverables
-- Complete monorepo: `apps/{web, api} + packages/ssr`
-- Example Hono API routes
-- Example Aurelia pages
-- Deployment instructions
+- New example monorepo: `examples/fullstack-ssr/`
+  - `examples/fullstack-ssr/apps/web/` (Aurelia SPA + SSR pages)
+  - `examples/fullstack-ssr/apps/api/` (Hono API with loaders)
+  - `examples/fullstack-ssr/packages/ssr/` (symlink to @hono/aurelia-ssr)
+- 3-5 simple pages showing pattern
+- Clean file structure (like Hono JSX examples)
+- Development & build instructions
+
+### Pages to Include
+1. **Home** — Static page (basic example)
+2. **Users** — Dynamic page with data loader
+3. **Settings** — Protected page with auth guard
+4. **About** — Server-rendered with props
 
 ### Success Criteria
 - [ ] Example builds successfully
-- [ ] Example serves SSR HTML
-- [ ] Example hydrates correctly
-- [ ] Dashboard page migrated to SSR
-- [ ] Development flow documented
+- [ ] Example serves SSR HTML correctly
+- [ ] Example hydrates with zero flicker
+- [ ] Clean folder structure (easy to follow)
+- [ ] No production code pollution
+- [ ] Developers can fork & extend easily
 
 ---
 
-## Phase 5: Real Dashboard Migration (Week 4)
+## Phase 5: DX Validation with Real Example (Week 4)
 
 ### Goal
-Prove it works with actual production code.
+Show that the pattern is actually easy to use in real code.
 
 ### Deliverables
-- Dashboard page migrated to SSR
-- Real data loaded in loaders
-- Real auth guards working
-- Performance comparison (SPA vs SSR)
+- Optional: Light migration of ONE page from existing dashboard
+- Or: Just verify example works with actual Aurelia patterns
+- Performance metrics (SSR vs SPA)
+- Time-to-implement measurement
 
 ### Success Criteria
-- [ ] Dashboard renders correctly on SSR
-- [ ] All data loads correctly
-- [ ] Auth state correct after hydration
-- [ ] Performance improved (measure it)
-- [ ] DX smooth (developers understand pattern)
+- [ ] Developer can understand pattern from example
+- [ ] Pattern is actually simpler than expected
+- [ ] No hidden complexity emerges
+- [ ] DX is smooth (developers like it)
 
 ---
 
