@@ -30,7 +30,7 @@ import { cn } from '@/lib/utils';
   template: `<div class.bind="classes"><au-slot></au-slot></div>`,
 })
 export class UiCard {
-  @bindable padded = false;
+  @bindable({ set: (v) => v === '' || v === true || v === 'true' }) padded = false;
 
   get classes(): string {
     return cn('rounded-xl border bg-card text-card-foreground shadow-sm h-full', this.padded ? 'p-5' : '');
