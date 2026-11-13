@@ -43,7 +43,7 @@
     
     Contains: sidebar, header, main content area with viewport
   -->
-  <div if.bind="!loadingAuth && auth.isAuthenticated && isAuthRoute" class="contents">
+  <div if.bind="!loadingAuth && auth.isAuthenticated && showShell" class="contents">
     <!-- Mobile sidebar backdrop -->
     <div
       if.bind="sidebarOpen"
@@ -284,7 +284,7 @@
     
     Contains: just the router viewport, minimal chrome.
   -->
-  <div if.bind="!loadingAuth && !isAuthRoute" class="contents">
+  <div if.bind="!loadingAuth && !showShell" class="contents">
     <main id="main-content" class="flex-1">
       <au-viewport></au-viewport>
     </main>
