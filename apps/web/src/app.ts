@@ -181,21 +181,8 @@ export class App {
     // Step 4-5: Determine layout state
     this.updateLayoutState();
 
-    // If not authenticated, redirect to login UNLESS already on a login-related public page
-    // (LoginPage, InvitePage allow unauthenticated access)
-    // But redirect away from LandingPage since it's not login
-    if (!authenticated) {
-      const instruction = (this.router as any).activeInstruction;
-      const isOnLoginPage = instruction?.component === LoginPage;
-      const isOnInvitePage = instruction?.component === InvitePage;
-      const isOnLandingPage = instruction?.component === LandingPage;
-      
-      // If on landing page without auth, redirect to login
-      // If on login/invite, stay there (they're public auth pages)
-      if (isOnLandingPage) {
-        await this.router.load('login');
-      }
-    } else {
+    // If authenticated and on landing page, redirect to dashboard
+    if (authenticated) {
       // If authenticated and on landing page, redirect to dashboard
       const instruction = (this.router as any).activeInstruction;
       const isOnLandingPage = instruction?.component === LandingPage;
