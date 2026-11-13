@@ -194,28 +194,33 @@ export class App {
 
   /**
    * Determine if the current route is a public route.
-   * CRITICAL FIX: Checks router's actual component, not URL pathname.
+   * CRITICAL: Must be called AFTER router initialization.
    * 
-   * Pathname-based checks fail during SPA navigation (router loads before URL updates),
-   * causing race conditions and login loops. Instead, check the component identity.
+   * During boot (loadingAuth=true), treat everything as public so loading spinner shows.
+   * After boot, check if the router's active instruction component is in PUBLIC_ROUTES.
    * 
    * Returns true for: LandingPage, LoginPage, InvitePage, or during loading.
    */
   private isCurrentRoutePublic(): boolean {
-    // During boot, treat as public to show loading spinner
+    // During boot, treat as public (show loading spinner, don't redirect)
     if (this.loadingAuth) return true;
 
-    // After boot, check router's actual component
-    // This works even when router navigates programmatically (no URL change)
-    const component = (this.router as any).currentComponent?.component;
-    if (!component) {
-      console.debug('[app] isCurrentRoutePublic: no component, treating as public');
-      return true; // Unknown = public
-    }
+    // After boot, check router's active instruction
+    // activeInstruction.component is the actual component being rendered
+    try {
+      const instruction = (this.router as any).activeInstruction;
+      if (!instruction || !instruction.component) {
+        console.debug('[app] isCurrentRoutePublic: no active instruction, treating as public');
+        return true; // Unknown = treat as public
+      }
 
-    // Check if this component is registered in PUBLIC_ROUTES
-    const isPublic = PUBLIC_ROUTES.some((route) => route.component === component);
-    return isPublic;
+      // Check if this component is in PUBLIC_ROUTES
+      const isPublic = PUBLIC_ROUTES.some((route) => route.component === instruction.component);
+      return isPublic;
+    } catch (error) {
+      console.debug('[app] isCurrentRoutePublic: error checking instruction', error);
+      return true; // If router state is weird, treat as public
+    }
   }
 
   /**
