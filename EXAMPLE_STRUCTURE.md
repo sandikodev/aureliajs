@@ -22,57 +22,51 @@
 
 ---
 
-## Example Structure (Like Hono JSX Examples)
+## Example Structure (Single Server Pattern - Like Hono JSX Examples)
 
 ```
 examples/
-└── fullstack-ssr/
-    ├── package.json              # Monorepo root
-    ├── pnpm-workspace.yaml
-    ├── README.md                 # Setup instructions
-    ├── docs/
-    │   ├── ARCHITECTURE.md       # How pattern works
-    │   ├── GETTING_STARTED.md    # Step-by-step
-    │   └── TROUBLESHOOTING.md    # Common issues
-    ├── apps/
-    │   ├── web/                  # Aurelia SPA + SSR
-    │   │   ├── src/
-    │   │   │   ├── pages/
-    │   │   │   │   ├── home-page.ts/html
-    │   │   │   │   ├── users-page.ts/html
-    │   │   │   │   ├── settings-page.ts/html
-    │   │   │   │   └── about-page.ts/html
-    │   │   │   ├── services/
-    │   │   │   │   ├── auth.ts
-    │   │   │   │   └── api.ts
-    │   │   │   ├── app.ts
-    │   │   │   ├── app.html
-    │   │   │   └── main.ts
-    │   │   ├── package.json
-    │   │   └── vite.config.ts
-    │   └── api/                  # Hono API + SSR
-    │       ├── src/
-    │       │   ├── index.ts      # Main Hono server
-    │       │   ├── routes/
-    │       │   │   ├── pages.ts  # SSR routes
-    │       │   │   ├── api.ts    # JSON API
-    │       │   │   └── health.ts
-    │       │   ├── loaders/
-    │       │   │   ├── users.ts
-    │       │   │   └── settings.ts
-    │       │   ├── middleware/
-    │       │   │   └── auth.ts
-    │       │   └── lib/
-    │       │       └── ssr.ts    # SSR rendering logic
-    │       ├── package.json
-    │       └── wrangler.toml     # Cloudflare Workers
-    └── packages/
-        └── shared/               # Shared types & constants
-            ├── src/
-            │   ├── types.ts
-            │   └── constants.ts
-            └── package.json
+└── fullstack-ssr/              ← Single Hono server (not monorepo)
+    ├── src/
+    │   ├── index.ts            # ← Main entry point (Hono server)
+    │   ├── pages/              # ← SSR page routes
+    │   │   ├── home.ts         
+    │   │   ├── users.ts        
+    │   │   ├── settings.ts     
+    │   │   └── about.ts        
+    │   ├── components/         # ← Aurelia components (shared)
+    │   │   ├── Layout.ts/html  
+    │   │   ├── UserList.ts/html
+    │   │   └── Form.ts/html
+    │   ├── api/                # ← API JSON routes
+    │   │   ├── users.ts        
+    │   │   ├── posts.ts        
+    │   │   └── auth.ts         
+    │   ├── loaders/            # ← Data loaders
+    │   │   ├── users.ts        
+    │   │   └── settings.ts
+    │   ├── middleware/         # ← Middleware
+    │   │   ├── auth.ts
+    │   │   └── logger.ts
+    │   ├── db/                 # ← Database layer
+    │   │   ├── schema.ts
+    │   │   └── seed.ts
+    │   └── lib/
+    │       ├── ssr.ts          # SSR helpers
+    │       └── utils.ts
+    ├── public/                 # Static assets
+    ├── package.json
+    ├── tsconfig.json
+    ├── wrangler.toml           # Cloudflare Workers (optional)
+    └── README.md
 ```
+
+**Key difference from apps/web + apps/api:**
+- ✅ Single Hono server (not separated)
+- ✅ Pages + API in same codebase
+- ✅ One dev server: `pnpm dev`
+- ✅ One deployment target
+- ✅ Like Hono's official JSX examples
 
 ---
 
@@ -136,75 +130,129 @@ GET /about → Static page
 
 ---
 
-## API Routes Structure
+## API Routes Structure (Single Server)
 
-### SSR Routes (`apps/api/src/routes/pages.ts`)
+### Main Server (`src/index.ts`)
 
 ```typescript
-// Pattern: One route that handles all SSR pages
-app.get('/pages/*', async (c) => {
-  const page = c.req.param('*')  // e.g., 'users', 'settings'
-  
-  // 1. Auth check (if protected)
-  const auth = await getAuth(c)
-  if (!auth && isProtected(page)) {
-    return c.redirect('/login')
-  }
-  
-  // 2. Load data via loader
-  const loader = getLoader(page)
-  const data = await loader(auth)
-  
-  // 3. Render page component
-  const component = getComponent(page)
+import { Hono } from 'hono'
+import { renderAurelia, serializeState, createHtmlDocument } from '@hono/aurelia-ssr'
+import * as pages from './pages'
+import * as apiRoutes from './api'
+import * as loaders from './loaders'
+
+const app = new Hono()
+
+// ============= SSR PAGES =============
+
+app.get('/', async (c) => {
   const html = await renderAurelia({
-    component,
-    context: { user: auth?.user },
-    props: { data }
+    component: pages.HomePage,
+    context: { user: null }
   })
   
-  // 4. Serialize state for hydration
-  const payload = await serializeState(
-    { user: auth?.user },
-    data,
-    page
-  )
-  
-  // 5. Create final HTML document
-  return c.html(
-    createHtmlDocument(html, payload)
-  )
+  const payload = await serializeState({ user: null })
+  return c.html(createHtmlDocument(html, payload))
 })
+
+app.get('/users', async (c) => {
+  const users = await loaders.usersLoader()
+  
+  const html = await renderAurelia({
+    component: pages.UsersPage,
+    props: { data: { users } }
+  })
+  
+  const payload = await serializeState({ user: null }, { users })
+  return c.html(createHtmlDocument(html, payload))
+})
+
+app.get('/settings', async (c) => {
+  const auth = await getAuth(c)
+  if (!auth) return c.redirect('/login')
+  
+  const settings = await loaders.settingsLoader(auth.userId)
+  
+  const html = await renderAurelia({
+    component: pages.SettingsPage,
+    context: { user: auth.user },
+    props: { data: { settings } }
+  })
+  
+  const payload = await serializeState({ user: auth.user }, { settings })
+  return c.html(createHtmlDocument(html, payload))
+})
+
+// ============= JSON API Routes =============
+
+// Mount API route handlers
+app.route('/api', apiRoutes.users)
+app.route('/api', apiRoutes.posts)
+app.route('/api', apiRoutes.auth)
+
+// ============= Health Check =============
+
+app.get('/health', (c) => c.json({ status: 'ok' }))
+
+// ============= Export =============
+
+export default app
 ```
 
-### Data Loaders (`apps/api/src/loaders/`)
+### Loaders (`src/loaders/users.ts`)
 
 ```typescript
-// users.ts
-export async function usersLoader(auth?: AuthContext) {
-  const res = await fetch('http://localhost:4601/api/users', {
-    headers: auth ? { Authorization: `Bearer ${auth.token}` } : {}
-  })
-  return res.json()
-}
+import { db } from '../db'
 
-// settings.ts
-export async function settingsLoader(auth: AuthContext) {
-  if (!auth) throw new Error('Unauthorized')
-  const res = await fetch(`http://localhost:4601/api/users/${auth.user.id}/settings`)
-  return res.json()
+export async function usersLoader() {
+  const users = await db.query('SELECT id, name, email FROM users')
+  return users
 }
+```
+
+### API Routes (`src/api/users.ts`)
+
+```typescript
+import { Hono } from 'hono'
+import { db } from '../db'
+
+const router = new Hono()
+
+router.get('/users', async (c) => {
+  const users = await db.query('SELECT * FROM users')
+  return c.json({ users })
+})
+
+router.get('/users/:id', async (c) => {
+  const id = c.req.param('id')
+  const user = await db.queryOne('SELECT * FROM users WHERE id = ?', [id])
+  return c.json(user || null)
+})
+
+router.post('/users', async (c) => {
+  const body = await c.req.json()
+  const user = await db.create('users', body)
+  return c.json(user)
+})
+
+export default router
 ```
 
 ---
 
-## Client-Side Code
+## Client-Side Code (Aurelia Components)
 
-### Pages (`apps/web/src/pages/users-page.ts`)
+### Pages (`src/pages/users.ts`)
 
 ```typescript
 import { customElement, bindable } from 'aurelia'
-import template from './users-page.html'
+import template from './users.html'
+
+interface User {
+  id: number
+  name: string
+  email: string
+}
 
 interface UsersPageProps {
   data: { users: User[] }
@@ -219,49 +267,102 @@ export class UsersPage {
 
   constructor() {
     // Hydration: Client receives data from window.__HYDRATION__
-    // No need to fetch again
+    // No need to fetch /api/users again - data is already here
+  }
+
+  deleteUser(userId: number) {
+    // Actual API call only for mutations
+    fetch(`/api/users/${userId}`, { method: 'DELETE' })
+      .then(() => {
+        // Update local state
+        this.data!.users = this.data!.users.filter(u => u.id !== userId)
+      })
   }
 }
 ```
 
-### Template (`apps/web/src/pages/users-page.html`)
+### Template (`src/components/UserList.ts/html`)
 
 ```html
 <template>
   <div class="container">
     <h1>Users</h1>
-    <ul>
-      <li repeat.for="user of data.users">
-        ${user.name} (${user.email})
+    <ul class="user-list">
+      <li repeat.for="user of data.users" key.bind="user.id">
+        <span>${user.name}</span>
+        <span class="email">${user.email}</span>
+        <button click.delegate="deleteUser(user.id)">Delete</button>
       </li>
     </ul>
   </div>
 </template>
 ```
 
+### Layout (`src/components/Layout.ts/html`)
+
+```typescript
+import { customElement, bindable } from 'aurelia'
+import template from './layout.html'
+
+@customElement({
+  name: 'app-layout',
+  template,
+})
+export class AppLayout {
+  @bindable heading = 'SSR Example'
+}
+```
+
+```html
+<template>
+  <header>
+    <h1>${heading}</h1>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/users">Users</a>
+      <a href="/settings">Settings</a>
+      <a href="/about">About</a>
+    </nav>
+  </header>
+  <main>
+    <slot></slot>
+  </main>
+</template>
+```
+
 ---
 
-## How to Run Example
+## How to Run Example (Single Server)
 
 ```bash
-# Install
+# Install dependencies
 pnpm install
 
-# Development
+# Development (one dev server only)
 pnpm dev
-# Starts:
-#   - web dev server (Vite) on :4600
-#   - api server (Hono) on :4601
+# Runs Hono server on http://localhost:8787
 
-# Build
+# Build for production
 pnpm build
 
 # See pages working
-# - http://localhost:4601/ (SSR home)
-# - http://localhost:4601/users (SSR + loader)
-# - http://localhost:4601/settings (SSR + auth)
-# - http://localhost:4601/about (SSR static)
+# - http://localhost:8787/       (SSR home)
+# - http://localhost:8787/users  (SSR + loader)
+# - http://localhost:8787/settings (SSR + auth)
+# - http://localhost:8787/about  (SSR static)
+
+# API endpoints available
+# - GET /api/users
+# - POST /api/users
+# - GET /api/users/:id
+# - DELETE /api/users/:id
 ```
+
+**Key difference:**
+- ✅ One command: `pnpm dev` (not two dev servers)
+- ✅ One port: localhost:8787
+- ✅ One Hono server serving everything
+- ✅ Like Hono's official examples
 
 ---
 
@@ -285,19 +386,19 @@ pnpm build
 Existing apps/{web, api}
 ├─ Real production SaaS
 ├─ Complex features (billing, teams, etc.)
-├─ Lots of domain-specific logic
-└─ Hard to extract pattern
+├─ Monorepo with separate concerns
+└─ Multiple developers with clear ownership
 
 Example fullstack-ssr/
 ├─ Minimal reference
-├─ Shows pattern only
-├─ Easy to understand
-└─ Easy to customize
+├─ Single Hono server
+├─ Pages + API together
+└─ Easy to understand & extend
 ```
 
-**Both can coexist:**
-- Keep `apps/{web,api}` as-is (production)
-- Add `examples/fullstack-ssr/` as pattern (learning)
+**Both serve different purposes:**
+- `apps/{web,api}` = Production reference (real patterns)
+- `examples/fullstack-ssr/` = Learning reference (clean pattern)
 
 ---
 
