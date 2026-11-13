@@ -8,7 +8,10 @@ import { I18nService, LOCALES } from '@/services/i18n';
 import { ToastService } from '@/services/toast';
 import { relativeTime } from '@/lib/utils';
 import type { Locale, WorkspaceSummary } from '@aureliajs/shared';
-import { getRouterConfig, isPublicRoute } from '@/config/routes';
+import { getRouterConfig, isPublicRoute, type RouteDefinition } from '@/config/routes';
+import { LoginPage } from '@/pages/login-page';
+import { LandingPage } from '@/pages/landing-page';
+import { InvitePage } from '@/pages/invite-page';
 
 export type NavItem = {
   href: string;
@@ -178,9 +181,20 @@ export class App {
     // Step 4-5: Determine layout state
     this.updateLayoutState();
 
-    // If not authenticated and on protected route, redirect to login
-    if (!authenticated && !this.isCurrentRoutePublic()) {
-      await this.router.load('login');
+    // If not authenticated, redirect to login UNLESS already on a login-related public page
+    // (LoginPage, InvitePage allow unauthenticated access)
+    // But redirect away from LandingPage since it's not login
+    if (!authenticated) {
+      const instruction = (this.router as any).activeInstruction;
+      const isOnLoginPage = instruction?.component === LoginPage;
+      const isOnInvitePage = instruction?.component === InvitePage;
+      const isOnLandingPage = instruction?.component === LandingPage;
+      
+      // If on landing page without auth, redirect to login
+      // If on login/invite, stay there (they're public auth pages)
+      if (isOnLandingPage) {
+        await this.router.load('login');
+      }
     }
 
     // Step 6: NOW unblock render — loadingAuth = false allows template to render
