@@ -110,12 +110,15 @@ billingRoutes.get('/billing', async (c) => {
   const limits = limitsFor(plan);
 
   // Invoices live in Stripe; without a customer there are none to show.
+  // Skip if customer ID looks like seed placeholder data.
   let invoices: BillingOverview['invoices'] = [];
-  if (workspace.stripeCustomerId && env.STRIPE_SECRET_KEY) {
+  const customerId = workspace.stripeCustomerId;
+  const hasRealCustomer = customerId && customerId.startsWith('cus_') && !customerId.includes('test_123');
+  if (hasRealCustomer && env.STRIPE_SECRET_KEY) {
     try {
       const stripe = getStripe();
       const list = await stripe.invoices.list({
-        customer: workspace.stripeCustomerId,
+        customer: customerId,
         limit: 12,
       });
       invoices = list.data.map((invoice) => ({
@@ -261,12 +264,21 @@ billingRoutes.post('/billing/portal', async (c) => {
   }
 
   const stripe = getStripe();
-  const session = await stripe.billingPortal.sessions.create({
-    customer: workspace.stripeCustomerId,
-    return_url: `${env.WEB_ORIGIN}/billing`,
-  });
-
-  return c.json({ url: session.url });
+  try {
+    const session = await stripe.billingPortal.sessions.create({
+      customer: workspace.stripeCustomerId,
+      return_url: `${env.WEB_ORIGIN}/billing`,
+    });
+    return c.json({ url: session.url });
+  } catch (error: any) {
+    // Stripe customer ID in seed data may not exist in this Stripe account.
+    // Return a clear 503 instead of crashing with 500.
+    const message =
+      error?.code === 'resource_missing'
+        ? 'Stripe customer not found. Configure STRIPE_SECRET_KEY with the correct account or run a fresh checkout.'
+        : (error?.message ?? 'Stripe portal unavailable');
+    return c.json({ error: { code: 'stripe_error', message } }, 503);
+  }
 });
 
 /**
