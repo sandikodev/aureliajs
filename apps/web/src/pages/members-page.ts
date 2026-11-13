@@ -4,6 +4,7 @@ import template from './members-page.html';
 import { api, ApiError } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { I18nService } from '@/services/i18n';
+import { ToastService } from '@/services/toast';
 
 type InviteForm = {
   email: string;
@@ -14,6 +15,7 @@ type InviteForm = {
 export class MembersPage {
   private readonly auth = resolve(AuthService);
   readonly i18n = resolve(I18nService);
+  readonly toast = resolve(ToastService);
 
   members: Member[] = [];
   invites: Invite[] = [];
@@ -26,7 +28,6 @@ export class MembersPage {
   isLoading = true;
   isInviting = false;
   error = '';
-  notice = '';
   /** The last invite link we created, so the owner can copy it. */
   lastInviteUrl = '';
 
@@ -131,7 +132,6 @@ export class MembersPage {
    */
   async inviteMember(): Promise<void> {
     this.error = '';
-    this.notice = '';
     this.lastInviteUrl = '';
 
     const email = this.invite.email.trim().toLowerCase();
@@ -144,16 +144,17 @@ export class MembersPage {
     try {
       const { acceptUrl } = await api.createInvite({ email, role: this.invite.role });
       this.lastInviteUrl = acceptUrl;
-      this.notice = `Invitation created for ${email}.`;
+      let message = `Invitation created for ${email}.`;
       this.invite = { email: '', role: 'member' };
 
       try {
         await navigator.clipboard.writeText(acceptUrl);
-        this.notice += ' The accept link was copied to your clipboard.';
+        message += ' The accept link was copied to your clipboard.';
       } catch {
         // Clipboard access can be denied; the link is still shown below.
       }
 
+      this.toast.success(message);
       await this.load();
     } catch (cause) {
       this.error = cause instanceof ApiError ? cause.message : 'Could not create the invitation.';
@@ -164,13 +165,12 @@ export class MembersPage {
 
   async changeRole(member: Member, role: Role): Promise<void> {
     this.error = '';
-    this.notice = '';
 
     if (role === member.role) return;
 
     try {
       await api.changeMemberRole(member.id, role);
-      this.notice = `${member.name} is now ${this.roleLabel(role)}.`;
+      this.toast.success(`${member.name} is now ${this.roleLabel(role)}.`);
       await this.load();
     } catch (cause) {
       this.error = cause instanceof ApiError ? cause.message : 'Could not change that role.';
@@ -179,13 +179,12 @@ export class MembersPage {
 
   async removeMember(member: Member): Promise<void> {
     this.error = '';
-    this.notice = '';
 
     if (!confirm(`Remove ${member.name} from this workspace?`)) return;
 
     try {
       await api.removeMember(member.id);
-      this.notice = `${member.name} was removed from the workspace.`;
+      this.toast.success(`${member.name} was removed from the workspace.`);
       await this.load();
     } catch (cause) {
       this.error = cause instanceof ApiError ? cause.message : 'Could not remove that member.';

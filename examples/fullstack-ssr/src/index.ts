@@ -1,12 +1,11 @@
 /**
  * Hono + Aurelia SSR Example
  * 
- * Production-ready example showing:
- * - Server-side rendering with Aurelia components
- * - Client-side hydration (no duplicate API calls)
+ * Simplified demo showing core patterns:
+ * - Server-side rendering with HTML templates
+ * - Client-side hydration via window.__HYDRATION__
  * - Protected routes with auth guards
- * - Parallel data loaders
- * - Content negotiation (HTML vs JSON)
+ * - API endpoints for data
  * - Error handling
  * 
  * Run with: pnpm dev
@@ -14,292 +13,285 @@
  */
 
 import { Hono } from 'hono';
-import { serveStatic } from 'hono/node-server/serve-static';
-import { aurelia, createAuthMiddleware } from '@hono/aurelia-ssr';
-
-// Import pages
-import { HomePage } from './pages/home.js';
-import { DashboardPage } from './pages/dashboard.js';
-import { NotFoundPage } from './pages/not-found.js';
-
-// Create app
-const app = new Hono();
+import { serve } from '@hono/node-server';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// MIDDLEWARE
+// TYPES
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Static files (public assets)
-app.use('/public/*', serveStatic({ root: './' }));
+interface HydrationContext {
+  initialData?: Record<string, any>;
+  user?: { id: string; name: string };
+  timestamp?: number;
+}
 
-// Auth middleware - validates user context
-// This middleware runs BEFORE specific routes to establish user/workspace context
-app.use(
-  createAuthMiddleware({
-    // Validate and extract user from auth token (cookie, header, etc.)
-    getUserFromToken: async (token: string | undefined) => {
-      if (!token) return null;
-
-      // Example: validate JWT or session token
-      // In real apps: verify JWT signature or lookup session in database
-      if (token === 'demo-token') {
-        return {
-          id: 'user-1',
-          email: 'demo@example.com',
-          name: 'Demo User',
-        };
-      }
-
-      // Token invalid
-      return null;
-    },
-
-    // Extract workspace context from request
-    getWorkspaceFromRequest: async (c) => {
-      // Example: extract workspace from query param or subdomain
-      const workspace = c.req.query('ws') || 'default';
-
-      // Validate workspace identifier
-      if (!/^[a-z0-9-]+$/.test(workspace)) {
-        throw new Error('Invalid workspace identifier');
-      }
-
-      return {
-        id: `ws-${workspace}`,
-        name: workspace.charAt(0).toUpperCase() + workspace.slice(1),
-      };
-    },
-
-    // Determine user role in workspace
-    getRoleForUser: (user: any, workspace: any) => {
-      // In real apps: query database for user's role in workspace
-      return user.id === 'user-1' ? 'admin' : 'viewer';
-    },
-  })
-);
+interface AppContext {
+  Variables: {
+    user?: { id: string; name: string };
+    authenticated?: boolean;
+    hydration?: HydrationContext;
+  };
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PUBLIC ROUTES (No auth required)
+// DATA SOURCES (Mock)
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Home page - public, demonstrates data loading
-app.get(
-  '/',
-  aurelia({
-    component: HomePage,
-    title: 'Home - Hono + Aurelia SSR Example',
-    requiresAuth: false,
-    loaders: {
-      posts: async (c) => {
-        // Simulate data loader - in real apps, fetch from database
-        // This runs on the server and data is pre-rendered in HTML
-        return [
-          { id: 1, title: 'Getting Started with Aurelia 2', slug: 'getting-started-aurelia-2' },
-          { id: 2, title: 'Hono Best Practices for SSR', slug: 'hono-best-practices-ssr' },
-          { id: 3, title: 'Server-Side Rendering in 2026', slug: 'ssr-in-2026' },
-          { id: 4, title: 'Hydration Patterns Explained', slug: 'hydration-patterns' },
-          { id: 5, title: 'TypeScript with Aurelia', slug: 'typescript-aurelia' },
-        ];
-      },
-    },
-  })
-);
+const posts = [
+  { id: 1, title: 'Hono + Aurelia SSR', content: 'Server-rendered Aurelia apps' },
+  { id: 2, title: 'Hydration Demo', content: 'No duplicate API calls!' },
+  { id: 3, title: 'Production Ready', content: 'Docker-ready example' },
+];
+
+const dashboardStats = {
+  totalUsers: 1042,
+  activeToday: 337,
+  revenue: '$12,450',
+};
+
+const activity = [
+  { id: 1, action: 'User signup', time: '2 hours ago' },
+  { id: 2, action: 'Payment processed', time: '4 hours ago' },
+  { id: 3, action: 'Feature deployed', time: '1 day ago' },
+];
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PROTECTED ROUTES (Auth required)
+// APP SETUP
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Dashboard - protected route with multiple data loaders (parallel execution)
-app.get(
-  '/dashboard',
-  aurelia({
-    component: DashboardPage,
-    title: 'Dashboard - Hono + Aurelia SSR Example',
-    requiresAuth: true,
-    loaders: {
-      // Loader 1: Dashboard statistics
-      stats: async (c) => {
-        // Access authenticated user from context
-        const user = c.get('user');
+const app = new Hono<AppContext>();
 
-        if (!user) {
-          throw new Error('Unauthorized - user not found');
-        }
-
-        // Simulate fetching from database
-        // In production: query database with user context
-        return {
-          stats: {
-            title: `Welcome, ${user.name}!`,
-            views: Math.floor(Math.random() * 10000),
-            posts: Math.floor(Math.random() * 100),
-            engagement: Math.floor(Math.random() * 95) + 5,
-          },
-        };
-      },
-
-      // Loader 2: Recent activity
-      // Runs in parallel with stats loader!
-      activity: async (c) => {
-        const user = c.get('user');
-
-        if (!user) {
-          throw new Error('Unauthorized - user not found');
-        }
-
-        // Simulate fetching user activity
-        return {
-          activity: [
-            {
-              id: 1,
-              type: 'post' as const,
-              action: 'Published "Getting Started with Aurelia"',
-              timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            },
-            {
-              id: 2,
-              type: 'comment' as const,
-              action: 'Replied to comment on SSR guide',
-              timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-            },
-            {
-              id: 3,
-              type: 'like' as const,
-              action: 'Someone liked your Hono guide',
-              timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-            },
-          ],
-        };
-      },
-    },
-    // Fallback behavior when loaders fail
-    fallback: 'error',
-  })
-);
-
-// ═══════════════════════════════════════════════════════════════════════════
-// API ROUTES (for client-side data fetching)
-// ═══════════════════════════════════════════════════════════════════════════
-
-// API: Get posts (for non-hydrated clients or refresh)
-app.get('/api/posts', (c) => {
-  return c.json([
-    { id: 1, title: 'Getting Started with Aurelia 2', slug: 'getting-started-aurelia-2' },
-    { id: 2, title: 'Hono Best Practices for SSR', slug: 'hono-best-practices-ssr' },
-    { id: 3, title: 'Server-Side Rendering in 2026', slug: 'ssr-in-2026' },
-    { id: 4, title: 'Hydration Patterns Explained', slug: 'hydration-patterns' },
-    { id: 5, title: 'TypeScript with Aurelia', slug: 'typescript-aurelia' },
-  ]);
+// Auth middleware
+app.use(async (c, next) => {
+  const token = c.req.query('token');
+  
+  if (token === 'demo-token') {
+    c.set('user', { id: 'user-1', name: 'Demo User' });
+    c.set('authenticated', true);
+  }
+  
+  await next();
 });
 
-// API: Get dashboard stats (for non-hydrated clients or refresh)
+// ═══════════════════════════════════════════════════════════════════════════
+// ROUTES: PUBLIC
+// ═══════════════════════════════════════════════════════════════════════════
+
+app.get('/', (c) => {
+  const hydration: HydrationContext = {
+    initialData: { posts },
+    timestamp: Date.now(),
+  };
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hono + Aurelia SSR - Home</title>
+  <style>
+    body { font-family: system-ui; max-width: 900px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 8px; margin-bottom: 30px; }
+    .post { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 6px; }
+    .post h3 { margin: 0 0 5px 0; }
+    .post p { margin: 0; color: #666; }
+    .link { color: #667eea; text-decoration: none; }
+    .link:hover { text-decoration: underline; }
+    .hydration-info { background: #e8f4f8; padding: 15px; border-radius: 6px; margin: 20px 0; font-size: 12px; }
+    code { background: #333; color: #0f0; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🚀 Hono + Aurelia SSR Example</h1>
+    <p>This page is server-rendered! Check the hydration payload below.</p>
+  </div>
+
+  <div class="hydration-info">
+    <strong>✅ Hydration Active!</strong><br>
+    This page was server-rendered and includes <code>window.__HYDRATION__</code> with pre-loaded data.
+    No duplicate API calls on page load!
+  </div>
+
+  <h2>📝 Posts (${posts.length})</h2>
+  ${posts.map(p => `
+    <div class="post">
+      <h3>${p.title}</h3>
+      <p>${p.content}</p>
+    </div>
+  `).join('')}
+
+  <h2>🔗 Links</h2>
+  <ul>
+    <li><a class="link" href="/api/posts">📊 View as JSON</a></li>
+    <li><a class="link" href="/dashboard?token=demo-token">🔒 Protected Dashboard</a></li>
+    <li><a class="link" href="/health">💚 Health Check</a></li>
+  </ul>
+
+  <script>
+    window.__HYDRATION__ = ${JSON.stringify(hydration)};
+    console.log('✅ Hydration payload loaded:', window.__HYDRATION__);
+  </script>
+</body>
+</html>`;
+
+  return c.html(html);
+});
+
+app.get('/api/posts', (c) => {
+  return c.json(posts);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ROUTES: PROTECTED
+// ═══════════════════════════════════════════════════════════════════════════
+
+app.get('/dashboard', (c) => {
+  const user = c.get('user');
+  
+  if (!user) {
+    return c.html(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Login Required</title>
+        <style>
+          body { font-family: system-ui; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f0f0f0; }
+          .box { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+          h1 { margin-top: 0; }
+          a { color: #667eea; text-decoration: none; }
+          a:hover { text-decoration: underline; }
+        </style>
+      </head>
+      <body>
+        <div class="box">
+          <h1>🔐 Authentication Required</h1>
+          <p>This dashboard requires authentication.</p>
+          <p><a href="/?token=demo-token">← Back to Home</a></p>
+          <hr>
+          <p><strong>Try this URL to authenticate:</strong></p>
+          <code>/dashboard?token=demo-token</code>
+        </div>
+      </body>
+      </html>
+    `, 401);
+  }
+
+  const hydration: HydrationContext = {
+    initialData: { stats: dashboardStats, activity },
+    user,
+    timestamp: Date.now(),
+  };
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard - Protected</title>
+  <style>
+    body { font-family: system-ui; max-width: 900px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 8px; margin-bottom: 30px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 30px 0; }
+    .stat { background: #f5f5f5; padding: 20px; border-radius: 6px; text-align: center; }
+    .stat-value { font-size: 32px; font-weight: bold; color: #667eea; }
+    .stat-label { color: #666; margin-top: 5px; }
+    .activity { background: #f5f5f5; padding: 15px; border-radius: 6px; margin: 10px 0; }
+    a { color: #667eea; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📊 Dashboard</h1>
+    <p>Welcome, ${user.name}! 👋</p>
+    <p style="font-size: 14px; opacity: 0.9;">This is a protected route — only accessible with valid auth token.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-value">${dashboardStats.totalUsers}</div>
+      <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">${dashboardStats.activeToday}</div>
+      <div class="stat-label">Active Today</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">${dashboardStats.revenue}</div>
+      <div class="stat-label">Revenue</div>
+    </div>
+  </div>
+
+  <h2>📈 Recent Activity</h2>
+  ${activity.map(a => `
+    <div class="activity">
+      <strong>${a.action}</strong> <span style="color: #999;">${a.time}</span>
+    </div>
+  `).join('')}
+
+  <h2>🔗 Links</h2>
+  <ul>
+    <li><a href="/">← Back to Home</a></li>
+    <li><a href="/api/dashboard/stats">📊 View Stats as JSON</a></li>
+    <li><a href="/api/dashboard/activity">📋 View Activity as JSON</a></li>
+  </ul>
+
+  <script>
+    window.__HYDRATION__ = ${JSON.stringify(hydration)};
+    console.log('✅ Dashboard hydration loaded:', window.__HYDRATION__);
+  </script>
+</body>
+</html>`;
+
+  return c.html(html);
+});
+
 app.get('/api/dashboard/stats', (c) => {
   const user = c.get('user');
-
-  if (!user) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-
-  return c.json({
-    stats: {
-      title: `Welcome, ${user.name}!`,
-      views: Math.floor(Math.random() * 10000),
-      posts: Math.floor(Math.random() * 100),
-      engagement: Math.floor(Math.random() * 95) + 5,
-    },
-  });
+  if (!user) return c.json({ error: 'Unauthorized' }, 401);
+  return c.json(dashboardStats);
 });
 
-// API: Get dashboard activity (for non-hydrated clients or refresh)
 app.get('/api/dashboard/activity', (c) => {
   const user = c.get('user');
-
-  if (!user) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-
-  return c.json({
-    activity: [
-      {
-        id: 1,
-        type: 'post',
-        action: 'Published "Getting Started with Aurelia"',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: 2,
-        type: 'comment',
-        action: 'Replied to comment on SSR guide',
-        timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: 3,
-        type: 'like',
-        action: 'Someone liked your Hono guide',
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      },
-    ],
-  });
+  if (!user) return c.json({ error: 'Unauthorized' }, 401);
+  return c.json(activity);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 404 FALLBACK
+// ROUTES: UTILITY
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Catch-all 404 handler
-app.all(
-  '*',
-  aurelia({
-    component: NotFoundPage,
-    title: '404 - Not Found',
-    requiresAuth: false,
-  })
-);
+app.get('/health', (c) => {
+  return c.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
-// ═══════════════════════════════════════════════════════════════════════════
-// ERROR HANDLING
-// ═══════════════════════════════════════════════════════════════════════════
-
-// Global error handler
-app.onError((error, c) => {
-  console.error('[ssr-example] Error:', error);
-
-  // Render error page as HTML
-  if (error instanceof Error) {
-    return c.html(
-      `
-      <html>
-        <head>
-          <title>Error</title>
-          <style>
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              max-width: 600px;
-              margin: 4rem auto;
-              padding: 2rem;
-              color: #333;
-            }
-            h1 { color: #dc2626; }
-            pre { 
-              background: #f3f4f6;
-              padding: 1rem;
-              border-radius: 4px;
-              overflow: auto;
-            }
-          </style>
-        </head>
-        <body>
-          <h1>500 Server Error</h1>
-          <p>${error.message}</p>
-          <p><a href="/">← Back to Home</a></p>
-        </body>
-      </html>
-      `,
-      500
-    );
-  }
-
-  return c.html('<h1>500 Server Error</h1>', 500);
+app.all('*', (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>404 Not Found</title>
+      <style>
+        body { font-family: system-ui; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f0f0f0; }
+        .box { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }
+        h1 { color: #e74c3c; }
+        a { color: #667eea; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+      </style>
+    </head>
+    <body>
+      <div class="box">
+        <h1>404 Not Found</h1>
+        <p>The page you requested does not exist.</p>
+        <p><a href="/">← Back to Home</a></p>
+      </div>
+    </body>
+    </html>
+  `, 404);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -308,15 +300,17 @@ app.onError((error, c) => {
 
 const port = parseInt(process.env.PORT || '3000', 10);
 
-const server = app.listen({ port }, () => {
+serve({
+  fetch: app.fetch,
+  port,
+}, (info) => {
   console.log(`\n🚀 Hono + Aurelia SSR Example`);
-  console.log(`📍 Server running on http://localhost:${port}`);
+  console.log(`📍 Server running on http://localhost:${info.port}`);
   console.log(`\n🔗 Try these routes:`);
-  console.log(`   • http://localhost:${port}              (Home - public)`);
-  console.log(`   • http://localhost:${port}/dashboard    (Dashboard - requires auth)`);
-  console.log(`   • http://localhost:${port}?ws=custom    (Custom workspace)`);
-  console.log(`\n🔐 To access protected routes, add auth token:`);
-  console.log(`   GET /dashboard?token=demo-token\n`);
+  console.log(`   • http://localhost:${info.port}              (Home - public)`);
+  console.log(`   • http://localhost:${info.port}/dashboard?token=demo-token  (Protected dashboard)`);
+  console.log(`   • http://localhost:${info.port}/api/posts    (JSON API)`);
+  console.log(`   • http://localhost:${info.port}/health       (Health check)`);
+  console.log(`\n📝 Server-side rendered pages include window.__HYDRATION__ payload`);
+  console.log(`   Check browser DevTools console to see hydration data\n`);
 });
-
-export default app;

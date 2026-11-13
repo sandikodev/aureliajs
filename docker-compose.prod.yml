@@ -1,0 +1,52 @@
+# Production stack: Postgres + the app container.
+#
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# The app serves the API and the built web bundle from one process, so the
+# whole product is a single origin and a single deployment.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-aureliajs}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aureliajs}
+      POSTGRES_DB: ${POSTGRES_DB:-aureliajs}
+    volumes:
+      - aureliajs-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-aureliajs} -d ${POSTGRES_DB:-aureliajs}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4601
+      APP_VERSION: ${APP_VERSION:-0.1.0}
+      DATABASE_URL: postgres://${POSTGRES_USER:-aureliajs}:${POSTGRES_PASSWORD:-aureliajs}@db:5432/${POSTGRES_DB:-aureliajs}
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env}
+      # The public URL of this deployment. It decides the CORS origin *and*
+      # the accept links in invitations, so a wrong value sends people to a
+      # dead link — it is required, not defaulted.
+      WEB_ORIGIN: ${WEB_ORIGIN:?set WEB_ORIGIN to the public URL of this deployment}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PRICE_MONTHLY: ${STRIPE_PRICE_MONTHLY:-}
+      STRIPE_PRICE_YEARLY: ${STRIPE_PRICE_YEARLY:-}
+      STRIPE_PRICE_SCALE: ${STRIPE_PRICE_SCALE:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - '${APP_PORT:-4601}:4601'
+
+volumes:
+  aureliajs-pgdata:

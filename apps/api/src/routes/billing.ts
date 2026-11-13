@@ -249,7 +249,15 @@ billingRoutes.post('/billing/portal', async (c) => {
   const workspace = await loadWorkspace(tenant.workspaceId);
 
   if (!workspace.stripeCustomerId) {
-    throw badRequest('This workspace has no billing account yet. Start a subscription first.');
+    return c.json(
+      {
+        error: {
+          code: 'billing_not_configured',
+          message: 'This workspace has no billing account yet. Start a subscription first.',
+        },
+      },
+      400,
+    );
   }
 
   const stripe = getStripe();

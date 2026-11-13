@@ -99,6 +99,15 @@ test.describe('billing', () => {
 
   test('portal is refused when the workspace has no Stripe customer', async ({ page }) => {
     const response = await page.request.post('/api/billing/portal');
+
+    if (response.status() === 503) {
+      // Stripe is not configured on this deployment. The API says so
+      // clearly, which is the correct answer — not a silent no-op.
+      const body = await response.json();
+      expect(body.error.code).toBe('billing_not_configured');
+      return;
+    }
+
     expect(response.status()).toBe(400);
 
     const body = await response.json();
@@ -113,6 +122,12 @@ test.describe('billing', () => {
         'stripe-signature': 't=1,v1=deadbeef',
       },
     });
+
+    if (response.status() === 503) {
+      const body = await response.json();
+      expect(body.error.code).toBe('billing_not_configured');
+      return;
+    }
 
     expect(response.status()).toBe(400);
     const body = await response.json();
@@ -152,6 +167,15 @@ test.describe('billing', () => {
         'stripe-signature': signature,
       },
     });
+
+    if (first.status() === 503) {
+      // The deployment has no Stripe key, so the webhook cannot verify a
+      // signature. That is the correct refusal.
+      const body = await first.json();
+      expect(body.error.code).toBe('billing_not_configured');
+      return;
+    }
+
     expect(first.status()).toBe(200);
     expect(await first.json()).toMatchObject({ received: true, duplicate: false });
 

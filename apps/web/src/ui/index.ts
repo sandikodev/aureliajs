@@ -18,6 +18,7 @@ import { UiSeparator } from './separator';
 import { UiSkeleton } from './skeleton';
 import { UiTextarea } from './textarea';
 import { UiThemeToggle } from './theme-toggle';
+import { UiToaster } from './toaster';
 
 /** Every primitive is globally registered so templates stay dependency-free. */
 export const UI = [
@@ -39,4 +40,5 @@ export const UI = [
   UiSkeleton,
   UiTextarea,
   UiThemeToggle,
+  UiToaster,
 ];

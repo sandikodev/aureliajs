@@ -51,6 +51,7 @@
       class="h-9 w-full rounded-md border border-input bg-transparent pr-3 pl-8 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 dark:bg-input/30"
       placeholder="Search by project or owner…"
       aria-label="Search projects"
+      autocomplete="off"
       value.two-way="q"
       input.trigger="onSearchInput()"
     />
@@ -74,11 +75,11 @@
 </div>
 
 <!-- Table -->
-<ui-card>
+<ui-card class="mt-4">
   <div class="overflow-x-auto">
     <table class="w-full min-w-[840px] caption-bottom text-sm">
       <thead>
-        <tr class="border-b">
+        <tr class="border-y bg-muted/40">
           <th
             class="h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
           >
@@ -239,6 +240,7 @@
         <ui-label for="project-name">${copy['projects.fieldName']}</ui-label>
         <ui-input
           id="project-name"
+          autocomplete="off"
           value.two-way="form.name"
           placeholder="Billing revamp"
           invalid.bind="!!fieldErrors['name']"
@@ -251,6 +253,7 @@
           <ui-label for="project-owner">${copy['projects.columnOwner']}</ui-label>
           <ui-input
             id="project-owner"
+            autocomplete="off"
             value.two-way="form.ownerName"
             placeholder="Ayu Prameswari"
             invalid.bind="!!fieldErrors['ownerName']"
@@ -269,6 +272,7 @@
           <ui-input
             id="project-budget"
             type="number"
+            autocomplete="off"
             value.two-way="form.budget"
             placeholder="12000"
             invalid.bind="!!fieldErrors['budgetCents']"
@@ -277,7 +281,7 @@
         </div>
         <div class="space-y-1.5">
           <ui-label for="project-due">${copy['projects.fieldDue']}</ui-label>
-          <ui-input id="project-due" type="date" value.two-way="form.dueDate"></ui-input>
+          <ui-input id="project-due" type="date" autocomplete="off" value.two-way="form.dueDate"></ui-input>
         </div>
       </div>
 

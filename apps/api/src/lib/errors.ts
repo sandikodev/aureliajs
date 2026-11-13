@@ -1,5 +1,6 @@
 import type { Context } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import { log } from './log.js';
 
 export type FieldIssue = { path: string; message: string };
 
@@ -38,6 +39,24 @@ export function issuesFromZod(error: {
 
 export function errorResponse(c: Context, error: unknown) {
   if (error instanceof HttpError) {
+    // A 4xx is the client's problem and is expected traffic — log it at
+    // warning level with the code, not as a server error.
+    if (error.status >= 500) {
+      log.error('request failed', {
+        requestId: c.get('requestId'),
+        code: error.code,
+        status: error.status,
+        message: error.message,
+      });
+    } else {
+      log.warn('request rejected', {
+        requestId: c.get('requestId'),
+        code: error.code,
+        status: error.status,
+        message: error.message,
+      });
+    }
+
     return c.json(
       {
         error: {
@@ -45,14 +64,23 @@ export function errorResponse(c: Context, error: unknown) {
           message: error.message,
           ...(error.issues ? { issues: error.issues } : {}),
         },
+        requestId: c.get('requestId'),
       },
       error.status,
     );
   }
 
-  console.error('[api] unhandled error', error);
+  log.error('unhandled error', {
+    requestId: c.get('requestId'),
+    error: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+  });
+
   return c.json(
-    { error: { code: 'internal_error', message: 'Something went wrong on our side' } },
+    {
+      error: { code: 'internal_error', message: 'Something went wrong on our side' },
+      requestId: c.get('requestId'),
+    },
     500,
   );
 }

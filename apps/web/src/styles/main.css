@@ -210,6 +210,16 @@
     color: var(--sidebar-accent-foreground);
   }
 
+  dialog {
+    /* Center dialogs in the viewport. Without this, the browser default is
+       to position them at the top-left corner of the scrolling area. */
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+  }
+
   dialog::backdrop {
     background-color: rgb(0 0 0 / 0.5);
     backdrop-filter: blur(2px);
@@ -224,6 +234,13 @@
   ui-select,
   ui-input {
     display: contents;
+  }
+
+  /* `ui-card` is not containerless so it has a real host element in the DOM.
+     Custom elements default to `display: inline` which would break grid/flex
+     layouts. Force it to block so it behaves like a <div>. */
+  ui-card {
+    display: block;
   }
 
   dialog[open] {

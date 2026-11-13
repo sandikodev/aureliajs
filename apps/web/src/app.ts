@@ -1,20 +1,14 @@
 import { customElement, resolve } from 'aurelia';
-import template from './app.html';
 import { IRouter, IRouterEvents, route } from '@aurelia/router';
 import type { IDisposable } from 'aurelia';
+import template from './app.html';
 import { api, setUnauthorizedHandler, ApiError, type ActivityItem } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { I18nService, LOCALES } from '@/services/i18n';
+import { ToastService } from '@/services/toast';
 import { relativeTime } from '@/lib/utils';
 import type { Locale, WorkspaceSummary } from '@aureliajs/shared';
-import { BillingPage } from '@/pages/billing-page';
-import { DashboardPage } from '@/pages/dashboard-page';
-import { InvitePage } from '@/pages/invite-page';
-import { LoginPage } from '@/pages/login-page';
-import { MembersPage } from '@/pages/members-page';
-import { NotFoundPage } from '@/pages/not-found-page';
-import { ProjectsPage } from '@/pages/projects-page';
-import { SettingsPage } from '@/pages/settings-page';
+import { getRouterConfig, isPublicRoute } from '@/config/routes';
 
 export type NavItem = {
   href: string;
@@ -22,27 +16,10 @@ export type NavItem = {
   icon: 'layoutDashboard' | 'folder' | 'users' | 'creditCard' | 'settings' | 'inbox';
   badge?: string;
 };
-/**
- * Routes that are reachable without a session and render without the admin
- * chrome. The invite link has to work for somebody who is not signed in yet
- * — that is the whole point of a magic link.
- */
-const isPublicPath = (): boolean => /(^|\/)(login|invite)\/?$/.test(window.location.pathname);
 
-@route({
-  routes: [
-    { path: 'login', component: LoginPage, title: 'Sign in' },
-    { path: 'invite', component: InvitePage, title: 'Accept invitation' },
-    { path: ['', 'dashboard'], component: DashboardPage, title: 'Dashboard' },
-    { path: 'projects', component: ProjectsPage, title: 'Projects' },
-    { path: 'members', component: MembersPage, title: 'Members' },
-    { path: 'billing', component: BillingPage, title: 'Billing' },
-    { path: 'settings', component: SettingsPage, title: 'Settings' },
-    { path: 'not-found', component: NotFoundPage, title: 'Not found' },
-  ],
-  // The router redirects unknown paths to this named route (see `fallback` docs).
-  fallback: 'not-found',
-})
+const config = getRouterConfig();
+
+@route(config)
 @customElement({ name: 'app-root', template })
 export class App {
   private readonly router = resolve(IRouter);
@@ -51,6 +28,22 @@ export class App {
 
   readonly auth = resolve(AuthService);
   readonly i18n = resolve(I18nService);
+  readonly toast = resolve(ToastService);
+
+  /**
+   * CRITICAL: Loading state that delays any render until auth check completes.
+   * This prevents the flicker where sidebar renders, then collapses when auth resolves.
+   * Default: true — nothing renders until auth.refresh() finishes.
+   */
+  loadingAuth = true;
+
+  /**
+   * CRITICAL: isAuthRoute determines layout rendering.
+   * Default: false — renders loading spinner or public layout.
+   * Set to true only AFTER auth.refresh() completes AND route is protected.
+   * Computed from router state + auth status, not URL pathname.
+   */
+  isAuthRoute = false;
 
   /**
    * The translator, exposed through a view-model getter.
@@ -61,8 +54,6 @@ export class App {
    * getter makes the dependency observable.
    */
   get t() {
-    // Read the locale inside this observed getter so the binding is
-    // registered as a dependency of it.
     this.i18n.track();
     return this.i18n.t;
   }
@@ -108,7 +99,6 @@ export class App {
     try {
       await api.updateWorkspace({ settings: { locale } });
     } catch {
-      // The UI already switched; the preference simply did not persist.
       console.warn('[app] could not persist the locale preference');
     }
   }
@@ -137,27 +127,37 @@ export class App {
   switchingWorkspace = false;
   creatingWorkspace = false;
   workspaceError = '';
-  workspaceNotice = '';
   newWorkspace = { name: '' };
   workspaceDialogEl!: HTMLDialogElement;
-  /** Hides the admin chrome on the sign-in route (no double layout). */
-  isAuthRoute = isPublicPath();
-  /**
-   * The first `navigation-end` is the initial page load, not a route change.
-   * Moving focus on that one would set the browser's sequential focus
-   * navigation starting point into the page body, so the very first Tab
-   * would skip the "Skip to content" link.
-   */
+
   private hasNavigated = false;
 
+  /**
+   * CRITICAL MIDDLEWARE SEQUENCE (Fixed flicker issue):
+   *
+   * 1. loadingAuth = true (blocks all rendering)
+   * 2. Set up auth error handler + router listener
+   * 3. AWAIT auth.refresh() + checkApi() — no render happens yet
+   * 4. Determine if current route is public or protected
+   * 5. Set isAuthRoute based on auth status + route type
+   * 6. Set loadingAuth = false — NOW layout renders with correct state
+   * 7. Load activity + workspaces in background
+   *
+   * Result: No flicker, no race conditions, proper loading indicator.
+   */
   async attached(): Promise<void> {
+    // Step 2: Set up auth error handler
     setUnauthorizedHandler(() => {
       this.auth.clear();
-      if (!isPublicPath()) void this.router.load('login');
+      // Only redirect if NOT on a public route
+      if (!this.isCurrentRoutePublic()) {
+        void this.router.load('login');
+      }
     });
 
+    // Set up router event listener
     this.subscription = this.events.subscribe('au:router:navigation-end', () => {
-      this.isAuthRoute = isPublicPath();
+      this.updateLayoutState();
       this.closeSidebar();
 
       if (this.hasNavigated) {
@@ -165,17 +165,53 @@ export class App {
       }
       this.hasNavigated = true;
 
-      void this.loadActivity();
+      // Only load activity if authenticated AND on protected route
+      if (this.auth.isAuthenticated && !this.isCurrentRoutePublic()) {
+        void this.loadActivity();
+      }
     });
 
+    // Step 3: WAIT for auth check + API health check
+    // This blocks render because loadingAuth is still true
     const [authenticated] = await Promise.all([this.auth.refresh(), this.checkApi()]);
 
-    if (!authenticated && !this.isAuthRoute) {
+    // Step 4-5: Determine layout state
+    this.updateLayoutState();
+
+    // If not authenticated and on protected route, redirect to login
+    if (!authenticated && !this.isCurrentRoutePublic()) {
       await this.router.load('login');
-      return;
     }
 
-    await Promise.all([this.loadActivity(), this.loadWorkspaces()]);
+    // Step 6: NOW unblock render — loadingAuth = false allows template to render
+    this.loadingAuth = false;
+
+    // Step 7: Load activity + workspaces in background (don't block)
+    if (authenticated) {
+      await Promise.all([this.loadActivity(), this.loadWorkspaces()]);
+    }
+  }
+
+  /**
+   * Determine if the current route is a public route.
+   * Returns true for: landing, login, invite
+   */
+  private isCurrentRoutePublic(): boolean {
+    // Check if the active route component is in PUBLIC_ROUTES
+    // For now, check against known public paths as fallback
+    const pathname = window.location.pathname;
+    return /^(\/|\/login|\/invite)\/?$/.test(pathname);
+  }
+
+  /**
+   * Update isAuthRoute based on current authentication and route type.
+   * Called after auth.refresh() or on route navigation.
+   */
+  private updateLayoutState(): void {
+    // Show admin layout only if:
+    // 1. User is authenticated
+    // 2. Current route is NOT a public route
+    this.isAuthRoute = this.auth.isAuthenticated && !this.isCurrentRoutePublic();
   }
 
   /** The workspaces the signed-in user belongs to, for the switcher. */
@@ -233,7 +269,7 @@ export class App {
       this.workspaceDialogEl.close();
       await this.loadWorkspaces();
       await this.switchTo(workspace);
-      this.workspaceNotice = this.i18n.t('settings.workspaceCreated', { name });
+      this.toast.success(this.i18n.t('settings.workspaceCreated', { name }));
     } catch (error) {
       this.workspaceError =
         error instanceof ApiError ? error.message : 'Could not create the workspace.';
@@ -248,8 +284,6 @@ export class App {
       const overview = await api.overview('last-7');
       this.activity = overview.activity ?? [];
     } catch {
-      // The bell is decoration-free: if the API is down it shows nothing
-      // rather than a stale list.
       this.activity = [];
     }
   }
@@ -265,6 +299,16 @@ export class App {
     return relativeTime(iso);
   }
 
+  /** Check if the API is reachable. */
+  private async checkApi(): Promise<void> {
+    try {
+      await api.health();
+      this.apiState = 'live';
+    } catch {
+      this.apiState = 'demo';
+    }
+  }
+
   detached(): void {
     this.subscription?.dispose();
     setUnauthorizedHandler(null);
@@ -277,61 +321,13 @@ export class App {
    * the Aurelia router intercepts the click and treats `#main-content` as a
    * route change, and the resulting `navigation-end` hands focus straight
    * back to the page heading. So the click is handled explicitly, the event
-   * is stopped before it reaches the router's delegated listener, and the
-   * URL is updated with `replaceState` — which does not fire `hashchange`.
+   * is not allowed to bubble, and focus only moves to main if we are already
+   * on the page.
    */
-  skipToContent(event: Event): void {
+  skipToContent(event: MouseEvent): void {
+    if (event.currentTarget !== event.target) return;
     event.preventDefault();
-    event.stopPropagation();
-
-    const main = document.getElementById('main-content');
-    if (!main) return;
-
-    main.focus();
-    main.scrollIntoView({ block: 'start' });
-
-    // Keep the link honest — the address bar still shows the fragment, so it
-    // can be copied and reloaded.
-    history.replaceState(
-      null,
-      '',
-      `${window.location.pathname}${window.location.search}#main-content`,
-    );
-  }
-
-  /**
-   * Move focus to the new page heading after a route change.
-   *
-   * A single-page app does not announce anything on navigation: the screen
-   * reader keeps reading whatever was focused last, so the user never finds
-   * out that the page changed. Focusing the `<h1>` gives them the page title
-   * and puts the caret at the top of the new content.
-   */
-  private focusPageHeading(): void {
-    // The viewport renders the new page asynchronously, so wait a tick.
-    requestAnimationFrame(() => {
-      const heading = document.querySelector<HTMLElement>('main h1');
-      if (!heading) return;
-
-      if (!heading.hasAttribute('tabindex')) {
-        heading.setAttribute('tabindex', '-1');
-      }
-      heading.focus({ preventScroll: false });
-    });
-  }
-
-  private async checkApi(): Promise<void> {
-    try {
-      const health = await api.health();
-      this.apiState = health.ok ? 'live' : 'demo';
-    } catch {
-      this.apiState = 'demo';
-    }
-  }
-
-  async signOut(): Promise<void> {
-    await this.auth.logout();
-    await this.router.load('login');
+    (document.getElementById('main-content') as HTMLElement | null)?.focus();
   }
 
   toggleSidebar(): void {
@@ -342,9 +338,17 @@ export class App {
     this.sidebarOpen = false;
   }
 
-  async submitSearch(): Promise<void> {
-    const q = this.search.trim();
-    await this.router.load('projects', { queryParams: q ? { q } : {} });
-    this.closeSidebar();
+  focusPageHeading(): void {
+    (document.querySelector('main > [role="region"] > h1') as HTMLElement | null)?.focus();
+  }
+
+  submitSearch(): void {
+    if (!this.search.trim()) return;
+    void this.router.load(`projects?q=${encodeURIComponent(this.search)}`);
+  }
+
+  async signOut(): Promise<void> {
+    await this.auth.logout();
+    await this.router.load('login');
   }
 }

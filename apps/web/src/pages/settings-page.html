@@ -29,11 +29,21 @@
           <div class="grid gap-4 sm:grid-cols-2">
             <div class="space-y-1.5">
               <ui-label for="ws-name">${copy['settings.name']}</ui-label>
-              <ui-input id="ws-name" value.two-way="workspace.name" disabled.bind="!canRename"></ui-input>
+              <ui-input
+                id="ws-name"
+                value.two-way="workspace.name"
+                autocomplete="organization"
+                disabled.bind="!canRename"
+              ></ui-input>
             </div>
             <div class="space-y-1.5">
               <ui-label for="ws-slug">${copy['settings.slug']}</ui-label>
-              <ui-input id="ws-slug" value.two-way="workspace.slug" disabled.bind="!canRename"></ui-input>
+              <ui-input
+                id="ws-slug"
+                value.two-way="workspace.slug"
+                autocomplete="off"
+                disabled.bind="!canRename"
+              ></ui-input>
               <p class="text-[11px] text-muted-foreground">${copy['settings.slugHint']}</p>
             </div>
           </div>

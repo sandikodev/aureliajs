@@ -108,11 +108,11 @@
         <ui-card-title>${copy['billing.invoices']}</ui-card-title>
         <ui-card-description>${copy['billing.invoicesDescription']}</ui-card-description>
       </ui-card-header>
-      <div if.bind="overview.invoices.length === 0" class="px-5 py-8 text-center">
+      <div if.bind="overview.invoices.length === 0" class="border-t px-5 py-8 text-center">
         <p class="text-[13px] text-muted-foreground">${copy['billing.invoicesEmpty']}</p>
         <p class="mt-1 text-[12px] text-muted-foreground">${copy['billing.invoicesEmptyHint']}</p>
       </div>
-      <div if.bind="overview.invoices.length > 0" class="mt-3 overflow-x-auto">
+      <div if.bind="overview.invoices.length > 0" class="overflow-x-auto">
         <table class="w-full min-w-130 text-sm">
           <thead>
             <tr class="border-y bg-muted/40">

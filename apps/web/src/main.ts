@@ -4,6 +4,7 @@ import { App } from './app';
 import { BillingPage } from './pages/billing-page';
 import { DashboardPage } from './pages/dashboard-page';
 import { InvitePage } from './pages/invite-page';
+import { LandingPage } from './pages/landing-page';
 import { LoginPage } from './pages/login-page';
 import { MembersPage } from './pages/members-page';
 import { NotFoundPage } from './pages/not-found-page';
@@ -12,6 +13,7 @@ import { SettingsPage } from './pages/settings-page';
 import { AuthService } from './services/auth';
 import { I18nService } from './services/i18n';
 import { ThemeService } from './services/theme';
+import { ToastService } from './services/toast';
 import { UI } from './ui';
 import './styles/main.css';
 
@@ -21,6 +23,7 @@ import './styles/main.css';
  * viewport stays empty.
  */
 const PAGES = [
+  LandingPage,
   LoginPage,
   InvitePage,
   DashboardPage,
@@ -42,6 +45,8 @@ void Aurelia.register(
   ThemeService,
   // One translation catalog instance shared by the shell and every page.
   I18nService,
+  // Global toast notification service.
+  ToastService,
 )
   .app({ host: document.querySelector('app-root')!, component: App })
   .start();

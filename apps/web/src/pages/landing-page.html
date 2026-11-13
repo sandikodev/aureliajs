@@ -1,0 +1,182 @@
+<div class="flex flex-col min-h-dvh bg-background">
+  <!-- Header -->
+  <header class="sticky top-0 z-40 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <span class="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L15.09 8.26H22L17.55 12.52L19.64 18.78L12 14.52L4.36 18.78L6.45 12.52L2 8.26H8.91L12 2Z" />
+            </svg>
+          </span>
+          <span class="text-sm font-semibold">Aurelia Ops</span>
+        </div>
+        <nav class="flex items-center gap-6">
+          <a href="#features" external class="text-sm text-muted-foreground hover:text-foreground">Features</a>
+          <a href="#stats" external class="text-sm text-muted-foreground hover:text-foreground">Stats</a>
+          <button click.trigger="signIn()" class="rounded-md bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer">
+            Sign in
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="relative flex-1 flex items-center py-20 sm:py-32">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
+      <div class="mx-auto max-w-2xl text-center">
+        <h1 class="text-4xl sm:text-6xl font-bold tracking-tight">
+          <span class="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            SaaS Admin Dashboard
+          </span>
+          <br />
+          <span class="text-foreground">Built with Aurelia.</span>
+        </h1>
+        <p class="mt-6 text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
+          Production-ready dashboard with session auth, team invitations, Stripe billing, and a real API.
+          One workspace. 1000+ projects. Server-side everything.
+        </p>
+        <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button click.trigger="getStarted()" class="rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm hover:shadow-md cursor-pointer">
+            Get started
+          </button>
+          <a href="https://github.com" target="_blank" rel="noreferrer" class="rounded-lg border border-input bg-background px-8 py-3 text-sm font-semibold text-foreground hover:bg-accent transition-colors">
+            View on GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="border-t bg-muted/40 py-20 sm:py-32">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight">Everything you need</h2>
+        <p class="mt-4 text-lg text-muted-foreground">Production features, not a toy.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="rounded-lg border bg-card p-8">
+          <div class="grid size-12 place-items-center rounded-lg bg-primary/10 text-primary mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Session Auth</h3>
+          <p class="text-sm text-muted-foreground">
+            HttpOnly cookie, Argon2id hashing, secure session management. No plaintext passwords.
+          </p>
+        </div>
+        <!-- Feature 2 -->
+        <div class="rounded-lg border bg-card p-8">
+          <div class="grid size-12 place-items-center rounded-lg bg-primary/10 text-primary mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Team Management</h3>
+          <p class="text-sm text-muted-foreground">
+            Magic link invitations, role-based access (owner/admin/member), workspace switching.
+          </p>
+        </div>
+        <!-- Feature 3 -->
+        <div class="rounded-lg border bg-card p-8">
+          <div class="grid size-12 place-items-center rounded-lg bg-primary/10 text-primary mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M9 11l3 3L22 4" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Full CRUD</h3>
+          <p class="text-sm text-muted-foreground">
+            Create, read, update, delete. Inline validation, audit logs, CSV export, native dialogs.
+          </p>
+        </div>
+        <!-- Feature 4 -->
+        <div class="rounded-lg border bg-card p-8">
+          <div class="grid size-12 place-items-center rounded-lg bg-primary/10 text-primary mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M2 12h20" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Stripe Billing</h3>
+          <p class="text-sm text-muted-foreground">
+            Hosted Checkout, customer portal, signature-verified webhooks, plan limits enforced.
+          </p>
+        </div>
+        <!-- Feature 5 -->
+        <div class="rounded-lg border bg-card p-8">
+          <div class="grid size-12 place-items-center rounded-lg bg-primary/10 text-primary mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Analytics</h3>
+          <p class="text-sm text-muted-foreground">
+            KPI cards, throughput charts, status breakdown, audit trail, recent activity feed.
+          </p>
+        </div>
+        <!-- Feature 6 -->
+        <div class="rounded-lg border bg-card p-8">
+          <div class="grid size-12 place-items-center rounded-lg bg-primary/10 text-primary mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Real API</h3>
+          <p class="text-sm text-muted-foreground">
+            Hono + Drizzle + Postgres. Typed routes, shared schemas with Zod, server-side search.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section id="stats" class="py-20 sm:py-32">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-4 gap-8 text-center">
+        <div>
+          <div class="text-3xl sm:text-4xl font-bold">1 000+</div>
+          <p class="mt-2 text-sm text-muted-foreground">Seeded projects</p>
+        </div>
+        <div>
+          <div class="text-3xl sm:text-4xl font-bold">4</div>
+          <p class="mt-2 text-sm text-muted-foreground">Team members</p>
+        </div>
+        <div>
+          <div class="text-3xl sm:text-4xl font-bold">17</div>
+          <p class="mt-2 text-sm text-muted-foreground">E2E tests</p>
+        </div>
+        <div>
+          <div class="text-3xl sm:text-4xl font-bold">~150 kB</div>
+          <p class="mt-2 text-sm text-muted-foreground">JS gzipped</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t mt-auto py-8 bg-muted/40">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-xs text-muted-foreground">
+          © 2026 Aurelia Ops. Built with Aurelia 2, TypeScript, Tailwind, Hono, Drizzle.
+        </p>
+        <div class="flex items-center gap-4">
+          <a href="https://github.com" target="_blank" rel="noreferrer" class="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            GitHub
+          </a>
+          <a href="https://aurelia.io" target="_blank" rel="noreferrer" class="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            Docs
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>

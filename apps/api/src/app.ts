@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { logger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
 import { env, isProd } from './env.js';
 import { errorResponse } from './lib/errors.js';
+import { requestLogger } from './middleware/request-logger.js';
 import { tenant } from './middleware/tenant.js';
 import { authRoutes } from './routes/auth.js';
 import { billingRoutes, publicBillingRoutes } from './routes/billing.js';
@@ -17,7 +17,7 @@ import { workspaceRoutes } from './routes/workspaces.js';
 export function createApp() {
   const app = new Hono();
 
-  app.use(logger());
+  app.use(requestLogger());
   app.use(secureHeaders());
   if (isProd) {
     app.use('*', async (c, next) => {

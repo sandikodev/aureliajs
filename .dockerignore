@@ -1,0 +1,16 @@
+node_modules
+**/node_modules
+dist
+**/dist
+.git
+.github
+.gitignore
+.env
+.env.*
+!.env.example
+test-results
+playwright-report
+docs/screenshots
+*.log
+README.md
+CODEBASE_STATE.md

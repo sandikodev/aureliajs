@@ -3,6 +3,7 @@ import { customElement } from 'aurelia';
 import template from './billing-page.html';
 import { api, ApiError } from '@/services/api';
 import { I18nService } from '@/services/i18n';
+import { ToastService } from '@/services/toast';
 import { resolve } from 'aurelia';
 
 type PlanTier = {
@@ -36,6 +37,7 @@ const PLAN_TIERS: PlanTier[] = [
 @customElement({ name: 'billing-page', template })
 export class BillingPage {
   readonly i18n = resolve(I18nService);
+  readonly toast = resolve(ToastService);
 
   /** The message catalog — see the note on `App.copy`. */
   get copy() {
@@ -48,7 +50,6 @@ export class BillingPage {
   isLoading = true;
   busy = false;
   error = '';
-  notice = '';
   demo = false;
 
   /** Set when Stripe redirects back to us after Checkout. */
@@ -73,7 +74,7 @@ export class BillingPage {
       this.overview = await api.billing();
       this.demo = false;
       if (this.checkoutResult === 'success') {
-        this.notice = 'Payment received. Your plan is active — Stripe confirmed it via webhook.';
+        this.toast.success('Payment received. Your plan is active — Stripe confirmed it via webhook.');
       }
     } catch (cause) {
       this.error =
@@ -92,7 +93,6 @@ export class BillingPage {
    */
   async checkout(plan: 'pro' | 'scale', interval: 'monthly' | 'yearly'): Promise<void> {
     this.error = '';
-    this.notice = '';
     this.busy = true;
     try {
       const { url } = await api.startCheckout(plan, interval);
@@ -109,7 +109,6 @@ export class BillingPage {
   /** Open the Stripe customer portal so the customer can manage the subscription. */
   async openPortal(): Promise<void> {
     this.error = '';
-    this.notice = '';
     this.busy = true;
     try {
       const { url } = await api.openPortal();

@@ -13,6 +13,8 @@ const envSchema = z.object({
   WEB_ORIGIN: z.string().default('http://localhost:4600'),
   DATABASE_URL: z.string().default('postgres://aureliajs:aureliajs@localhost:5544/aureliajs'),
   SESSION_SECRET: z.string().min(16).default('dev-only-change-me-32-characters-min'),
+  /** Reported by /health so a deployment can be traced to a build. */
+  APP_VERSION: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),

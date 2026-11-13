@@ -12,9 +12,7 @@
     "lint": "echo 'No linter configured yet'"
   },
   "dependencies": {
-    "@hono/aurelia-ssr": "workspace:*",
-    "@aureliajs/shared": "workspace:*",
-    "aurelia": "2.0.0-rc.2",
+    "@hono/node-server": "^1.12.0",
     "hono": "^4.0.0"
   },
   "devDependencies": {

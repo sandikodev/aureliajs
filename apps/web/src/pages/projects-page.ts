@@ -12,6 +12,7 @@ import { formatDate, relativeTime } from '@/lib/utils';
 import { api, ApiError } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { I18nService } from '@/services/i18n';
+import { ToastService } from '@/services/toast';
 
 type FormState = {
   name: string;
@@ -34,6 +35,7 @@ export class ProjectsPage {
   dialogEl!: HTMLDialogElement;
   readonly auth = resolve(AuthService);
   readonly i18n = resolve(I18nService);
+  readonly toast = resolve(ToastService);
 
   /**
    * The translator, exposed through a view-model getter so the binding
@@ -116,19 +118,19 @@ export class ProjectsPage {
   }
 
   /** A success or error notice, in the current language. */
-  private notify(
+  private notifySuccess(
     key: 'projects.created' | 'projects.updated' | 'projects.deleted',
     name: string,
   ): void {
     this.i18n.track();
-    this.notice = this.i18n.t(key, { name });
+    this.toast.success(this.i18n.t(key, { name }));
   }
 
-  private notifyLocal(
+  private notifySuccessLocal(
     key: 'projects.createdLocal' | 'projects.updatedLocal' | 'projects.deletedLocal',
   ): void {
     this.i18n.track();
-    this.notice = this.i18n.t(key);
+    this.toast.success(this.i18n.t(key));
   }
 
   items: Project[] = [];
@@ -145,7 +147,6 @@ export class ProjectsPage {
   demo = false;
   saving = false;
   error = '';
-  notice = '';
 
   editingId: string | null = null;
   form: FormState = emptyForm();
@@ -262,7 +263,6 @@ export class ProjectsPage {
     this.editingId = null;
     this.form = emptyForm();
     this.fieldErrors = {};
-    this.notice = '';
     this.dialogEl.showModal();
   }
 
@@ -276,7 +276,6 @@ export class ProjectsPage {
       dueDate: project.dueDate ?? '',
     };
     this.fieldErrors = {};
-    this.notice = '';
     this.dialogEl.showModal();
   }
 
@@ -308,17 +307,17 @@ export class ProjectsPage {
       if (this.isEditing && this.editingId) {
         const { project } = await api.updateProject(this.editingId, parsed.data);
         this.items = this.items.map((row) => (row.id === project.id ? project : row));
-        this.notify('projects.updated', project.name);
+        this.notifySuccess('projects.updated', project.name);
       } else {
         const { project } = await api.createProject(parsed.data);
-        this.notify('projects.created', project.name);
+        this.notifySuccess('projects.created', project.name);
         await this.load();
       }
       this.dialogEl.close();
     } catch (error) {
       if (this.demo) {
         this.applyLocalMutation(parsed.data);
-        this.notifyLocal(this.isEditing ? 'projects.updatedLocal' : 'projects.createdLocal');
+        this.notifySuccessLocal(this.isEditing ? 'projects.updatedLocal' : 'projects.createdLocal');
         this.dialogEl.close();
       } else if (error instanceof ApiError) {
         this.error = error.message;
@@ -362,13 +361,13 @@ export class ProjectsPage {
     if (!confirm(`Delete “${project.name}”? This cannot be undone.`)) return;
     try {
       await api.deleteProject(project.id);
-      this.notify('projects.deleted', project.name);
+      this.notifySuccess('projects.deleted', project.name);
       await this.load();
     } catch {
       this.items = this.items.filter((row) => row.id !== project.id);
       this.total = Math.max(0, this.total - 1);
       this.demo = true;
-      this.notifyLocal('projects.deletedLocal');
+      this.notifySuccessLocal('projects.deletedLocal');
     }
   }
 
@@ -409,6 +408,6 @@ export class ProjectsPage {
     anchor.click();
     URL.revokeObjectURL(url);
     this.i18n.track();
-    this.notice = this.i18n.t('projects.exportDone');
+    this.toast.success(this.i18n.t('projects.exportDone'));
   }
 }

@@ -36,7 +36,7 @@ export class UiInput {
   @bindable type: 'text' | 'email' | 'password' | 'search' | 'number' | 'url' | 'date' = 'text';
   @bindable value: string | number | null = '';
   @bindable placeholder = '';
-  @bindable autocomplete = '';
+  @bindable autocomplete: AutoFill | 'off' | 'on' | '' = 'off';
   @bindable describedBy = '';
   @bindable disabled = false;
   @bindable required = false;
