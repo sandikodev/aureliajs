@@ -1,6 +1,16 @@
 # Hono + Aurelia SSR Example
 
-**Production-ready working example of server-side rendering with Hono**
+**⚠️ STANDALONE PROJECT** — Not part of the main monorepo
+
+This example is intentionally separate from the Upwork/main project (`/apps` and `/packages`).
+It's a reference implementation showing how to use Hono for server-side rendering with Aurelia.
+
+**Quick Start:**
+```bash
+cd examples/fullstack-ssr
+pnpm install  # Install independently
+pnpm dev      # Run standalone dev server
+```
 
 This example demonstrates core SSR patterns:
 - ✅ **Server-side rendering** - HTML rendered on server
