@@ -55,10 +55,10 @@ export class UiSelect {
 
   get classes(): string {
     return cn(
-      'h-9 w-full appearance-none rounded-md border border-input bg-transparent bg-no-repeat pr-8 pl-3 text-sm shadow-xs outline-none transition-[color,box-shadow]',
+      'h-9 w-full appearance-none rounded-md border border-input bg-background bg-no-repeat pr-8 pl-3 text-sm shadow-xs outline-none transition-[color,box-shadow]',
       'bg-[position:right_0.5rem_center] bg-[size:1rem]',
       'focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40',
-      'disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30',
+      'disabled:cursor-not-allowed disabled:opacity-50',
     );
   }
 
