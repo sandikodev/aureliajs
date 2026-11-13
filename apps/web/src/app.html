@@ -222,9 +222,9 @@
         <button
           class="rounded-lg p-2 transition-colors hover:bg-accent"
           aria-label="Toggle theme"
-          click.trigger="i18n.toggleTheme()"
+          click.trigger="theme.toggle()"
         >
-          <ui-icon name="${i18n.theme === 'dark' ? 'sun' : 'moon'}" size="20"></ui-icon>
+          <ui-icon name="${theme.isDark ? 'sun' : 'moon'}" size="20"></ui-icon>
         </button>
 
         <!-- Language -->

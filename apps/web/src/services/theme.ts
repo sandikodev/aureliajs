@@ -1,4 +1,4 @@
-import { singleton } from 'aurelia';
+import { singleton, observable } from 'aurelia';
 
 type Mode = 'light' | 'dark';
 
@@ -6,7 +6,7 @@ const STORAGE_KEY = 'aurelia-ops-theme';
 
 @singleton()
 export class ThemeService {
-  private mode: Mode = 'light';
+  @observable private mode: Mode = 'light';
 
   constructor() {
     const stored = this.read();

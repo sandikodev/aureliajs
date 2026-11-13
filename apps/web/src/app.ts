@@ -9,6 +9,7 @@ import { ToastService } from '@/services/toast';
 import { relativeTime } from '@/lib/utils';
 import type { Locale, WorkspaceSummary } from '@aureliajs/shared';
 import { getRouterConfig, PUBLIC_ROUTES } from '@/config/routes';
+import { ThemeService } from '@/services/theme';
 
 export type NavItem = {
   href: string;
@@ -29,6 +30,7 @@ export class App {
   readonly auth = resolve(AuthService);
   readonly i18n = resolve(I18nService);
   readonly toast = resolve(ToastService);
+  readonly theme = resolve(ThemeService);
 
   /**
    * True while the initial auth check is in flight.
