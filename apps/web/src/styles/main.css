@@ -45,7 +45,7 @@ ui-icon {
 
 /* Cards must fill grid cell height so all cards in a row are equal */
 ui-card {
-  height: 100%;
+  height: auto;
 }
 
 /* ------------------------------------------------------------------ */
