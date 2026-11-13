@@ -195,6 +195,14 @@ export class App {
       if (isOnLandingPage) {
         await this.router.load('login');
       }
+    } else {
+      // If authenticated and on landing page, redirect to dashboard
+      const instruction = (this.router as any).activeInstruction;
+      const isOnLandingPage = instruction?.component === LandingPage;
+      
+      if (isOnLandingPage) {
+        await this.router.load('dashboard');
+      }
     }
 
     // Step 6: NOW unblock render — loadingAuth = false allows template to render

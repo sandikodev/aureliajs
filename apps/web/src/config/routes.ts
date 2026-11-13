@@ -20,6 +20,7 @@ export type RouteDefinition = {
   component: any;
   title: string;
   public?: boolean; // If true, accessible without auth
+  noindex?: boolean; // If true, add noindex meta tag (for protected routes)
 };
 
 /**
@@ -50,32 +51,38 @@ export const PUBLIC_ROUTES: RouteDefinition[] = [
 /**
  * Protected routes — require authentication.
  * Renders in full layout with sidebar, header, admin chrome.
+ * All marked noindex for SEO (private app content).
  */
 export const PROTECTED_ROUTES: RouteDefinition[] = [
   {
     path: 'dashboard',
     component: DashboardPage,
     title: 'Dashboard',
+    noindex: true,
   },
   {
     path: 'projects',
     component: ProjectsPage,
     title: 'Projects',
+    noindex: true,
   },
   {
     path: 'members',
     component: MembersPage,
     title: 'Members',
+    noindex: true,
   },
   {
     path: 'billing',
     component: BillingPage,
     title: 'Billing',
+    noindex: true,
   },
   {
     path: 'settings',
     component: SettingsPage,
     title: 'Settings',
+    noindex: true,
   },
 ];
 
