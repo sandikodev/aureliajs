@@ -37,6 +37,7 @@ const PAGES = [
 void Aurelia.register(
   RouterConfiguration.customize({
     activeClass: 'is-active',
+    useUrlFragmentHash: false, // Use pushState (clean URLs) instead of hash (#)
   }),
   ...PAGES,
   ...UI,
