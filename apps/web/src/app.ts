@@ -203,32 +203,33 @@ export class App {
   /**
    * Determine if the current route is a public route.
    * CRITICAL: Must be called AFTER router initialization.
-   * 
-   * During boot (loadingAuth=true), treat everything as public so loading spinner shows.
-   * After boot, check if the router's active instruction component is in PUBLIC_ROUTES.
-   * 
-   * Returns true for: LandingPage, LoginPage, InvitePage, or during loading.
+   *
+   * Strategy (in order of reliability):
+   * 1. During boot (loadingAuth=true): treat as public (show spinner)
+   * 2. Check router's activeInstruction.component against PUBLIC_ROUTES
+   * 3. Fallback: check window.location.pathname against known public paths
+   *    This covers the case where router hasn't set activeInstruction yet
+   *    (e.g. immediately after a full-page reload from window.location.href)
    */
   private isCurrentRoutePublic(): boolean {
-    // During boot, treat as public (show loading spinner, don't redirect)
     if (this.loadingAuth) return true;
 
-    // After boot, check router's active instruction
-    // activeInstruction.component is the actual component being rendered
+    // Primary: check router's active instruction component
     try {
       const instruction = (this.router as any).activeInstruction;
-      if (!instruction || !instruction.component) {
-        console.debug('[app] isCurrentRoutePublic: no active instruction, treating as public');
-        return true; // Unknown = treat as public
+      if (instruction?.component) {
+        return PUBLIC_ROUTES.some((route) => route.component === instruction.component);
       }
-
-      // Check if this component is in PUBLIC_ROUTES
-      const isPublic = PUBLIC_ROUTES.some((route) => route.component === instruction.component);
-      return isPublic;
-    } catch (error) {
-      console.debug('[app] isCurrentRoutePublic: error checking instruction', error);
-      return true; // If router state is weird, treat as public
+    } catch {
+      // fall through to URL fallback
     }
+
+    // Fallback: check URL pathname — reliable even before router resolves
+    const path = window.location.pathname.replace(/^\//, ''); // strip leading /
+    const publicPaths = new Set(
+      PUBLIC_ROUTES.map((r) => (Array.isArray(r.path) ? r.path[0] : r.path))
+    );
+    return publicPaths.has(path) || path === '';
   }
 
   /**
