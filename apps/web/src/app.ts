@@ -194,13 +194,28 @@ export class App {
 
   /**
    * Determine if the current route is a public route.
-   * Returns true for: landing, login, invite
+   * CRITICAL FIX: Checks router's actual component, not URL pathname.
+   * 
+   * Pathname-based checks fail during SPA navigation (router loads before URL updates),
+   * causing race conditions and login loops. Instead, check the component identity.
+   * 
+   * Returns true for: LandingPage, LoginPage, InvitePage, or during loading.
    */
   private isCurrentRoutePublic(): boolean {
-    // Check if the active route component is in PUBLIC_ROUTES
-    // For now, check against known public paths as fallback
-    const pathname = window.location.pathname;
-    return /^(\/|\/login|\/invite)\/?$/.test(pathname);
+    // During boot, treat as public to show loading spinner
+    if (this.loadingAuth) return true;
+
+    // After boot, check router's actual component
+    // This works even when router navigates programmatically (no URL change)
+    const component = (this.router as any).currentComponent?.component;
+    if (!component) {
+      console.debug('[app] isCurrentRoutePublic: no component, treating as public');
+      return true; // Unknown = public
+    }
+
+    // Check if this component is registered in PUBLIC_ROUTES
+    const isPublic = PUBLIC_ROUTES.some((route) => route.component === component);
+    return isPublic;
   }
 
   /**
