@@ -1,5 +1,6 @@
 import type { AuthSession, Role, User, Workspace } from '@aureliajs/shared';
 import { api } from './api';
+import { getCachedSession, cacheSession, clearSessionCache, shouldUseCachedSession } from './session-cache';
 
 const empty: AuthSession = { user: null, workspace: null, role: null };
 
@@ -53,11 +54,54 @@ export class AuthService {
     this.apply(empty);
   }
 
-  /** Returns true when a valid session cookie exists. */
+  /** Returns true when a valid session cookie exists.
+   * 
+   * OPTIMIZATION: On first page load, uses cached session from localStorage
+   * to render immediately. Then refreshes in background to validate.
+   * This eliminates the "spinner flicker" on every page reload.
+   */
   async refresh(): Promise<boolean> {
+    // Check if we can use cached session on first load
+    if (!this.ready && shouldUseCachedSession()) {
+      const cached = getCachedSession();
+      if (cached) {
+        // Apply cached session immediately (fast, no network call)
+        this.user = cached.user;
+        this.workspace = cached.workspace;
+        this.ready = true;
+
+        // In background, validate cache is still fresh
+        // This will correct the cache if server state changed
+        api.me()
+          .then((session) => {
+            this.apply(session);
+            cacheSession({
+              user: session.user,
+              workspace: session.workspace,
+              token: '', // Not stored, server manages via cookie
+            });
+          })
+          .catch(() => {
+            // Server session invalid, clear cache
+            this.clear();
+          });
+
+        return true;
+      }
+    }
+
+    // Normal path: fetch from server
     try {
       const session = await api.me();
       this.apply(session);
+      
+      // Cache for next page load
+      cacheSession({
+        user: session.user,
+        workspace: session.workspace,
+        token: '',
+      });
+      
       return session.user !== null;
     } catch {
       this.clear();
@@ -75,6 +119,7 @@ export class AuthService {
       await api.logout();
     } finally {
       this.clear();
+      clearSessionCache(); // Also clear cached session
     }
   }
 }
