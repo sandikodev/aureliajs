@@ -3,7 +3,7 @@
 
 **Status**: BEFORE SUBMISSION  
 **Estimated Time**: 4-6 hours  
-**Owner**: dev (Sandikodev)  
+**Owner**: Sandikodev (@sandikodev)  
 **Due**: Before sending proposal to maintainers
 
 ---
