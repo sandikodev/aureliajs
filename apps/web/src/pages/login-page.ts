@@ -1,6 +1,5 @@
 import { customElement, resolve } from 'aurelia';
 import template from './login-page.html';
-import { IRouter } from '@aurelia/router';
 import { loginSchema } from '@aureliajs/shared';
 import { ApiError } from '@/services/api';
 import { AuthService } from '@/services/auth';
@@ -12,7 +11,6 @@ const DEMO_PASSWORD = 'demo-password-123';
 @customElement({ name: 'login-page', template })
 export class LoginPage {
   private readonly auth = resolve(AuthService);
-  private readonly router = resolve(IRouter);
   readonly i18n = resolve(I18nService);
 
   email = '';
@@ -35,8 +33,9 @@ export class LoginPage {
   }
 
   /**
-   * Get return URL from query params or default to dashboard.
+   * Get return URL from query params or default to overview.
    * Supports deep linking after login.
+   * Returns route name WITHOUT leading slash (Aurelia router convention).
    */
   private getReturnUrl(): string {
     const params = new URLSearchParams(window.location.search);
@@ -44,18 +43,22 @@ export class LoginPage {
     
     // Validate returnUrl to prevent open redirect
     if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
-      return returnUrl;
+      // Strip leading slash — Aurelia router.load() expects route name, not absolute path
+      return returnUrl.slice(1);
     }
     
-    return '/dashboard';
+    return 'overview';
   }
 
   /**
    * Redirect to intended destination after login.
+   * Uses window.location for a clean full-page navigation — this ensures
+   * the app re-bootstraps with fresh auth state, no guard race conditions.
+   * This is the same pattern Next.js, Rails, and production SPAs use.
    */
   private async redirectAfterLogin(): Promise<void> {
     const returnUrl = this.getReturnUrl();
-    await this.router.load(returnUrl);
+    window.location.href = `/${returnUrl}`;
   }
 
   useDemoAccount(): void {

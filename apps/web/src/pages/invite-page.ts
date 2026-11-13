@@ -48,6 +48,6 @@ export class InvitePage {
   }
 
   goToWorkspace(): void {
-    void this.router.load('dashboard');
+    void this.router.load('overview');
   }
 }

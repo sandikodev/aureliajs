@@ -1,5 +1,5 @@
 import { BillingPage } from '@/pages/billing-page';
-import { DashboardPage } from '@/pages/dashboard-page';
+import { OverviewPage } from '@/pages/overview-page';
 import { InvitePage } from '@/pages/invite-page';
 import { LandingPage } from '@/pages/landing-page';
 import { LoginPage } from '@/pages/login-page';
@@ -39,7 +39,7 @@ export type RouteDefinition = {
 
 /**
  * Public routes — accessible without authentication.
- * Guest-only routes redirect authenticated users to dashboard.
+ * Guest-only routes redirect authenticated users to overview.
  */
 export const PUBLIC_ROUTES: RouteDefinition[] = [
   {
@@ -80,9 +80,9 @@ export const PUBLIC_ROUTES: RouteDefinition[] = [
  */
 export const PROTECTED_ROUTES: RouteDefinition[] = [
   {
-    path: 'dashboard',
-    component: DashboardPage,
-    title: 'Dashboard',
+    path: 'overview',
+    component: OverviewPage,
+    title: 'Overview',
     noindex: true,
     data: {
       requiresAuth: true,

@@ -109,7 +109,7 @@ export class App {
    */
   get nav(): NavItem[] {
     return [
-      { href: 'dashboard', label: this.i18n.t('nav.dashboard'), icon: 'layoutDashboard' },
+      { href: 'overview', label: this.i18n.t('nav.overview'), icon: 'layoutDashboard' },
       { href: 'projects', label: this.i18n.t('nav.projects'), icon: 'folder' },
       { href: 'members', label: this.i18n.t('nav.members'), icon: 'users' },
       { href: 'billing', label: this.i18n.t('nav.billing'), icon: 'creditCard' },
@@ -178,11 +178,23 @@ export class App {
     // Step 4: Determine layout state
     this.updateLayoutState();
 
-    // Step 5: NOW unblock render — loadingAuth = false allows template to render
-    // Guards will handle navigation logic (no manual redirect needed)
+    // Step 5: Auto-redirect authenticated users from landing to overview
+    // Only on initial load — after this, router events handle navigation
+    if (this.auth.isAuthenticated) {
+      const instruction = (this.router as any).activeInstruction;
+      const landingPageComponent = PUBLIC_ROUTES[0]?.component;
+      const isOnLandingPage = instruction?.component === landingPageComponent;
+      
+      if (isOnLandingPage) {
+        await this.router.load('overview');
+        return; // Navigation happened, rest will run on next cycle
+      }
+    }
+
+    // Step 6: NOW unblock render
     this.loadingAuth = false;
 
-    // Step 6: Load activity + workspaces in background (don't block)
+    // Step 7: Load activity + workspaces in background (don't block)
     if (this.auth.isAuthenticated) {
       await Promise.all([this.loadActivity(), this.loadWorkspaces()]);
     }
@@ -245,7 +257,7 @@ export class App {
    *
    * The session row stores the active workspace, so the switch is a server
    * round trip — not a client-side variable. After the switch the whole
-   * dashboard reloads against the new tenant.
+   * overview reloads against the new tenant.
    */
   async switchTo(workspace: WorkspaceSummary): Promise<void> {
     if (workspace.isActive || this.switchingWorkspace) return;
@@ -255,7 +267,7 @@ export class App {
       const session = await api.switchWorkspace(workspace.id);
       this.auth.apply(session);
       await Promise.all([this.loadWorkspaces(), this.loadActivity()]);
-      await this.router.load('dashboard');
+      await this.router.load('overview');
     } catch (error) {
       this.workspaceError =
         error instanceof ApiError ? error.message : 'Could not switch workspace.';

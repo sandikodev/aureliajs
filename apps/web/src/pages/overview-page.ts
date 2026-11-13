@@ -1,5 +1,5 @@
 import { customElement, resolve } from 'aurelia';
-import template from './dashboard-page.html';
+import template from './overview-page.html';
 import { formatCents } from '@aureliajs/shared';
 import { DEMO_OVERVIEW } from '@/lib/demo-data';
 import { statusMeta } from '@/lib/status';
@@ -8,8 +8,14 @@ import { api, type Overview, type Period } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { I18nService } from '@/services/i18n';
 
-@customElement({ name: 'dashboard-page', template })
-export class DashboardPage {
+/**
+ * Overview Page
+ * ============
+ * Main landing page after login.
+ * Shows workspace KPIs, throughput chart, status breakdown, and recent activity.
+ */
+@customElement({ name: 'overview-page', template })
+export class OverviewPage {
   private readonly auth = resolve(AuthService);
   readonly i18n = resolve(I18nService);
 
@@ -33,7 +39,7 @@ export class DashboardPage {
   /** The subtitle, with the workspace name interpolated. */
   get subtitleText(): string {
     this.i18n.track();
-    return this.i18n.t('dashboard.subtitle', {
+    return this.i18n.t('overview.subtitle', {
       workspace: this.auth.workspace?.name ?? this.i18n.t('app.workspaceFallback'),
     });
   }
@@ -41,7 +47,7 @@ export class DashboardPage {
   /** The chart's accessible name, with the trend delta interpolated. */
   get throughputSummary(): string {
     this.i18n.track();
-    return this.i18n.t('dashboard.throughputSummary', { delta: this.trendDelta });
+    return this.i18n.t('overview.throughputSummary', { delta: this.trendDelta });
   }
 
   isLoading = true;
@@ -53,9 +59,9 @@ export class DashboardPage {
   period: Period = 'last-30';
 
   readonly periodOptions = [
-    { value: 'last-7', label: this.i18n.t('dashboard.periodLast7') },
-    { value: 'last-30', label: this.i18n.t('dashboard.periodLast30') },
-    { value: 'quarter', label: this.i18n.t('dashboard.periodQuarter') },
+    { value: 'last-7', label: this.i18n.t('overview.periodLast7') },
+    { value: 'last-30', label: this.i18n.t('overview.periodLast30') },
+    { value: 'quarter', label: this.i18n.t('overview.periodQuarter') },
   ];
 
   get stats() {
