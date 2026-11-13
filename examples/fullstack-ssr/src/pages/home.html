@@ -1,0 +1,304 @@
+<template>
+  <div class="home-page">
+    <header class="page-header">
+      <h1>Hono + Aurelia SSR Example</h1>
+      <p>Server-rendered, client-hydrated blog with full documentation</p>
+    </header>
+
+    <main class="page-main">
+      <!-- Posts Section -->
+      <section class="posts-section">
+        <div class="posts-header">
+          <h2>Recent Posts</h2>
+          <button 
+            click.trigger="refresh()" 
+            disabled.bind="loading"
+            class="refresh-button"
+          >
+            ${loading ? 'Loading...' : 'Refresh'}
+          </button>
+        </div>
+
+        <!-- Loading State -->
+        <div if.bind="loading && posts.length === 0" class="loading-state">
+          <p>📦 Loading posts...</p>
+        </div>
+
+        <!-- Posts List -->
+        <ul if.bind="!loading && posts.length > 0" class="posts-list">
+          <li repeat.for="post of posts" class="post-item">
+            <article>
+              <a href="${'/posts/' + post.slug}" class="post-link">
+                <strong>${post.title}</strong>
+              </a>
+              <small class="post-id">ID: ${post.id}</small>
+            </article>
+          </li>
+        </ul>
+
+        <!-- Error State -->
+        <div if.bind="error" class="error-state">
+          <p>❌ Error: ${error}</p>
+          <button click.trigger="refresh()" class="retry-button">
+            Try Again
+          </button>
+        </div>
+
+        <!-- Empty State -->
+        <div if.bind="!loading && posts.length === 0 && !error" class="empty-state">
+          <p>📭 No posts available</p>
+        </div>
+      </section>
+
+      <!-- CTA Section -->
+      <section class="cta-section">
+        <h2>Explore More</h2>
+        <ul class="links-list">
+          <li>
+            <a href="/dashboard" class="link-button">
+              👉 View Protected Dashboard
+            </a>
+            <small>(requires authentication)</small>
+          </li>
+          <li>
+            <a href="https://github.com/sandikodev/hono-aurelia-ssr" class="link-button" target="_blank">
+              🔗 View Source Code
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/sandikodev/hono-aurelia-ssr/blob/main/examples/fullstack-ssr/README.md" class="link-button" target="_blank">
+              📖 Read Documentation
+            </a>
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <style>
+      .home-page {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: #f9f9f9;
+        min-height: 100vh;
+      }
+
+      .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4rem 2rem;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .page-header h1 {
+        margin: 0 0 0.5rem;
+        font-size: 2.5rem;
+      }
+
+      .page-header p {
+        margin: 0;
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
+
+      .page-main {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      .posts-section {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .posts-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        gap: 1rem;
+      }
+
+      .posts-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+      }
+
+      .refresh-button {
+        padding: 0.5rem 1rem;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background 0.2s;
+      }
+
+      .refresh-button:hover:not(:disabled) {
+        background: #5568d3;
+      }
+
+      .refresh-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .posts-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .post-item {
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+        transition: background 0.2s;
+      }
+
+      .post-item:last-child {
+        border-bottom: none;
+      }
+
+      .post-item:hover {
+        background: #f9f9f9;
+      }
+
+      .post-item article {
+        margin: 0;
+      }
+
+      .post-link {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .post-link:hover {
+        text-decoration: underline;
+      }
+
+      .post-id {
+        display: block;
+        color: #999;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+      }
+
+      .loading-state,
+      .error-state,
+      .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: #666;
+      }
+
+      .loading-state p,
+      .error-state p,
+      .empty-state p {
+        margin: 0 0 1rem;
+        font-size: 1.1rem;
+      }
+
+      .error-state {
+        background: #fef2f2;
+        border-radius: 4px;
+        border-left: 4px solid #dc2626;
+      }
+
+      .retry-button {
+        padding: 0.5rem 1rem;
+        background: #dc2626;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+      }
+
+      .retry-button:hover {
+        background: #b91c1c;
+      }
+
+      .cta-section {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .cta-section h2 {
+        margin-top: 0;
+        font-size: 1.5rem;
+      }
+
+      .links-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .links-list li {
+        margin-bottom: 1rem;
+      }
+
+      .links-list li:last-child {
+        margin-bottom: 0;
+      }
+
+      .link-button {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background: #667eea;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: 500;
+        transition: background 0.2s;
+      }
+
+      .link-button:hover {
+        background: #5568d3;
+      }
+
+      .link-button[target="_blank"] {
+        margin-right: 0.5rem;
+      }
+
+      .links-list small {
+        display: block;
+        color: #999;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+      }
+
+      @media (max-width: 640px) {
+        .page-header {
+          padding: 2rem 1rem;
+        }
+
+        .page-header h1 {
+          font-size: 1.75rem;
+        }
+
+        .page-main {
+          padding: 1rem;
+        }
+
+        .posts-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .refresh-button {
+          width: 100%;
+        }
+      }
+    </style>
+  </div>
+</template>

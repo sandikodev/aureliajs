@@ -2,106 +2,121 @@
  * Dashboard Page Component
  * 
  * Demonstrates:
- * - Protected routes (requiresAuth)
- * - Multiple data loaders (stats, recentActivity)
- * - Auth context usage
- * - Parallel data loading
+ * - Protected route that requires authentication
+ * - Data loading from multiple API endpoints (parallel execution)
+ * - Server-side hydration with auth context
+ * - Error handling with fallback UI
  */
 
-export const DashboardPage = {
-  name: 'DashboardPage',
-  
-  render(props: any) {
-    const stats = props?.stats || {};
-    const activity = props?.recentActivity || [];
-    
-    return `
-      <div id="app" class="dashboard-page">
-        <header>
-          <h1>${stats.title || 'Dashboard'}</h1>
-        </header>
+import { customElement } from 'aurelia';
+import template from './dashboard.html';
+import { hydrateFromServer } from '@hono/aurelia-ssr';
 
-        <main>
-          <section class="stats">
-            <h2>Statistics</h2>
-            <div class="stat-grid">
-              <div class="stat">
-                <span class="label">Views</span>
-                <span class="value">${stats.views?.toLocaleString() || 0}</span>
-              </div>
-              <div class="stat">
-                <span class="label">Posts</span>
-                <span class="value">${stats.posts || 0}</span>
-              </div>
-              <div class="stat">
-                <span class="label">Engagement</span>
-                <span class="value">${stats.engagement || 0}%</span>
-              </div>
-            </div>
-          </section>
-
-          <section class="activity">
-            <h2>Recent Activity</h2>
-            <ul>
-              ${activity.map((item: any) => `
-                <li>
-                  <strong>${item.action}</strong>
-                  <span class="time">${item.timestamp}</span>
-                </li>
-              `).join('')}
-            </ul>
-          </section>
-
-          <section class="nav">
-            <p><a href="/">← Back to Home</a></p>
-          </section>
-        </main>
-
-        <style>
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 2rem;
-            line-height: 1.6;
-            color: #333;
-            background: #f9f9f9;
-          }
-          header { border-bottom: 2px solid #007bff; padding-bottom: 1rem; margin-bottom: 2rem; }
-          h1 { margin: 0; color: #007bff; }
-          h2 { margin-top: 2rem; margin-bottom: 1rem; color: #333; }
-          section { background: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem; }
-          
-          .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-          }
-          .stat {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 1rem;
-            background: #f0f0f0;
-            border-radius: 4px;
-          }
-          .stat .label { font-size: 0.9rem; color: #666; }
-          .stat .value { font-size: 1.5rem; font-weight: bold; color: #007bff; }
-          
-          ul { list-style: none; padding: 0; }
-          li { 
-            display: flex;
-            justify-content: space-between;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #eee;
-          }
-          li:last-child { border-bottom: none; }
-          .time { color: #999; font-size: 0.9rem; }
-          
-          a { color: #007bff; text-decoration: none; }
-          a:hover { text-decoration: underline; }
-        </style>
-      </div>
-    `;
-  }
+export type DashboardStats = {
+  title: string;
+  views: number;
+  posts: number;
+  engagement: number;
 };
+
+export type ActivityItem = {
+  id: number;
+  type: 'post' | 'comment' | 'like';
+  action: string;
+  timestamp: string;
+};
+
+export type DashboardContext = {
+  stats: DashboardStats;
+  activity: ActivityItem[];
+};
+
+@customElement({ name: 'dashboard-page', template })
+export class DashboardPage {
+  stats: DashboardStats = {
+    title: 'Loading...',
+    views: 0,
+    posts: 0,
+    engagement: 0,
+  };
+  activity: ActivityItem[] = [];
+  loading = false;
+  error = '';
+
+  /**
+   * Attached lifecycle: Called when component is added to DOM.
+   * Hydrate from server-side pre-loaded data if available.
+   */
+  attached() {
+    // Try to hydrate from server
+    const hydration = hydrateFromServer<DashboardContext>();
+
+    if (hydration?.initialData) {
+      // Server rendered and passed data
+      this.stats = hydration.initialData.stats;
+      this.activity = hydration.initialData.activity;
+    } else {
+      // Not hydrated, fetch if needed
+      this.refresh();
+    }
+  }
+
+  /**
+   * Refresh dashboard data from server.
+   * Executes stats and activity loaders in parallel.
+   */
+  async refresh() {
+    this.loading = true;
+    this.error = '';
+
+    try {
+      // Parallel execution of independent loaders
+      const [statsRes, activityRes] = await Promise.all([
+        fetch('/api/dashboard/stats'),
+        fetch('/api/dashboard/activity'),
+      ]);
+
+      if (!statsRes.ok || !activityRes.ok) {
+        throw new Error(`HTTP ${statsRes.status || activityRes.status}`);
+      }
+
+      const statsData = await statsRes.json();
+      const activityData = await activityRes.json();
+
+      this.stats = statsData.stats || statsData;
+      this.activity = activityData.activity || activityData || [];
+    } catch (err) {
+      console.error('[dashboard-page] Failed to refresh:', err);
+      this.error = err instanceof Error ? err.message : 'Failed to refresh dashboard';
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  /**
+   * Format relative time (e.g., "2 hours ago").
+   */
+  relativeTime(iso: string): string {
+    const date = new Date(iso);
+    const now = new Date();
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (seconds < 60) return 'just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+    return date.toLocaleDateString();
+  }
+
+  /**
+   * Get activity type emoji.
+   */
+  getActivityEmoji(type: string): string {
+    const emojis: Record<string, string> = {
+      post: '📝',
+      comment: '💬',
+      like: '❤️',
+    };
+    return emojis[type] || '📌';
+  }
+}
