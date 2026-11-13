@@ -9,23 +9,37 @@ import { ProjectsPage } from '@/pages/projects-page';
 import { SettingsPage } from '@/pages/settings-page';
 
 /**
- * Route metadata. Separates public/protected routes to enable:
- * 1. Metadata-based guards (not URL-based)
- * 2. Clear auth intent
- * 3. Fallback routing logic
+ * Route Configuration
+ * ==================
+ * 
+ * PRINCIPLE: URL IS THE SINGLE SOURCE OF TRUTH
+ * 
+ * Route metadata (data property):
+ * - requiresAuth: true  → Protected route, uses AuthGuard
+ * - guestOnly: true     → Guest-only route, uses GuestGuard  
+ * - layout: 'auth'      → Shows sidebar + header
+ * - layout: 'public'    → Minimal layout
+ * 
+ * Guards handle ALL routing logic automatically.
+ * NO manual flags, NO race conditions.
  */
 
 export type RouteDefinition = {
   path: string | string[];
   component: any;
   title: string;
-  public?: boolean; // If true, accessible without auth
-  noindex?: boolean; // If true, add noindex meta tag (for protected routes)
+  public?: boolean; // Backward compatibility
+  noindex?: boolean; // SEO
+  data?: {
+    requiresAuth?: boolean; // Guard: AuthGuard
+    guestOnly?: boolean;    // Guard: GuestGuard
+    layout?: 'auth' | 'public'; // Layout selection
+  };
 };
 
 /**
  * Public routes — accessible without authentication.
- * Renders in minimal layout (no sidebar, no admin chrome).
+ * Guest-only routes redirect authenticated users to dashboard.
  */
 export const PUBLIC_ROUTES: RouteDefinition[] = [
   {
@@ -33,25 +47,36 @@ export const PUBLIC_ROUTES: RouteDefinition[] = [
     component: LandingPage,
     title: 'Aurelia Ops — SaaS Admin Dashboard',
     public: true,
+    data: {
+      guestOnly: true,
+      layout: 'public'
+    }
   },
   {
     path: 'login',
     component: LoginPage,
     title: 'Sign in',
     public: true,
+    data: {
+      guestOnly: true,
+      layout: 'public'
+    }
   },
   {
     path: 'invite',
     component: InvitePage,
     title: 'Accept invitation',
     public: true,
+    // NOT guestOnly - user might logout to accept with different account
+    data: {
+      layout: 'public'
+    }
   },
 ];
 
 /**
  * Protected routes — require authentication.
- * Renders in full layout with sidebar, header, admin chrome.
- * All marked noindex for SEO (private app content).
+ * AuthGuard protects these routes automatically.
  */
 export const PROTECTED_ROUTES: RouteDefinition[] = [
   {
@@ -59,36 +84,55 @@ export const PROTECTED_ROUTES: RouteDefinition[] = [
     component: DashboardPage,
     title: 'Dashboard',
     noindex: true,
+    data: {
+      requiresAuth: true,
+      layout: 'auth'
+    }
   },
   {
     path: 'projects',
     component: ProjectsPage,
     title: 'Projects',
     noindex: true,
+    data: {
+      requiresAuth: true,
+      layout: 'auth'
+    }
   },
   {
     path: 'members',
     component: MembersPage,
     title: 'Members',
     noindex: true,
+    data: {
+      requiresAuth: true,
+      layout: 'auth'
+    }
   },
   {
     path: 'billing',
     component: BillingPage,
     title: 'Billing',
     noindex: true,
+    data: {
+      requiresAuth: true,
+      layout: 'auth'
+    }
   },
   {
     path: 'settings',
     component: SettingsPage,
     title: 'Settings',
     noindex: true,
+    data: {
+      requiresAuth: true,
+      layout: 'auth'
+    }
   },
 ];
 
 /**
  * All application routes.
- * Order matters: exact matches first, then fallback.
  */
 export const ALL_ROUTES: RouteDefinition[] = [
   ...PUBLIC_ROUTES,
@@ -97,12 +141,14 @@ export const ALL_ROUTES: RouteDefinition[] = [
     path: 'not-found',
     component: NotFoundPage,
     title: 'Not found',
+    data: {
+      layout: 'public'
+    }
   },
 ];
 
 /**
  * Check if a component/route is publicly accessible.
- * Uses route metadata, not URL pathname.
  */
 export function isPublicRoute(component: any): boolean {
   return PUBLIC_ROUTES.some((route) => route.component === component);
@@ -116,8 +162,7 @@ export function isProtectedRoute(component: any): boolean {
 }
 
 /**
- * Get route config for the router decorator.
- * Strips metadata, returns Aurelia-compatible format.
+ * Get route config for router.
  */
 export function getRouterConfig() {
   return {
@@ -125,6 +170,7 @@ export function getRouterConfig() {
       path: route.path,
       component: route.component,
       title: route.title,
+      data: route.data, // Pass metadata to guards
     })),
     fallback: 'not-found',
   };

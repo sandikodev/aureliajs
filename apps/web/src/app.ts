@@ -173,29 +173,17 @@ export class App {
 
     // Step 3: WAIT for auth check + API health check
     // This blocks render because loadingAuth is still true
-    const [authenticated] = await Promise.all([this.auth.refresh(), this.checkApi()]);
+    await Promise.all([this.auth.refresh(), this.checkApi()]);
 
-    // Step 4-5: Determine layout state
+    // Step 4: Determine layout state
     this.updateLayoutState();
 
-    // If authenticated and on landing page, redirect to dashboard
-    // BUT: only if user hasn't manually navigated yet (respect user navigation)
-    if (authenticated && !this.hasNavigated) {
-      const instruction = (this.router as any).activeInstruction;
-      // Check if current route is the landing page (first public route)
-      const landingPageComponent = PUBLIC_ROUTES[0]?.component;
-      const isOnLandingPage = instruction?.component === landingPageComponent;
-      
-      if (isOnLandingPage) {
-        await this.router.load('dashboard');
-      }
-    }
-
-    // Step 6: NOW unblock render — loadingAuth = false allows template to render
+    // Step 5: NOW unblock render — loadingAuth = false allows template to render
+    // Guards will handle navigation logic (no manual redirect needed)
     this.loadingAuth = false;
 
-    // Step 7: Load activity + workspaces in background (don't block)
-    if (authenticated) {
+    // Step 6: Load activity + workspaces in background (don't block)
+    if (this.auth.isAuthenticated) {
       await Promise.all([this.loadActivity(), this.loadWorkspaces()]);
     }
   }

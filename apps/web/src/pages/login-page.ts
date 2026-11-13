@@ -28,9 +28,34 @@ export class LoginPage {
   }
 
   async attached(): Promise<void> {
+    // If already authenticated, redirect immediately
     if (await this.auth.refresh()) {
-      await this.router.load('dashboard');
+      await this.redirectAfterLogin();
     }
+  }
+
+  /**
+   * Get return URL from query params or default to dashboard.
+   * Supports deep linking after login.
+   */
+  private getReturnUrl(): string {
+    const params = new URLSearchParams(window.location.search);
+    const returnUrl = params.get('returnUrl');
+    
+    // Validate returnUrl to prevent open redirect
+    if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
+      return returnUrl;
+    }
+    
+    return '/dashboard';
+  }
+
+  /**
+   * Redirect to intended destination after login.
+   */
+  private async redirectAfterLogin(): Promise<void> {
+    const returnUrl = this.getReturnUrl();
+    await this.router.load(returnUrl);
   }
 
   useDemoAccount(): void {
@@ -55,7 +80,7 @@ export class LoginPage {
     this.submitting = true;
     try {
       await this.auth.login(parsed.data.email, parsed.data.password);
-      await this.router.load('dashboard');
+      await this.redirectAfterLogin(); // Use returnUrl from query params
     } catch (cause) {
       if (cause instanceof ApiError) {
         this.error =

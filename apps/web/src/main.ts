@@ -10,6 +10,8 @@ import { MembersPage } from './pages/members-page';
 import { NotFoundPage } from './pages/not-found-page';
 import { ProjectsPage } from './pages/projects-page';
 import { SettingsPage } from './pages/settings-page';
+import { AuthGuard } from './guards/auth.guard';
+import { GuestGuard } from './guards/guest.guard';
 import { AuthService } from './services/auth';
 import { I18nService } from './services/i18n';
 import { ThemeService } from './services/theme';
@@ -34,12 +36,20 @@ const PAGES = [
   NotFoundPage,
 ];
 
+/**
+ * Guards handle route protection automatically:
+ * - AuthGuard: Protects authenticated routes, redirects to /login?returnUrl=...
+ * - GuestGuard: Redirects authenticated users from public pages to /dashboard
+ */
+const GUARDS = [AuthGuard, GuestGuard];
+
 void Aurelia.register(
   RouterConfiguration.customize({
     activeClass: 'is-active',
     useUrlFragmentHash: false, // Use pushState (clean URLs) instead of hash (#)
   }),
   ...PAGES,
+  ...GUARDS, // Register guards for route protection
   ...UI,
   // One session cache shared by the shell and every page.
   AuthService,
