@@ -8,7 +8,7 @@ import { I18nService, LOCALES } from '@/services/i18n';
 import { ToastService } from '@/services/toast';
 import { relativeTime } from '@/lib/utils';
 import type { Locale, WorkspaceSummary } from '@aureliajs/shared';
-import { getRouterConfig, PUBLIC_ROUTES } from '@/config/routes';
+import { getRouterConfig, PUBLIC_ROUTE_PATHS } from '@/config/routes';
 import { ThemeService } from '@/services/theme';
 
 export type NavItem = {
@@ -106,10 +106,7 @@ export class App {
    */
   private isPublicPath(pathname: string): boolean {
     const path = pathname.replace(/^\//, '');
-    const publicPaths = new Set(
-      PUBLIC_ROUTES.map((r) => (Array.isArray(r.path) ? r.path[0] : String(r.path)))
-    );
-    return publicPaths.has(path) || path === '';
+    return PUBLIC_ROUTE_PATHS.has(path as any) || path === '';
   }
 
   /**
