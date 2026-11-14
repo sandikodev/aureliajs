@@ -125,9 +125,10 @@
 
     <!-- Demo banner -->
     <div if.bind="apiState === 'demo'" class="border-t border-sidebar-border p-3">
-      <ui-alert variant="warning">
-        <p class="text-[12px]">${copy['app.demoModeBanner']}</p>
-      </ui-alert>
+      <div class="flex items-center gap-2 rounded-lg bg-amber-500/10 px-3 py-2 text-[12px] text-amber-700 dark:text-amber-400">
+        <ui-icon name="alert" size="13" class="shrink-0"></ui-icon>
+        ${copy['app.demoModeBanner']}
+      </div>
     </div>
 
     <!-- Account menu -->
@@ -258,6 +259,56 @@
       </div>
     </main>
   </div>
+
+  <!-- Create workspace dialog — inside shell so ref binding works -->
+  <dialog
+    ref="workspaceDialogEl"
+    class="m-auto w-full max-w-sm rounded-xl border bg-background p-0 text-foreground shadow-xl backdrop:bg-black/50 open:flex open:flex-col"
+  >
+    <div class="flex items-center justify-between border-b px-5 py-4">
+      <h2 class="text-base font-semibold">${copy['app.createWorkspace']}</h2>
+      <button
+        class="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        aria-label="Close"
+        click.trigger="workspaceDialogEl.close()"
+      >
+        <ui-icon name="x" size="16"></ui-icon>
+      </button>
+    </div>
+
+    <form class="flex flex-col gap-4 px-5 py-5" submit.trigger="saveWorkspace()">
+      <div class="space-y-1.5">
+        <ui-label for="new-workspace-name">${copy['settings.workspaceName']}</ui-label>
+        <ui-input
+          id="new-workspace-name"
+          type="text"
+          value.two-way="newWorkspace.name"
+          placeholder="e.g. Acme Corp"
+          autocomplete="off"
+        ></ui-input>
+        <p if.bind="workspaceError" class="text-xs text-destructive">${workspaceError}</p>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-1">
+        <ui-button
+          type="button"
+          variant="outline"
+          size="sm"
+          click.trigger="workspaceDialogEl.close()"
+        >
+          ${copy['app.cancel']}
+        </ui-button>
+        <ui-button
+          type="submit"
+          size="sm"
+          disabled.bind="creatingWorkspace"
+        >
+          <ui-icon if.bind="!creatingWorkspace" name="plus" size="15"></ui-icon>
+          ${creatingWorkspace ? copy['app.creating'] : copy['app.createWorkspace']}
+        </ui-button>
+      </div>
+    </form>
+  </dialog>
 </div>
 
 <!-- 3. PUBLIC LAYOUT — no shell -->
@@ -266,3 +317,5 @@
     <au-viewport></au-viewport>
   </main>
 </div>
+
+
