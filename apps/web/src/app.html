@@ -276,7 +276,7 @@
       </button>
     </div>
 
-    <form class="flex flex-col gap-4 px-5 py-5" submit.trigger="saveWorkspace()">
+    <form class="flex flex-col gap-4 px-5 py-5" submit.trigger="saveWorkspace() & prevent">
       <div class="space-y-1.5">
         <ui-label for="new-workspace-name">${copy['settings.workspaceName']}</ui-label>
         <ui-input
