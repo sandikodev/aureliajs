@@ -8,7 +8,7 @@ This folder contains reusable libraries and adapters for the Aurelia 2 ecosystem
 
 **Status:** Phase 1 Complete ✅  
 **Purpose:** Native SSR support for Aurelia 2 on Hono  
-**Maintainer:** Sandi Kodev (@sandikodev)  
+**Maintainer:** Sandikodev (@sandikodev)  
 
 Server-side rendering adapter that bridges Hono + Aurelia into a native fullstack framework.
 
@@ -145,4 +145,4 @@ These packages are designed to be:
 
 ---
 
-**Maintained with ❤️ by Sandi Kodev**
+**Maintained with ❤️ by Sandikodev (@sandikodev)**

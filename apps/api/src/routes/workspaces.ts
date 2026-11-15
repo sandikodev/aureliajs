@@ -5,7 +5,7 @@ import {
   type WorkspaceSettings,
   type WorkspaceSummary,
 } from '@aureliajs/shared';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { getDb, schema } from '../db/client.js';
@@ -201,7 +201,7 @@ workspaceRoutes.post(
     const input = c.req.valid('json');
     const db = getDb();
 
-    const slug = input.slug ?? slugify(input.name);
+    let slug = input.slug ?? slugify(input.name);
     if (!slug) throw badRequest('That workspace name does not produce a usable slug');
 
     const [taken] = await db
@@ -210,7 +210,13 @@ workspaceRoutes.post(
       .where(eq(schema.workspaces.slug, slug))
       .limit(1);
 
-    if (taken) throw conflict('That workspace slug is already taken');
+    if (taken) {
+      if (input.slug) {
+        throw conflict('That workspace slug is already taken');
+      }
+      // If user only provided a name without an explicit slug, append a random suffix
+      slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+    }
 
     const [workspace] = await db
       .insert(schema.workspaces)
@@ -281,22 +287,27 @@ workspaceRoutes.delete('/workspaces/current', async (c) => {
     );
   }
 
-  const [otherOwner] = await db
-    .select({ userId: schema.memberships.userId })
+  const [otherWorkspace] = await db
+    .select({ workspaceId: schema.memberships.workspaceId })
     .from(schema.memberships)
     .where(
       and(
-        eq(schema.memberships.workspaceId, tenant.workspaceId),
-        eq(schema.memberships.role, 'owner'),
+        eq(schema.memberships.userId, tenant.userId),
+        ne(schema.memberships.workspaceId, tenant.workspaceId),
       ),
     )
     .limit(1);
 
-  if (!otherOwner) {
+  if (!otherWorkspace) {
     throw conflict(
-      'This is your only workspace. Transfer ownership to somebody else before deleting it.',
+      'This is your only workspace. Create another workspace before deleting it.',
     );
   }
+
+  await db
+    .update(schema.sessions)
+    .set({ activeWorkspaceId: otherWorkspace.workspaceId })
+    .where(eq(schema.sessions.activeWorkspaceId, tenant.workspaceId));
 
   await db.delete(schema.workspaces).where(eq(schema.workspaces.id, tenant.workspaceId));
 

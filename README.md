@@ -192,13 +192,11 @@ Being explicit here is part of the work sample:
 
 - **No mail server.** Invitations return an accept link that the UI surfaces (and copies to the
   clipboard) instead of being emailed. The token never needs to exist server-side in plaintext.
-- **One workspace per user in practice.** The schema and the tenancy middleware support many; the UI
-  workspace switcher is still a stub.
 - **Scale tier pricing.** `STRIPE_PRICE_SCALE` is optional; without it the Scale button reports that
   the tier is not available instead of failing at the Stripe call.
-- **i18n.** Copy is centralized in templates but not extracted to locale files.
-- **No seat enforcement on invite.** The seat limit is displayed and the plan limit is enforced for
-  projects, but inviting past the seat limit is not blocked yet.
+- **Seat and project limits enforced server-side.** Both project creation and team invitations check
+  `PLAN_LIMITS` on the server (`402 plan_limit_reached` / `402 seat_limit_reached`), while workspace
+  switching and EN/ID localization are persisted per workspace.
 
 ---
 
@@ -213,6 +211,18 @@ Being explicit here is part of the work sample:
 | `pnpm db:up` / `pnpm db:down`                           | Postgres via Docker                                        |
 | `pnpm db:generate` / `pnpm db:migrate` / `pnpm db:seed` | Drizzle workflow                                           |
 | `node scripts/screenshots.mjs`                          | Regenerate `docs/screenshots` (dev server must be running) |
+
+---
+
+## Research Manifestos & Radical Architecture
+
+This repository also houses research into the future of frontend architecture, combining Aurelia 2's Direct-DOM foundation with modern Developer Experience (DX) and execution models:
+
+- [The Resumable Frontier](docs/the-resumable-frontier.md) — *Manifesto Rekayasa Radikal Aurelia 2, Svelte DX, Hono, dan Qwik*: Blueprint for `.aux` Single-File Components, clean 3-layer responsibility scoping, community ethics, and exploring Qwik-style resumability on top of Aurelia's non-VDOM engine.
+- [The Angular-Aurelia Heritage](docs/the-angular-aurelia-heritage.md) — *Sejarah, Semantik, dan Rekonsiliasi Mental Model Frontend*: Why Aurelia feels foreign to developers from React, Vue, Flutter, and Svelte unless familiar with Angular, uncovering the untold history between Rob Eisenberg and Google in 2014, and how it reconnects with Miško Hevery's Qwik.
+- [The Web Substrate Paradox](docs/the-javascript-fallacy.md) — *Anatomi Kelahiran Prematur JavaScript, Ilusi TypeScript, dan Kerendahan Hati terhadap Bahasa Sistem Modern*: Critical dissection of why raw JS is nothing to boast about compared to PHP, Ruby, Go, Rust, Nim, and Zig, and why strict typing discipline is mandatory.
+- [The Reactive Continuum](docs/the-reactive-continuum.md) — Comparative architectural deep-dive across React, Vue, Solid, Angular, Svelte, Astro, Qwik, and Aurelia 2.
+- [Production Architecture & Security](docs/architecture.md) — Technical specifications for multi-tenant isolation, state hydration, and Stripe integration.
 
 ---
 

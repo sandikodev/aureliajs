@@ -3,31 +3,6 @@
   <p class="mt-1 text-sm text-muted-foreground">${copy['billing.subtitle']}</p>
 </div>
 
-<div if.bind="checkoutResult" class="mt-4" data-testid="checkout-result">
-  <ui-alert tone.bind="checkoutResult === 'success' ? 'success' : 'info'">
-    <ui-icon name.bind="checkoutResult === 'success' ? 'check' : 'alert'" size="16"></ui-icon>
-    <span class="flex-1">
-      ${checkoutResult === 'success' ? copy['billing.checkoutSuccess'] : copy['billing.checkoutCancelled']}
-    </span>
-    <button
-      type="button"
-      class="text-current/70 hover:text-current"
-      click.trigger="dismissResult()"
-      aria-label="Dismiss"
-    >
-      <ui-icon name="x" size="14"></ui-icon>
-    </button>
-  </ui-alert>
-</div>
-
-<div if.bind="notice" class="mt-4" data-testid="billing-notice">
-  <ui-alert tone="success">
-    <ui-icon name="check" size="16"></ui-icon>
-    <span class="flex-1">${notice}</span>
-  </ui-alert>
-</div>
-
-
 <div if.bind="isLoading" class="mt-5 grid gap-4 lg:grid-cols-3">
   <div class="lg:col-span-2">
     <ui-skeleton width="100%" height="14rem" rounded="rounded-xl"></ui-skeleton>

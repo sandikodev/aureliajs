@@ -21,12 +21,15 @@ export type Toast = {
 };
 
 let _nextId = 1;
+const MAX_TOASTS = 4;
+const DEDUP_WINDOW_MS = 1_500;
 
 export class ToastService {
   /** Reactive array — ui-toaster binds to this. */
   toasts: Toast[] = [];
 
   private timers = new Map<number, ReturnType<typeof setTimeout>>();
+  private lastAdded = new Map<string, number>();
 
   success(message: string, duration = 4_000): void {
     this.add(message, 'success', duration);
@@ -51,6 +54,28 @@ export class ToastService {
   }
 
   private add(message: string, tone: ToastTone, duration: number): void {
+    const key = `${tone}:${message}`;
+    const now = Date.now();
+    const prevTime = this.lastAdded.get(key);
+
+    if (prevTime && now - prevTime < DEDUP_WINDOW_MS) {
+      const existing = this.toasts.find((t) => t.message === message && t.tone === tone);
+      if (existing) {
+        clearTimeout(this.timers.get(existing.id));
+        const timer = setTimeout(() => this.dismiss(existing.id), duration);
+        this.timers.set(existing.id, timer);
+        return;
+      }
+    }
+    this.lastAdded.set(key, now);
+
+    if (this.toasts.length >= MAX_TOASTS) {
+      const oldest = this.toasts[0];
+      if (oldest) {
+        this.dismiss(oldest.id);
+      }
+    }
+
     const id = _nextId++;
     this.toasts = [...this.toasts, { id, message, tone }];
     const timer = setTimeout(() => this.dismiss(id), duration);

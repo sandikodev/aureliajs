@@ -1,7 +1,7 @@
-import { UiAvatar } from './avatar';
-import { UiAlert } from './alert';
-import { UiBadge } from './badge';
-import { UiButton } from './button';
+import UiAlert from './alert.aux';
+import UiAvatar from './avatar.aux';
+import UiBadge, { badgeVariants } from './badge.aux';
+import UiButton, { buttonVariants } from './button.aux';
 import {
   UiCard,
   UiCardContent,
@@ -10,15 +10,37 @@ import {
   UiCardHeader,
   UiCardTitle,
 } from './card';
-import { UiIcon } from './icon';
-import { UiInput } from './input';
-import { UiLabel } from './label';
-import { UiSelect } from './select';
-import { UiSeparator } from './separator';
-import { UiSkeleton } from './skeleton';
-import { UiTextarea } from './textarea';
-import { UiThemeToggle } from './theme-toggle';
-import { UiToaster } from './toaster';
+import UiIcon from './icon.aux';
+import UiInput from './input.aux';
+import UiLabel from './label.aux';
+import UiSelect from './select.aux';
+import UiSeparator from './separator.aux';
+import UiSkeleton from './skeleton.aux';
+import UiTextarea from './textarea.aux';
+import UiToaster from './toaster.aux';
+
+export {
+  UiAlert,
+  UiAvatar,
+  UiBadge,
+  badgeVariants,
+  UiButton,
+  buttonVariants,
+  UiCard,
+  UiCardContent,
+  UiCardDescription,
+  UiCardFooter,
+  UiCardHeader,
+  UiCardTitle,
+  UiIcon,
+  UiInput,
+  UiLabel,
+  UiSelect,
+  UiSeparator,
+  UiSkeleton,
+  UiTextarea,
+  UiToaster,
+};
 
 /** Every primitive is globally registered so templates stay dependency-free. */
 export const UI = [
@@ -39,6 +61,5 @@ export const UI = [
   UiSeparator,
   UiSkeleton,
   UiTextarea,
-  UiThemeToggle,
   UiToaster,
 ];

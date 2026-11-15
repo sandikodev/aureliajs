@@ -1,6 +1,8 @@
 packages:
   - 'apps/*'
   - 'packages/shared'
+  - 'packages/vite-plugin-aux'
+  - 'packages/vscode-aux'
   # packages/hono-aurelia-ssr is INTENTIONALLY excluded
   # It's a separate nested git repo that should be published to npm
   # and consumed as a regular dependency, not a workspace member

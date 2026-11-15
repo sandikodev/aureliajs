@@ -1,4 +1,5 @@
-import { formatCents, PLAN_LIMITS, type BillingOverview, type Plan } from '@aureliajs/shared';
+import { formatCents, PLAN_LIMITS, type Plan } from '@aureliajs/shared/utils';
+import type { BillingOverview } from '@aureliajs/shared';
 import { customElement } from 'aurelia';
 import template from './billing-page.html';
 import { api, ApiError } from '@/services/api';
@@ -60,8 +61,18 @@ export class BillingPage {
   async attached(): Promise<void> {
     const params = new URLSearchParams(window.location.search);
     const checkout = params.get('checkout');
-    if (checkout === 'success' || checkout === 'cancelled') {
-      this.checkoutResult = checkout;
+    if (checkout === 'success') {
+      this.toast.success(this.i18n.t('billing.checkoutSuccess'));
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('checkout');
+      cleanUrl.searchParams.delete('session_id');
+      window.history.replaceState({}, '', cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ''));
+    } else if (checkout === 'cancelled') {
+      this.toast.info(this.i18n.t('billing.checkoutCancelled'));
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('checkout');
+      cleanUrl.searchParams.delete('session_id');
+      window.history.replaceState({}, '', cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ''));
     }
     await this.load();
   }
@@ -71,9 +82,6 @@ export class BillingPage {
     try {
       this.overview = await api.billing();
       this.demo = false;
-      if (this.checkoutResult === 'success') {
-        this.toast.success('Payment received. Your plan is active — Stripe confirmed it via webhook.');
-      }
     } catch (cause) {
       this.toast.error(
         cause instanceof ApiError ? cause.message : 'Could not load billing information.'

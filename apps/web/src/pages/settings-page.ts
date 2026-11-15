@@ -10,7 +10,7 @@ import type { Locale } from '@aureliajs/shared';
 
 @customElement({ name: 'settings-page', template })
 export class SettingsPage {
-  private readonly theme = resolve(ThemeService);
+  readonly theme = resolve(ThemeService);
   readonly i18n = resolve(I18nService);
   private readonly auth = resolve(AuthService);
   private readonly router = resolve(IRouter);
@@ -26,7 +26,6 @@ export class SettingsPage {
   isLoading = true;
   saving = false;
   deleting = false;
-  notice = '';
 
   readonly languages = LOCALES;
 
@@ -52,6 +51,10 @@ export class SettingsPage {
 
   get themeLabel(): string {
     return this.theme.isDark ? 'Dark' : 'Light';
+  }
+
+  toggleTheme(): void {
+    this.theme.toggle();
   }
 
   get canRename(): boolean {
@@ -92,8 +95,6 @@ export class SettingsPage {
    * teammate on the same workspace gets the same language.
    */
   async save(): Promise<void> {
-    this.notice = '';
-
     const name = this.workspace.name.trim();
     const slug = this.workspace.slug.trim();
 
@@ -121,7 +122,7 @@ export class SettingsPage {
       // The sidebar shows the workspace name, so the shell has to catch up.
       await this.auth.refresh();
 
-      this.notice = this.i18n.t('settings.saved');
+      this.toast.success(this.i18n.t('settings.saved'));
     } catch (cause) {
       this.toast.error(cause instanceof ApiError ? cause.message : 'Could not save the workspace settings.');
     } finally {
@@ -158,8 +159,6 @@ export class SettingsPage {
    * verbatim so the reason is never hidden.
    */
   async deleteWorkspace(): Promise<void> {
-    this.notice = '';
-
     const name = this.current?.name ?? '';
     if (!confirm(this.i18n.t('settings.deleteWorkspaceConfirm', { name }))) return;
 

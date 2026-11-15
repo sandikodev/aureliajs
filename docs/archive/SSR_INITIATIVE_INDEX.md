@@ -339,7 +339,7 @@ Aurelia hydrates
 
 ## Contact & Support
 
-**Initiative Lead:** Sandi Kodev (sandikodev)  
+**Initiative Lead:** Sandikodev (@sandikodev)  
 **Questions about:** See relevant document above  
 **Want to contribute?** See IMPLEMENTATION_ROADMAP.md
 

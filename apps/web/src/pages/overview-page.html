@@ -11,16 +11,9 @@
       change.trigger="onPeriodChange($event.target.value)"
       aria-label.bind="copy['overview.period']"
     ></ui-select>
-    <!--
-      The route is bound rather than written as a literal `load="projects"`.
-      Aurelia's router resolves a *static* load attribute relative to the
-      current route, which produced /overview/projects — a link that went
-      nowhere. The bound form resolves it against the route table, exactly
-      like the navigation does.
-    -->
-    <a load.bind="'projects'">
-      <ui-button size="sm"> <ui-icon name="plus" size="15"></ui-icon> ${copy['overview.newProject']} </ui-button>
-    </a>
+    <ui-button size="sm" click.trigger="openNewProject()">
+      <ui-icon name="plus" size="15"></ui-icon> ${copy['overview.newProject']}
+    </ui-button>
   </div>
 </div>
 

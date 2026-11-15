@@ -6,7 +6,8 @@ const STORAGE_KEY = 'aurelia-ops-theme';
 
 @singleton()
 export class ThemeService {
-  @observable private mode: Mode = 'light';
+  @observable mode: Mode = 'light';
+  @observable isDark = false;
 
   constructor() {
     const stored = this.read();
@@ -19,10 +20,6 @@ export class ThemeService {
     return this.mode;
   }
 
-  get isDark(): boolean {
-    return this.mode === 'dark';
-  }
-
   toggle(): Mode {
     this.apply(this.mode === 'dark' ? 'light' : 'dark');
     return this.mode;
@@ -30,6 +27,7 @@ export class ThemeService {
 
   private apply(mode: Mode, persist = true): void {
     this.mode = mode;
+    this.isDark = mode === 'dark';
     document.documentElement.classList.toggle('dark', mode === 'dark');
     document.documentElement.style.colorScheme = mode;
     if (persist) {

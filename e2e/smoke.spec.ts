@@ -7,6 +7,16 @@ import { expect, test } from '@playwright/test';
 
 const consoleErrors: string[] = [];
 
+async function loginAsDemo(page: any) {
+  await page.goto('/login');
+  await page.getByLabel('Work email').fill('demo@aureliajs.dev');
+  await page.getByLabel('Password').fill('demo-password-123');
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await expect(page).toHaveURL(/\/overview/);
+  // Wait for the overview page to fully render
+  await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible({ timeout: 10000 });
+}
+
 test.beforeEach(async ({ page }) => {
   consoleErrors.length = 0;
   page.on('console', (message) => {
@@ -14,17 +24,7 @@ test.beforeEach(async ({ page }) => {
   });
   page.on('pageerror', (error) => consoleErrors.push(error.message));
 
-  // Log in as the demo user so authenticated tests work without a manual cookie.
-  // Use the API directly via Playwright's request API (bypasses the Aurelia SPA routing).
-  const response = await page.request.post('/api/auth/login', {
-    data: { email: 'demo@aureliajs.dev', password: 'demo-password-123' },
-    headers: { 'content-type': 'application/json' },
-  });
-  if (!response.ok()) {
-    // If login fails (e.g. API not running), the tests that follow will just
-    // run against the unauthenticated state; that's acceptable for smoke coverage.
-    console.error(`Login failed: status=${response.status()}`);
-  }
+  await loginAsDemo(page);
 });
 
 test.afterEach(() => {
@@ -32,8 +32,8 @@ test.afterEach(() => {
 });
 
 test('dashboard renders KPIs and navigation', async ({ page }) => {
-  await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  // afterEach login already redirects to /overview
+  await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
   await expect(page.getByText('Delivery throughput')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Projects' })).toBeVisible();
 });

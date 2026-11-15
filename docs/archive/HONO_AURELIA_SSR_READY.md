@@ -3,7 +3,7 @@
 **Status:** ✅ READY FOR PROPOSAL SUBMISSION  
 **Date:** 2026-11-13  
 **Location:** `/packages/hono-aurelia-ssr/` (in monorepo)  
-**Ownership:** Sandi Kodev (@sandikodev) — awaiting maintainer feedback
+**Ownership:** Sandikodev (@sandikodev) — awaiting maintainer feedback
 
 ---
 
@@ -279,7 +279,7 @@ Next steps:
 
 ## 📧 Contact
 
-**Maintainer:** Sandi Kodev (@sandikodev)  
+**Maintainer:** Sandikodev (@sandikodev)  
 **Email:** androxoss@hotmail.com  
 **Repository:** `/packages/hono-aurelia-ssr/`  
 **Status:** Ready for community + maintainer feedback

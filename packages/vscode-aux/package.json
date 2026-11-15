@@ -1,0 +1,80 @@
+{
+  "name": "aux-sfc-experimental",
+  "displayName": "AUX: Experimental Aurelia SFC (Community Lab)",
+  "description": "Community research experiment by sandikodev exploring Single-File Component (.aux) Developer Experience for Aurelia 2. Canonical authority resides with the official Aurelia core team.",
+  "version": "0.1.0",
+  "type": "module",
+  "publisher": "sandikodev",
+  "icon": "images/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sandikodev/aureliajs"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onLanguage:aux"
+  ],
+  "scripts": {
+    "build": "node build.js"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "keywords": [
+    "aurelia",
+    "aurelia2",
+    "aux",
+    "sfc",
+    "single-file-components"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "aux",
+        "aliases": [
+          "Aurelia AUX",
+          "aux"
+        ],
+        "extensions": [
+          ".aux"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./images/aux-file-icon.svg",
+          "dark": "./images/aux-file-icon.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "aux",
+        "scopeName": "source.aux",
+        "path": "./syntaxes/aux.tmLanguage.json",
+        "embeddedLanguages": {
+          "text.html.basic": "html",
+          "source.ts": "typescript",
+          "source.js": "javascript",
+          "source.css": "css"
+        }
+      }
+    ],
+    "snippets": [
+      {
+        "language": "aux",
+        "path": "./snippets/aux.json"
+      }
+    ]
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "esbuild": "^0.25.12",
+    "jpeg-js": "^0.4.4",
+    "pngjs": "^7.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "5.1.0"
+  }
+}

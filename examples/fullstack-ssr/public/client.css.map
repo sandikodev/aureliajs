@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["aux-style:/home/dev/project/aureliajs/examples/fullstack-ssr/src/components/ssr-badge.aux?aux&type=style&index=0.css"],
+  "sourcesContent": ["\n.ssr-badge[data-au-1ktm8zq] {\n    display: inline-flex;\n    align-items: center;\n    gap: 0.375rem;\n    padding: 0.125rem 0.625rem;\n    border-radius: 9999px;\n    font-size: 0.75rem;\n    font-weight: 600;\n  }\n.ssr-badge.success[data-au-1ktm8zq] {\n    background: rgba(16, 185, 129, 0.15);\n    color: #10b981;\n    border: 1px solid rgba(16, 185, 129, 0.3);\n  }\n.dot[data-au-1ktm8zq] {\n    width: 6px;\n    height: 6px;\n    border-radius: 50%;\n    background-color: currentColor;\n  }\n"],
+  "mappings": "AACA,CAAC,SAAS,CAAC,iBACP,QAAS,YACT,YAAa,OACb,IAAK,QAJT,QAKa,QAAS,QALtB,cAMmB,OACf,UAAW,OACX,YAAa,GACf,CACF,CATC,SASS,CAAC,OAAO,CAAC,iBACf,WAAY,UACZ,MAAO,QACP,OAAQ,IAAI,MAAM,KAAK,EAAE,CAAE,GAAG,CAAE,GAAG,CAAE,GACvC,CACF,CAAC,GAAG,CAAC,iBACD,MAAO,IACP,OAAQ,IAjBZ,cAkBmB,IACf,iBAAkB,YACpB",
+  "names": []
+}

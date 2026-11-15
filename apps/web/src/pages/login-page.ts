@@ -1,7 +1,7 @@
 import { customElement, resolve } from 'aurelia';
 import template from './login-page.html';
 import { IRouter } from '@aurelia/router';
-import { loginSchema } from '@aureliajs/shared';
+import { loginSchema } from '@aureliajs/shared/schemas';
 import { ApiError } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { I18nService } from '@/services/i18n';

@@ -26,3 +26,5 @@ Thumbs.db
 packages/*/src/**/*.js
 packages/*/src/**/*.js.map
 packages/*/src/**/*.d.ts
+examples/*/public/*.js
+examples/*/public/*.js.map

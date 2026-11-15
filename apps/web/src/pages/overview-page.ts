@@ -1,6 +1,7 @@
 import { customElement, resolve } from 'aurelia';
+import { IRouter } from '@aurelia/router';
 import template from './overview-page.html';
-import { formatCents } from '@aureliajs/shared';
+import { formatCents } from '@aureliajs/shared/utils';
 import { DEMO_OVERVIEW } from '@/lib/demo-data';
 import { statusMeta } from '@/lib/status';
 import { relativeTime } from '@/lib/utils';
@@ -18,8 +19,13 @@ import { ToastService } from '@/services/toast';
 @customElement({ name: 'overview-page', template })
 export class OverviewPage {
   private readonly auth = resolve(AuthService);
+  private readonly router = resolve(IRouter);
   readonly i18n = resolve(I18nService);
   private readonly toast = resolve(ToastService);
+
+  async openNewProject(): Promise<void> {
+    await this.router.load('projects?new=true');
+  }
 
   /**
    * The translator, exposed through a view-model getter so the binding

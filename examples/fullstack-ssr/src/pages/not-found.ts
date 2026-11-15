@@ -9,7 +9,7 @@
 export const NotFoundPage = {
   name: 'NotFoundPage',
   
-  render(props: any) {
+  render(_props?: Record<string, unknown>) {
     return `
       <div id="app" class="not-found-page">
         <div class="container">

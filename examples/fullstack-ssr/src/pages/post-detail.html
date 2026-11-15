@@ -1,0 +1,91 @@
+<div class="post-detail-view">
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <a href="/">⚡ Aurelia 2 + Hono</a>
+        <span class="brand-badge">Article</span>
+      </div>
+      <div class="nav-links">
+        <a href="/">← Back to Articles</a>
+        <a href="/dashboard?token=demo-token">Dashboard</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-container" style="max-width: 820px;">
+    <div if.bind="!post" class="card" style="text-align: center; padding: 3rem;">
+      <h2>Article Not Found</h2>
+      <p style="color: var(--text-muted); margin: 1rem 0;">The requested article does not exist.</p>
+      <a href="/" class="btn btn-primary">Return to Articles</a>
+    </div>
+
+    <div if.bind="post">
+      <header class="article-header">
+        <a href="/" class="back-link">← Back to all articles</a>
+        <div class="card-category">${post.category}</div>
+        <h1 class="article-title">${post.title}</h1>
+        <div class="article-meta">
+          <span>By <strong>${post.author}</strong></span>
+          <span>·</span>
+          <span>${post.date}</span>
+          <span>·</span>
+          <span>${post.readTime}</span>
+        </div>
+      </header>
+
+      <article class="article-content">
+        ${post.content}
+      </article>
+
+      <!-- Interactive Claps Bar -->
+      <div class="interaction-bar">
+        <div>
+          <span style="font-size: 0.95rem; color: var(--text-muted);">Enjoyed this engineering write-up?</span>
+        </div>
+        <button click.trigger="clap()" class="btn btn-clap" disabled.bind="clapping">
+          👏 ${post.claps} ${post.claps === 1 ? 'Clap' : 'Claps'}
+        </button>
+      </div>
+
+      <!-- Comments Section -->
+      <section class="comments-section">
+        <h3 class="comments-title">Discussion (${post.comments.length})</h3>
+
+        <div if.bind="post.comments.length === 0" style="color: var(--text-muted); font-size: 0.92rem; padding: 1rem 0;">
+          No comments yet. Be the first to share your perspective!
+        </div>
+
+        <div repeat.for="comment of post.comments" class="comment-item">
+          <div class="comment-author">
+            <span>${comment.author}</span>
+            <span class="comment-date">${comment.date}</span>
+          </div>
+          <p class="comment-text">${comment.text}</p>
+        </div>
+
+        <!-- Add Comment Form -->
+        <form submit.trigger="addComment($event)" class="comment-form">
+          <input 
+            type="text" 
+            value.bind="newAuthor" 
+            placeholder="Your name or handle" 
+            class="form-input" 
+            required 
+          />
+          <textarea 
+            value.bind="newComment" 
+            placeholder="Write a constructive comment..." 
+            rows="3" 
+            class="form-textarea" 
+            required
+          ></textarea>
+          <div style="display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn btn-primary" disabled.bind="submitting || !newComment">
+              ${submitting ? 'Posting...' : 'Post Comment'}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+</div>

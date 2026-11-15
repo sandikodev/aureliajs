@@ -13,16 +13,6 @@
   </div>
 </div>
 
-<div if.bind="notice" class="mt-4">
-  <ui-alert tone="success">
-    <ui-icon name="check" size="16"></ui-icon>
-    <span class="flex-1">${notice}</span>
-    <button type="button" class="text-current/70 hover:text-current" click.trigger="notice = ''" aria-label="Dismiss">
-      <ui-icon name="x" size="14"></ui-icon>
-    </button>
-  </ui-alert>
-</div>
-
 <!-- Filters -->
 <div class="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
   <div class="relative flex-1">
@@ -267,8 +257,6 @@
           <ui-input id="project-due" type="date" autocomplete="off" value.two-way="form.dueDate"></ui-input>
         </div>
       </div>
-
-      <p if.bind="error" class="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">${error}</p>
     </div>
 
     <div class="flex justify-end gap-2 border-t px-5 py-3.5">

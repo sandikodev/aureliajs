@@ -215,6 +215,6 @@ See attached documents for full detail:
 
 ---
 
-**Prepared by:** Sandi Kodev  
+**Prepared by:** Sandikodev (@sandikodev)  
 **Date:** 2026-11-13  
 **Status:** Ready for Leadership Review

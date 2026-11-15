@@ -4,20 +4,30 @@
   "description": "Production-ready Hono + Aurelia SSR example",
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development tsx --watch src/index.ts",
-    "build": "tsc --noEmit && echo 'TypeScript check passed'",
-    "start": "NODE_ENV=production tsx src/index.ts",
+    "dev": "NODE_ENV=development tsx scripts/build.ts && node --watch dist/server.js",
+    "build:client": "NODE_ENV=production tsx scripts/build.ts",
+    "build": "NODE_ENV=production tsx scripts/build.ts && tsc --noEmit",
+    "start": "NODE_ENV=production node dist/server.js",
     "typecheck": "tsc --noEmit --strict",
     "test": "echo 'No tests configured yet'",
     "lint": "echo 'No linter configured yet'"
   },
   "dependencies": {
+    "@aureliajs/vite-plugin-aux": "link:../../packages/vite-plugin-aux",
+    "@hono/aurelia-ssr": "link:../../packages/hono-aurelia-ssr",
     "@hono/node-server": "^1.12.0",
-    "hono": "^4.0.0"
+    "aurelia": "^2.0.0-rc.2",
+    "hono": "^4.0.0",
+    "jsdom": "^23.2.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "typescript": "^5.4.0",
     "tsx": "^4.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }

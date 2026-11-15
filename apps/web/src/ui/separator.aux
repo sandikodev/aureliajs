@@ -1,0 +1,19 @@
+<template containerless>
+  <div role="separator" class.bind="classes"></div>
+</template>
+
+<script lang="ts">
+import { bindable } from 'aurelia';
+import { cn } from '@/lib/utils';
+
+export class UiSeparator {
+  @bindable orientation: 'horizontal' | 'vertical' = 'horizontal';
+
+  get classes(): string {
+    return cn(
+      'shrink-0 bg-border',
+      this.orientation === 'horizontal' ? 'h-px w-full' : 'h-full w-px',
+    );
+  }
+}
+</script>

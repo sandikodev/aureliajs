@@ -1,0 +1,105 @@
+{
+  "Aurelia AUX Single-File Component": {
+    "prefix": "aux",
+    "body": [
+      "<template>",
+      "  <div class=\"${1:container}\">",
+      "    $0",
+      "  </div>",
+      "</template>",
+      "",
+      "<script lang=\"ts\">",
+      "import { bindable } from 'aurelia';",
+      "",
+      "export class ${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/} {",
+      "  @bindable ${2:label}: ${3:string} = ${4:''};",
+      "}",
+      "</script>",
+      "",
+      "<style scoped>",
+      "</style>"
+    ],
+    "description": "Scaffold a complete Aurelia 2 .aux Single-File Component"
+  },
+  "Aurelia AUX Template Only Component": {
+    "prefix": "aux-template",
+    "body": [
+      "<template>",
+      "  <div class=\"${1:container}\">",
+      "    $0",
+      "  </div>",
+      "</template>"
+    ],
+    "description": "Scaffold a template-only Aurelia 2 .aux component"
+  },
+  "Aurelia Bindable Property": {
+    "prefix": "aux-bindable",
+    "body": [
+      "@bindable ${1:name}: ${2:string} = ${3:''};"
+    ],
+    "description": "Aurelia @bindable property decorator"
+  },
+  "Aurelia Event Trigger": {
+    "prefix": "aux-trigger",
+    "body": [
+      "${1|click,submit,change,input,keydown,keyup,focus,blur|}.trigger=\"${2:handleEvent}($event)\""
+    ],
+    "description": "Aurelia .trigger event binding with $event payload"
+  },
+  "Aurelia Repeat For Loop": {
+    "prefix": "aux-repeat",
+    "body": [
+      "repeat.for=\"${1:item} of ${2:items}\""
+    ],
+    "description": "Aurelia repeat.for collection iteration"
+  },
+  "Aurelia If Condition": {
+    "prefix": "aux-if",
+    "body": [
+      "if.bind=\"${1:condition}\""
+    ],
+    "description": "Aurelia if.bind conditional rendering"
+  },
+  "Aurelia Else Condition": {
+    "prefix": "aux-else",
+    "body": [
+      "else"
+    ],
+    "description": "Aurelia else conditional branch"
+  },
+  "Aurelia Switch Block": {
+    "prefix": "aux-switch",
+    "body": [
+      "<div switch.bind=\"${1:state}\">",
+      "  <div case=\"${2:value}\">$0</div>",
+      "  <div default-case>${3:Default}</div>",
+      "</div>"
+    ],
+    "description": "Aurelia switch.bind conditional block"
+  },
+  "Aurelia Promise Binding": {
+    "prefix": "aux-promise",
+    "body": [
+      "<div promise.bind=\"${1:fetchPromise}\">",
+      "  <span pending>${2:Loading...}</span>",
+      "  <span then.from-view=\"${3:data}\">${4:\\${data\\}}</span>",
+      "  <span catch.from-view=\"${5:err}\">${6:\\${err.message\\}}</span>",
+      "</div>"
+    ],
+    "description": "Aurelia promise.bind async state resolution"
+  },
+  "Aurelia Let Variable": {
+    "prefix": "aux-let",
+    "body": [
+      "<let ${1:varName}=\"\\${${2:expression\\}}\"></let>"
+    ],
+    "description": "Aurelia <let> template-local variable declaration"
+  },
+  "Aurelia Two-way Binding": {
+    "prefix": "aux-two-way",
+    "body": [
+      "value.two-way=\"${1:modelProperty}\""
+    ],
+    "description": "Aurelia two-way data binding"
+  }
+}

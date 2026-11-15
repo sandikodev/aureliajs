@@ -3,23 +3,6 @@
   <p class="mt-1 text-sm text-muted-foreground">${copy['members.subtitle']}</p>
 </div>
 
-<div if.bind="notice" class="mt-4" data-testid="team-notice">
-  <ui-alert tone="success">
-    <ui-icon name="check" size="16"></ui-icon>
-    <span class="flex-1">${notice}</span>
-  </ui-alert>
-</div>
-
-<div if.bind="lastInviteUrl" class="mt-4" data-testid="invite-link">
-  <ui-alert tone="info">
-    <ui-icon name="link" size="16"></ui-icon>
-    <span class="flex-1">
-      <span class="block font-medium">${copy['members.inviteLink']}</span>
-      <code class="mt-1 block break-all font-mono text-[12px]">${lastInviteUrl}</code>
-    </span>
-  </ui-alert>
-</div>
-
 <div class="mt-5 grid gap-4 lg:grid-cols-3">
   <div class="space-y-4 lg:col-span-2">
     <ui-card>
@@ -179,3 +162,66 @@
     </ui-card>
   </div>
 </div>
+
+<!-- Invite link modal dialog -->
+<dialog
+  ref="inviteModalEl"
+  class="m-auto w-full max-w-md rounded-xl border bg-background p-0 text-foreground shadow-xl backdrop:bg-black/50 open:flex open:flex-col"
+  data-testid="invite-link"
+>
+  <div class="flex items-center justify-between border-b px-5 py-4">
+    <div class="flex items-center gap-2.5">
+      <span class="grid size-8 place-items-center rounded-lg bg-primary/10 text-primary">
+        <ui-icon name="link" size="16"></ui-icon>
+      </span>
+      <div>
+        <h2 class="text-base font-semibold leading-none">${copy['members.inviteLink']}</h2>
+        <p class="text-xs text-muted-foreground mt-1">${copy['members.inviteModalSubtitle'] || 'Teammate invitation created'}</p>
+      </div>
+    </div>
+    <button
+      type="button"
+      class="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+      aria-label="Close"
+      click.trigger="closeInviteModal()"
+    >
+      <ui-icon name="x" size="16"></ui-icon>
+    </button>
+  </div>
+
+  <div class="flex flex-col gap-4 px-5 py-5">
+    <p class="text-sm text-muted-foreground">
+      ${invitedEmail ? (copy['members.inviteFor'] || 'Share this link with') + ' ' + invitedEmail : (copy['members.inviteModalDesc'] || 'Share this link with your teammate. Anyone with this link can join your workspace.')}
+    </p>
+
+    <div class="flex items-center gap-2">
+      <ui-input
+        id="invite-url-input"
+        type="text"
+        readonly
+        value.bind="lastInviteUrl"
+        class="font-mono text-xs flex-1 select-all"
+        click.trigger="$event.target.select()"
+      ></ui-input>
+      <ui-button
+        type="button"
+        variant.bind="copied ? 'default' : 'outline'"
+        size="sm"
+        click.trigger="copyInviteLink()"
+      >
+        <ui-icon name.bind="copied ? 'check' : 'copy'" size="14"></ui-icon>
+        ${copied ? (copy['members.copied'] || 'Copied') : (copy['members.copy'] || 'Copy')}
+      </ui-button>
+    </div>
+
+    <div class="flex items-center justify-end gap-2 pt-2 border-t">
+      <ui-button
+        type="button"
+        size="sm"
+        click.trigger="closeInviteModal()"
+      >
+        ${copy['members.close'] || 'Done'}
+      </ui-button>
+    </div>
+  </div>
+</dialog>

@@ -29,6 +29,33 @@ export class MembersPage {
   isInviting = false;
   /** The last invite link we created, so the owner can copy it. */
   lastInviteUrl = '';
+  inviteModalEl!: HTMLDialogElement;
+  invitedEmail = '';
+  copied = false;
+  private copyTimer: ReturnType<typeof setTimeout> | undefined;
+
+  closeInviteModal(): void {
+    this.inviteModalEl?.close();
+  }
+
+  async copyInviteLink(): Promise<void> {
+    if (!this.lastInviteUrl) return;
+    try {
+      await navigator.clipboard.writeText(this.lastInviteUrl);
+      this.copied = true;
+      clearTimeout(this.copyTimer);
+      this.copyTimer = setTimeout(() => {
+        this.copied = false;
+      }, 2000);
+      this.toast.success(this.i18n.t('members.inviteCopied').trim());
+    } catch {
+      this.toast.error('Could not copy link to clipboard.');
+    }
+  }
+
+  detaching(): void {
+    clearTimeout(this.copyTimer);
+  }
 
   readonly roleOptions = [
     { value: 'member', label: 'Member' },
@@ -140,17 +167,21 @@ export class MembersPage {
     try {
       const { acceptUrl } = await api.createInvite({ email, role: this.invite.role });
       this.lastInviteUrl = acceptUrl;
-      let message = `Invitation created for ${email}.`;
+      this.invitedEmail = email;
+      this.copied = false;
       this.invite = { email: '', role: 'member' };
 
       try {
         await navigator.clipboard.writeText(acceptUrl);
-        message += ' The accept link was copied to your clipboard.';
+        this.copied = true;
+        this.copyTimer = setTimeout(() => {
+          this.copied = false;
+        }, 2000);
       } catch {
-        // Clipboard access can be denied; the link is still shown below.
+        // Clipboard access can be denied; modal allows manual copy
       }
 
-      this.toast.success(message);
+      this.inviteModalEl?.showModal();
       await this.load();
     } catch (cause) {
       this.toast.error(cause instanceof ApiError ? cause.message : 'Could not create the invitation.');

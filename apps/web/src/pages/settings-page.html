@@ -3,13 +3,6 @@
   <p class="mt-1 text-sm text-muted-foreground">${copy['settings.subtitle']}</p>
 </div>
 
-<div if.bind="notice" class="mt-4" data-testid="settings-notice">
-  <ui-alert tone="success">
-    <ui-icon name="check" size="16"></ui-icon>
-    <span>${notice}</span>
-  </ui-alert>
-</div>
-
 <div class="mt-5 grid gap-4 lg:grid-cols-3">
   <div class="space-y-4 lg:col-span-2">
     <ui-card>
@@ -82,9 +75,9 @@
       <ui-card-content>
         <div class="flex items-center justify-between gap-3">
           <span class="text-[13px]">Theme</span>
-          <ui-button variant="outline" size="sm" click.trigger="toggleTheme()">
-            <ui-icon name.bind="themeLabel === 'Dark' ? 'sun' : 'moon'" size="14"></ui-icon>
-            ${themeLabel}
+          <ui-button variant="outline" size="sm" click.trigger="theme.toggle()">
+            <ui-icon name.bind="theme.isDark ? 'sun' : 'moon'" size="14"></ui-icon>
+            ${theme.isDark ? 'Dark' : 'Light'}
           </ui-button>
         </div>
       </ui-card-content>

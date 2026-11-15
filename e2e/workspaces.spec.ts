@@ -24,7 +24,7 @@ test.describe('workspaces', () => {
 
   test('the switcher lists the workspaces the user belongs to', async ({ page }) => {
     await login(page);
-    await page.goto('/dashboard');
+    await page.goto('/overview');
     await page.waitForLoadState('networkidle');
 
     await page.getByTestId('workspace-switcher').click();
@@ -36,7 +36,7 @@ test.describe('workspaces', () => {
 
   test('a workspace can be created and switched into', async ({ page }) => {
     await login(page);
-    await page.goto('/dashboard');
+    await page.goto('/overview');
     await page.waitForLoadState('networkidle');
 
     const original = await (await page.request.get('/api/workspaces/current')).json();
@@ -47,11 +47,12 @@ test.describe('workspaces', () => {
 
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
-    await page.locator('#workspace-name').fill(name);
+    await page.locator('#new-workspace-name').fill(name);
     await dialog.getByRole('button', { name: /Create workspace/ }).click();
 
     // The new workspace is created and becomes the active one.
-    await expect(page.getByTestId('billing-notice')).toBeVisible();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByRole('status').filter({ hasText: name })).toBeVisible();
     await page.waitForTimeout(600);
 
     const list = await (await page.request.get('/api/workspaces')).json();
@@ -92,10 +93,10 @@ test.describe('workspaces', () => {
 
   test('the activity feed shows real audit entries', async ({ page }) => {
     await login(page);
-    await page.goto('/dashboard');
+    await page.goto('/overview');
     await page.waitForLoadState('networkidle');
 
-    await page.getByTestId('notifications').click();
+    await page.getByTestId('notification-bell').click();
 
     const items = page.locator('header li');
     await expect(items.first()).toBeVisible();
@@ -118,7 +119,7 @@ test.describe('workspaces', () => {
     await page.locator('#ws-slug').fill(slug);
     await page.getByRole('button', { name: /Save changes/ }).click();
 
-    await expect(page.getByTestId('settings-notice')).toBeVisible({ timeout: 7000 });
+    await expect(page.getByRole('status').filter({ hasText: /saved/i })).toBeVisible({ timeout: 7000 });
 
     const after = await (await page.request.get('/api/workspaces/current')).json();
     expect(after.slug).toBe(slug);
@@ -131,7 +132,7 @@ test.describe('workspaces', () => {
 
   test('the dashboard reporting period changes the numbers behind the cards', async ({ page }) => {
     await login(page);
-    await page.goto('/dashboard');
+    await page.goto('/overview');
     await page.waitForLoadState('networkidle');
 
     const total = page.getByTestId('stat-total');

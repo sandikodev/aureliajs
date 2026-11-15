@@ -32,7 +32,7 @@ async function setLocale(page: Page, locale: 'en' | 'id') {
   });
 
   if (!(await button.isVisible())) {
-    await page.getByTestId('account-menu').click();
+    await page.locator('summary[aria-label="Change language"]').click();
   }
 
   await button.click();
@@ -46,7 +46,7 @@ test.describe('i18n', () => {
 
   test('the locale is persisted and applied on the next page load', async ({ page }) => {
     await login(page);
-    await page.goto('/dashboard');
+    await page.goto('/overview');
     await page.waitForLoadState('networkidle');
 
     await setLocale(page, 'id');
@@ -82,7 +82,7 @@ test.describe('i18n', () => {
 
   test('the navigation labels switch language too', async ({ page }) => {
     await login(page);
-    await page.goto('/dashboard');
+    await page.goto('/overview');
     await page.waitForLoadState('networkidle');
 
     await expect(page.getByRole('link', { name: 'Projects', exact: true })).toBeVisible();
@@ -100,7 +100,7 @@ test.describe('i18n', () => {
 
     // A missing key renders as the key itself, which is the visible symptom
     // of a gap in a translation. Scan the rendered text for that pattern.
-    await page.goto('/dashboard');
+    await page.goto('/overview');
     await page.waitForLoadState('networkidle');
 
     const bodyText = (await page.locator('body').innerText()).split('\n');
@@ -111,7 +111,7 @@ test.describe('i18n', () => {
 
   test('the stored locale is used by the API-backed settings page', async ({ page }) => {
     await login(page);
-    await page.goto('/dashboard');
+    await page.goto('/overview');
     await page.waitForLoadState('networkidle');
 
     // The workspace stores the locale, so a different browser gets the same

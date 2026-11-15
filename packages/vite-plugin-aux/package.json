@@ -1,0 +1,53 @@
+{
+  "name": "@aureliajs/vite-plugin-aux",
+  "version": "0.1.0",
+  "description": "Experimental community Vite plugin exploring Single-File Component (.aux) Developer Experience for Aurelia 2 by sandikodev. Canonical authority resides with the official Aurelia core team.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsc -w -p tsconfig.build.json --preserveWatchOutput",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "aurelia",
+    "aurelia2",
+    "vite",
+    "plugin",
+    "sfc",
+    "aux"
+  ],
+  "author": "Sandiko (sandikodev)",
+  "license": "MIT",
+  "peerDependencies": {
+    "aurelia": "^2.0.0-rc.2",
+    "vite": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "aurelia": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@rollup/pluginutils": "^5.1.4",
+    "@swc/helpers": "0.5.23",
+    "@swc/wasm": "1.15.47"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "5.9.3",
+    "vite": "^8.3.8",
+    "vitest": "5.1.0"
+  }
+}

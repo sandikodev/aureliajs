@@ -11,6 +11,8 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@aurelia/kernel": "2.0.0-rc.2",
+    "@aurelia/metadata": "2.0.0-rc.2",
     "@aurelia/router": "2.0.0-rc.2",
     "@aurelia/runtime-html": "2.0.0-rc.2",
     "@aureliajs/shared": "workspace:*",
@@ -24,6 +26,7 @@
   "devDependencies": {
     "@aurelia/testing": "2.0.0-rc.2",
     "@aurelia/vite-plugin": "2.0.0-rc.2",
+    "@aureliajs/vite-plugin-aux": "workspace:*",
     "@tailwindcss/vite": "4.3.5",
     "tailwindcss": "4.3.5",
     "typescript": "5.9.3",

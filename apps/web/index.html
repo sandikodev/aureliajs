@@ -19,8 +19,24 @@
         var stored = localStorage.getItem('aurelia-ops-theme');
         var dark = stored ? stored === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
         document.documentElement.classList.toggle('dark', dark);
-      } catch (_) {}
+      } catch {}
     </script>
+    <style>
+      /* Critical pre-paint styles to eliminate FOUC before CSS bundle loads */
+      html, body {
+        height: 100%;
+        background-color: #ffffff;
+        color: #09090b;
+      }
+      html.dark, html.dark body {
+        background-color: #09090b;
+        color: #fafafa;
+      }
+      app-root {
+        display: block;
+        min-height: 100dvh;
+      }
+    </style>
   </head>
   <body class="h-full">
     <app-root></app-root>

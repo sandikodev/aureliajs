@@ -1,10 +1,7 @@
-import {
-  createProjectSchema,
-  formatCents,
-  type Project,
-  type ProjectStatus,
-} from '@aureliajs/shared';
+import { createProjectSchema, type Project } from '@aureliajs/shared/schemas';
+import { formatCents, type ProjectStatus } from '@aureliajs/shared/utils';
 import { customElement, resolve } from 'aurelia';
+import type { IRouteViewModel, Params } from '@aurelia/router';
 import template from './projects-page.html';
 import { DEMO_PROJECTS } from '@/lib/demo-data';
 import { STATUS_META } from '@/lib/status';
@@ -31,7 +28,7 @@ const emptyForm = (): FormState => ({
 });
 
 @customElement({ name: 'projects-page', template })
-export class ProjectsPage {
+export class ProjectsPage implements IRouteViewModel {
   dialogEl!: HTMLDialogElement;
   readonly auth = resolve(AuthService);
   readonly i18n = resolve(I18nService);
@@ -177,14 +174,30 @@ export class ProjectsPage {
     return this.editingId !== null;
   }
 
+  private shouldOpenNew = false;
+
+  loading(params: Params): void {
+    const isNew = params?.new === 'true' || params?.new === '1';
+    if (isNew) {
+      this.shouldOpenNew = true;
+    }
+  }
+
   async attached(): Promise<void> {
     const params = new URLSearchParams(window.location.search);
     const q = params.get('q');
     if (q) this.q = q;
+    if (this.shouldOpenNew || params.get('new') === 'true' || params.get('new') === '1') {
+      this.shouldOpenNew = false;
+      this.openCreate();
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('new');
+      window.history.replaceState({}, '', cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ''));
+    }
     await this.load();
   }
 
-  detached(): void {
+  detaching(): void {
     clearTimeout(this.searchTimer);
   }
 

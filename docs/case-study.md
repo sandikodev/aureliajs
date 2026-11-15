@@ -125,13 +125,9 @@ Naming these is part of the work sample:
 - **No mail server.** Invitations return an accept link that the UI surfaces (and copies to the
   clipboard) instead of being emailed. In production that link is the body of an email and the
   token never touches a browser.
-- **Seat limits are displayed, not enforced on invite.** The plan limit is enforced for projects;
-  inviting past the seat limit is still allowed.
-- **The workspace switcher is a stub.** The schema and the tenancy middleware support many
-  workspaces per user; the UI does not expose them yet.
 - **The Scale price is optional.** Without `STRIPE_PRICE_SCALE` the tier reports that it is not
   available rather than failing at the Stripe call.
-- **i18n (M6)** — copy is centralized in templates but not extracted to locale files.
+- **What moved from deferred to shipped (M6):** Seat limits are now enforced on invite (`402 seat_limit_reached`), the workspace switcher creates/switches/deletes workspaces end-to-end, and EN/ID locale catalogs are persisted on the workspace row.
 
 ## What a reviewer should look at
 

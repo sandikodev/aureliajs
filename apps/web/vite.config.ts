@@ -1,10 +1,12 @@
 import { fileURLToPath } from 'node:url';
+import { auxPlugin } from '../../packages/vite-plugin-aux/dist/index.js';
 import aurelia from '@aurelia/vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [
+    auxPlugin(),
     // `useDev: false` avoids a broken `/@id/@aurelia/runtime-html/development`
     // resolution under Vite 8. Dev builds of Aurelia add debug assertions, but
     // the regular build is what ships, so this keeps dev == prod module graph.
@@ -13,6 +15,9 @@ export default defineConfig({
   ],
   server: {
     port: 4600,
+    headers: {
+      'Cache-Control': 'no-store',
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:4601',
@@ -23,23 +28,33 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
-    // Vite HMR and the Aurelia dev runtime both use `new Function()` /
-    // `eval` internally. Without `unsafe-eval` the browser DevTools will
-    // flag a CSP violation on every hot-reload in development.
-    // This header is ONLY sent by the Vite dev server — production assets
-    // are served by Hono which can set a stricter policy.
-    headers: {
-      'Content-Security-Policy':
-        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' ws: wss:;",
-    },
   },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@aureliajs/shared/utils': fileURLToPath(new URL('../../packages/shared/src/utils.ts', import.meta.url)),
+      '@aureliajs/shared/schemas': fileURLToPath(new URL('../../packages/shared/src/schemas.ts', import.meta.url)),
+      '@aureliajs/shared': fileURLToPath(new URL('../../packages/shared/src/index.ts', import.meta.url)),
     },
   },
   build: {
     target: 'es2022',
     sourcemap: true,
+    rolldownOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/zod') || id.includes('zod@')) {
+            return 'vendor-zod';
+          }
+          if (id.includes('node_modules/@aurelia') || id.includes('node_modules/aurelia')) {
+            return 'vendor-aurelia';
+          }
+          if (id.includes('/src/ui/')) {
+            return 'ui-primitives';
+          }
+          return undefined;
+        },
+      },
+    },
   },
 });

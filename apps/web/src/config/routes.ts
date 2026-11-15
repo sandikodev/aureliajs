@@ -13,7 +13,9 @@ import { NotFoundPage } from '@/pages/not-found-page';
  * =================
  * Single source of truth for all routes.
  *
- * PUBLIC_ROUTES — no auth required, authenticated users redirected to /overview
+ * PUBLIC_ROUTES — no auth required. Most redirect authenticated users to /overview,
+ * but /invite is intentionally accessible to authenticated users so they can accept
+ * invitations without logging out first.
  * PROTECTED_ROUTES — auth required, unauthenticated users redirected to /login
  *
  * The app shell (app.ts) uses PUBLIC_ROUTE_PATHS to decide whether to show
@@ -39,7 +41,7 @@ export const PROTECTED_ROUTES = [
  * Used by app.ts to determine shell visibility.
  * '' covers both '/' and the root path.
  */
-export const PUBLIC_ROUTE_PATHS = new Set(
+export const PUBLIC_ROUTE_PATHS = new Set<string>(
   PUBLIC_ROUTES.map((r) => r.path)
 );
 

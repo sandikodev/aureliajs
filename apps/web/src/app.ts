@@ -106,7 +106,7 @@ export class App {
    */
   private isPublicPath(pathname: string): boolean {
     const path = pathname.replace(/^\//, '');
-    return PUBLIC_ROUTE_PATHS.has(path as any) || path === '';
+    return PUBLIC_ROUTE_PATHS.has(path) || path === '';
   }
 
   /**
@@ -130,21 +130,16 @@ export class App {
       }
     });
 
-    this.subscription = this.events.subscribe('au:router:navigation-end', () => {
-      this.updateShell();
-      this.closeSidebar();
-      if (this.auth.isAuthenticated && !this.isPublicPath(window.location.pathname)) {
-        void this.loadActivity();
-      }
-    });
-
     // Single server round-trip — no localStorage cache, no race condition
     const [authenticated] = await Promise.all([this.auth.refresh(), this.checkApi()]);
 
     const onPublicPath = this.isPublicPath(window.location.pathname);
+    // Allow authenticated users to access /invite (accept invitation) without redirect
+    const isInvitePath = window.location.pathname.replace(/^\//, '') === 'invite';
 
-    if (authenticated && onPublicPath) {
+    if (authenticated && onPublicPath && !isInvitePath) {
       // Authenticated user on landing / login → send to app
+      // But allow /invite so logged-in users can accept invitations
       await this.router.load('overview');
     } else if (!authenticated && !onPublicPath) {
       // Unauthenticated user on a protected URL → send to login with return URL
@@ -152,13 +147,23 @@ export class App {
       await this.router.load(`login?returnUrl=${returnUrl}`);
     }
 
-    // Unblock rendering — updateShell() sets correct layout state
-    this.loadingAuth = false;
+    // Update shell state once target route is resolved
     this.updateShell();
+    // Dismiss loading overlay only after the final layout and route have settled
+    this.loadingAuth = false;
 
     if (authenticated) {
       void Promise.all([this.loadActivity(), this.loadWorkspaces()]);
     }
+
+    // Subscribe after initial boot redirect so loadActivity() is not fired twice on startup
+    this.subscription = this.events.subscribe('au:router:navigation-end', () => {
+      this.updateShell();
+      this.closeSidebar();
+      if (this.auth.isAuthenticated && !this.isPublicPath(window.location.pathname)) {
+        void this.loadActivity();
+      }
+    });
   }
 
   private async loadWorkspaces(): Promise<void> {
@@ -189,10 +194,12 @@ export class App {
   createWorkspace(): void {
     this.workspaceError = '';
     this.newWorkspace = { name: '' };
+    document.querySelector('aside details[open]')?.removeAttribute('open');
     this.workspaceDialogEl.showModal();
   }
 
-  async saveWorkspace(): Promise<void> {
+  async saveWorkspace(event?: Event): Promise<void> {
+    event?.preventDefault();
     this.workspaceError = '';
     const name = this.newWorkspace.name.trim();
     if (name.length < 2) {
@@ -241,7 +248,7 @@ export class App {
     }
   }
 
-  detached(): void {
+  detaching(): void {
     this.subscription?.dispose();
     setUnauthorizedHandler(null);
   }
