@@ -1,35 +1,20 @@
-import { createProjectSchema, type Project } from '@aureliajs/shared/schemas';
+import type { Project } from '@aureliajs/shared/schemas';
 import { formatCents, type ProjectStatus } from '@aureliajs/shared/utils';
 import { customElement, resolve } from 'aurelia';
 import type { IRouteViewModel, Params } from '@aurelia/router';
 import template from './projects-page.html';
+import { ProjectDialog, type ProjectSavedDetail } from './project-dialog';
 import { DEMO_PROJECTS } from '@/lib/demo-data';
 import { STATUS_META } from '@/lib/status';
 import { formatDate, relativeTime } from '@/lib/utils';
-import { api, ApiError } from '@/services/api';
+import { api } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { I18nService } from '@/services/i18n';
 import { ToastService } from '@/services/toast';
 
-type FormState = {
-  name: string;
-  ownerName: string;
-  status: ProjectStatus;
-  budget: string;
-  dueDate: string;
-};
-
-const emptyForm = (): FormState => ({
-  name: '',
-  ownerName: '',
-  status: 'planning',
-  budget: '',
-  dueDate: '',
-});
-
-@customElement({ name: 'projects-page', template })
+@customElement({ name: 'projects-page', template, dependencies: [ProjectDialog] })
 export class ProjectsPage implements IRouteViewModel {
-  dialogEl!: HTMLDialogElement;
+  dialog!: ProjectDialog;
   readonly auth = resolve(AuthService);
   readonly i18n = resolve(I18nService);
   readonly toast = resolve(ToastService);
@@ -92,11 +77,6 @@ export class ProjectsPage implements IRouteViewModel {
     }));
   }
 
-  /** The same list for the create/edit dialog. */
-  get dialogStatusOptions(): { value: ProjectStatus; label: string }[] {
-    return this.statusOptions;
-  }
-
   get sortOptions(): { value: 'updated' | 'budget' | 'name'; label: string }[] {
     this.i18n.track();
     return (
@@ -106,12 +86,6 @@ export class ProjectsPage implements IRouteViewModel {
         { value: 'name', key: 'sort.name' },
       ] as const
     ).map((option) => ({ value: option.value, label: this.i18n.t(option.key) }));
-  }
-
-  /** "New project" / "Edit project" */
-  get dialogTitle(): string {
-    this.i18n.track();
-    return this.isEditing ? this.i18n.t('projects.dialogEdit') : this.i18n.t('projects.dialogNew');
   }
 
   /** A success or error notice, in the current language. */
@@ -142,11 +116,6 @@ export class ProjectsPage implements IRouteViewModel {
 
   isLoading = true;
   demo = false;
-  saving = false;
-
-  editingId: string | null = null;
-  form: FormState = emptyForm();
-  fieldErrors: Record<string, string> = {};
 
   private searchTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -168,10 +137,6 @@ export class ProjectsPage implements IRouteViewModel {
 
   get canNext(): boolean {
     return this.page < this.totalPages && !this.isLoading;
-  }
-
-  get isEditing(): boolean {
-    return this.editingId !== null;
   }
 
   private shouldOpenNew = false;
@@ -271,89 +236,42 @@ export class ProjectsPage implements IRouteViewModel {
   }
 
   openCreate(): void {
-    this.editingId = null;
-    this.form = emptyForm();
-    this.fieldErrors = {};
-    this.dialogEl.showModal();
+    this.dialog.openCreate();
   }
 
   openEdit(project: Project): void {
-    this.editingId = project.id;
-    this.form = {
-      name: project.name,
-      ownerName: project.ownerName,
-      status: project.status,
-      budget: (project.budgetCents / 100).toFixed(0),
-      dueDate: project.dueDate ?? '',
-    };
-    this.fieldErrors = {};
-    this.dialogEl.showModal();
+    this.dialog.openEdit(project);
   }
 
-  closeDialog(): void {
-    this.dialogEl.close();
-  }
-
-  async save(): Promise<void> {
-    this.fieldErrors = {};
-    const budgetNumber = Number(this.form.budget === '' ? 0 : this.form.budget);
-
-    const parsed = createProjectSchema.safeParse({
-      name: this.form.name,
-      ownerName: this.form.ownerName,
-      status: this.form.status,
-      budgetCents: Number.isFinite(budgetNumber) ? Math.round(budgetNumber * 100) : -1,
-      dueDate: this.form.dueDate ? this.form.dueDate : null,
-    });
-
-    if (!parsed.success) {
-      this.fieldErrors = Object.fromEntries(
-        parsed.error.issues.map((issue) => [issue.path.map(String).join('.'), issue.message]),
-      );
-      return;
-    }
-
-    this.saving = true;
-    try {
-      if (this.isEditing && this.editingId) {
-        const { project } = await api.updateProject(this.editingId, parsed.data);
-        this.items = this.items.map((row) => (row.id === project.id ? project : row));
-        this.notifySuccess('projects.updated', project.name);
+  async onProjectSaved(detail: ProjectSavedDetail): Promise<void> {
+    if (detail.project) {
+      if (detail.isEdit) {
+        this.items = this.items.map((row) => (row.id === detail.project!.id ? detail.project! : row));
       } else {
-        const { project } = await api.createProject(parsed.data);
-        this.notifySuccess('projects.created', project.name);
         await this.load();
       }
-      this.dialogEl.close();
-    } catch (error) {
-      if (this.demo) {
-        this.applyLocalMutation(parsed.data);
-        this.notifySuccessLocal(this.isEditing ? 'projects.updatedLocal' : 'projects.createdLocal');
-        this.dialogEl.close();
-      } else if (error instanceof ApiError) {
-        this.toast.error(error.message);
-        if (error.issues.length > 0) {
-          this.fieldErrors = Object.fromEntries(error.issues.map((i) => [i.path, i.message]));
-        }
-      } else {
-        this.toast.error('Could not save the project.');
-      }
-    } finally {
-      this.saving = false;
+    } else {
+      // Local fallback for demo or offline mode
+      this.applyLocalMutation(detail.input, detail.isEdit);
+      this.notifySuccessLocal(detail.isEdit ? 'projects.updatedLocal' : 'projects.createdLocal');
     }
   }
 
-  private applyLocalMutation(input: {
-    name: string;
-    status: ProjectStatus;
-    budgetCents: number;
-    dueDate: string | null;
-    ownerName: string;
-  }): void {
+  private applyLocalMutation(
+    input: {
+      name: string;
+      status: ProjectStatus;
+      budgetCents: number;
+      dueDate: string | null;
+      ownerName: string;
+    },
+    isEdit: boolean,
+  ): void {
     const now = new Date().toISOString();
-    if (this.isEditing && this.editingId) {
+    if (isEdit && this.dialog.editingId) {
+      const editId = this.dialog.editingId;
       this.items = this.items.map((row) =>
-        row.id === this.editingId ? { ...row, ...input, updatedAt: now } : row,
+        row.id === editId ? { ...row, ...input, updatedAt: now } : row,
       );
     } else {
       const project: Project = {

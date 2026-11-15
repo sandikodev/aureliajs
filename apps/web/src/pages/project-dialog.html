@@ -1,0 +1,72 @@
+<dialog
+  ref="dialogEl"
+  class="w-[min(92vw,32rem)] rounded-xl border bg-background p-0 text-foreground shadow-2xl"
+  aria-labelledby="project-dialog-title"
+>
+  <form submit.trigger="save()">
+    <div class="border-b px-5 py-4">
+      <h2 id="project-dialog-title" class="text-base font-semibold">${dialogTitle}</h2>
+      <p class="mt-0.5 text-xs text-muted-foreground">${copy['projects.dialogHint']}</p>
+    </div>
+
+    <div class="space-y-4 px-5 py-4">
+      <div class="space-y-1.5">
+        <ui-label for="project-name">${copy['projects.fieldName']}</ui-label>
+        <ui-input
+          id="project-name"
+          autocomplete="off"
+          value.two-way="form.name"
+          placeholder="Billing revamp"
+          invalid.bind="!!fieldErrors['name']"
+        ></ui-input>
+        <p if.bind="fieldErrors['name']" class="text-xs text-destructive">${fieldErrors['name']}</p>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="space-y-1.5">
+          <ui-label for="project-owner">${copy['projects.columnOwner']}</ui-label>
+          <ui-input
+            id="project-owner"
+            autocomplete="off"
+            value.two-way="form.ownerName"
+            placeholder="Ayu Prameswari"
+            invalid.bind="!!fieldErrors['ownerName']"
+          ></ui-input>
+          <p if.bind="fieldErrors['ownerName']" class="text-xs text-destructive">${fieldErrors['ownerName']}</p>
+        </div>
+        <div class="space-y-1.5">
+          <ui-label for="project-status">${copy['projects.columnStatus']}</ui-label>
+          <ui-select id="project-status" value.two-way="form.status" options.bind="statusOptions"></ui-select>
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="space-y-1.5">
+          <ui-label for="project-budget">${copy['projects.fieldBudget']}</ui-label>
+          <ui-input
+            id="project-budget"
+            type="number"
+            autocomplete="off"
+            value.two-way="form.budget"
+            placeholder="12000"
+            invalid.bind="!!fieldErrors['budgetCents']"
+          ></ui-input>
+          <p if.bind="fieldErrors['budgetCents']" class="text-xs text-destructive">${fieldErrors['budgetCents']}</p>
+        </div>
+        <div class="space-y-1.5">
+          <ui-label for="project-due">${copy['projects.fieldDue']}</ui-label>
+          <ui-input id="project-due" type="date" autocomplete="off" value.two-way="form.dueDate"></ui-input>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2 border-t px-5 py-3.5">
+      <ui-button variant="outline" size="sm" type="button" click.trigger="close()"
+        >${copy['projects.cancel']}</ui-button
+      >
+      <ui-button size="sm" type="submit" loading.bind="saving">
+        ${isEditing ? copy['projects.save'] : copy['projects.create']}
+      </ui-button>
+    </div>
+  </form>
+</dialog>
