@@ -231,7 +231,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
 
       <!-- Category & Example Accordion Dropdown Selector -->
       <div class="relative">
-        <button id="menuDropdownBtn" class="flex items-center space-x-1.5 px-2.5 py-1 rounded bg-hover hover:bg-border text-gray-200 border border-border text-[11px] font-medium transition">
+        <button id="menuDropdownBtn" class="flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-hover hover:bg-border text-gray-200 border border-border text-[11px] font-medium transition outline-none focus-visible:ring-1 focus-visible:ring-accent/70">
           <svg class="size-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M3 5h14a1 1 0 010 2H3a1 1 0 110-2zm0 4h14a1 1 0 010 2H3a1 1 0 110-2zm0 4h14a1 1 0 010 2H3a1 1 0 110-2z" clip-rule="evenodd"/>
           </svg>
@@ -241,9 +241,9 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
           </svg>
         </button>
 
-        <!-- Dropdown Menu List -->
-        <div id="exampleDropdownMenu" class="hidden absolute top-full left-0 mt-1 w-72 max-h-[80vh] overflow-y-auto bg-[#161b22] border border-border rounded-lg shadow-2xl z-50 py-1">
-          <div id="dropdownExamplesList" class="py-0.5">
+        <!-- Dropdown Menu List (Inset padding and outline-none to avoid clipped focus rings) -->
+        <div id="exampleDropdownMenu" class="hidden absolute top-full left-0 mt-1 w-72 max-h-[80vh] overflow-y-auto bg-[#161b22] border border-border rounded-lg shadow-2xl z-50 p-1.5 focus:outline-none">
+          <div id="dropdownExamplesList" class="space-y-0.5">
             <!-- Populated dynamically with accordion categories -->
           </div>
         </div>
@@ -714,22 +714,40 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       Object.entries(categories).forEach(([categoryName, items]) => {
         const catDiv = document.createElement('div');
         catDiv.className = 'py-0.5';
+        catDiv.setAttribute('data-category', categoryName);
         
         const catHeader = document.createElement('button');
-        catHeader.className = 'w-full px-2.5 py-1 text-[11px] font-semibold text-gray-300 select-none flex items-center justify-between hover:bg-hover rounded transition';
-        catHeader.innerHTML = '<div class="flex items-center space-x-1.5"><span class="text-[9px] text-gray-500 font-mono">›</span><span>' + categoryName + '</span></div><span class="text-[9px] text-gray-500">' + items.length + '</span>';
+        catHeader.type = 'button';
+        catHeader.className = 'w-full px-2.5 py-1.5 text-[11px] font-semibold text-gray-300 select-none flex items-center justify-between hover:bg-hover hover:text-white rounded-md transition outline-none focus-visible:ring-1 focus-visible:ring-accent/70';
+        catHeader.innerHTML = '<div class="flex items-center space-x-1.5"><span data-chevron class="text-[9px] text-gray-500 font-mono inline-block w-2 text-center">›</span><span>' + categoryName + '</span></div><span class="text-[9px] text-gray-500 font-mono">' + items.length + '</span>';
         
         const itemsContainer = document.createElement('div');
-        itemsContainer.className = 'py-0.5 space-y-0.5';
+        itemsContainer.setAttribute('data-items', 'true');
+        itemsContainer.className = 'py-0.5 space-y-0.5 hidden'; // Collapsed by default!
 
         catHeader.addEventListener('click', (e) => {
           e.stopPropagation();
-          itemsContainer.classList.toggle('hidden');
+          const willOpen = itemsContainer.classList.contains('hidden');
+          
+          // Accordion single-expansion: close all other category menus
+          document.querySelectorAll('#dropdownExamplesList [data-items]').forEach(el => {
+            el.classList.add('hidden');
+          });
+          document.querySelectorAll('#dropdownExamplesList [data-chevron]').forEach(el => {
+            el.textContent = '›';
+          });
+          
+          if (willOpen) {
+            itemsContainer.classList.remove('hidden');
+            const chev = catHeader.querySelector('[data-chevron]');
+            if (chev) chev.textContent = '▾';
+          }
         });
 
         items.forEach(it => {
           const btn = document.createElement('button');
-          btn.className = 'w-full text-left pl-5 pr-2 py-1 text-[11px] text-gray-300 hover:text-white hover:bg-hover rounded transition block';
+          btn.type = 'button';
+          btn.className = 'w-full text-left pl-6 pr-2.5 py-1 text-[11px] text-gray-300 hover:text-white hover:bg-hover rounded-md transition block outline-none focus-visible:ring-1 focus-visible:ring-accent/70';
           btn.setAttribute('data-id', it.id);
           btn.textContent = it.title;
           
@@ -762,11 +780,26 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         }
       }
 
+      // Auto-expand ONLY the category of the open example, collapse all others
+      const targetCategory = ex.category;
+      document.querySelectorAll('#dropdownExamplesList [data-category]').forEach(catEl => {
+        const catName = catEl.getAttribute('data-category');
+        const itemsEl = catEl.querySelector('[data-items]');
+        const chevronEl = catEl.querySelector('[data-chevron]');
+        if (catName === targetCategory) {
+          if (itemsEl) itemsEl.classList.remove('hidden');
+          if (chevronEl) chevronEl.textContent = '▾';
+        } else {
+          if (itemsEl) itemsEl.classList.add('hidden');
+          if (chevronEl) chevronEl.textContent = '›';
+        }
+      });
+
       document.querySelectorAll('#dropdownExamplesList button[data-id]').forEach(btn => {
         if (btn.getAttribute('data-id') === id) {
-          btn.className = 'w-full text-left pl-5 pr-2 py-1 text-[11px] text-accent font-medium bg-accent/10 rounded transition block';
+          btn.className = 'w-full text-left pl-6 pr-2.5 py-1 text-[11px] text-accent font-medium bg-accent/15 rounded-md transition block outline-none focus-visible:ring-1 focus-visible:ring-accent/70';
         } else {
-          btn.className = 'w-full text-left pl-5 pr-2 py-1 text-[11px] text-gray-300 hover:text-white hover:bg-hover rounded transition block';
+          btn.className = 'w-full text-left pl-6 pr-2.5 py-1 text-[11px] text-gray-300 hover:text-white hover:bg-hover rounded-md transition block outline-none focus-visible:ring-1 focus-visible:ring-accent/70';
         }
       });
 

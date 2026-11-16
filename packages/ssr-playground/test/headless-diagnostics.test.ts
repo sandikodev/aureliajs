@@ -46,6 +46,43 @@ describe('Headless Reversing & Diagnostics Suite', () => {
       dom.window.close();
     });
 
+    it('verifies dropdown accordion expansion and inset focus ring styling', async () => {
+      const res = await app.request('/');
+      const html = await res.text();
+      expect(html).toContain('id="exampleDropdownMenu"');
+      expect(html).toContain('p-1.5 focus:outline-none');
+
+      // Verify DOM script functions for single active category expansion
+      const dom = new JSDOM(html, { runScripts: 'dangerously', url: 'http://localhost:4700/?example=hello-world' });
+      const doc = dom.window.document;
+
+      // Trigger loadExample for component-basics
+      dom.window.loadExample('component-basics', false);
+
+      const categories = doc.querySelectorAll('#dropdownExamplesList [data-category]');
+      expect(categories.length).toBeGreaterThan(0);
+
+      categories.forEach((cat) => {
+        const catName = cat.getAttribute('data-category');
+        const items = cat.querySelector('[data-items]');
+        const chevron = cat.querySelector('[data-chevron]');
+        if (catName === 'Enterprise Architecture') {
+          expect(items?.classList.contains('hidden')).toBe(false);
+          expect(chevron?.textContent).toBe('▾');
+        } else {
+          expect(items?.classList.contains('hidden')).toBe(true);
+          expect(chevron?.textContent).toBe('›');
+        }
+      });
+
+      const activeBtn = doc.querySelector('#dropdownExamplesList button[data-id="component-basics"]');
+      expect(activeBtn?.className).toContain('text-accent');
+      expect(activeBtn?.className).toContain('outline-none');
+      expect(activeBtn?.className).toContain('focus-visible:ring-1');
+
+      dom.window.close();
+    });
+
     it('probes GET /api/examples/:id and reverses example metadata JSON', async () => {
       const res = await app.request('/api/examples/counter-card');
       expect(res.status).toBe(200);
