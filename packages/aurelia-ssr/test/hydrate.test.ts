@@ -35,24 +35,25 @@ describe('hydrateFromServer', () => {
   it('extracts and normalizes context correctly', () => {
     const payload = createPayload({
       context: {
-        user: { id: 1, name: 'Alice' },
-        workspace: 'acme',
+        user: { id: '1', name: 'Alice', email: 'alice@example.com' },
+        workspace: { id: 'acme', name: 'Acme Corp' },
         role: 'admin',
+        isAuthenticated: true,
       },
     })
     ;(globalThis as any).__HYDRATION__ = payload
 
     const result = hydrateFromServer()
     expect(result).not.toBeNull()
-    expect(result?.context.user).toEqual({ id: 1, name: 'Alice' })
-    expect(result?.context.workspace).toEqual('acme')
+    expect(result?.context.user).toEqual({ id: '1', name: 'Alice', email: 'alice@example.com' })
+    expect(result?.context.workspace).toEqual({ id: 'acme', name: 'Acme Corp' })
     expect(result?.context.role).toEqual('admin')
     expect(result?.context.isAuthenticated).toBe(true)
   })
 
   it('sets isAuthenticated=false when user is null', () => {
     const payload = createPayload({
-      context: { user: null },
+      context: { user: null, workspace: null, role: null, isAuthenticated: false },
     })
     ;(globalThis as any).__HYDRATION__ = payload
 
@@ -144,7 +145,7 @@ describe('hydrateFromServer', () => {
 
   it('handles missing optional context fields', () => {
     const payload = createPayload({
-      context: { user: null }, // Only user, no workspace/role
+      context: { user: null } as any, // Only user, no workspace/role
     })
     ;(globalThis as any).__HYDRATION__ = payload
 
@@ -409,8 +410,9 @@ function createPayload(overrides?: Partial<HydrationPayload>): HydrationPayload 
     component: 'TestPage',
     context: {
       user: null,
-      workspace: undefined,
-      role: undefined,
+      workspace: null,
+      role: null,
+      isAuthenticated: false,
     },
     timestamp: Date.now(),
     ...overrides,

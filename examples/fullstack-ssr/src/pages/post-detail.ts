@@ -1,5 +1,5 @@
-import { customElement } from 'aurelia';
-import { hydrateFromServer } from '@hono/aurelia-ssr/client';
+import { customElement, resolve } from 'aurelia';
+import { IRequestContext } from '@hono/aurelia-ssr/client';
 import template from './post-detail.html';
 import type { Post } from '../data.js';
 
@@ -9,6 +9,7 @@ export interface PostDetailContext {
 
 @customElement({ name: 'post-detail-page', template })
 export class PostDetailPage {
+  readonly req = resolve(IRequestContext);
   post: Post | null = null;
   clapping = false;
   submitting = false;
@@ -18,13 +19,6 @@ export class PostDetailPage {
   constructor(initialData?: PostDetailContext) {
     if (initialData?.post) {
       this.post = initialData.post;
-    }
-  }
-
-  attached() {
-    const hydration = hydrateFromServer<PostDetailContext>();
-    if (hydration?.initialData?.post && !this.post) {
-      this.post = hydration.initialData.post;
     }
   }
 

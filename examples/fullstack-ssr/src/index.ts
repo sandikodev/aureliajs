@@ -83,6 +83,7 @@ app.get(
   aurelia({
     component: HomePage,
     title: 'Hono + Aurelia 2 SSR - Engineering Blog',
+    streaming: true,
     loaders: {
       posts: async () => posts,
     },
@@ -99,6 +100,7 @@ app.get(
   aurelia({
     component: PostDetailPage,
     title: 'Article Detail - Aurelia 2 SSR',
+    streaming: true,
     loaders: {
       post: async (c) => {
         const slug = c.req.param('slug');
@@ -120,6 +122,7 @@ app.get(
     component: DashboardPage,
     title: 'Telemetry Dashboard - Aurelia 2 SSR',
     requiresAuth: true,
+    streaming: true,
     loaders: {
       stats: async () => dashboardStats,
       activity: async () => activityStream,
@@ -204,6 +207,7 @@ if (process.env.NODE_ENV !== 'test' && !('bun' in process.versions)) {
   });
 }
 
+export { app };
 export default {
   port,
   fetch: app.fetch,

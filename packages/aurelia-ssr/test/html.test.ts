@@ -50,7 +50,7 @@ describe('createHtmlDocument()', () => {
     
     // Evaluating the script must succeed without SyntaxError
     const testScope: any = {};
-    const execute = new Function('window', scriptContent);
+    const execute = new Function('window', scriptContent!);
     expect(() => execute(testScope)).not.toThrow();
     expect(testScope.__HYDRATION__).toBeDefined();
     expect(testScope.__HYDRATION__.context.isAuthenticated).toBe(true);
