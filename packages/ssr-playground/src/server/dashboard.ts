@@ -10,6 +10,16 @@ export function renderDashboardHtml(): string {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Aurelia 2 + Hono SSR Playground & Compiler Inspector</title>
+  <script>
+    // Mute development-only Tailwind CDN console warning
+    (function() {
+      const origWarn = console.warn;
+      console.warn = function(...args) {
+        if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+        origWarn.apply(console, args);
+      };
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -678,18 +688,24 @@ export function renderDashboardHtml(): string {
     }
 
     function renderCompiledJs(data) {
-      return \`import { CustomElement } from '@aurelia/runtime-html';
-
-<span class="text-gray-500">// Compiled Aurelia 2 Component Definition</span>
-export const \${data.name.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('')} = CustomElement.define({
-  name: '<span class="text-emerald-400">\${data.name}</span>',
-  template: \`\${escapeHtml(data.template)}\`,
-  instructions: [
-    <span class="text-gray-500">// Pre-compiled AST listener & interpolation instructions</span>
-    [ { type: 'listener', to: '<span class="text-accent hover-trace" data-trace="increment">click</span>', value: 'increment()' } ],
-    [ { type: 'interpolation', to: 'textContent', value: '<span class="text-cyan-400 hover-trace" data-trace="count">\${count}</span>' } ]
-  ]
-}, \${data.script.split('export class ')[1] || 'class Component {}'});\`;
+      const bt = String.fromCharCode(96);
+      const compName = data.name.split('-').map(function(s) { return s.charAt(0).toUpperCase() + s.slice(1); }).join('');
+      const classDef = data.script.split('export class ')[1] || 'class Component {}';
+      const tmpl = escapeHtml(data.template);
+      return [
+        "<span class='text-purple-400'>import</span> { CustomElement } <span class='text-purple-400'>from</span> <span class='text-emerald-400'>'@aurelia/runtime-html'</span>;",
+        "",
+        "<span class='text-gray-500'>// Compiled Aurelia 2 Component Definition</span>",
+        "<span class='text-purple-400'>export const</span> <span class='text-yellow-400'>" + compName + "</span> = CustomElement.define({",
+        "  name: <span class='text-emerald-400'>'" + data.name + "'</span>,",
+        "  template: <span class='text-emerald-400'>" + bt + tmpl + bt + "</span>,",
+        "  instructions: [",
+        "    <span class='text-gray-500'>// Pre-compiled AST listener & interpolation instructions</span>",
+        "    [ { type: <span class='text-emerald-400'>'listener'</span>, to: <span class='text-accent hover-trace cursor-pointer font-bold' data-trace='increment'>'click'</span>, value: <span class='text-emerald-400'>'increment()'</span> } ],",
+        "    [ { type: <span class='text-emerald-400'>'interpolation'</span>, to: <span class='text-emerald-400'>'textContent'</span>, value: <span class='text-cyan-400 hover-trace cursor-pointer font-bold' data-trace='count'>'$' + '{count}'</span> } ]",
+        "  ]",
+        "}, <span class='text-yellow-400'>class</span> " + classDef + ");"
+      ].join('<br>');
     }
 
     function renderAstTree(ast) {
