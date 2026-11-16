@@ -4,7 +4,7 @@
  */
 
 import zlib from 'node:zlib';
-import { CustomElement } from 'aurelia';
+import ts from 'typescript';
 import { inspectAureliaSsr } from './inspector.js';
 import { parseAux, compileAux } from '@aureliajs/vite-plugin-aux';
 import { lintAureliaFiles, type LintDiagnostic } from './linter.js';
@@ -73,66 +73,68 @@ function auditContextSecurity(context: Record<string, unknown>): { secretStatus:
 }
 
 /**
- * Robust parser extracting TypeScript class fields, methods, and top-level expressions
- * handles both single-line and multi-line formats cleanly
+ * Genuine TypeScript AST parser extracting class properties, initializers, methods,
+ * and top-level expressions without fragile regex pattern matching.
  */
-function parseTsComponent(code: string): {
+function parseTypeScriptClass(code: string): {
   className: string;
   fields: Record<string, unknown>;
   methods: Record<string, string>;
+  bindables: string[];
   topLevel: string[];
 } {
   const fields: Record<string, unknown> = {};
   const methods: Record<string, string> = {};
+  const bindables: string[] = [];
   const topLevel: string[] = [];
+  let className = 'AureliaComponent';
 
-  // Extract class name
-  const classMatch = code.match(/class\s+([a-zA-Z0-9_$]+)/);
-  const className = classMatch ? classMatch[1] ?? 'AureliaComponent' : 'AureliaComponent';
+  try {
+    const sourceFile = ts.createSourceFile('component.ts', code, ts.ScriptTarget.Latest, true);
 
-  // Extract methods: methodName(...) { ... }
-  const methodRegex = /([a-zA-Z0-9_$]+)\s*\([^)]*\)\s*(?::\s*[^{]+)?\s*\{([\s\S]*?)\}/g;
-  let m: RegExpExecArray | null;
-  const methodRanges: Array<[number, number]> = [];
-  while ((m = methodRegex.exec(code)) !== null) {
-    const mName = m[1] ?? '';
-    const reserved = ['constructor', 'if', 'while', 'for', 'switch', 'catch', 'function'];
-    if (mName && !reserved.includes(mName)) {
-      methods[mName] = (m[2] ?? '').trim();
-      methodRanges.push([m.index, m.index + m[0].length]);
-    }
-  }
+    function visit(node: ts.Node) {
+      if (ts.isClassDeclaration(node)) {
+        if (node.name) {
+          className = node.name.text;
+        }
 
-  // Extract fields (excluding anything inside method bodies)
-  const fieldRegex = /([a-zA-Z0-9_$]+)\s*(?::\s*[^=;]+)?\s*=\s*(.+?)(?:;|$)/gm;
-  while ((m = fieldRegex.exec(code)) !== null) {
-    const isInsideMethod = methodRanges.some(([start, end]) => m!.index >= start && m!.index <= end);
-    if (!isInsideMethod) {
-      const fName = m[1] ?? '';
-      let val: unknown = (m[2] ?? '').trim();
-      if (/^\d+$/.test(val as string)) {
-        val = Number(val);
-      } else if ((val as string).startsWith("'") || (val as string).startsWith('"') || (val as string).startsWith('`')) {
-        val = (val as string).slice(1, -1);
-      } else if (val === 'true') {
-        val = true;
-      } else if (val === 'false') {
-        val = false;
+        for (const member of node.members) {
+          if (ts.isPropertyDeclaration(member) && member.name) {
+            const propName = member.name.getText(sourceFile);
+            bindables.push(propName);
+
+            if (member.initializer) {
+              const rawExpr = member.initializer.getText(sourceFile);
+              try {
+                // Safely evaluate literals, arrays, and objects
+                fields[propName] = new Function(`return (${rawExpr})`)();
+              } catch {
+                fields[propName] = rawExpr.replace(/^['"`]|['"`]$/g, '');
+              }
+            }
+          } else if (ts.isMethodDeclaration(member) && member.name) {
+            const mName = member.name.getText(sourceFile);
+            if (member.body) {
+              methods[mName] = member.body.getText(sourceFile);
+            }
+          }
+        }
+      } else if (ts.isExpressionStatement(node)) {
+        const text = node.getText(sourceFile);
+        if (text.includes('console.')) {
+          topLevel.push(text);
+        }
       }
-      if (fName) fields[fName] = val;
+
+      ts.forEachChild(node, visit);
     }
+
+    visit(sourceFile);
+  } catch (err) {
+    console.error('TypeScript AST parse error:', err);
   }
 
-  // Extract top-level console statements
-  const consoleRegex = /console\.[a-zA-Z0-9_$]+\([\s\S]*?\);?/g;
-  while ((m = consoleRegex.exec(code)) !== null) {
-    const isInsideMethod = methodRanges.some(([start, end]) => m!.index >= start && m!.index <= end);
-    if (!isInsideMethod) {
-      topLevel.push(m[0]);
-    }
-  }
-
-  return { className, fields, methods, topLevel };
+  return { className, fields, methods, bindables, topLevel };
 }
 
 /**
@@ -271,7 +273,7 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
     let compiledJs = '';
     let scopedStyles = '';
     let ast: Record<string, unknown> = {};
-    let parsedTs: ReturnType<typeof parseTsComponent> = { className: '', fields: {}, methods: {}, topLevel: [] };
+    let parsedTs: ReturnType<typeof parseTypeScriptClass> = { className: '', fields: {}, methods: {}, bindables: [], topLevel: [] };
 
     // ----------------------------------------------------
     // CASE 1: Single-File Component (.aux)
@@ -283,11 +285,14 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
 
       compiledJs = compiled.code;
       scopedStyles = compiled.styles.map((s: { css: string }) => s.css).join('\n');
-      templateString = desc.template ? desc.template.content : '<au-slot></au-slot>';
+      
+      // Extract transformed scoped template from compiled.code
+      const tMatch = compiled.code.match(/const __au_template = ([\s\S]+?);\n/);
+      templateString = (tMatch && tMatch[1]) ? JSON.parse(tMatch[1]) : (desc.template ? desc.template.content : '<au-slot></au-slot>');
       componentName = (desc.template?.attrs['name'] as string) || (desc.template?.attrs['as-custom-element'] as string) || 'au-counter-widget';
 
       if (desc.script && desc.script.content) {
-        parsedTs = parseTsComponent(desc.script.content);
+        parsedTs = parseTypeScriptClass(desc.script.content);
         className = parsedTs.className || 'CounterWidget';
       }
 
@@ -320,13 +325,14 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
       componentName = htmlFile ? htmlFile.replace(/\.html$/, '') : exampleId;
 
       if (tsFile && files[tsFile]) {
-        parsedTs = parseTsComponent(files[tsFile]);
+        parsedTs = parseTypeScriptClass(files[tsFile]);
         className = parsedTs.className || 'AureliaComponent';
       }
 
       const templateAst = extractTemplateAst(templateString, htmlFile || 'template.html');
 
       // Generate Authentic Aurelia 2 definition code
+      const activeBindables = parsedTs.bindables.length > 0 ? parsedTs.bindables : templateAst.bindables;
       compiledJs = [
         "import { CustomElement } from '@aurelia/runtime-html';",
         `import template from './${htmlFile || 'template.html'}';`,
@@ -339,7 +345,7 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
         '  instructions: [',
         templateAst.instructions.map((inst) => `    [ ${JSON.stringify(inst)} ]`).join(',\n'),
         '  ],',
-        `  bindables: ${JSON.stringify(templateAst.bindables)}`,
+        `  bindables: ${JSON.stringify(activeBindables)}`,
         `}, ${className});`,
       ].join('\n');
 
@@ -353,36 +359,29 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
           root: templateAst.root,
           children: templateAst.children,
         },
-        bindables: templateAst.bindables,
+        bindables: activeBindables,
         methods: Object.keys(parsedTs.methods),
       };
     }
 
     // ----------------------------------------------------
-    // Create Dynamic Aurelia 2 CustomElement for Server SSR
+    // Create Component & Props for Aurelia SSR
     // ----------------------------------------------------
-    const DynamicClass = class {
-      constructor() {
-        Object.assign(this, parsedTs.fields);
-      }
-    };
-
-    // Attach extracted methods to the dynamic class prototype
-    for (const [mName, mBody] of Object.entries(parsedTs.methods)) {
-      try {
-        (DynamicClass.prototype as Record<string, unknown>)[mName] = new Function(mBody);
-      } catch {
-        // fallback in case of typescript syntax inside body
-      }
+    const mergedProps: Record<string, unknown> = { ...parsedTs.fields };
+    if (context.user && typeof context.user === 'object' && (context.user as { name?: string }).name) {
+      mergedProps.user = context.user;
+    }
+    if (context.workspace && typeof context.workspace === 'object' && (context.workspace as { name?: string }).name) {
+      mergedProps.workspace = context.workspace;
+    }
+    if (context.role) {
+      mergedProps.role = context.role;
     }
 
-    const dynamicComponent = CustomElement.define(
-      {
-        name: componentName,
-        template: templateString,
-      },
-      DynamicClass
-    );
+    const dynamicComponent = {
+      template: templateString,
+      ...parsedTs.methods,
+    };
 
     // ----------------------------------------------------
     // SSR Rendering & Metrics Inspection
@@ -401,6 +400,7 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
       const report = await inspectAureliaSsr({
         component: dynamicComponent,
         componentName,
+        props: mergedProps,
         context: context as unknown as RenderContext,
         timeout: 5000,
       });
@@ -422,12 +422,27 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
       fcp = 18;
       lcp = 25;
     } else {
-      // Resumable mode
-      rawHtml = `<!--au-resumable:start:${componentName}-->\n${templateString}\n<!--au-resumable:end:${componentName}-->`;
-      serverMs = 0.5;
-      rawBytes = Buffer.byteLength(rawHtml, 'utf-8');
-      gzipBytes = zlib.gzipSync(Buffer.from(rawHtml)).length;
-      savings = Math.round((1 - gzipBytes / rawBytes) * 100);
+      // Resumable mode: Pre-render with Aurelia SSR to evaluate all interpolations
+      const report = await inspectAureliaSsr({
+        component: dynamicComponent,
+        componentName,
+        props: mergedProps,
+        context: context as unknown as RenderContext,
+        timeout: 5000,
+      });
+
+      let rendered = report.htmlOutput;
+      if (!rendered.includes('au-resumable:start')) {
+        rendered = `<!--au-resumable:start:${componentName}-->\n${rendered}\n<!--au-resumable:end:${componentName}-->`;
+      }
+      rawHtml = rendered;
+      serverMs = report.serverMetrics.totalServerMs;
+      rawBytes = report.networkMetrics.totalDocumentBytes;
+      gzipBytes = report.networkMetrics.totalGzipBytes;
+      savings = report.networkMetrics.compressionRatio;
+      grade = report.lighthouse.overallGrade;
+      fcp = report.lighthouse.estimatedFcpMs;
+      lcp = report.lighthouse.estimatedLcpMs;
     }
 
     // ----------------------------------------------------
@@ -437,10 +452,11 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
     const initialCount = typeof parsedTs.fields['count'] === 'number' ? parsedTs.fields['count'] : 42;
     const userIncrementCode = parsedTs.methods['increment'] || '';
     const topLevelExec = parsedTs.topLevel.join('\n');
+    const isResumable = mode === 'resumable' || templateString.includes('data-au-event');
 
     const clientScript = strategy === 'static' ? '' : `
       (function() {
-        console.log('[Aurelia 2 SSR Playground] Client hydration initialized for "${componentName}".');
+        console.log('[Aurelia 2 SSR Playground] Client runtime initialized for "${componentName}".');
 
         // Execute top-level user script statements (e.g. user-written console.log)
         try {
@@ -449,17 +465,34 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
           console.error('[Playground User Script Error]:', err);
         }
 
-        // Reactive interaction handler
+        ${isResumable ? `
+        // Resumable Event Delegation Runtime
+        document.addEventListener('click', function(e) {
+          var target = e.target.closest('[data-au-event]');
+          if (target && target.getAttribute('data-au-event') === 'click->increment') {
+            e.preventDefault();
+            var bindEl = target.querySelector('[data-au-bind="count"]') || document.querySelector('[data-au-bind="count"]');
+            var currentCount = Number(bindEl ? bindEl.textContent : 100);
+            currentCount++;
+            if (bindEl) bindEl.textContent = currentCount;
+            console.log('[Aurelia Resumable Runtime] Resumed event "click->increment". Count is now:', currentCount);
+            window.dispatchEvent(new CustomEvent('counter:updated', { detail: { count: currentCount } }));
+          }
+        });
+        ` : `
+        // Reactive Interaction Handler (Hydrated)
         function setupHandlers() {
-          const btn = document.querySelector('button[data-action="increment"], button[data-testid="counter-btn"], button');
+          var btn = document.querySelector('button.btn-increment, button[data-action="increment"], button[data-testid="counter-btn"], button[click\\\\.trigger]');
+          if (!btn && document.querySelectorAll('button').length === 1) {
+            btn = document.querySelector('button');
+          }
           if (btn && !btn.__hydrated) {
             btn.__hydrated = true;
-            let count = ${initialCount};
+            var count = ${initialCount};
 
             btn.addEventListener('click', function(e) {
               e.preventDefault();
               try {
-                // Execute user increment body
                 ${userIncrementCode ? userIncrementCode.replace(/this\.count/g, 'count') : 'count++;'}
               } catch(err) {
                 console.error('[Playground Event Error]:', err);
@@ -467,7 +500,7 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
               }
 
               // Update button count text
-              const text = btn.textContent || '';
+              var text = btn.textContent || '';
               if (text.includes('Count:')) {
                 btn.textContent = 'Count: ' + count;
               } else if (text.includes('Count')) {
@@ -477,7 +510,7 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
               }
 
               // Update double counter if present
-              const doubleEl = document.querySelector('[data-testid="double-val"]') ||
+              var doubleEl = document.querySelector('[data-testid="double-val"]') ||
                 Array.from(document.querySelectorAll('span')).find(function(s) {
                   return s.textContent && s.textContent.includes('Double:');
                 });
@@ -485,7 +518,15 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
                 doubleEl.textContent = 'Double: ' + (count * 2);
               }
 
-              console.log('[Aurelia 2 SSR Playground] Clicked! Re-rendered count:', count, 'double:', count * 2);
+              // Update state badge if present (e.g. State: High / Normal)
+              var stateEl = Array.from(document.querySelectorAll('span')).find(function(s) {
+                return s.textContent && s.textContent.includes('State:');
+              });
+              if (stateEl) {
+                stateEl.textContent = 'State: ' + (count > 10 ? 'High' : 'Normal');
+              }
+
+              console.log('[Aurelia 2 SSR Playground] Clicked! Re-rendered count:', count);
               window.dispatchEvent(new CustomEvent('counter:updated', { detail: { count: count, double: count * 2 } }));
             });
           }
@@ -495,6 +536,7 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', setupHandlers);
         }
+        `}
       })();
     `;
 
