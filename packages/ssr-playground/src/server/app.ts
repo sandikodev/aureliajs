@@ -12,6 +12,20 @@ import { getFaviconSvg, getClientHydrationScript, getPreviewStylesheet } from '.
 export function createPlaygroundApp(): Hono {
   const app = new Hono();
 
+  // Global CORS and Cache-Control headers
+  app.use('*', async (c, next) => {
+    c.header('Access-Control-Allow-Origin', '*');
+    c.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    c.header('Access-Control-Allow-Headers', '*');
+    c.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+    c.header('Pragma', 'no-cache');
+    c.header('Expires', '0');
+    if (c.req.method === 'OPTIONS') {
+      return c.body(null, 204);
+    }
+    await next();
+  });
+
   // Favicon Route
   app.get('/favicon.ico', (c) => {
     c.header('Content-Type', 'image/svg+xml');
@@ -111,9 +125,17 @@ export function createPlaygroundApp(): Hono {
     const payload = await serializeState(context, {}, fixtureId);
     const document = createHtmlDocument(html, payload, {
       title: `${fixtureId} — Preview`,
+      cssBundle: `/assets/main.css?v=${payload.timestamp}`,
+      jsBundle: `/src/main.ts?v=${payload.timestamp}`,
     });
 
-    return c.html(document);
+    // In addition to external asset links, also inline the stylesheet and client script into the document
+    // so the preview is 100% self-contained and bulletproof against adblockers, browser caching, or extension interference
+    const enrichedDocument = document
+      .replace('</head>', `    <style>\n${getPreviewStylesheet()}\n    </style>\n  </head>`)
+      .replace('</body>', `    <script>\n${getClientHydrationScript()}\n    </script>\n  </body>`);
+
+    return c.html(enrichedDocument);
   });
 
   // Web GUI Single Page Dashboard
@@ -379,9 +401,13 @@ function renderDashboardHtml(): string {
     const previewIframe = document.getElementById('previewIframe');
     const reloadIframeBtn = document.getElementById('reloadIframeBtn');
 
+    reloadIframeBtn.addEventListener('click', () => {
+      previewIframe.src = '/preview/' + fixtureSelect.value + '?t=' + Date.now();
+    });
+
     async function runInspection() {
       const fixture = fixtureSelect.value;
-      previewIframe.src = '/preview/' + fixture;
+      previewIframe.src = '/preview/' + fixture + '?t=' + Date.now();
 
       let parsedPayload = {};
       try {
