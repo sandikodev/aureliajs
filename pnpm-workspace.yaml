@@ -1,6 +1,7 @@
 packages:
   - 'apps/*'
   - 'packages/shared'
+  - 'packages/ssr-playground'
   - 'packages/vite-plugin-aux'
   - 'packages/vscode-aux'
   # packages/hono-aurelia-ssr is INTENTIONALLY excluded

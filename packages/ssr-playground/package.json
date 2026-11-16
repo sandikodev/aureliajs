@@ -1,0 +1,41 @@
+{
+  "name": "@aureliajs/ssr-playground",
+  "version": "0.1.0",
+  "description": "Interactive Server-Side Rendering (SSR) & Client Hydration Inspector and Playground for Aurelia 2 on Hono with dual CLI/TUI and Web GUI interfaces.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "ssr-inspect": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "inspect": "bun src/cli/index.ts",
+    "serve": "bun src/cli/index.ts --serve",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "aurelia",
+    "aurelia2",
+    "ssr",
+    "hono",
+    "inspector",
+    "playground",
+    "devtools",
+    "hydration"
+  ],
+  "author": "Sandiko (sandikodev)",
+  "license": "MIT",
+  "dependencies": {
+    "@hono/aurelia-ssr": "link:../hono-aurelia-ssr",
+    "@hono/node-server": "^1.19.19",
+    "aurelia": "^2.0.0-rc.2",
+    "hono": "^4.7.4",
+    "jsdom": "^23.2.0"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^21.1.7",
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3"
+  }
+}
