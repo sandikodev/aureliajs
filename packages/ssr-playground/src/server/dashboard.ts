@@ -96,11 +96,30 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       background-color: rgba(255, 62, 0, 0.05) !important;
     }
 
+    .file-tab {
+      height: 36px;
+      padding: 0 14px;
+      font-size: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #8b949e;
+      background-color: transparent;
+      border-right: 1px solid #30363d;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.12s ease;
+      border-top: 2px solid transparent;
+    }
+    .file-tab:hover {
+      color: #c9d1d9;
+      background-color: #161b22;
+    }
     .file-tab-active {
       background-color: #161b22 !important;
       color: #f0f6fc !important;
       border-top: 2px solid #ff3e00 !important;
-      font-weight: 600 !important;
+      font-weight: 500 !important;
     }
   </style>
 </head>
@@ -129,12 +148,9 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
           </svg>
         </button>
 
-        <!-- Dropdown Menu List -->
-        <div id="exampleDropdownMenu" class="hidden absolute top-full left-0 mt-1 w-96 max-h-[80vh] overflow-y-auto bg-surface border border-border rounded-lg shadow-2xl z-50 py-2">
-          <div class="px-3 py-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider border-b border-border/50">
-            Aurelia 2 Architecture & SSR Examples
-          </div>
-          <div id="dropdownExamplesList" class="divide-y divide-border/30">
+        <!-- Dropdown Menu List (Exact Svelte Playground style) -->
+        <div id="exampleDropdownMenu" class="hidden absolute top-full left-0 mt-1 w-64 max-h-[80vh] overflow-y-auto bg-[#161b22] border border-border rounded-lg shadow-2xl z-50 py-1">
+          <div id="dropdownExamplesList" class="py-1">
             <!-- Populated dynamically from disk examples -->
           </div>
         </div>
@@ -165,12 +181,12 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     <div class="w-1/2 flex flex-col border-r border-border bg-background">
       
       <!-- Dynamic File Tabs Bar (Populated per Example) -->
-      <div class="h-9 border-b border-border bg-surface flex items-center justify-between px-2 select-none">
-        <div class="flex items-center space-x-0.5" id="editorTabsBar">
+      <div class="h-9 border-b border-border bg-surface flex items-center justify-between px-0 select-none">
+        <div class="flex items-center space-x-0" id="editorTabsBar">
           <!-- Dynamically populated files for the active example -->
         </div>
 
-        <div class="flex items-center space-x-2 text-xs text-gray-400 pr-2">
+        <div class="flex items-center space-x-2 text-xs text-gray-400 pr-3">
           <span class="text-[11px] font-mono text-gray-500" id="componentModelBadge">Aurelia 2 Convention</span>
         </div>
       </div>
@@ -417,21 +433,18 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
 
       Object.entries(categories).forEach(([categoryName, items]) => {
         const catDiv = document.createElement('div');
-        catDiv.className = 'py-2';
+        catDiv.className = 'py-1';
         
         const catHeader = document.createElement('div');
-        catHeader.className = 'px-3 py-1 text-xs font-semibold text-gray-300';
-        catHeader.textContent = categoryName;
+        catHeader.className = 'px-3 py-1 text-[11px] font-semibold text-gray-400 select-none flex items-center space-x-1.5';
+        catHeader.innerHTML = '<span class="text-[9px] text-gray-500">›</span><span>' + categoryName + '</span>';
         catDiv.appendChild(catHeader);
 
         items.forEach(it => {
           const btn = document.createElement('button');
-          btn.className = 'w-full text-left px-5 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-hover transition flex items-center justify-between';
+          btn.className = 'w-full text-left pl-6 pr-3 py-1.5 text-xs text-gray-300 hover:text-white hover:bg-hover rounded transition block';
           btn.setAttribute('data-id', it.id);
-          
-          const filesSummary = Object.keys(it.files).join(', ');
-          btn.innerHTML = '<span>' + it.title + '</span>' +
-                          '<span class="text-[10px] text-gray-500 font-mono">' + filesSummary + '</span>';
+          btn.textContent = it.title;
           
           btn.addEventListener('click', () => {
             loadExample(it.id);
@@ -449,7 +462,16 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       if (!EXAMPLES[id]) return;
       activeExampleId = id;
       const ex = EXAMPLES[id];
-      currentExampleLabel.textContent = ex.category + ' / ' + ex.title;
+      currentExampleLabel.textContent = ex.title;
+
+      // Update Active Item in Dropdown
+      document.querySelectorAll('#dropdownExamplesList button').forEach(btn => {
+        if (btn.getAttribute('data-id') === id) {
+          btn.className = 'w-full text-left pl-6 pr-3 py-1.5 text-xs text-accent font-medium bg-accent/10 rounded transition block';
+        } else {
+          btn.className = 'w-full text-left pl-6 pr-3 py-1.5 text-xs text-gray-300 hover:text-white hover:bg-hover rounded transition block';
+        }
+      });
 
       // Update Component Model Badge
       if (id === 'aux-component') {
@@ -480,7 +502,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
 
       fileNames.forEach((filename) => {
         const btn = document.createElement('button');
-        btn.className = 'file-tab px-3 py-1.5 text-xs font-mono text-gray-400 hover:text-gray-200 border-r border-border flex items-center space-x-1.5 transition';
+        btn.className = 'file-tab';
         btn.setAttribute('data-filename', filename);
         btn.innerHTML = '<span>' + filename + '</span>';
         
@@ -503,10 +525,8 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       document.querySelectorAll('.file-tab').forEach(tab => {
         if (tab.getAttribute('data-filename') === filename) {
           tab.classList.add('file-tab-active');
-          tab.classList.remove('text-gray-400');
         } else {
           tab.classList.remove('file-tab-active');
-          tab.classList.add('text-gray-400');
         }
       });
 
