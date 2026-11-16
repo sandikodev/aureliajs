@@ -5,6 +5,7 @@
  */
 
 export { renderAurelia, renderToString } from './render.js';
+export { IRequestContext } from './tokens.js';
 export { serializeState, validatePayload, stringifyPayload } from './serialize.js';
 export {
   createHtmlDocument,

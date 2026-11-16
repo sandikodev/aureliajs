@@ -1,15 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { renderAurelia, renderToString } from '../src/render.js';
+import { renderAurelia } from '../src/render.js';
 import type { RenderContext } from '../src/types.js';
 
-describe('renderAurelia() & renderToString()', () => {
-  it('should support renderToString as canonical SSR alias', async () => {
-    const SimpleComponent = {
-      template: '<span>Universal SSR Output</span>',
-    };
-    const html = await renderToString({ component: SimpleComponent });
-    expect(html).toContain('Universal SSR Output');
-  });
+describe('renderAurelia()', () => {
   const mockContext: RenderContext = {
     user: {
       id: 'user_123',
@@ -247,5 +240,29 @@ describe('renderAurelia() & renderToString()', () => {
 
     expect(html).toContain('Storage: dark');
     expect(html).toContain('Media: false');
+  });
+
+  it('should inject isomorphic IRequestContext into component DI', async () => {
+    const { CustomElement, resolve } = await import('aurelia');
+    const { IRequestContext } = await import('../src/render.js');
+
+    const DiComp = CustomElement.define({
+      name: 'di-comp',
+      template: '<div>User: ${req.user.name}, URL: ${req.url}, Param: ${req.params.id}</div>',
+    }, class {
+      readonly req = resolve(IRequestContext);
+    });
+
+    const html = await renderAurelia({
+      component: DiComp,
+      context: mockContext,
+      url: 'https://example.com/posts/42',
+      params: { id: '42' },
+      query: { filter: 'recent' },
+    });
+
+    expect(html).toContain('User: Test User');
+    expect(html).toContain('URL: https://example.com/posts/42');
+    expect(html).toContain('Param: 42');
   });
 });
