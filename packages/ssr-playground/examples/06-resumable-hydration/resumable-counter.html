@@ -1,0 +1,16 @@
+<div class="p-6 max-w-sm mx-auto bg-card rounded-xl shadow-md border space-y-4">
+  <!--au-resumable:start:resumable-counter-->
+  <div class="flex items-center justify-between">
+    <h2 class="text-xl font-bold text-foreground">${title}</h2>
+    <span class="px-2 py-0.5 text-xs rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 font-mono font-medium">Resumable</span>
+  </div>
+  <p class="text-sm text-muted-foreground">${description}</p>
+  <div class="flex items-center space-x-4">
+    <!-- Zero-Hydration Lazy Event Binding -->
+    <button type="button" data-au-event="click->increment" data-action="increment" class="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary/90">
+      Count: <span data-au-bind="count">${count}</span>
+    </button>
+    <span class="text-xs text-muted-foreground">Mode: Lazy On-Demand</span>
+  </div>
+  <!--au-resumable:end:resumable-counter-->
+</div>

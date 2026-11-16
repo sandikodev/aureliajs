@@ -9,6 +9,7 @@ import { inspectAureliaSsr } from '../engine/inspector.js';
 import { renderAurelia, serializeState, createHtmlDocument, type RenderContext } from '@hono/aurelia-ssr';
 import { getFaviconSvg, getClientHydrationScript, getPreviewStylesheet } from './assets.js';
 import { renderDashboardHtml } from './dashboard.js';
+import { loadAllExamples } from '../examples/loader.js';
 
 export function createPlaygroundApp(): Hono {
   const app = new Hono();
@@ -71,6 +72,17 @@ export function createPlaygroundApp(): Hono {
         name: id.split('-').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(' '),
       })),
     });
+  });
+
+  // API: List full multi-file examples with disk manifests
+  app.get('/api/examples', (c) => {
+    return c.json(loadAllExamples());
+  });
+  app.get('/api/examples/:id', (c) => {
+    const examples = loadAllExamples();
+    const ex = examples[c.req.param('id')];
+    if (!ex) return c.json({ error: 'Example not found' }, 404);
+    return c.json(ex);
   });
 
   // API: Run inspection on a fixture or payload
@@ -141,7 +153,7 @@ export function createPlaygroundApp(): Hono {
 
   // Web GUI Single Page Dashboard
   app.get('/', (c) => {
-    return c.html(renderDashboardHtml());
+    return c.html(renderDashboardHtml(loadAllExamples()));
   });
 
   return app;

@@ -1,0 +1,43 @@
+<template>
+  <div class="p-6 max-w-sm mx-auto bg-card rounded-xl shadow-md border space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-xl font-bold text-foreground">${title}</h2>
+      <span class="px-2 py-0.5 text-xs rounded-full bg-cyan-100 text-cyan-800 font-mono font-medium">.aux SFC</span>
+    </div>
+    <p class="text-sm text-muted-foreground">${description}</p>
+    <div class="flex items-center space-x-4">
+      <button type="button" class="btn-increment" click.trigger="increment()">
+        Count: ${count}
+      </button>
+      <span class="text-xs text-muted-foreground">State: ${count > 10 ? 'High' : 'Normal'}</span>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+export default class CounterWidget {
+  title = 'Aurelia in HTML';
+  description = 'Single-File Component (.aux) transformed by @aureliajs/vite-plugin-aux.';
+  count = 10;
+
+  increment() {
+    this.count++;
+  }
+}
+</script>
+
+<style scoped>
+.btn-increment {
+  padding: 0.5rem 1rem;
+  background-color: #0ea5e9;
+  color: #ffffff;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.15s ease-in-out;
+}
+.btn-increment:hover {
+  background-color: #0284c7;
+}
+</style>

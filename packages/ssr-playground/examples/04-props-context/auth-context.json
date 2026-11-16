@@ -1,0 +1,12 @@
+{
+  "user": {
+    "id": "u_99",
+    "name": "Sandikodev",
+    "email": "sandiko@example.com"
+  },
+  "workspace": {
+    "id": "ws_alpha",
+    "name": "Google DeepMind Lab"
+  },
+  "role": "Architect"
+}
