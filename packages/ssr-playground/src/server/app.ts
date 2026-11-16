@@ -7,9 +7,46 @@ import { Hono } from 'hono';
 import { FIXTURES } from '../fixtures/index.js';
 import { inspectAureliaSsr } from '../engine/inspector.js';
 import { renderAurelia, serializeState, createHtmlDocument, type RenderContext } from '@hono/aurelia-ssr';
+import { getFaviconSvg, getClientHydrationScript, getPreviewStylesheet } from './assets.js';
 
 export function createPlaygroundApp(): Hono {
   const app = new Hono();
+
+  // Favicon Route
+  app.get('/favicon.ico', (c) => {
+    c.header('Content-Type', 'image/svg+xml');
+    c.header('Cache-Control', 'public, max-age=86400');
+    return c.body(getFaviconSvg());
+  });
+
+  // Preview Stylesheet Route (served for <link rel="stylesheet" href="/assets/main.css" />)
+  app.get('/assets/main.css', (c) => {
+    c.header('Content-Type', 'text/css; charset=utf-8');
+    c.header('Cache-Control', 'public, max-age=3600');
+    return c.body(getPreviewStylesheet());
+  });
+  app.get('/main.css', (c) => {
+    c.header('Content-Type', 'text/css; charset=utf-8');
+    c.header('Cache-Control', 'public, max-age=3600');
+    return c.body(getPreviewStylesheet());
+  });
+
+  // Client Hydration Script Route (served for <script type="module" src="/src/main.ts"></script>)
+  app.get('/src/main.ts', (c) => {
+    c.header('Content-Type', 'application/javascript; charset=utf-8');
+    c.header('Cache-Control', 'no-cache');
+    return c.body(getClientHydrationScript());
+  });
+  app.get('/assets/main.js', (c) => {
+    c.header('Content-Type', 'application/javascript; charset=utf-8');
+    c.header('Cache-Control', 'no-cache');
+    return c.body(getClientHydrationScript());
+  });
+  app.get('/client.js', (c) => {
+    c.header('Content-Type', 'application/javascript; charset=utf-8');
+    c.header('Cache-Control', 'no-cache');
+    return c.body(getClientHydrationScript());
+  });
 
   // API: List fixtures
   app.get('/api/fixtures', (c) => {
