@@ -1,148 +1,105 @@
 # @aureliajs/packages — Fullstack Library Suite
 
-This folder contains reusable libraries and adapters for the Aurelia 2 ecosystem.
-
-## Current Packages
-
-### 1. `hono-aurelia-ssr` (@hono/aurelia-ssr)
-
-**Status:** Phase 1 Complete ✅  
-**Purpose:** Native SSR support for Aurelia 2 on Hono  
-**Maintainer:** Sandikodev (@sandikodev)  
-
-Server-side rendering adapter that bridges Hono + Aurelia into a native fullstack framework.
-
-- 📦 Production-grade implementation (1,789 lines total)
-- 🧪 32 test cases (455 lines) with 80%+ coverage
-- 📚 Comprehensive documentation
-- 🔒 Type-safe with XSS prevention
-
-**Key Functions:**
-- `renderAurelia()` — Render components to HTML
-- `serializeState()` — Serialize auth + data
-- `createHtmlDocument()` — Build complete HTML
-- (Phase 2) `hydrateFromServer()` — Client hydration
-- (Phase 3) `aurelia()` — Route adapter
-
-**Proposal:** 
-See `PROPOSAL_TO_MAINTAINERS.md` to submit to Hono + Aurelia teams for collaboration.
-
-**Quick Start:**
-```bash
-cd hono-aurelia-ssr
-npm install
-npm test           # Run tests
-npm run build      # Compile
-npm run typecheck  # Type checking
-```
-
-### 2. `shared`
-
-**Purpose:** Shared types, schemas, and constants  
-**Contents:** Zod schemas, TypeScript types, business logic
+This directory contains the production-grade packages and developer tooling designed for the Aurelia 2 and modern server ecosystems, maintained by **Sandikodev ([@sandikodev](https://github.com/sandikodev))**.
 
 ---
 
-## Package Structure Convention
+## 🏛️ Architecture & Separation of Concerns
 
-Each package follows this structure:
+To adhere strictly to community conventions and eliminate confusion, the packages are structured into distinct tiers based on their scope of responsibility:
 
 ```
-package-name/
-├── src/              # Source TypeScript
-├── test/             # Test files (*.test.ts)
-├── dist/             # Compiled output (gitignored)
-├── package.json      # Package manifest
-├── tsconfig.json     # TypeScript config
-├── vitest.config.ts  # Test config
-├── README.md         # Package documentation
-└── .gitignore        # Standard ignores
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                   TIER 1: AURELIA 2 SSR & HYDRATION CORE                    │
+│                                                                             │
+│  📦 @aureliajs/ssr (packages/aurelia-ssr)                                   │
+│  - Framework-agnostic server renderer & Direct-DOM hydration core           │
+│  - JSDOM virtual platform & NodePlatform shims                              │
+│  - SsrTemplateElementFactory (fixes Aurelia 2 template caching AUR0757)     │
+│  - RenderMutex FIFO concurrency lock                                        │
+│  - Request-scoped DI container cleanup (app.stop() & app.dispose())         │
+│  - Anti-XSS state serialization & CSP nonce compliance                      │
+│  - Usable in ANY backend runtime (Node, Bun, Vite SSR, Express, Fastify)    │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                 TIER 2: WEB FRAMEWORK ADAPTERS (MIDDLEWARE)                 │
+│                                                                             │
+│  📦 @hono/aurelia-ssr (packages/hono-aurelia-ssr) [Git Submodule]           │
+│  - Official/community Hono SSR adapter                                      │
+│  - Route handler factory: aurelia({ component, loaders, requiresAuth })     │
+│  - HTTP Content negotiation (Accept: text/html vs application/json)         │
+│  - Automatic injection of Hono context (c.get('user'), c.get('workspace'))  │
+│  - High-speed HTML response delivery via c.html()                           │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                  TIER 3: DEVELOPER TOOLS & COMPONENT DX                     │
+│                                                                             │
+│  🖥️ ssr-playground (packages/ssr-playground)                               │
+│  - Interactive browser GUI & compiler inspector (port 4700)                 │
+│  - 16 canonical Aurelia 2 examples with real-time SSR & Direct-DOM hydration│
+│  - Headless diagnostics suite, AST inspector, & CLS risk auditor            │
+│                                                                             │
+│  ⚡ @aureliajs/vite-plugin-aux (packages/vite-plugin-aux)                    │
+│  - Vite plugin enabling Single-File Components (.aux) for Aurelia 2         │
+│                                                                             │
+│  🧩 vscode-aux (packages/vscode-aux)                                        │
+│  - VS Code language extension for .aux syntax highlighting & IntelliSense   │
+│                                                                             │
+│  🧱 @aureliajs/shared (packages/shared)                                     │
+│  - Shared TypeScript interfaces, Zod schemas, and utility functions         │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Contributing Guidelines
+## 📦 Package Matrix
 
-### When Adding a New Package
+| Package | Namespace | Purpose / Scope | Dependencies |
+| :--- | :--- | :--- | :--- |
+| [`aurelia-ssr`](./aurelia-ssr) | `@aureliajs/ssr` | Framework-agnostic SSR and Direct-DOM Hydration Core | `aurelia`, `jsdom` |
+| [`hono-aurelia-ssr`](./hono-aurelia-ssr) | `@hono/aurelia-ssr` | Hono middleware & route handler adapter | `hono`, `@aureliajs/ssr` |
+| [`ssr-playground`](./ssr-playground) | `ssr-playground` | Interactive Web GUI & Headless Reversing Inspector | `@hono/aurelia-ssr`, `hono`, `aurelia` |
+| [`vite-plugin-aux`](./vite-plugin-aux) | `@aureliajs/vite-plugin-aux` | Vite SFC (`.aux`) compiler plugin | `vite`, `@rollup/pluginutils` |
+| [`vscode-aux`](./vscode-aux) | `vscode-aux` | VS Code extension for `.aux` components | VS Code Extension API |
+| [`shared`](./shared) | `@aureliajs/shared` | Common business schemas and utilities | `zod` |
 
-1. **Create directory** under `packages/`
-2. **Use this template:**
-   ```bash
-   mkdir packages/my-package
-   cp -r packages/hono-aurelia-ssr/package.json packages/my-package/
-   # Edit package.json with your package name
-   ```
+---
 
-3. **Add documentation:**
-   - README.md (quick start + API)
-   - Types/interfaces in JSDoc
-   - Test examples as usage patterns
+## 🧪 Comprehensive Quality Gates
 
-4. **Follow standards:**
-   - TypeScript strict mode
-   - 80%+ test coverage
-   - Comprehensive error handling
-   - XSS/security practices
-
-### Development Workflow
+Run all test suites across the entire monorepo:
 
 ```bash
-# Install dependencies for specific package
-cd packages/hono-aurelia-ssr
-npm install
+# 1. Test Aurelia 2 SSR Core (81 tests)
+bun test packages/aurelia-ssr
 
-# Run tests
-npm test
+# 2. Test Hono Aurelia SSR Adapter (134 tests)
+bun test packages/hono-aurelia-ssr
 
-# Watch mode
-npm run test:watch
+# 3. Test SSR Playground & Headless Diagnostics (34 tests)
+bun test packages/ssr-playground
 
-# Type checking
-npm run typecheck
-
-# Build
-npm run build
+# 4. Zero-tolerance linter check (oxlint)
+bun x oxlint packages/aurelia-ssr packages/hono-aurelia-ssr packages/ssr-playground
 ```
 
 ---
 
-## Integration with Main Project
+## 🤝 Community Naming & Convention Guarantees
 
-These packages are designed to be:
+1. **Aurelia Community (`@aureliajs/*`)**:
+   - Scope is strictly frontend & framework-agnostic rendering.
+   - Follows canonical Aurelia 2 Direct-DOM lifecycle conventions (`attached`, `resolve(ID)`, `@customElement`).
+   - Does not enforce or inject backend-specific abstractions.
 
-1. **Independently usable** — Can be published to npm individually
-2. **Shareable** — Available to multiple projects via npm registry
-3. **Monorepo-friendly** — Can use workspace dependencies
-4. **Well-documented** — Self-contained, no external context needed
-
----
-
-## Roadmap
-
-### Q4 2026
-- [ ] Finalize hono-aurelia-ssr Phase 1-4
-- [ ] Submit to Hono team for feedback
-- [ ] Submit to Aurelia team for feedback
-
-### Q1 2027
-- [ ] Incorporate feedback from teams
-- [ ] Publish to npm
-- [ ] Open-source on GitHub
-- [ ] Create community examples
-
-### Q2 2027+
-- [ ] Support other backend frameworks
-- [ ] Support other frontend frameworks
-- [ ] Expand adapter ecosystem
+2. **Hono Community (`@hono/*`)**:
+   - Scope is strictly HTTP routing, middleware, and web standard request/response handling.
+   - Follows canonical Hono patterns identical to `@hono/react-renderer` and `@hono/vue-renderer`.
 
 ---
 
-## Questions?
-
-- **About hono-aurelia-ssr:** See `hono-aurelia-ssr/README.md`
-- **About proposal:** See `hono-aurelia-ssr/PROPOSAL_TO_MAINTAINERS.md`
-- **About architecture:** See `hono-aurelia-ssr/PHASE_1_SUMMARY.md`
-
----
-
-**Maintained with ❤️ by Sandikodev (@sandikodev)**
+**Maintained with ❤️ by Sandikodev ([@sandikodev](https://github.com/sandikodev))**

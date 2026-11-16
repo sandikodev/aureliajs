@@ -1,0 +1,23 @@
+/**
+ * @aureliajs/ssr Client Entrypoint
+ * 
+ * Ultra-lightweight client-side hydration exports for the browser.
+ * Zero JSDOM dependency.
+ */
+
+export {
+  hydrateFromServer,
+  isHydrationAvailable,
+  peekHydrationPayload,
+  clearHydration,
+  HydrationCache,
+  hydrationCache,
+} from './hydrate.js';
+export type {
+  RenderContext,
+  User,
+  Workspace,
+  HydrationPayload,
+  HydrationOptions,
+  HydrationResult,
+} from './types.js';

@@ -1,0 +1,60 @@
+{
+  "name": "@aureliajs/ssr",
+  "version": "0.1.0",
+  "description": "Framework-agnostic Server-Side Rendering (SSR) and Hydration Core Engine for Aurelia 2 by sandikodev.",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js",
+      "default": "./dist/server.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js",
+      "default": "./dist/client.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsc -w -p tsconfig.build.json --preserveWatchOutput",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "aurelia",
+    "aurelia2",
+    "ssr",
+    "server-side-rendering",
+    "hydration",
+    "direct-dom",
+    "fullstack"
+  ],
+  "author": "Sandiko (sandikodev) <androxoss@hotmail.com>",
+  "license": "MIT",
+  "peerDependencies": {
+    "aurelia": "^2.0.0-rc.2"
+  },
+  "dependencies": {
+    "jsdom": "^23.0.0"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^21.1.6",
+    "@types/node": "24.10.1",
+    "aurelia": "^2.0.0-rc.2",
+    "typescript": "5.9.3",
+    "vitest": "5.1.0"
+  }
+}
