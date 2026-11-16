@@ -16,10 +16,10 @@ export const CounterCard: unknown = CustomElement.define(
         </div>
         <p class="text-sm text-muted-foreground">\${description}</p>
         <div class="flex items-center space-x-4">
-          <button type="button" class="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90" click.trigger="increment()">
+          <button type="button" data-action="increment" data-testid="counter-btn" class="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90" click.trigger="increment()">
             Count: \${count}
           </button>
-          <span class="text-xs text-muted-foreground">Double: \${count * 2}</span>
+          <span data-testid="double-val" class="text-xs text-muted-foreground">Double: \${count * 2}</span>
         </div>
       </div>
     `,

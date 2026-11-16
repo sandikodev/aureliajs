@@ -21,21 +21,42 @@ export function getClientHydrationScript(): string {
     const payload = window.__HYDRATION__;
     console.log('[Aurelia 2 SSR Playground] Hydration payload on window:', payload);
 
-    // Setup interactive triggers for fixtures (e.g. Counter Card click.trigger="increment()")
-    const buttons = document.querySelectorAll('button[click\\\\.trigger]');
-    buttons.forEach((btn) => {
-      const trigger = btn.getAttribute('click.trigger');
-      if (trigger && trigger.includes('increment')) {
-        let count = 42;
+    // 1. Counter Card Reactivity (matches data-action, data-testid, or Count text)
+    const counterButtons = document.querySelectorAll(
+      'button[data-action="increment"], button[data-testid="counter-btn"], button'
+    );
+
+    counterButtons.forEach((btn) => {
+      const isCounter =
+        btn.getAttribute('data-action') === 'increment' ||
+        btn.getAttribute('data-testid') === 'counter-btn' ||
+        (btn.textContent && btn.textContent.includes('Count:'));
+
+      if (isCounter && !btn.__hydrated) {
+        btn.__hydrated = true;
+        const match = btn.textContent ? btn.textContent.match(/Count:\\s*(\\d+)/) : null;
+        let count = match ? parseInt(match[1], 10) : 42;
+
         btn.addEventListener('click', (e) => {
           e.preventDefault();
           count++;
           btn.textContent = 'Count: ' + count;
-          const doubleEl = btn.nextElementSibling;
-          if (doubleEl && doubleEl.textContent.includes('Double:')) {
-            doubleEl.textContent = 'Double: ' + (count * 2);
+          btn.setAttribute('data-count', String(count));
+
+          // Also update the companion double indicator
+          const container = btn.parentElement || btn.closest('.flex');
+          if (container) {
+            const doubleEl = container.querySelector('[data-testid="double-val"]') ||
+              Array.from(container.querySelectorAll('span')).find(function(s) {
+                return s.textContent && s.textContent.includes('Double:');
+              });
+            if (doubleEl) {
+              doubleEl.textContent = 'Double: ' + (count * 2);
+            }
           }
-          console.log('[Aurelia 2 SSR Playground] Counter incremented to:', count);
+
+          console.log('[Aurelia 2 SSR Playground] Counter clicked! Re-rendered count:', count, 'double:', count * 2);
+          window.dispatchEvent(new CustomEvent('counter:updated', { detail: { count: count, double: count * 2 } }));
         });
       }
     });
@@ -44,10 +65,10 @@ export function getClientHydrationScript(): string {
     window.dispatchEvent(new CustomEvent('aurelia:hydrated', { detail: payload }));
   }
 
+  // Run immediately for elements already in DOM, and also on DOMContentLoaded
+  onReady();
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', onReady);
-  } else {
-    onReady();
   }
 })();
 `;
