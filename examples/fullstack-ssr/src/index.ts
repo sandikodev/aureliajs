@@ -20,7 +20,7 @@ import {
   serveAureliaAssets,
   createAuthMiddleware,
 } from '@hono/aurelia-ssr/server';
-import { initialPosts } from './data.js';
+import { initialPosts, dashboardStats, activityStream } from './data.js';
 import { HomePage } from './pages/home.js';
 import { PostDetailPage } from './pages/post-detail.js';
 import { DashboardPage } from './pages/dashboard.js';
@@ -95,13 +95,13 @@ app.get(
   })
 );
 
-// Route 2: Single Post Detail Page (One-liner! Co-located loader & metadata)
-app.get('/posts/:slug', aurelia(PostDetailPage));
+// Route 2: Single Post Detail Page (One-liner! Co-located loader, actions & metadata)
+app.all('/posts/:slug', aurelia(PostDetailPage));
 
 // Route 3: Protected Dashboard Page (One-liner! Co-located loader, auth guard & metadata)
 app.get('/dashboard', aurelia(DashboardPage));
 
-// REST API Endpoints
+// External REST API Endpoints (for mobile apps / webhooks)
 app.get('/api/posts', (c) => c.json(posts));
 
 app.get('/api/posts/:slug', (c) => {
@@ -109,38 +109,6 @@ app.get('/api/posts/:slug', (c) => {
   const post = posts.find((p) => p.slug === slug);
   if (!post) return c.json({ error: 'Post not found' }, 404);
   return c.json(post);
-});
-
-app.post('/api/posts/:slug/like', (c) => {
-  const slug = c.req.param('slug');
-  const post = posts.find((p) => p.slug === slug);
-  if (!post) return c.json({ error: 'Post not found' }, 404);
-  post.claps += 1;
-  return c.json({ success: true, claps: post.claps });
-});
-
-app.post('/api/posts/:slug/comments', async (c) => {
-  const slug = c.req.param('slug');
-  const post = posts.find((p) => p.slug === slug);
-  if (!post) return c.json({ error: 'Post not found' }, 404);
-
-  const body = await c.req.json().catch(() => ({}));
-  const author = typeof body.author === 'string' && body.author.trim() ? body.author.trim() : 'Anonymous';
-  const text = typeof body.text === 'string' ? body.text.trim() : '';
-
-  if (!text) {
-    return c.json({ error: 'Comment text is required' }, 400);
-  }
-
-  const comment = {
-    id: Date.now(),
-    author,
-    text,
-    date: 'Just now',
-  };
-  post.comments.push(comment);
-
-  return c.json({ success: true, comment });
 });
 
 app.get('/api/dashboard/stats', (c) => {

@@ -1,14 +1,10 @@
-<template containerless>
+<template containerless as-custom-element="ui-label">
   <label
     for.bind="for"
     class="flex items-center gap-2 text-sm leading-none font-medium select-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50"
   ><au-slot></au-slot></label>
 </template>
 
-<script lang="ts">
-import { bindable } from 'aurelia';
-
-export class UiLabel {
-  @bindable for = '';
-}
+<script setup lang="ts">
+defineProps(['for']);
 </script>

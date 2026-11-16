@@ -1,4 +1,4 @@
-<template containerless>
+<template containerless as-custom-element="ui-icon">
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width.attr="size"
@@ -15,17 +15,14 @@
   ></svg>
 </template>
 
-<script lang="ts">
-import { bindable } from 'aurelia';
+<script setup lang="ts">
 import { ICONS, type IconName } from '@/lib/icons';
 
-export class UiIcon {
-  @bindable name: IconName = 'check';
-  @bindable size: number | string = 16;
-  @bindable strokeWidth: number | string = 2;
+let name: IconName = 'check';
+let size: number | string = 16;
+let strokeWidth: number | string = 2;
 
-  get svg(): string {
-    return ICONS[this.name] ?? '';
-  }
+get svg(): string {
+  return ICONS[this.name] ?? '';
 }
 </script>

@@ -1,4 +1,4 @@
-<template>
+<template as-custom-element="ui-button">
   <button
     type.bind="type"
     class.bind="classes"
@@ -21,8 +21,7 @@
   </button>
 </template>
 
-<script lang="ts">
-import { bindable } from 'aurelia';
+<script setup lang="ts">
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
@@ -52,18 +51,16 @@ export const buttonVariants = cva(
 export type ButtonVariant = VariantProps<typeof buttonVariants>['variant'];
 export type ButtonSize = VariantProps<typeof buttonVariants>['size'];
 
-export class UiButton {
-  @bindable variant: ButtonVariant = 'default';
-  @bindable size: ButtonSize = 'default';
-  @bindable type: 'button' | 'submit' | 'reset' = 'button';
-  @bindable disabled = false;
-  @bindable loading = false;
-  @bindable full = false;
-  @bindable ariaLabel = '';
-  @bindable title = '';
+let variant: ButtonVariant = 'default';
+let size: ButtonSize = 'default';
+let type: 'button' | 'submit' | 'reset' = 'button';
+let disabled = false;
+let loading = false;
+let full = false;
+let ariaLabel = '';
+let title = '';
 
-  get classes(): string {
-    return cn(buttonVariants({ variant: this.variant, size: this.size }), this.full && 'w-full');
-  }
+get classes(): string {
+  return cn(buttonVariants({ variant: this.variant, size: this.size }), this.full && 'w-full');
 }
 </script>

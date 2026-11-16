@@ -139,6 +139,53 @@ export const title = 'Post Detail';
     expect(clientResult.code).not.toContain('PostPage.loader');
   });
 
+  it('supports getters, setters, type aliases, and exported constants in <script setup>', () => {
+    const auxCode = `
+<template>
+  <button class.bind="classes" click.trigger="toggle()">\${label}</button>
+</template>
+
+<script setup lang="ts">
+import { cn } from './utils';
+
+export type Variant = 'primary' | 'secondary';
+export const buttonTheme = { active: 'bg-blue-500' };
+
+let label: string = 'Click me';
+let active: boolean = false;
+let value: string = 'test';
+
+get classes(): string {
+  return cn('btn', this.active && buttonTheme.active);
+}
+
+set classes(val: string) {
+  console.log('setting classes', val);
+}
+
+function toggle() {
+  this.active = !this.active;
+}
+</script>
+`;
+
+    const descriptor = parseAux(auxCode, '/src/FancyButton.aux');
+    const result = compileAux(descriptor);
+
+    // Types and consts hoisted and preserved
+    expect(result.code).toContain("export type Variant = 'primary' | 'secondary';");
+    expect(result.code).toContain("export const buttonTheme = { active: 'bg-blue-500' };");
+
+    // Getters and setters transformed into class members
+    expect(result.code).toContain('get classes(): string {');
+    expect(result.code).toContain("return cn('btn', this.active && buttonTheme.active);");
+    expect(result.code).toContain('set classes(val: string) {');
+
+    // Two-way convention for value
+    expect(result.code).toContain('"value":{"name":"value","mode":6}');
+    expect(result.code).toContain('"label":{"name":"label"}');
+  });
+
   it('maintains 100% interoperability with canonical Aurelia .ts + .html class pattern', () => {
     const canonicalCode = `
 <template>

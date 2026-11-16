@@ -20,6 +20,35 @@ export class PostDetailPage {
     return { post: found ?? null };
   }
 
+  /**
+   * Co-located mutations: executed when POST/action requests hit /posts/:slug
+   */
+  static actions = {
+    like: async (c: any) => {
+      const { initialPosts } = await import('../data.js');
+      const slug = c.req.param('slug');
+      const post = initialPosts.find((p) => p.slug === slug);
+      if (!post) return c.json({ error: 'Post not found' }, 404);
+      post.claps += 1;
+      return { success: true, claps: post.claps };
+    },
+    comment: async (c: any) => {
+      const { initialPosts } = await import('../data.js');
+      const slug = c.req.param('slug');
+      const post = initialPosts.find((p) => p.slug === slug);
+      if (!post) return c.json({ error: 'Post not found' }, 404);
+
+      const body = await c.req.json().catch(() => ({}));
+      const author = typeof body.author === 'string' && body.author.trim() ? body.author.trim() : 'Anonymous Engineer';
+      const text = typeof body.text === 'string' ? body.text.trim() : '';
+      if (!text) return c.json({ error: 'Comment text is required' }, 400);
+
+      const comment = { id: Date.now(), author, text, date: 'Just now' };
+      post.comments.push(comment);
+      return { success: true, comment };
+    },
+  };
+
   post: Post | null = null;
   clapping = false;
   submitting = false;
@@ -39,7 +68,7 @@ export class PostDetailPage {
 
     try {
       if (typeof fetch !== 'undefined') {
-        await fetch(`/api/posts/${encodeURIComponent(this.post.slug)}/like`, {
+        await fetch(`/posts/${encodeURIComponent(this.post.slug)}?_action=like`, {
           method: 'POST',
         });
       }
@@ -72,7 +101,7 @@ export class PostDetailPage {
 
     try {
       if (typeof fetch !== 'undefined') {
-        await fetch(`/api/posts/${encodeURIComponent(this.post.slug)}/comments`, {
+        await fetch(`/posts/${encodeURIComponent(this.post.slug)}?_action=comment`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ author, text }),

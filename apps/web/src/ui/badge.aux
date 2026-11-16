@@ -1,9 +1,8 @@
-<template containerless>
+<template containerless as-custom-element="ui-badge">
   <span class.bind="classes"><au-slot></au-slot></span>
 </template>
 
-<script lang="ts">
-import { bindable } from 'aurelia';
+<script setup lang="ts">
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
@@ -26,11 +25,11 @@ export const badgeVariants = cva(
   },
 );
 
-export class UiBadge {
-  @bindable variant: VariantProps<typeof badgeVariants>['variant'] = 'default';
+export type BadgeVariant = VariantProps<typeof badgeVariants>['variant'];
 
-  get classes(): string {
-    return cn(badgeVariants({ variant: this.variant }));
-  }
+let variant: BadgeVariant = 'default';
+
+get classes(): string {
+  return cn(badgeVariants({ variant: this.variant }));
 }
 </script>

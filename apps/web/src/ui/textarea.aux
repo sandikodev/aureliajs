@@ -1,4 +1,4 @@
-<template containerless>
+<template containerless as-custom-element="ui-textarea">
   <textarea
     id.bind="id"
     name.bind="name"
@@ -9,14 +9,10 @@
   ></textarea>
 </template>
 
-<script lang="ts">
-import { bindable, BindingMode } from 'aurelia';
-
-export class UiTextarea {
-  @bindable id = '';
-  @bindable name = '';
-  @bindable rows = 3;
-  @bindable({ mode: BindingMode.twoWay }) value = '';
-  @bindable placeholder = '';
-}
+<script setup lang="ts">
+let id = '';
+let name = '';
+let rows = 3;
+let value = '';
+let placeholder = '';
 </script>

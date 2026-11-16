@@ -381,7 +381,6 @@ ${defOptions.join('\n')}
 }, ${className});
 
 export default ${className};
-export { ${className} };
 `;
   } else if (!scriptContent) {
     // Template-only component

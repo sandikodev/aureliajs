@@ -1,16 +1,14 @@
-<template>
+<template as-custom-element="ui-card">
   <div class.bind="classes"><au-slot></au-slot></div>
 </template>
 
-<script lang="ts">
-import { bindable } from 'aurelia';
+<script setup lang="ts">
 import { cn } from '@/lib/utils';
 
-export class UiCard {
-  @bindable({ set: (v: unknown) => v === '' || v === true || v === 'true' }) padded = false;
+let padded: boolean | string = false;
 
-  get classes(): string {
-    return cn('rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden', this.padded ? 'p-5' : '');
-  }
+get classes(): string {
+  const isPadded = this.padded === '' || this.padded === true || (this.padded as unknown) === 'true';
+  return cn('rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden', isPadded ? 'p-5' : '');
 }
 </script>

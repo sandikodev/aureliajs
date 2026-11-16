@@ -1,13 +1,12 @@
-<template containerless>
+<template containerless as-custom-element="ui-alert">
   <div role="status" class.bind="classes"><au-slot></au-slot></div>
 </template>
 
-<script lang="ts">
-import { bindable } from 'aurelia';
+<script setup lang="ts">
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
-const alertVariants = cva(
+export const alertVariants = cva(
   'relative flex items-start gap-2.5 rounded-lg border px-3.5 py-3 text-sm [&>svg]:mt-0.5 [&>svg]:size-4',
   {
     variants: {
@@ -22,11 +21,11 @@ const alertVariants = cva(
   },
 );
 
-export class UiAlert {
-  @bindable tone: VariantProps<typeof alertVariants>['tone'] = 'info';
+export type AlertTone = VariantProps<typeof alertVariants>['tone'];
 
-  get classes(): string {
-    return cn(alertVariants({ tone: this.tone }));
-  }
+let tone: AlertTone = 'info';
+
+get classes(): string {
+  return cn(alertVariants({ tone: this.tone }));
 }
 </script>

@@ -127,7 +127,103 @@ export function transformScriptSetup(setupCode: string): TransformedSetup {
       continue;
     }
 
-    // 3. Top-level functions: async function name(...) { ... } or function name(...) { ... }
+    // 3. TypeScript Type Aliases: (export )?type Name<...> = ...;
+    const typeMatch = /^(?:export\s+)?type\s+([a-zA-Z0-9_$]+)/.exec(rawCode.slice(pos));
+    if (typeMatch) {
+      let cur = pos;
+      let pDepth = 0;
+      let bDepth = 0;
+      let cDepth = 0;
+      let aDepth = 0;
+      while (cur < len) {
+        const ch = rawCode[cur]!;
+        if (ch === '(') pDepth++;
+        else if (ch === ')') pDepth = Math.max(0, pDepth - 1);
+        else if (ch === '[') bDepth++;
+        else if (ch === ']') bDepth = Math.max(0, bDepth - 1);
+        else if (ch === '{') cDepth++;
+        else if (ch === '}') cDepth = Math.max(0, cDepth - 1);
+        else if (ch === '<') aDepth++;
+        else if (ch === '>') aDepth = Math.max(0, aDepth - 1);
+        else if (ch === ';' && pDepth === 0 && bDepth === 0 && cDepth === 0 && aDepth === 0) {
+          cur++;
+          break;
+        }
+        cur++;
+      }
+      const stmt = rawCode.slice(pos, cur).trim();
+      if (stmt) moduleConsts.push(stmt.endsWith(';') ? stmt : stmt + ';');
+      pos = cur;
+      continue;
+    }
+
+    // 4. TypeScript Interfaces: (export )?interface Name { ... }
+    const ifaceMatch = /^(?:export\s+)?interface\s+([a-zA-Z0-9_$]+)(?:<[^>]+>)?(?:\s+extends\s+[^{]+)?\s*\{/.exec(rawCode.slice(pos));
+    if (ifaceMatch) {
+      const headerLength = ifaceMatch[0].length;
+      let braceDepth = 1;
+      let bodyEnd = pos + headerLength;
+      while (braceDepth > 0 && bodyEnd < len) {
+        const ch = rawCode[bodyEnd]!;
+        if (ch === '{') braceDepth++;
+        else if (ch === '}') braceDepth--;
+        bodyEnd++;
+      }
+      const stmt = rawCode.slice(pos, bodyEnd).trim();
+      if (stmt) moduleConsts.push(stmt);
+      pos = bodyEnd;
+      continue;
+    }
+
+    // 5. Getters: (public )?get name() (: type)? { ... }
+    const getterMatch = /^(?:export\s+)?(?:public\s+)?get\s+([a-zA-Z0-9_$]+)\s*\(\)\s*(?::\s*([^{]+))?\s*\{/.exec(rawCode.slice(pos));
+    if (getterMatch) {
+      const propName = getterMatch[1]!;
+      const returnType = getterMatch[2]?.trim() ? `: ${getterMatch[2].trim()}` : '';
+      const headerLength = getterMatch[0].length;
+
+      let braceDepth = 1;
+      let bodyEnd = pos + headerLength;
+      while (braceDepth > 0 && bodyEnd < len) {
+        const ch = rawCode[bodyEnd]!;
+        if (ch === '{') braceDepth++;
+        else if (ch === '}') braceDepth--;
+        bodyEnd++;
+      }
+
+      const body = rawCode.slice(pos + headerLength, bodyEnd - 1).trim();
+      const methodDef = `  get ${propName}()${returnType} {\n    ${body}\n  }`;
+      classMethods.push(methodDef);
+
+      pos = bodyEnd;
+      continue;
+    }
+
+    // 6. Setters: (public )?set name(param) { ... }
+    const setterMatch = /^(?:export\s+)?(?:public\s+)?set\s+([a-zA-Z0-9_$]+)\s*\(([^)]+)\)\s*(?::\s*([^{]+))?\s*\{/.exec(rawCode.slice(pos));
+    if (setterMatch) {
+      const propName = setterMatch[1]!;
+      const params = setterMatch[2]!;
+      const headerLength = setterMatch[0].length;
+
+      let braceDepth = 1;
+      let bodyEnd = pos + headerLength;
+      while (braceDepth > 0 && bodyEnd < len) {
+        const ch = rawCode[bodyEnd]!;
+        if (ch === '{') braceDepth++;
+        else if (ch === '}') braceDepth--;
+        bodyEnd++;
+      }
+
+      const body = rawCode.slice(pos + headerLength, bodyEnd - 1).trim();
+      const methodDef = `  set ${propName}(${params}) {\n    ${body}\n  }`;
+      classMethods.push(methodDef);
+
+      pos = bodyEnd;
+      continue;
+    }
+
+    // 7. Top-level functions: async function name(...) { ... } or function name(...) { ... }
     const funcMatch = /^(?:export\s+)?(async\s+)?function\s+([a-zA-Z0-9_$]+)\s*\(([^)]*)\)(?:\s*:\s*[^{]+)?\s*\{/.exec(rawCode.slice(pos));
     if (funcMatch) {
       const isAsync = Boolean(funcMatch[1]);
@@ -154,7 +250,7 @@ export function transformScriptSetup(setupCode: string): TransformedSetup {
       continue;
     }
 
-    // 4. Top-level let / var declarations (auto-inferred bindables & class fields)
+    // 8. Top-level let / var declarations (auto-inferred bindables & class fields)
     const letMatch = /^(?:export\s+)?(?:let|var)\s+([a-zA-Z0-9_$]+)(?:\s*:\s*([^=;]+))?(?:\s*=\s*([^;]+))?;?/.exec(rawCode.slice(pos));
     if (letMatch) {
       const varName = letMatch[1]!;
@@ -163,7 +259,10 @@ export function transformScriptSetup(setupCode: string): TransformedSetup {
 
       // If variable doesn't start with private prefix '_', treat as bindable
       if (!varName.startsWith('_')) {
-        inferredBindables[varName] = { name: varName };
+        const isTwoWay = varName === 'value' || varName === 'checked' || varName === 'model';
+        inferredBindables[varName] = isTwoWay
+          ? { name: varName, mode: 6 }
+          : { name: varName };
       }
 
       let fieldStr = `  public ${varName}`;
@@ -176,19 +275,32 @@ export function transformScriptSetup(setupCode: string): TransformedSetup {
       continue;
     }
 
-    // 5. Top-level const declarations (module-level constants)
-    const constMatch = /^(?:export\s+)?const\s+([a-zA-Z0-9_$]+)(?:\s*:\s*([^=;]+))?\s*=\s*([^;]+);?/.exec(rawCode.slice(pos));
-    if (constMatch) {
-      const constName = constMatch[1]!;
-      const typeAnno = constMatch[2]?.trim();
-      const initVal = constMatch[3]?.trim();
-
-      let constStr = `const ${constName}`;
-      if (typeAnno) constStr += `: ${typeAnno}`;
-      constStr += ` = ${initVal};`;
-
-      moduleConsts.push(constStr);
-      pos += constMatch[0].length;
+    // 9. Top-level const declarations (module-level constants, preserving export)
+    const constHeaderMatch = /^(?:export\s+)?const\s+([a-zA-Z0-9_$]+)/.exec(rawCode.slice(pos));
+    if (constHeaderMatch) {
+      let cur = pos;
+      let pDepth = 0;
+      let bDepth = 0;
+      let cDepth = 0;
+      while (cur < len) {
+        const ch = rawCode[cur]!;
+        if (ch === '(') pDepth++;
+        else if (ch === ')') pDepth = Math.max(0, pDepth - 1);
+        else if (ch === '[') bDepth++;
+        else if (ch === ']') bDepth = Math.max(0, bDepth - 1);
+        else if (ch === '{') cDepth++;
+        else if (ch === '}') cDepth = Math.max(0, cDepth - 1);
+        else if (ch === ';' && pDepth === 0 && bDepth === 0 && cDepth === 0) {
+          cur++;
+          break;
+        }
+        cur++;
+      }
+      const rawStmt = rawCode.slice(pos, cur).trim();
+      if (rawStmt) {
+        moduleConsts.push(rawStmt.endsWith(';') ? rawStmt : rawStmt + ';');
+      }
+      pos = cur;
       continue;
     }
 

@@ -1,26 +1,23 @@
-<template containerless>
-  <span class.bind="classes" aria-hidden="true">${initials}</span>
+<template containerless as-custom-element="ui-avatar">
+  <span class.bind="classes" aria-hidden="true">\${initials}</span>
 </template>
 
-<script lang="ts">
-import { bindable } from 'aurelia';
-import { cn, initials } from '@/lib/utils';
+<script setup lang="ts">
+import { cn, initials as getInitials } from '@/lib/utils';
 
-export class UiAvatar {
-  @bindable name = '';
-  @bindable size: 'sm' | 'default' | 'lg' = 'default';
+let name = '';
+let size: 'sm' | 'default' | 'lg' = 'default';
 
-  get initials(): string {
-    return initials(this.name);
-  }
+get initials(): string {
+  return getInitials(this.name);
+}
 
-  get classes(): string {
-    return cn(
-      'inline-flex shrink-0 items-center justify-center rounded-full bg-muted font-medium text-muted-foreground ring-1 ring-border select-none',
-      this.size === 'sm' && 'size-6 text-[10px]',
-      this.size === 'default' && 'size-8 text-xs',
-      this.size === 'lg' && 'size-10 text-sm',
-    );
-  }
+get classes(): string {
+  return cn(
+    'inline-flex shrink-0 items-center justify-center rounded-full bg-muted font-medium text-muted-foreground ring-1 ring-border select-none',
+    this.size === 'sm' && 'size-6 text-[10px]',
+    this.size === 'default' && 'size-8 text-xs',
+    this.size === 'lg' && 'size-10 text-sm',
+  );
 }
 </script>
