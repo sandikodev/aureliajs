@@ -387,56 +387,63 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
           <!-- Resizable Divider for Compiler Options -->
           <div id="compilerOptionsSplitter" class="split-divider-v" title="Drag to resize compiler options panel"></div>
 
-          <!-- Resizable Compiler & SSR Options Drawer -->
-          <div id="compilerOptionsDrawer" class="h-32 border-t border-border bg-surface p-2.5 select-none flex flex-col flex-shrink-0 overflow-y-auto">
-            <div class="flex items-center justify-between mb-1.5 flex-shrink-0">
-              <span class="text-[11px] font-mono font-semibold text-gray-300 flex items-center space-x-1.5">
-                <span>⚙</span>
-                <span>COMPILER & SSR OPTIONS</span>
-              </span>
+          <!-- Resizable Compiler & SSR Options Drawer (Default Maximized, Click Header to Minimize/Maximize) -->
+          <div id="compilerOptionsDrawer" class="border-t border-border bg-surface select-none flex flex-col flex-shrink-0 overflow-hidden" style="height: 144px;">
+            <!-- Clickable Header Bar (Height 28px) -->
+            <div id="compilerOptionsHeader" class="h-7 px-2.5 flex items-center justify-between cursor-pointer hover:bg-hover transition flex-shrink-0" title="Click to minimize / maximize options panel">
+              <div class="flex items-center space-x-1.5">
+                <span id="compilerOptionsArrow" class="text-[9px] text-gray-500 font-mono select-none">▼</span>
+                <span class="text-[11px] font-mono font-semibold text-gray-300 flex items-center space-x-1.5">
+                  <span>⚙</span>
+                  <span>COMPILER & SSR OPTIONS</span>
+                </span>
+              </div>
               <span class="text-[10px] text-gray-500 font-mono">Per-Example Profiling Active</span>
             </div>
 
-            <div class="font-mono text-[11px] text-gray-300 space-y-1.5 bg-background p-2.5 rounded border border-border/60">
-              <div class="text-gray-400 text-[10px]">result = await renderAurelia(component, {</div>
-              
-              <div class="pl-4 flex items-center space-x-6">
-                <span class="text-gray-400">mode:</span>
-                <label class="flex items-center space-x-1.5 cursor-pointer">
-                  <input type="radio" name="opt-runtime-mode" value="ssr" checked class="text-accent focus:ring-0">
-                  <span class="text-emerald-400 font-semibold">"ssr"</span>
-                </label>
-                <label class="flex items-center space-x-1.5 cursor-pointer">
-                  <input type="radio" name="opt-runtime-mode" value="client" class="text-accent focus:ring-0">
-                  <span class="text-gray-400">"client"</span>
-                </label>
-                <label class="flex items-center space-x-1.5 cursor-pointer">
-                  <input type="radio" name="opt-runtime-mode" value="resumable" class="text-accent focus:ring-0">
-                  <span class="text-purple-400">"resumable"</span>
-                </label>
-              </div>
+            <!-- Expandable Options Body Container -->
+            <div id="compilerOptionsBody" class="flex-1 p-2.5 pt-0 overflow-y-auto">
+              <div class="font-mono text-[11px] text-gray-300 space-y-1.5 bg-background p-2.5 rounded border border-border/60">
+                <div class="text-gray-400 text-[10px]">result = await renderAurelia(component, {</div>
+                
+                <div class="pl-4 flex items-center space-x-6">
+                  <span class="text-gray-400">mode:</span>
+                  <label class="flex items-center space-x-1.5 cursor-pointer">
+                    <input type="radio" name="opt-runtime-mode" value="ssr" checked class="text-accent focus:ring-0">
+                    <span class="text-emerald-400 font-semibold">"ssr"</span>
+                  </label>
+                  <label class="flex items-center space-x-1.5 cursor-pointer">
+                    <input type="radio" name="opt-runtime-mode" value="client" class="text-accent focus:ring-0">
+                    <span class="text-gray-400">"client"</span>
+                  </label>
+                  <label class="flex items-center space-x-1.5 cursor-pointer">
+                    <input type="radio" name="opt-runtime-mode" value="resumable" class="text-accent focus:ring-0">
+                    <span class="text-purple-400">"resumable"</span>
+                  </label>
+                </div>
 
-              <div class="pl-4 flex items-center space-x-6">
-                <span class="text-gray-400">strategy:</span>
-                <label class="flex items-center space-x-1.5 cursor-pointer">
-                  <input type="radio" name="opt-strategy" value="hydrate" checked class="text-accent focus:ring-0">
-                  <span class="text-white">"hydrate"</span>
-                </label>
-                <label class="flex items-center space-x-1.5 cursor-pointer">
-                  <input type="radio" name="opt-strategy" value="static" class="text-accent focus:ring-0">
-                  <span class="text-gray-400">"static (zero-js)"</span>
-                </label>
-              </div>
+                <div class="pl-4 flex items-center space-x-6">
+                  <span class="text-gray-400">strategy:</span>
+                  <label class="flex items-center space-x-1.5 cursor-pointer">
+                    <input type="radio" name="opt-strategy" value="hydrate" checked class="text-accent focus:ring-0">
+                    <span class="text-white">"hydrate"</span>
+                  </label>
+                  <label class="flex items-center space-x-1.5 cursor-pointer">
+                    <input type="radio" name="opt-strategy" value="static" class="text-accent focus:ring-0">
+                    <span class="text-gray-400">"static (zero-js)"</span>
+                  </label>
+                </div>
 
-              <div class="pl-4 flex items-center space-x-6">
-                <span class="text-gray-400">whitelistAudit:</span>
-                <label class="flex items-center space-x-1.5 cursor-pointer">
-                  <input type="checkbox" id="opt-whitelist-audit" checked class="text-accent focus:ring-0 rounded">
-                  <span class="text-cyan-400">true</span>
-                </label>
-              </div>
+                <div class="pl-4 flex items-center space-x-6">
+                  <span class="text-gray-400">whitelistAudit:</span>
+                  <label class="flex items-center space-x-1.5 cursor-pointer">
+                    <input type="checkbox" id="opt-whitelist-audit" checked class="text-accent focus:ring-0 rounded">
+                    <span class="text-cyan-400">true</span>
+                  </label>
+                </div>
 
-              <div class="text-gray-400 text-[10px]">});</div>
+                <div class="text-gray-400 text-[10px]">});</div>
+              </div>
             </div>
           </div>
         </div>
@@ -566,6 +573,9 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     const compilerOptionsSplitter = document.getElementById('compilerOptionsSplitter');
     const consoleDrawer = document.getElementById('consoleDrawer');
     const compilerOptionsDrawer = document.getElementById('compilerOptionsDrawer');
+    const compilerOptionsHeader = document.getElementById('compilerOptionsHeader');
+    const compilerOptionsArrow = document.getElementById('compilerOptionsArrow');
+    const compilerOptionsBody = document.getElementById('compilerOptionsBody');
 
     // ----------------------------------------------------
     // RESIZABLE SPLIT PANES LOGIC (Smooth & Zero Lag)
@@ -615,8 +625,19 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         const jsView = document.getElementById('view-js');
         const viewRect = jsView.getBoundingClientRect();
         const newHeight = viewRect.bottom - e.clientY;
-        const clampedHeight = Math.max(32, Math.min(viewRect.height - 80, newHeight));
-        compilerOptionsDrawer.style.height = clampedHeight + 'px';
+        const clampedHeight = Math.max(28, Math.min(viewRect.height - 80, newHeight));
+        if (clampedHeight <= 36) {
+          isOptionsCollapsed = true;
+          compilerOptionsDrawer.style.height = '28px';
+          compilerOptionsArrow.textContent = '▲';
+          compilerOptionsBody.classList.add('hidden');
+        } else {
+          isOptionsCollapsed = false;
+          lastOptionsHeight = clampedHeight;
+          compilerOptionsDrawer.style.height = clampedHeight + 'px';
+          compilerOptionsArrow.textContent = '▼';
+          compilerOptionsBody.classList.remove('hidden');
+        }
       }
     });
 
@@ -1351,6 +1372,24 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       } else {
         consoleDrawer.style.height = '144px';
         consoleArrow.textContent = '▼';
+      }
+    });
+
+    // Compiler & SSR Options Drawer minimize / maximize toggle (on JS Output view)
+    let isOptionsCollapsed = false;
+    let lastOptionsHeight = 144;
+
+    compilerOptionsHeader.addEventListener('click', () => {
+      isOptionsCollapsed = !isOptionsCollapsed;
+      if (isOptionsCollapsed) {
+        lastOptionsHeight = Math.max(140, compilerOptionsDrawer.offsetHeight);
+        compilerOptionsDrawer.style.height = '28px';
+        compilerOptionsArrow.textContent = '▲';
+        compilerOptionsBody.classList.add('hidden');
+      } else {
+        compilerOptionsDrawer.style.height = (lastOptionsHeight || 144) + 'px';
+        compilerOptionsArrow.textContent = '▼';
+        compilerOptionsBody.classList.remove('hidden');
       }
     });
 
