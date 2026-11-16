@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsc",
     "inspect": "bun src/cli/index.ts",
-    "serve": "bun src/cli/index.ts --serve",
+    "serve": "bun --watch src/cli/index.ts --serve",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [
