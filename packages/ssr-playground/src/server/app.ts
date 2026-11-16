@@ -6,6 +6,7 @@
 import { Hono } from 'hono';
 import { FIXTURES } from '../fixtures/index.js';
 import { inspectAureliaSsr } from '../engine/inspector.js';
+import { compilePlaygroundExample, type CompileRequest } from '../engine/compiler.js';
 import { renderAurelia, serializeState, createHtmlDocument, type RenderContext } from '@hono/aurelia-ssr';
 import { getFaviconSvg, getClientHydrationScript, getPreviewStylesheet } from './assets.js';
 import { renderDashboardHtml } from './dashboard.js';
@@ -119,6 +120,23 @@ export function createPlaygroundApp(): Hono {
     }
   });
 
+  // API: Dynamic Compilation & SSR Pipeline (Live code execution)
+  app.post('/api/compile', async (c) => {
+    try {
+      const body = await c.req.json<CompileRequest>();
+      const result = await compilePlaygroundExample(body);
+      return c.json(result);
+    } catch (error) {
+      return c.json(
+        {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        500
+      );
+    }
+  });
+
   // Iframe Preview Route: Renders complete HTML document for browser inspection
   app.get('/preview/:fixture', async (c) => {
     const fixtureId = c.req.param('fixture');
@@ -143,8 +161,36 @@ export function createPlaygroundApp(): Hono {
     });
 
     // In addition to external asset links, also inline the stylesheet and client script into the document
-    // so the preview is 100% self-contained and bulletproof against adblockers, browser caching, or extension interference
+    // along with the postMessage console bridge so logs forward to the parent playground UI
+    const consoleBridgeScript = `
+    <script>
+      (function() {
+        var levels = ['log', 'info', 'warn', 'error'];
+        levels.forEach(function(lvl) {
+          var orig = console[lvl];
+          console[lvl] = function() {
+            orig.apply(console, arguments);
+            var args = Array.prototype.slice.call(arguments).map(function(item) {
+              if (typeof item === 'object') {
+                try { return JSON.stringify(item); } catch(e) { return String(item); }
+              }
+              return String(item);
+            });
+            try {
+              window.parent.postMessage({
+                type: 'playground:console',
+                level: lvl,
+                message: args.join(' ')
+              }, '*');
+            } catch(e) {}
+          };
+        });
+      })();
+    </script>
+    `;
+
     const enrichedDocument = document
+      .replace('<head>', `<head>\n${consoleBridgeScript}`)
       .replace('</head>', `    <style>\n${getPreviewStylesheet()}\n    </style>\n  </head>`)
       .replace('</body>', `    <script>\n${getClientHydrationScript()}\n    </script>\n  </body>`);
 

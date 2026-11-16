@@ -74,7 +74,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       border-left: 3px solid #eab308 !important;
       pointer-events: none;
       box-shadow: inset 0 0 8px rgba(234, 179, 8, 0.12);
-      transition: top 0.1s ease-out;
+      transition: top 0.08s ease-out;
     }
 
     .gutter-line-active {
@@ -136,7 +136,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         <span class="text-base font-extrabold tracking-wider text-white">AURELIA 2</span>
       </a>
 
-      <!-- Category & Example Dropdown Selector -->
+      <!-- Category & Example Accordion Dropdown Selector -->
       <div class="relative">
         <button id="menuDropdownBtn" class="flex items-center space-x-2 px-3 py-1.5 rounded-md bg-hover hover:bg-border text-gray-200 border border-border text-xs font-medium transition">
           <svg class="size-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
@@ -149,9 +149,9 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         </button>
 
         <!-- Dropdown Menu List (Exact Svelte Playground style) -->
-        <div id="exampleDropdownMenu" class="hidden absolute top-full left-0 mt-1 w-64 max-h-[80vh] overflow-y-auto bg-[#161b22] border border-border rounded-lg shadow-2xl z-50 py-1">
+        <div id="exampleDropdownMenu" class="hidden absolute top-full left-0 mt-1 w-72 max-h-[82vh] overflow-y-auto bg-[#161b22] border border-border rounded-lg shadow-2xl z-50 py-1">
           <div id="dropdownExamplesList" class="py-1">
-            <!-- Populated dynamically from disk examples -->
+            <!-- Populated dynamically with accordion categories -->
           </div>
         </div>
       </div>
@@ -203,14 +203,14 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
           <div id="traceHighlightBar" class="hidden editor-line-highlight"></div>
         </div>
 
-        <!-- Code Textarea -->
+        <!-- Code Textarea with Real Code Editor Behavior -->
         <textarea id="codeEditorInput" spellcheck="false" class="flex-1 bg-transparent text-gray-200 p-3 text-xs font-mono leading-6 resize-none focus:outline-none overflow-auto whitespace-pre selection:bg-accent/30 z-10"></textarea>
       </div>
 
       <!-- Status Footer -->
       <div class="h-6 border-t border-border bg-surface px-3 flex items-center justify-between text-[11px] text-gray-500 font-mono select-none">
         <span id="editorStatusText">File • UTF-8</span>
-        <span>Aurelia 2 Engine Active</span>
+        <span id="editorLiveIndicator" class="text-emerald-400">● Live Compilation Ready</span>
       </div>
     </div>
 
@@ -246,7 +246,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       <!-- Tab 1: Result (Live Preview + Console Drawer) -->
       <div id="view-result" class="output-view flex-1 flex flex-col relative overflow-hidden">
         <div class="flex-1 bg-white relative">
-          <iframe id="previewIframe" src="/preview/counter-card" class="w-full h-full border-0"></iframe>
+          <iframe id="previewIframe" class="w-full h-full border-0"></iframe>
         </div>
 
         <!-- Console Drawer -->
@@ -262,7 +262,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
             </button>
           </div>
           <div id="consoleLogsStream" class="flex-1 p-2 font-mono text-xs overflow-y-auto space-y-1 text-gray-300 select-text">
-            <div class="text-gray-500 italic text-[11px]">[Playground Ready] Event triggers and SSR hydration messages appear here...</div>
+            <div class="text-gray-500 italic text-[11px]">[Playground Ready] Event triggers, user console.log, and hydration logs appear here...</div>
           </div>
         </div>
       </div>
@@ -273,44 +273,56 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
           /* Select a component to see its compiled Aurelia 2 definition */
         </div>
 
-        <!-- Aurelia 2 Execution & Compiler Modes Drawer -->
+        <!-- Aurelia 2 Execution & Compiler Options (Svelte Playground Style) -->
         <div class="border-t border-border bg-surface p-3 select-none">
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-mono font-semibold text-gray-300 flex items-center space-x-1.5">
               <span>⚙</span>
-              <span>AURELIA 2 RUNTIME & COMPILER MODES</span>
+              <span>COMPILER & SSR OPTIONS</span>
             </span>
-            <span class="text-[11px] text-gray-500 font-mono">renderAurelia() / CSR / Resumable</span>
+            <span class="text-[11px] text-gray-500 font-mono">renderAurelia() config</span>
           </div>
 
           <div class="font-mono text-xs text-gray-300 space-y-2 bg-background p-3 rounded border border-border/60">
-            <div class="flex items-center space-x-4">
-              <span class="text-gray-400">Execution Mode:</span>
+            <div class="text-gray-400 text-[11px] mb-1">result = await renderAurelia(component, {</div>
+            
+            <div class="pl-4 flex items-center space-x-6">
+              <span class="text-gray-400">mode:</span>
               <label class="flex items-center space-x-1.5 cursor-pointer">
                 <input type="radio" name="opt-runtime-mode" value="ssr" checked class="text-accent focus:ring-0">
-                <span class="text-white">SSR (Pre-render)</span>
+                <span class="text-emerald-400 font-semibold">"ssr"</span>
               </label>
               <label class="flex items-center space-x-1.5 cursor-pointer">
-                <input type="radio" name="opt-runtime-mode" value="csr" class="text-accent focus:ring-0">
-                <span class="text-gray-400">CSR (SPA Mount)</span>
+                <input type="radio" name="opt-runtime-mode" value="client" class="text-accent focus:ring-0">
+                <span class="text-gray-400">"client"</span>
               </label>
               <label class="flex items-center space-x-1.5 cursor-pointer">
                 <input type="radio" name="opt-runtime-mode" value="resumable" class="text-accent focus:ring-0">
-                <span class="text-purple-400">Resumable (Zero-Hydration)</span>
+                <span class="text-purple-400">"resumable"</span>
               </label>
             </div>
 
-            <div class="flex items-center space-x-4 pt-1 border-t border-border/40">
-              <span class="text-gray-400">Hydration Strategy:</span>
+            <div class="pl-4 flex items-center space-x-6">
+              <span class="text-gray-400">strategy:</span>
               <label class="flex items-center space-x-1.5 cursor-pointer">
-                <input type="radio" name="opt-strategy" value="dual" checked class="text-accent focus:ring-0">
-                <span class="text-white">Dual-Engine (Adopt SSR DOM)</span>
+                <input type="radio" name="opt-strategy" value="hydrate" checked class="text-accent focus:ring-0">
+                <span class="text-white">"hydrate"</span>
               </label>
               <label class="flex items-center space-x-1.5 cursor-pointer">
                 <input type="radio" name="opt-strategy" value="static" class="text-accent focus:ring-0">
-                <span class="text-gray-400">Static (Zero-JS)</span>
+                <span class="text-gray-400">"static (zero-js)"</span>
               </label>
             </div>
+
+            <div class="pl-4 flex items-center space-x-6">
+              <span class="text-gray-400">whitelistAudit:</span>
+              <label class="flex items-center space-x-1.5 cursor-pointer">
+                <input type="checkbox" id="opt-whitelist-audit" checked class="text-accent focus:ring-0 rounded">
+                <span class="text-cyan-400">true</span>
+              </label>
+            </div>
+
+            <div class="text-gray-400 text-[11px] mt-1">});</div>
           </div>
         </div>
       </div>
@@ -366,7 +378,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
             </div>
             <div class="p-3 bg-background rounded border border-border flex items-center justify-between">
               <span class="text-gray-400">Script Context XSS Check:</span>
-              <span class="font-bold text-emerald-400">SECURE (Escaped \\u003c, \\u003e)</span>
+              <span id="metricXssStatus" class="font-bold text-emerald-400">SECURE (Escaped \\u003c, \\u003e)</span>
             </div>
           </div>
         </div>
@@ -400,10 +412,12 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
   <script>
     // Real Examples Manifest injected from server / disk
     let EXAMPLES = JSON.parse(document.getElementById('__EXAMPLES_DATA__').textContent || '{}');
+    const ORIGINAL_EXAMPLES = JSON.parse(JSON.stringify(EXAMPLES));
     let activeExampleId = 'counter-card';
     let activeFileName = '';
     let activeHighlightedLine = 0;
     let consoleLogCount = 0;
+    let liveUpdateTimer = null;
 
     // DOM Elements
     const codeEditorInput = document.getElementById('codeEditorInput');
@@ -420,8 +434,10 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     const exampleDropdownMenu = document.getElementById('exampleDropdownMenu');
     const dropdownExamplesList = document.getElementById('dropdownExamplesList');
     const componentModelBadge = document.getElementById('componentModelBadge');
+    const editorLiveIndicator = document.getElementById('editorLiveIndicator');
+    const optWhitelistAudit = document.getElementById('opt-whitelist-audit');
 
-    // Initialize Dropdown & Manifest
+    // Initialize Dropdown with Svelte-style expandable categories
     function initDropdown() {
       dropdownExamplesList.innerHTML = '';
       const categories = {};
@@ -433,12 +449,19 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
 
       Object.entries(categories).forEach(([categoryName, items]) => {
         const catDiv = document.createElement('div');
-        catDiv.className = 'py-1';
+        catDiv.className = 'py-0.5';
         
-        const catHeader = document.createElement('div');
-        catHeader.className = 'px-3 py-1 text-[11px] font-semibold text-gray-400 select-none flex items-center space-x-1.5';
-        catHeader.innerHTML = '<span class="text-[9px] text-gray-500">›</span><span>' + categoryName + '</span>';
-        catDiv.appendChild(catHeader);
+        const catHeader = document.createElement('button');
+        catHeader.className = 'w-full px-3 py-1.5 text-xs font-semibold text-gray-300 select-none flex items-center justify-between hover:bg-hover rounded transition';
+        catHeader.innerHTML = '<div class="flex items-center space-x-1.5"><span class="text-[10px] text-gray-500 font-mono">›</span><span>' + categoryName + '</span></div><span class="text-[10px] text-gray-500">' + items.length + '</span>';
+        
+        const itemsContainer = document.createElement('div');
+        itemsContainer.className = 'py-0.5 space-y-0.5';
+
+        catHeader.addEventListener('click', (e) => {
+          e.stopPropagation();
+          itemsContainer.classList.toggle('hidden');
+        });
 
         items.forEach(it => {
           const btn = document.createElement('button');
@@ -450,9 +473,11 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
             loadExample(it.id);
             exampleDropdownMenu.classList.add('hidden');
           });
-          catDiv.appendChild(btn);
+          itemsContainer.appendChild(btn);
         });
 
+        catDiv.appendChild(catHeader);
+        catDiv.appendChild(itemsContainer);
         dropdownExamplesList.appendChild(catDiv);
       });
     }
@@ -465,7 +490,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       currentExampleLabel.textContent = ex.title;
 
       // Update Active Item in Dropdown
-      document.querySelectorAll('#dropdownExamplesList button').forEach(btn => {
+      document.querySelectorAll('#dropdownExamplesList button[data-id]').forEach(btn => {
         if (btn.getAttribute('data-id') === id) {
           btn.className = 'w-full text-left pl-6 pr-3 py-1.5 text-xs text-accent font-medium bg-accent/10 rounded transition block';
         } else {
@@ -485,17 +510,17 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         componentModelBadge.className = 'text-[11px] font-mono text-gray-400';
       }
 
-      // Rebuild File Tabs for THIS example's actual files!
+      // Rebuild File Tabs for THIS example's actual files
       renderFileTabs(ex);
 
       // Load Default File
       switchFile(ex.defaultFile || Object.keys(ex.files)[0]);
 
-      // Run Server Inspection
-      runInspection();
+      // Run Dynamic Compilation & SSR
+      compileAndRender();
     }
 
-    // Render Dynamic File Tabs
+    // Render Dynamic File Tabs with dirty state tracking
     function renderFileTabs(ex) {
       editorTabsBar.innerHTML = '';
       const fileNames = Object.keys(ex.files);
@@ -504,7 +529,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         const btn = document.createElement('button');
         btn.className = 'file-tab';
         btn.setAttribute('data-filename', filename);
-        btn.innerHTML = '<span>' + filename + '</span>';
+        updateTabLabel(btn, filename);
         
         btn.addEventListener('click', () => {
           switchFile(filename);
@@ -513,21 +538,35 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       });
     }
 
+    function updateTabLabel(tabEl, filename) {
+      const orig = ORIGINAL_EXAMPLES[activeExampleId]?.files[filename];
+      const curr = EXAMPLES[activeExampleId]?.files[filename];
+      const isDirty = orig !== undefined && curr !== undefined && orig !== curr;
+      tabEl.innerHTML = '<span>' + filename + (isDirty ? '*' : '') + '</span>';
+      if (isDirty) {
+        tabEl.classList.add('text-amber-300');
+      } else {
+        tabEl.classList.remove('text-amber-300');
+      }
+    }
+
     // Switch File in Editor
     function switchFile(filename) {
       const ex = EXAMPLES[activeExampleId];
-      if (!ex || !ex.files[filename]) return;
+      if (!ex || ex.files[filename] === undefined) return;
 
       activeFileName = filename;
       codeEditorInput.value = ex.files[filename];
 
       // Update active tab styling
       document.querySelectorAll('.file-tab').forEach(tab => {
-        if (tab.getAttribute('data-filename') === filename) {
+        const f = tab.getAttribute('data-filename');
+        if (f === filename) {
           tab.classList.add('file-tab-active');
         } else {
           tab.classList.remove('file-tab-active');
         }
+        updateTabLabel(tab, f);
       });
 
       // Update footer
@@ -541,15 +580,14 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     function updateLineNumbers() {
       const lines = codeEditorInput.value.split(String.fromCharCode(10)).length;
       let numbersHtml = '';
-      for (let i = 1; i <= Math.max(lines, 15); i++) {
+      for (let i = 1; i <= Math.max(lines, 16); i++) {
         numbersHtml += '<div data-line="' + i + '">' + i + '</div>';
       }
       editorLineNumbers.innerHTML = numbersHtml;
     }
 
-    // Clean Line-Level Hover Tracing (Zero text duplication!)
+    // Clean Line-Level Hover Tracing (Zero text duplication)
     function highlightLine(targetFile, searchPhrase) {
-      // Auto-switch file tab if necessary
       if (targetFile && targetFile !== activeFileName) {
         switchFile(targetFile);
       }
@@ -570,7 +608,6 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       const lineNum = before.split(String.fromCharCode(10)).length;
       activeHighlightedLine = lineNum;
 
-      // Position highlight bar over line (height: 24px)
       const lineHeight = 24;
       const targetTop = (lineNum - 1) * lineHeight;
       codeEditorInput.scrollTop = Math.max(0, targetTop - 48);
@@ -579,7 +616,6 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       traceHighlightBar.style.height = lineHeight + 'px';
       traceHighlightBar.classList.remove('hidden');
 
-      // Highlight line number in gutter
       document.querySelectorAll('#editorLineNumbers div').forEach(div => {
         if (Number(div.getAttribute('data-line')) === lineNum) {
           div.classList.add('gutter-line-active');
@@ -595,132 +631,127 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       document.querySelectorAll('.gutter-line-active').forEach(div => div.classList.remove('gutter-line-active'));
     }
 
-    // Run Server Inspection & Preview
-    async function runInspection() {
+    // Real Dynamic Compilation & Execution Pipeline
+    async function compileAndRender() {
       const ex = EXAMPLES[activeExampleId];
-      const compTarget = ex.componentName || 'counter-card';
-      previewIframe.src = '/preview/' + compTarget + '?t=' + Date.now();
+      if (!ex) return;
+
+      // Update current file buffer from editor
+      if (activeFileName && ex.files[activeFileName] !== undefined) {
+        ex.files[activeFileName] = codeEditorInput.value;
+      }
+
+      const activeTab = document.querySelector('.file-tab[data-filename="' + activeFileName + '"]');
+      if (activeTab) updateTabLabel(activeTab, activeFileName);
+
+      const runtimeModeEl = document.querySelector('input[name="opt-runtime-mode"]:checked');
+      const strategyEl = document.querySelector('input[name="opt-strategy"]:checked');
+      const mode = runtimeModeEl ? runtimeModeEl.value : 'ssr';
+      const strategy = strategyEl ? strategyEl.value : 'hydrate';
+      const whitelistAudit = optWhitelistAudit ? optWhitelistAudit.checked : true;
+
+      editorLiveIndicator.textContent = '● Compiling...';
+      editorLiveIndicator.className = 'text-amber-400 animate-pulse';
 
       try {
-        const res = await fetch('/api/inspect', {
+        const res = await fetch('/api/compile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            fixture: compTarget,
-            context: ex.context,
+            exampleId: activeExampleId,
+            files: ex.files,
+            mode,
+            strategy,
+            whitelistAudit
           })
         });
 
-        const report = await res.json();
-        renderInspectionOutputs(report, ex);
+        const data = await res.json();
+        if (!data.success && data.error) {
+          console.error('[Compilation Error]:', data.error);
+          logToConsole('error', 'Compilation/SSR Error: ' + data.error);
+        }
+
+        renderCompilationOutputs(data, ex);
+        editorLiveIndicator.textContent = '● Live Synchronized';
+        editorLiveIndicator.className = 'text-emerald-400';
       } catch (err) {
-        console.error('Inspection failed:', err);
+        console.error('[Compilation Request Failed]:', err);
+        editorLiveIndicator.textContent = '● Compilation Failed';
+        editorLiveIndicator.className = 'text-red-400';
       }
     }
 
-    function renderInspectionOutputs(report, ex) {
-      // 1. JS Output (Authentic Aurelia 2 Architecture)
-      compiledJsCode.innerHTML = renderAureliaJsOutput(ex);
-
-      // 2. SSR HTML Output
-      rawServerHtmlCode.textContent = report.htmlOutput;
-
-      // 3. AST Tree Output
-      renderAstTree(ex.ast);
-
-      // 4. Metrics Output
-      document.getElementById('metricServerMs').textContent = report.serverMetrics.totalServerMs + ' ms';
-      document.getElementById('metricGzipSize').textContent = (report.networkMetrics.totalGzipBytes / 1024).toFixed(2) + ' kB';
-      document.getElementById('metricSavings').textContent = report.networkMetrics.compressionRatio + '%';
-      document.getElementById('metricGrade').textContent = report.lighthouse.overallGrade;
-      document.getElementById('metricFcp').textContent = report.lighthouse.estimatedFcpMs + ' ms';
-      document.getElementById('metricLcp').textContent = report.lighthouse.estimatedLcpMs + ' ms';
-      document.getElementById('metricCls').textContent = report.lighthouse.clsRisk;
-    }
-
-    function renderAureliaJsOutput(ex) {
-      const bt = String.fromCharCode(96);
-      
-      if (ex.id === 'aux-component') {
-        return [
-          "<span class='text-purple-400'>import</span> { CustomElement } <span class='text-purple-400'>from</span> <span class='text-emerald-400'>'@aurelia/runtime-html'</span>;",
-          "<span class='text-purple-400'>import</span> <span class='text-emerald-400'>'./counter-widget.aux?vue&type=style&index=0&scoped=true'</span>;",
-          "",
-          "<span class='text-gray-500'>// Transformed via @aureliajs/vite-plugin-aux (Aurelia in HTML)</span>",
-          "<span class='text-purple-400'>export default class</span> <span class='text-yellow-400'>CounterWidget</span> {",
-          "  title = <span class='text-emerald-400'>'Aurelia in HTML'</span>;",
-          "  description = <span class='text-emerald-400'>'Single-File Component (.aux) transformed by @aureliajs/vite-plugin-aux.'</span>;",
-          "  count = <span class='text-cyan-400'>10</span>;",
-          "",
-          "  <span class='text-yellow-400 hover-trace cursor-pointer' data-file='counter-widget.aux' data-trace='increment()'>increment()</span> {",
-          "    this.count++;",
-          "  }",
-          "}",
-          "",
-          "<span class='text-purple-400'>export const</span> ComponentDefinition = CustomElement.define({",
-          "  name: <span class='text-emerald-400'>'au-counter-widget'</span>,",
-          "  template: <span class='text-emerald-400'>" + bt + escapeHtml(ex.files['counter-widget.aux'] || '') + bt + "</span>,",
-          "  bindables: {",
-          "    title: { mode: <span class='text-cyan-400'>2</span> /* toView */ },",
-          "    description: { mode: <span class='text-cyan-400'>2</span> /* toView */ },",
-          "    count: { mode: <span class='text-cyan-400'>6</span> /* twoWay */ }",
-          "  }",
-          "}, CounterWidget);"
-        ].join('<br>');
+    function renderCompilationOutputs(data, ex) {
+      // 1. Live Preview Iframe (Instant HTML Document execution via srcdoc)
+      if (data.htmlDocument) {
+        previewIframe.srcdoc = data.htmlDocument;
       }
 
-      if (ex.id === 'resumable-counter') {
-        return [
-          "<span class='text-purple-400'>import</span> { CustomElement } <span class='text-purple-400'>from</span> <span class='text-emerald-400'>'@aurelia/runtime-html'</span>;",
-          "",
-          "<span class='text-gray-500'>// Resumable Aurelia 2 Architecture: Fine-grained Event Delegation & W3C Markers</span>",
-          "<span class='text-purple-400'>export class</span> <span class='text-yellow-400'>ResumableCounter</span> {",
-          "  title = <span class='text-emerald-400'>'Resumable Event Counter'</span>;",
-          "  count = <span class='text-cyan-400'>100</span>;",
-          "  <span class='text-yellow-400 hover-trace cursor-pointer' data-file='resumable-counter.html' data-trace='data-au-event'>increment()</span> { this.count++; }",
-          "}",
-          "",
-          "<span class='text-purple-400'>export const</span> ResumableDefinition = CustomElement.define({",
-          "  name: <span class='text-emerald-400'>'resumable-counter'</span>,",
-          "  resumable: <span class='text-cyan-400'>true</span>,",
-          "  eventDelegation: <span class='text-emerald-400'>'data-au-event'</span>,",
-          "  markers: {",
-          "    start: <span class='text-emerald-400'>'<!--au-resumable:start-->'</span>,",
-          "    end: <span class='text-emerald-400'>'<!--au-resumable:end-->'</span>",
-          "  }",
-          "}, ResumableCounter);"
-        ].join('<br>');
+      // 2. JS Output (Authentic Aurelia 2 definition)
+      if (data.compiledJs) {
+        compiledJsCode.textContent = data.compiledJs;
       }
 
-      // Default Paired Convention (.ts + .html)
-      const className = ex.id.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('');
-      const htmlFile = Object.keys(ex.files).find(f => f.endsWith('.html')) || 'template.html';
-      const tsFile = Object.keys(ex.files).find(f => f.endsWith('.ts')) || 'component.ts';
-      const countToken = '$' + '{count}';
+      // 3. SSR HTML Output
+      if (data.rawHtml) {
+        rawServerHtmlCode.textContent = data.rawHtml;
+      }
 
-      return [
-        "<span class='text-purple-400'>import</span> { CustomElement } <span class='text-purple-400'>from</span> <span class='text-emerald-400'>'@aurelia/runtime-html'</span>;",
-        "<span class='text-purple-400'>import</span> template <span class='text-purple-400'>from</span> <span class='text-emerald-400'>'./" + htmlFile + "'</span>;",
-        "<span class='text-purple-400'>import</span> { " + className + " } <span class='text-purple-400'>from</span> <span class='text-emerald-400'>'./" + tsFile + "'</span>;",
-        "",
-        "<span class='text-gray-500'>// Enterprise Convention: View-Model Class Paired with HTML Template</span>",
-        "<span class='text-purple-400'>export const</span> " + className + "Definition = CustomElement.define({",
-        "  name: <span class='text-emerald-400'>'" + ex.componentName + "'</span>,",
-        "  template,",
-        "  instructions: [",
-        "    <span class='text-gray-500'>// Compiled AST Instructions (Binding & Hydration Markers)</span>",
-        "    [ { type: <span class='text-emerald-400'>'listener'</span>, to: <span class='text-accent hover-trace cursor-pointer font-bold' data-file='" + htmlFile + "' data-trace='click.trigger'>'click'</span>, value: <span class='text-emerald-400'>'increment()'</span> } ],",
-        "    [ { type: <span class='text-emerald-400'>'interpolation'</span>, to: <span class='text-emerald-400'>'textContent'</span>, value: <span class='text-cyan-400 hover-trace cursor-pointer font-bold' data-file='" + htmlFile + "' data-trace='" + countToken + "'>'" + countToken + "'</span> } ]",
-        "  ]",
-        "}, " + className + ");"
-      ].join('<br>');
+      // 4. AST Tree with line tracing
+      if (data.ast) {
+        renderAstTree(data.ast);
+      }
+
+      // 5. Audit & Metrics
+      if (data.metrics) {
+        const m = data.metrics;
+        document.getElementById('metricServerMs').textContent = m.serverMs + ' ms';
+        document.getElementById('metricGzipSize').textContent = (m.gzipBytes / 1024).toFixed(2) + ' kB';
+        document.getElementById('metricSavings').textContent = m.savings + '%';
+        document.getElementById('metricGrade').textContent = m.grade;
+        document.getElementById('metricFcp').textContent = m.fcp + ' ms';
+        document.getElementById('metricLcp').textContent = m.lcp + ' ms';
+        document.getElementById('metricCls').textContent = m.cls;
+        document.getElementById('metricSecretStatus').textContent = m.secretStatus;
+        document.getElementById('metricXssStatus').textContent = m.xssStatus;
+
+        if (m.secretStatus.includes('WARN')) {
+          document.getElementById('metricSecretStatus').className = 'font-bold text-amber-400';
+        } else {
+          document.getElementById('metricSecretStatus').className = 'font-bold text-emerald-400';
+        }
+      }
+
+      // Status indicator
+      const runtimeModeEl = document.querySelector('input[name="opt-runtime-mode"]:checked');
+      const strategyEl = document.querySelector('input[name="opt-strategy"]:checked');
+      const mode = runtimeModeEl ? runtimeModeEl.value : 'ssr';
+      const strategy = strategyEl ? strategyEl.value : 'hydrate';
+
+      const statusIndicator = document.getElementById('outputStatusIndicator');
+      const statusText = document.getElementById('outputStatusText');
+
+      if (strategy === 'static') {
+        statusIndicator.className = 'size-2 rounded-full bg-gray-400 inline-block';
+        statusText.textContent = 'Static (0 KB JS)';
+      } else if (mode === 'csr') {
+        statusIndicator.className = 'size-2 rounded-full bg-blue-500 inline-block';
+        statusText.textContent = 'CSR Mounted';
+      } else if (mode === 'resumable') {
+        statusIndicator.className = 'size-2 rounded-full bg-purple-500 inline-block';
+        statusText.textContent = 'Resumable Event Ready';
+      } else {
+        statusIndicator.className = 'size-2 rounded-full bg-emerald-500 inline-block';
+        statusText.textContent = 'Hydrated';
+      }
     }
 
     function renderAstTree(ast) {
       if (!ast) return;
       let html = '<div class="space-y-1">';
-      html += '<div class="text-accent font-bold">' + ast.type + ' {</div>';
-      html += '  <div class="pl-4 text-gray-400">name: <span class="text-white">"' + ast.name + '"</span></div>';
+      html += '<div class="text-accent font-bold">' + (ast.type || 'CustomElementDefinition') + ' {</div>';
+      html += '  <div class="pl-4 text-gray-400">name: <span class="text-white">"' + (ast.name || 'component') + '"</span></div>';
       if (ast.sourceFile) {
         html += '  <div class="pl-4 text-gray-500">sourceFile: <span class="text-cyan-400">"' + ast.sourceFile + '"</span></div>';
       }
@@ -743,8 +774,6 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
             if (c.interpolation) html += ' <span class="text-emerald-400 font-mono">' + escapeHtml(c.interpolation) + '</span>';
             if (c.controller) html += ' <span class="text-yellow-400 font-bold">' + escapeHtml(c.controller) + '</span>';
             if (c.resumableEvent) html += ' <span class="text-purple-400 font-mono">' + escapeHtml(c.resumableEvent) + '</span>';
-            if (c.resumableBind) html += ' <span class="text-cyan-400 font-mono">' + escapeHtml(c.resumableBind) + '</span>';
-            if (c.marker) html += ' <span class="text-gray-500 font-mono">' + escapeHtml(c.marker) + '</span>';
             if (c.text) html += ' <span class="text-gray-300">' + escapeHtml(c.text) + '</span>';
             html += '    </div>';
           });
@@ -789,10 +818,170 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         .replace(/"/g, '&quot;');
     }
 
-    // Event Listeners
-    codeEditorInput.addEventListener('input', () => {
-      updateLineNumbers();
+    // ----------------------------------------------------
+    // REAL CODE EDITOR KEYBOARD HANDLERS (Indent, Enter, Brackets)
+    // ----------------------------------------------------
+    codeEditorInput.addEventListener('keydown', (e) => {
+      const start = codeEditorInput.selectionStart;
+      const end = codeEditorInput.selectionEnd;
+      const val = codeEditorInput.value;
+
+      // 1. TAB & SHIFT+TAB (2-space indent / unindent)
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          // Outdent
+          const startLineIndex = val.lastIndexOf(String.fromCharCode(10), start - 1) + 1;
+          let endLineIndex = val.indexOf(String.fromCharCode(10), end);
+          if (endLineIndex === -1) endLineIndex = val.length;
+
+          const lines = val.substring(startLineIndex, endLineIndex).split(String.fromCharCode(10));
+          let removedTotal = 0;
+          const outdented = lines.map(line => {
+            if (line.startsWith('  ')) {
+              removedTotal += 2;
+              return line.substring(2);
+            } else if (line.startsWith(' ')) {
+              removedTotal += 1;
+              return line.substring(1);
+            }
+            return line;
+          }).join(String.fromCharCode(10));
+
+          codeEditorInput.value = val.substring(0, startLineIndex) + outdented + val.substring(endLineIndex);
+          codeEditorInput.selectionStart = Math.max(startLineIndex, start - 2);
+          codeEditorInput.selectionEnd = Math.max(startLineIndex, end - removedTotal);
+        } else {
+          // Indent
+          if (start === end) {
+            // Single cursor: insert 2 spaces
+            codeEditorInput.value = val.substring(0, start) + '  ' + val.substring(end);
+            codeEditorInput.selectionStart = codeEditorInput.selectionEnd = start + 2;
+          } else {
+            // Multiline selection
+            const startLineIndex = val.lastIndexOf(String.fromCharCode(10), start - 1) + 1;
+            let endLineIndex = val.indexOf(String.fromCharCode(10), end);
+            if (endLineIndex === -1) endLineIndex = val.length;
+
+            const lines = val.substring(startLineIndex, endLineIndex).split(String.fromCharCode(10));
+            const indented = lines.map(line => '  ' + line).join(String.fromCharCode(10));
+
+            codeEditorInput.value = val.substring(0, startLineIndex) + indented + val.substring(endLineIndex);
+            codeEditorInput.selectionStart = start + 2;
+            codeEditorInput.selectionEnd = end + (lines.length * 2);
+          }
+        }
+        triggerLiveUpdate();
+        return;
+      }
+
+      // 2. ENTER (Auto-indentation)
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const lastNewline = val.lastIndexOf(String.fromCharCode(10), start - 1);
+        const currentLine = val.substring(lastNewline + 1, start);
+        const indentMatch = currentLine.match(/^\\s*/);
+        const indent = indentMatch ? indentMatch[0] : '';
+        const trimmed = currentLine.trim();
+        const nextChar = val.charAt(start);
+
+        const opensBlock = /[{(\\[]$/.test(trimmed) || (/<[a-zA-Z0-9_-]+(\\s+[^>]*)?>$/.test(trimmed) && !trimmed.endsWith('/>'));
+        const closesMatching = (trimmed.endsWith('{') && nextChar === '}') ||
+                               (trimmed.endsWith('(') && nextChar === ')') ||
+                               (trimmed.endsWith('[') && nextChar === ']');
+
+        if (opensBlock && closesMatching) {
+          const insert = String.fromCharCode(10) + indent + '  ' + String.fromCharCode(10) + indent;
+          codeEditorInput.value = val.substring(0, start) + insert + val.substring(start);
+          codeEditorInput.selectionStart = codeEditorInput.selectionEnd = start + indent.length + 3;
+        } else if (opensBlock) {
+          const insert = String.fromCharCode(10) + indent + '  ';
+          codeEditorInput.value = val.substring(0, start) + insert + val.substring(start);
+          codeEditorInput.selectionStart = codeEditorInput.selectionEnd = start + insert.length;
+        } else {
+          const insert = String.fromCharCode(10) + indent;
+          codeEditorInput.value = val.substring(0, start) + insert + val.substring(start);
+          codeEditorInput.selectionStart = codeEditorInput.selectionEnd = start + insert.length;
+        }
+        updateLineNumbers();
+        triggerLiveUpdate();
+        return;
+      }
+
+      // 3. AUTO-CLOSING PAIRS: () [] {} '' "" backticks
+      const bt = String.fromCharCode(96);
+      const pairs = { '(': ')', '[': ']', '{': '}', "'": "'", '"': '"' };
+      pairs[bt] = bt;
+
+      if (pairs[e.key]) {
+        if (start !== end) {
+          e.preventDefault();
+          const selected = val.substring(start, end);
+          codeEditorInput.value = val.substring(0, start) + e.key + selected + pairs[e.key] + val.substring(end);
+          codeEditorInput.selectionStart = start + 1;
+          codeEditorInput.selectionEnd = end + 1;
+          triggerLiveUpdate();
+          return;
+        } else {
+          // If next character is already the closing character and user typed it, skip over it
+          if (val.charAt(start) === e.key && ["'", '"', bt].includes(e.key)) {
+            e.preventDefault();
+            codeEditorInput.selectionStart = codeEditorInput.selectionEnd = start + 1;
+            return;
+          }
+          e.preventDefault();
+          codeEditorInput.value = val.substring(0, start) + e.key + pairs[e.key] + val.substring(end);
+          codeEditorInput.selectionStart = codeEditorInput.selectionEnd = start + 1;
+          triggerLiveUpdate();
+          return;
+        }
+      }
+
+      // Skip over closing brackets if typed
+      if ([')', ']', '}'].includes(e.key) && val.charAt(start) === e.key) {
+        e.preventDefault();
+        codeEditorInput.selectionStart = codeEditorInput.selectionEnd = start + 1;
+        return;
+      }
+
+      // 4. BACKSPACE (Pair Deletion)
+      if (e.key === 'Backspace' && start === end && start > 0) {
+        const prevChar = val.charAt(start - 1);
+        const nextChar = val.charAt(start);
+        if (
+          (prevChar === '(' && nextChar === ')') ||
+          (prevChar === '[' && nextChar === ']') ||
+          (prevChar === '{' && nextChar === '}') ||
+          (prevChar === "'" && nextChar === "'") ||
+          (prevChar === '"' && nextChar === '"') ||
+          (prevChar === bt && nextChar === bt)
+        ) {
+          e.preventDefault();
+          codeEditorInput.value = val.substring(0, start - 1) + val.substring(start + 1);
+          codeEditorInput.selectionStart = codeEditorInput.selectionEnd = start - 1;
+          triggerLiveUpdate();
+          return;
+        }
+      }
+
+      // Shortcut: Ctrl+S / Cmd+S (Run immediately)
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (liveUpdateTimer) clearTimeout(liveUpdateTimer);
+        compileAndRender();
+      }
     });
+
+    // Debounced Live Updates on Edit
+    function triggerLiveUpdate() {
+      updateLineNumbers();
+      if (liveUpdateTimer) clearTimeout(liveUpdateTimer);
+      liveUpdateTimer = setTimeout(() => {
+        compileAndRender();
+      }, 350);
+    }
+
+    codeEditorInput.addEventListener('input', triggerLiveUpdate);
 
     codeEditorInput.addEventListener('scroll', () => {
       editorLineNumbers.scrollTop = codeEditorInput.scrollTop;
@@ -826,8 +1015,34 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     });
 
     // Header buttons
-    document.getElementById('headerRunBtn').addEventListener('click', runInspection);
-    document.getElementById('headerResetBtn').addEventListener('click', () => loadExample(activeExampleId));
+    document.getElementById('headerRunBtn').addEventListener('click', () => {
+      if (liveUpdateTimer) clearTimeout(liveUpdateTimer);
+      compileAndRender();
+    });
+
+    document.getElementById('headerResetBtn').addEventListener('click', () => {
+      // Revert files to original disk snapshot
+      EXAMPLES[activeExampleId] = JSON.parse(JSON.stringify(ORIGINAL_EXAMPLES[activeExampleId]));
+      loadExample(activeExampleId);
+    });
+
+    document.getElementById('copyHtmlBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(rawServerHtmlCode.textContent || '');
+      document.getElementById('copyHtmlBtn').textContent = 'Copied!';
+      setTimeout(() => { document.getElementById('copyHtmlBtn').textContent = 'Copy HTML'; }, 1500);
+    });
+
+    // Compiler options reactive listeners
+    document.querySelectorAll('input[name="opt-runtime-mode"], input[name="opt-strategy"]').forEach(input => {
+      input.addEventListener('change', () => {
+        compileAndRender();
+      });
+    });
+    if (optWhitelistAudit) {
+      optWhitelistAudit.addEventListener('change', () => {
+        compileAndRender();
+      });
+    }
 
     // Console drawer collapse toggle
     const consoleDrawer = document.getElementById('consoleDrawer');
@@ -852,28 +1067,24 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       consoleBadge.textContent = '0';
     });
 
-    // Iframe console postMessage stream
+    function logToConsole(level, message) {
+      consoleLogCount++;
+      consoleBadge.textContent = String(consoleLogCount);
+
+      const row = document.createElement('div');
+      row.className = 'flex items-start space-x-2 py-0.5 text-xs';
+      const badgeColor = level === 'error' ? 'text-red-400' : (level === 'warn' ? 'text-amber-400' : 'text-primary');
+      row.innerHTML = '<span class="opacity-50 font-mono text-[10px]">' + new Date().toLocaleTimeString() + '</span> ' +
+                       '<span class="font-bold uppercase text-[10px] ' + badgeColor + '">[' + level + ']</span> ' +
+                       '<span class="flex-1 select-text text-gray-200">' + escapeHtml(message) + '</span>';
+      consoleLogsStream.appendChild(row);
+      consoleLogsStream.scrollTop = consoleLogsStream.scrollHeight;
+    }
+
+    // Real Console postMessage listener
     window.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'playground:console') {
-        consoleLogCount++;
-        consoleBadge.textContent = String(consoleLogCount);
-
-        const row = document.createElement('div');
-        row.className = 'flex items-start space-x-2 py-0.5 text-xs';
-        const badgeColor = event.data.level === 'error' ? 'text-red-400' : (event.data.level === 'warn' ? 'text-amber-400' : 'text-primary');
-        row.innerHTML = '<span class="opacity-50 font-mono text-[10px]">' + new Date().toLocaleTimeString() + '</span> ' +
-                         '<span class="font-bold uppercase text-[10px] ' + badgeColor + '">[' + event.data.level + ']</span> ' +
-                         '<span class="flex-1 select-text text-gray-200">' + escapeHtml(event.data.message) + '</span>';
-        consoleLogsStream.appendChild(row);
-        consoleLogsStream.scrollTop = consoleLogsStream.scrollHeight;
-      }
-    });
-
-    // Keyboard Shortcuts
-    document.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        runInspection();
+        logToConsole(event.data.level, event.data.message);
       }
     });
 

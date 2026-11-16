@@ -28,6 +28,7 @@
   "author": "Sandiko (sandikodev)",
   "license": "MIT",
   "dependencies": {
+    "@aureliajs/vite-plugin-aux": "link:../vite-plugin-aux",
     "@hono/aurelia-ssr": "link:../hono-aurelia-ssr",
     "@hono/node-server": "^1.19.19",
     "aurelia": "^2.0.0-rc.2",
