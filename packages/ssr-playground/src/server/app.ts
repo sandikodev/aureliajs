@@ -8,7 +8,13 @@ import { FIXTURES } from '../fixtures/index.js';
 import { inspectAureliaSsr } from '../engine/inspector.js';
 import { compilePlaygroundExample, type CompileRequest } from '../engine/compiler.js';
 import { renderAurelia, serializeState, createHtmlDocument, type RenderContext } from '@hono/aurelia-ssr';
-import { getFaviconSvg, getClientHydrationScript, getPreviewStylesheet } from './assets.js';
+import {
+  getFaviconSvg,
+  getClientHydrationScript,
+  getPreviewStylesheet,
+  getPrismBundleScript,
+  getPrismStylesheet,
+} from './assets.js';
 import { renderDashboardHtml } from './dashboard.js';
 import { loadAllExamples } from '../examples/loader.js';
 
@@ -46,6 +52,18 @@ export function createPlaygroundApp(): Hono {
     c.header('Content-Type', 'text/css; charset=utf-8');
     c.header('Cache-Control', 'public, max-age=3600');
     return c.body(getPreviewStylesheet());
+  });
+
+  // Prism Syntax Highlighting Assets
+  app.get('/assets/prism.js', (c) => {
+    c.header('Content-Type', 'application/javascript; charset=utf-8');
+    c.header('Cache-Control', 'public, max-age=86400');
+    return c.body(getPrismBundleScript());
+  });
+  app.get('/assets/prism.css', (c) => {
+    c.header('Content-Type', 'text/css; charset=utf-8');
+    c.header('Cache-Control', 'public, max-age=86400');
+    return c.body(getPrismStylesheet());
   });
 
   // Client Hydration Script Route (served for <script type="module" src="/src/main.ts"></script>)

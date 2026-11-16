@@ -1,7 +1,7 @@
 /**
  * @aureliajs/ssr-playground
  * Enterprise Aurelia 2 + Hono SSR & .aux Playground Dashboard
- * Compact UI/UX, Fully Resizable Split Panes, In-Editor Syntax Highlighting & Real Linter
+ * Compact UI/UX, Independent Resizable Panes, Offline Prism Syntax Highlighting, and Per-Example Profiling
  */
 
 import type { ExampleMeta } from '../examples/loader.js';
@@ -47,6 +47,11 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       }
     }
   </script>
+
+  <!-- Local Offline Prism Syntax Highlighting Assets -->
+  <link rel="stylesheet" href="/assets/prism.css">
+  <script src="/assets/prism.js"></script>
+
   <style>
     *, ::before, ::after { box-sizing: border-box; }
     body {
@@ -147,14 +152,24 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       background: #ff3e00 !important;
     }
 
-    /* Diagnostic squiggly underlines */
-    .lint-error-squiggly {
-      text-decoration: underline wavy #ef4444 !important;
-      text-underline-offset: 3px;
+    /* In-Editor Highlight Overlay Layer */
+    #editorHighlightPre {
+      margin: 0;
+      padding: 8px 12px 8px 0;
+      font-size: 12px;
+      line-height: 22px;
+      white-space: pre;
+      word-wrap: normal;
+      background: transparent !important;
+      box-sizing: border-box;
+      pointer-events: none;
     }
-    .lint-warning-squiggly {
-      text-decoration: underline wavy #f59e0b !important;
-      text-underline-offset: 3px;
+    #codeEditorInput {
+      padding: 8px 12px 8px 0;
+      font-size: 12px;
+      line-height: 22px;
+      white-space: pre;
+      box-sizing: border-box;
     }
   </style>
 </head>
@@ -213,7 +228,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
   <div id="mainContainer" class="flex-1 flex overflow-hidden relative">
 
     <!-- LEFT PANEL: Dynamic Multi-File Editor -->
-    <div id="leftEditorPane" class="w-1/2 flex flex-col bg-background overflow-hidden min-w-[200px]">
+    <div id="leftEditorPane" class="w-1/2 flex flex-col bg-background overflow-hidden min-w-[220px]">
       
       <!-- Dynamic File Tabs Bar (Height 32px) -->
       <div class="h-8 border-b border-border bg-surface flex items-center justify-between px-0 select-none flex-shrink-0">
@@ -238,11 +253,11 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
           <div id="traceHighlightBar" class="hidden editor-line-highlight"></div>
         </div>
 
-        <!-- Syntax Highlighting Background Layer (Pixel-perfect aligned with Textarea) -->
-        <pre id="editorHighlightPre" class="pointer-events-none absolute inset-0 pl-11 p-2 font-mono text-xs leading-[22px] overflow-hidden whitespace-pre bg-transparent text-gray-200 z-0 m-0"><code id="editorHighlightCode"></code></pre>
+        <!-- Syntax Highlighting Background Layer (Prism Tokenized) -->
+        <pre id="editorHighlightPre" class="pointer-events-none absolute inset-0 pl-11 font-mono text-xs leading-[22px] overflow-hidden whitespace-pre bg-transparent text-gray-200 z-0"><code id="editorHighlightCode"></code></pre>
 
         <!-- Interactive Textarea Layer (Transparent text, visible caret) -->
-        <textarea id="codeEditorInput" spellcheck="false" class="absolute inset-0 pl-11 p-2 font-mono text-xs leading-[22px] resize-none focus:outline-none overflow-auto whitespace-pre bg-transparent text-transparent caret-white selection:bg-accent/30 z-20"></textarea>
+        <textarea id="codeEditorInput" spellcheck="false" class="absolute inset-0 pl-11 font-mono text-xs leading-[22px] resize-none focus:outline-none overflow-auto whitespace-pre bg-transparent text-transparent caret-white selection:bg-accent/30 z-20"></textarea>
       </div>
 
       <!-- Compact Status Footer (Height 24px) -->
@@ -261,8 +276,8 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     <!-- RESIZABLE SPLIT DIVIDER (Horizontal: Left vs Right) -->
     <div id="hSplitDivider" class="split-divider-h" title="Drag to resize panes"></div>
 
-    <!-- RIGHT PANEL: Multi-Tab Outputs & Resizable Console -->
-    <div id="rightOutputPane" class="flex-1 flex flex-col bg-background overflow-hidden min-w-[200px]">
+    <!-- RIGHT PANEL: Multi-Tab Outputs -->
+    <div id="rightOutputPane" class="flex-1 flex flex-col bg-background overflow-hidden min-w-[220px]">
       
       <!-- Right Panel Tab Bar (Height 32px) -->
       <div class="h-8 border-b border-border bg-surface flex items-center justify-between px-2 select-none flex-shrink-0">
@@ -293,23 +308,48 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       <!-- Tab Content Area -->
       <div class="flex-1 flex flex-col overflow-hidden relative">
 
-        <!-- Tab 1: Result (Live Preview) -->
+        <!-- Tab 1: Result (Live Preview + Console Drawer ONLY ON RESULT TAB) -->
         <div id="view-result" class="output-view flex-1 flex flex-col relative overflow-hidden bg-white">
-          <iframe id="previewIframe" class="w-full h-full border-0"></iframe>
+          <div class="flex-1 relative overflow-hidden bg-white">
+            <iframe id="previewIframe" class="w-full h-full border-0"></iframe>
+          </div>
+
+          <!-- Resizable Divider for Console Drawer -->
+          <div id="consoleSplitDivider" class="split-divider-v" title="Drag to resize console drawer"></div>
+
+          <!-- Console Drawer (Attached exclusively to Result Tab) -->
+          <div id="consoleDrawer" class="h-36 border-t border-border bg-surface flex flex-col flex-shrink-0">
+            <div class="h-7 border-b border-border bg-hover px-2.5 flex items-center justify-between select-none flex-shrink-0">
+              <button id="toggleConsoleBtn" class="flex items-center space-x-2 text-[11px] font-mono font-semibold text-gray-300 hover:text-white">
+                <span id="consoleArrow">▼</span>
+                <span>CONSOLE</span>
+                <span id="consoleBadge" class="px-1.5 py-0.2 bg-primary/20 text-primary text-[10px] rounded-full">0</span>
+              </button>
+              <button id="clearConsoleBtn" class="text-[10px] font-mono text-gray-400 hover:text-white transition">
+                CLEAR
+              </button>
+            </div>
+            <div id="consoleLogsStream" class="flex-1 p-2 font-mono text-[11px] overflow-y-auto space-y-0.5 text-gray-300 select-text">
+              <div class="text-gray-500 italic text-[10px]">[Playground Ready] Event triggers, diagnostics, and console.log appear here...</div>
+            </div>
+          </div>
         </div>
 
-        <!-- Tab 2: JS Output -->
+        <!-- Tab 2: JS Output with Resizable Compiler Options Drawer -->
         <div id="view-js" class="output-view hidden flex-1 flex flex-col relative overflow-hidden bg-surface/30">
-          <pre class="flex-1 p-3 font-mono text-[11px] overflow-auto text-gray-200 leading-5 select-text whitespace-pre-wrap m-0" id="compiledJsCode">/* Select a component to see its compiled code */</pre>
+          <pre class="flex-1 p-3 font-mono text-[11px] overflow-auto text-gray-200 leading-5 select-text whitespace-pre-wrap m-0"><code id="compiledJsCode" class="language-typescript">/* Select a component to see its compiled code */</code></pre>
 
-          <!-- Compiler & SSR Options (Svelte Playground Style) -->
-          <div class="border-t border-border bg-surface p-2.5 select-none flex-shrink-0">
-            <div class="flex items-center justify-between mb-1.5">
+          <!-- Resizable Divider for Compiler Options -->
+          <div id="compilerOptionsSplitter" class="split-divider-v" title="Drag to resize compiler options panel"></div>
+
+          <!-- Resizable Compiler & SSR Options Drawer -->
+          <div id="compilerOptionsDrawer" class="h-32 border-t border-border bg-surface p-2.5 select-none flex flex-col flex-shrink-0 overflow-y-auto">
+            <div class="flex items-center justify-between mb-1.5 flex-shrink-0">
               <span class="text-[11px] font-mono font-semibold text-gray-300 flex items-center space-x-1.5">
                 <span>⚙</span>
                 <span>COMPILER & SSR OPTIONS</span>
               </span>
-              <span class="text-[10px] text-gray-500 font-mono">renderAurelia() config</span>
+              <span class="text-[10px] text-gray-500 font-mono">Per-Example Profiling Active</span>
             </div>
 
             <div class="font-mono text-[11px] text-gray-300 space-y-1.5 bg-background p-2.5 rounded border border-border/60">
@@ -356,13 +396,13 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
           </div>
         </div>
 
-        <!-- Tab 3: SSR HTML Output -->
+        <!-- Tab 3: SSR HTML Output (Prism Syntax Highlighted) -->
         <div id="view-html" class="output-view hidden flex-1 flex flex-col p-3 bg-surface/30 overflow-auto font-mono text-xs select-text">
           <div class="mb-2 text-xs font-semibold text-gray-400 flex items-center justify-between">
             <span>Pre-rendered Server HTML (with Aurelia hydration markers)</span>
             <button id="copyHtmlBtn" class="px-2 py-0.5 rounded bg-hover text-gray-300 hover:text-white border border-border">Copy HTML</button>
           </div>
-          <pre id="rawServerHtmlCode" class="flex-1 text-gray-200 bg-background p-3 rounded border border-border overflow-auto whitespace-pre-wrap leading-5 m-0"></pre>
+          <pre class="flex-1 text-gray-200 bg-background p-3 rounded border border-border overflow-auto whitespace-pre-wrap leading-5 m-0"><code id="rawServerHtmlCode" class="language-markup"></code></pre>
         </div>
 
         <!-- Tab 4: AST Output with Clean Line Tracing -->
@@ -433,26 +473,6 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
 
       </div>
 
-      <!-- RESIZABLE SPLIT DIVIDER (Vertical: Content vs Console Drawer) -->
-      <div id="vSplitDivider" class="split-divider-v" title="Drag to resize console drawer"></div>
-
-      <!-- Compact Resizable Console Drawer -->
-      <div id="consoleDrawer" class="h-36 border-t border-border bg-surface flex flex-col flex-shrink-0">
-        <div class="h-7 border-b border-border bg-hover px-2.5 flex items-center justify-between select-none">
-          <button id="toggleConsoleBtn" class="flex items-center space-x-2 text-[11px] font-mono font-semibold text-gray-300 hover:text-white">
-            <span id="consoleArrow">▼</span>
-            <span>CONSOLE</span>
-            <span id="consoleBadge" class="px-1.5 py-0.2 bg-primary/20 text-primary text-[10px] rounded-full">0</span>
-          </button>
-          <button id="clearConsoleBtn" class="text-[10px] font-mono text-gray-400 hover:text-white transition">
-            CLEAR
-          </button>
-        </div>
-        <div id="consoleLogsStream" class="flex-1 p-2 font-mono text-[11px] overflow-y-auto space-y-0.5 text-gray-300 select-text">
-          <div class="text-gray-500 italic text-[10px]">[Playground Ready] Event triggers, diagnostics, and console.log appear here...</div>
-        </div>
-      </div>
-
     </div>
   </div>
 
@@ -497,121 +517,106 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     const leftEditorPane = document.getElementById('leftEditorPane');
     const rightOutputPane = document.getElementById('rightOutputPane');
     const hSplitDivider = document.getElementById('hSplitDivider');
-    const vSplitDivider = document.getElementById('vSplitDivider');
+    const consoleSplitDivider = document.getElementById('consoleSplitDivider');
+    const compilerOptionsSplitter = document.getElementById('compilerOptionsSplitter');
     const consoleDrawer = document.getElementById('consoleDrawer');
+    const compilerOptionsDrawer = document.getElementById('compilerOptionsDrawer');
 
     // ----------------------------------------------------
-    // RESIZABLE SPLIT PANES LOGIC (Horizontal & Vertical)
+    // RESIZABLE SPLIT PANES LOGIC (Smooth & Zero Lag)
     // ----------------------------------------------------
-    let isDraggingH = false;
-    let isDraggingV = false;
+    let activeDrag = null;
 
     hSplitDivider.addEventListener('mousedown', (e) => {
-      isDraggingH = true;
+      activeDrag = 'H';
       hSplitDivider.classList.add('active');
       previewIframe.style.pointerEvents = 'none';
       document.body.style.cursor = 'col-resize';
       e.preventDefault();
     });
 
-    vSplitDivider.addEventListener('mousedown', (e) => {
-      isDraggingV = true;
-      vSplitDivider.classList.add('active');
+    consoleSplitDivider.addEventListener('mousedown', (e) => {
+      activeDrag = 'CONSOLE';
+      consoleSplitDivider.classList.add('active');
       previewIframe.style.pointerEvents = 'none';
       document.body.style.cursor = 'row-resize';
       e.preventDefault();
     });
 
+    compilerOptionsSplitter.addEventListener('mousedown', (e) => {
+      activeDrag = 'OPTIONS';
+      compilerOptionsSplitter.classList.add('active');
+      document.body.style.cursor = 'row-resize';
+      e.preventDefault();
+    });
+
     window.addEventListener('mousemove', (e) => {
-      if (isDraggingH) {
+      if (!activeDrag) return;
+
+      if (activeDrag === 'H') {
         const containerRect = mainContainer.getBoundingClientRect();
         const offsetX = e.clientX - containerRect.left;
-        const totalWidth = containerRect.width;
-        let percentage = (offsetX / totalWidth) * 100;
+        let percentage = (offsetX / containerRect.width) * 100;
         percentage = Math.max(20, Math.min(80, percentage));
         leftEditorPane.style.width = percentage + '%';
         rightOutputPane.style.width = (100 - percentage) + '%';
-      }
-
-      if (isDraggingV) {
-        const rightRect = rightOutputPane.getBoundingClientRect();
-        const newHeight = rightRect.bottom - e.clientY;
-        const clampedHeight = Math.max(28, Math.min(rightRect.height - 80, newHeight));
+      } else if (activeDrag === 'CONSOLE') {
+        const resultView = document.getElementById('view-result');
+        const viewRect = resultView.getBoundingClientRect();
+        const newHeight = viewRect.bottom - e.clientY;
+        const clampedHeight = Math.max(28, Math.min(viewRect.height - 80, newHeight));
         consoleDrawer.style.height = clampedHeight + 'px';
+      } else if (activeDrag === 'OPTIONS') {
+        const jsView = document.getElementById('view-js');
+        const viewRect = jsView.getBoundingClientRect();
+        const newHeight = viewRect.bottom - e.clientY;
+        const clampedHeight = Math.max(32, Math.min(viewRect.height - 80, newHeight));
+        compilerOptionsDrawer.style.height = clampedHeight + 'px';
       }
     });
 
     window.addEventListener('mouseup', () => {
-      if (isDraggingH) {
-        isDraggingH = false;
+      if (activeDrag) {
+        activeDrag = null;
         hSplitDivider.classList.remove('active');
-        previewIframe.style.pointerEvents = 'auto';
-        document.body.style.cursor = 'default';
-      }
-      if (isDraggingV) {
-        isDraggingV = false;
-        vSplitDivider.classList.remove('active');
+        consoleSplitDivider.classList.remove('active');
+        compilerOptionsSplitter.classList.remove('active');
         previewIframe.style.pointerEvents = 'auto';
         document.body.style.cursor = 'default';
       }
     });
 
     // ----------------------------------------------------
-    // IN-EDITOR SYNTAX HIGHLIGHTING ENGINE (Aligned Overlay)
+    // IN-EDITOR SYNTAX HIGHLIGHTING (Using Prism Directly)
+    // Zero String Corruption & Pixel-Perfect Alignment
     // ----------------------------------------------------
     function renderEditorHighlight() {
       const code = codeEditorInput.value;
       const ext = activeFileName.split('.').pop() || '';
-      editorHighlightCode.innerHTML = highlightSyntax(code, ext, currentDiagnostics);
-    }
 
-    function highlightSyntax(code, ext, diagnostics = []) {
-      // Create a map of lines with diagnostic errors
-      const diagLineMap = {};
-      diagnostics.forEach(d => {
-        if (!d.file || d.file === activeFileName) {
-          diagLineMap[d.line] = d;
-        }
-      });
+      if (!window.Prism) {
+        editorHighlightCode.textContent = code;
+        return;
+      }
 
-      const lines = code.split(String.fromCharCode(10));
-      return lines.map((line, idx) => {
-        const lineNum = idx + 1;
-        let escaped = escapeHtml(line);
+      let lang = 'markup';
+      let grammar = Prism.languages.markup;
 
-        if (ext === 'aux' || ext === 'html') {
-          // HTML & .aux syntax
-          escaped = escaped
-            .replace(/(&lt;!--[\\s\\S]*?--&gt;)/g, '<span style="color:#8b949e;font-style:italic;">$1</span>')
-            .replace(/\\b([a-zA-Z0-9_-]+)\\.(trigger|bind|capture|two-way|to-view|from-view|one-time|for|attr|class|style)\\b/g, '<span style="color:#ff7b72;font-weight:600;">$1</span>.<span style="color:#ffa657;font-weight:700;">$2</span>')
-            .replace(/(\\$\\{)([^}]+)(\\})/g, '<span style="color:#eab308;font-weight:700;">$1</span><span style="color:#79c0ff;">$2</span><span style="color:#eab308;font-weight:700;">$3</span>')
-            .replace(/(&lt;\\/?)([a-zA-Z0-9_-]+)/g, '$1<span style="color:#7ee787;font-weight:600;">$2</span>')
-            .replace(/\\b([a-zA-Z0-9_-]+)=(&quot;[^&]*&quot;|&#39;[^&]*&#39;)/g, '<span style="color:#79c0ff;">$1</span>=<span style="color:#a5d6ff;">$2</span>');
-        } else if (ext === 'ts') {
-          // TypeScript syntax
-          escaped = escaped
-            .replace(/(\\/\\/.*$)/g, '<span style="color:#8b949e;font-style:italic;">$1</span>')
-            .replace(/\\b(export|default|class|const|let|var|function|return|this|import|from|extends|implements|new|async|await)\\b/g, '<span style="color:#d2a8ff;font-weight:600;">$1</span>')
-            .replace(/\\b(string|number|boolean|any|void|Array)\\b/g, '<span style="color:#56d364;">$1</span>')
-            .replace(/(&quot;[^&]*&quot;|&#39;[^&]*&#39;)/g, '<span style="color:#a5d6ff;">$1</span>')
-            .replace(/\\b(\\d+)\\b/g, '<span style="color:#ffab70;">$1</span>');
-        } else if (ext === 'json') {
-          // JSON syntax
-          escaped = escaped
-            .replace(/(&quot;[^&]+&quot;)\\s*:/g, '<span style="color:#79c0ff;font-weight:600;">$1</span>:')
-            .replace(/:\\s*(&quot;[^&]*&quot;)/g, ': <span style="color:#a5d6ff;">$1</span>')
-            .replace(/:\\s*(\\d+|true|false|null)/g, ': <span style="color:#ffab70;">$1</span>');
-        }
+      if (ext === 'aux') {
+        lang = 'aux';
+        grammar = Prism.languages.aux || Prism.languages.markup;
+      } else if (ext === 'ts') {
+        lang = 'typescript';
+        grammar = Prism.languages.typescript || Prism.languages.javascript;
+      } else if (ext === 'json') {
+        lang = 'json';
+        grammar = Prism.languages.json;
+      } else if (ext === 'html') {
+        lang = 'aurelia';
+        grammar = Prism.languages.aurelia || Prism.languages.markup;
+      }
 
-        // Apply linter error squiggle if line has diagnostic
-        if (diagLineMap[lineNum]) {
-          const d = diagLineMap[lineNum];
-          const squigglyClass = d.severity === 'error' ? 'lint-error-squiggly' : 'lint-warning-squiggly';
-          return '<span class="' + squigglyClass + '" title="' + escapeHtml(d.message) + '">' + escaped + '</span>';
-        }
-
-        return escaped;
-      }).join(String.fromCharCode(10));
+      editorHighlightCode.innerHTML = Prism.highlight(code, grammar, lang);
     }
 
     // Initialize Dropdown
@@ -659,7 +664,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       });
     }
 
-    // Load an Example
+    // Load an Example with its OWN profiling options
     function loadExample(id) {
       if (!EXAMPLES[id]) return;
       activeExampleId = id;
@@ -683,6 +688,18 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       } else {
         componentModelBadge.textContent = 'Aurelia 2 Paired Convention';
         componentModelBadge.className = 'font-mono text-gray-400';
+      }
+
+      // Restore THIS example's own compiler options profiling!
+      const opts = ex.options || { mode: 'ssr', strategy: 'hydrate', whitelistAudit: true };
+      const modeRadio = document.querySelector('input[name="opt-runtime-mode"][value="' + opts.mode + '"]');
+      if (modeRadio) modeRadio.checked = true;
+
+      const stratRadio = document.querySelector('input[name="opt-strategy"][value="' + opts.strategy + '"]');
+      if (stratRadio) stratRadio.checked = true;
+
+      if (optWhitelistAudit) {
+        optWhitelistAudit.checked = Boolean(opts.whitelistAudit);
       }
 
       renderFileTabs(ex);
@@ -828,9 +845,12 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
 
       const runtimeModeEl = document.querySelector('input[name="opt-runtime-mode"]:checked');
       const strategyEl = document.querySelector('input[name="opt-strategy"]:checked');
-      const mode = runtimeModeEl ? runtimeModeEl.value : 'ssr';
-      const strategy = strategyEl ? strategyEl.value : 'hydrate';
-      const whitelistAudit = optWhitelistAudit ? optWhitelistAudit.checked : true;
+      const mode = runtimeModeEl ? runtimeModeEl.value : (ex.options?.mode || 'ssr');
+      const strategy = strategyEl ? strategyEl.value : (ex.options?.strategy || 'hydrate');
+      const whitelistAudit = optWhitelistAudit ? optWhitelistAudit.checked : (ex.options?.whitelistAudit ?? true);
+
+      // Persist per-example options
+      ex.options = { mode, strategy, whitelistAudit };
 
       editorLiveIndicator.textContent = '● Compiling...';
       editorLiveIndicator.className = 'text-amber-400 animate-pulse';
@@ -875,7 +895,6 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         linterStatusText.textContent = errors + ' error' + (errors > 1 ? 's' : '') + (warnings > 0 ? ', ' + warnings + ' warning' + (warnings > 1 ? 's' : '') : '');
         linterStatusPill.className = errors > 0 ? 'flex items-center space-x-1 text-red-400 hover:underline cursor-pointer' : 'flex items-center space-x-1 text-amber-400 hover:underline cursor-pointer';
 
-        // Log diagnostics to console drawer
         diagnostics.forEach(d => {
           logToConsole(d.severity, '[' + d.source + '] ' + d.file + ':' + d.line + ':' + d.col + ' - ' + d.message);
         });
@@ -886,7 +905,6 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       }
 
       updateLineNumbers();
-      renderEditorHighlight();
     }
 
     function renderCompilationOutputs(data, ex) {
@@ -895,13 +913,17 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         previewIframe.srcdoc = data.htmlDocument;
       }
 
-      // 2. JS Output
-      if (data.compiledJs) {
+      // 2. JS Output (Syntax Highlighted via Prism)
+      if (data.compiledJs && window.Prism) {
+        compiledJsCode.innerHTML = Prism.highlight(data.compiledJs, Prism.languages.typescript, 'typescript');
+      } else if (data.compiledJs) {
         compiledJsCode.textContent = data.compiledJs;
       }
 
-      // 3. SSR HTML Output
-      if (data.rawHtml) {
+      // 3. SSR HTML Output (Syntax Highlighted via Prism)
+      if (data.rawHtml && window.Prism) {
+        rawServerHtmlCode.innerHTML = Prism.highlight(data.rawHtml, Prism.languages.markup, 'markup');
+      } else if (data.rawHtml) {
         rawServerHtmlCode.textContent = data.rawHtml;
       }
 
@@ -1242,7 +1264,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       setTimeout(() => { document.getElementById('copyHtmlBtn').textContent = 'Copy HTML'; }, 1500);
     });
 
-    // Compiler options reactive listeners
+    // Compiler options reactive listeners (saves per-example options)
     document.querySelectorAll('input[name="opt-runtime-mode"], input[name="opt-strategy"]').forEach(input => {
       input.addEventListener('change', () => {
         compileAndRender();
@@ -1254,7 +1276,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       });
     }
 
-    // Console drawer collapse toggle
+    // Console drawer collapse toggle (on Result view)
     const toggleConsoleBtn = document.getElementById('toggleConsoleBtn');
     const consoleArrow = document.getElementById('consoleArrow');
     let isConsoleCollapsed = false;
@@ -1277,6 +1299,8 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     });
 
     document.getElementById('linterStatusPill').addEventListener('click', () => {
+      // Switch to Result view if not already
+      document.querySelector('.output-tab[data-view="result"]').click();
       if (isConsoleCollapsed) {
         isConsoleCollapsed = false;
         consoleDrawer.style.height = '144px';

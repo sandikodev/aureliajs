@@ -6,6 +6,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+export interface ExampleOptions {
+  mode: 'ssr' | 'csr' | 'resumable';
+  strategy: 'hydrate' | 'static';
+  whitelistAudit: boolean;
+}
+
 export interface ExampleMeta {
   id: string;
   folder: string;
@@ -17,6 +23,7 @@ export interface ExampleMeta {
   files: Record<string, string>;
   ast: Record<string, unknown>;
   context?: Record<string, unknown>;
+  options?: ExampleOptions;
 }
 
 const EXAMPLES_DIR = path.resolve(
@@ -83,7 +90,8 @@ function buildExampleMeta(folder: string, files: Record<string, string>): Exampl
           ]
         },
         bindables: ['greeting', 'name', 'description']
-      }
+      },
+      options: { mode: 'ssr', strategy: 'hydrate', whitelistAudit: true }
     };
   }
 
@@ -114,7 +122,8 @@ function buildExampleMeta(folder: string, files: Record<string, string>): Exampl
         },
         bindables: ['title', 'description', 'count'],
         methods: ['increment()']
-      }
+      },
+      options: { mode: 'ssr', strategy: 'hydrate', whitelistAudit: true }
     };
   }
 
@@ -148,7 +157,8 @@ function buildExampleMeta(folder: string, files: Record<string, string>): Exampl
           className: 'CounterWidget',
           methods: ['increment()']
         }
-      }
+      },
+      options: { mode: 'ssr', strategy: 'hydrate', whitelistAudit: true }
     };
   }
 
@@ -187,7 +197,8 @@ function buildExampleMeta(folder: string, files: Record<string, string>): Exampl
           ]
         },
         contextBindings: ['user', 'workspace', 'role']
-      }
+      },
+      options: { mode: 'ssr', strategy: 'hydrate', whitelistAudit: true }
     };
   }
 
@@ -217,7 +228,8 @@ function buildExampleMeta(folder: string, files: Record<string, string>): Exampl
           ]
         },
         templateControllers: ['repeat.for']
-      }
+      },
+      options: { mode: 'ssr', strategy: 'hydrate', whitelistAudit: true }
     };
   }
 
@@ -247,6 +259,7 @@ function buildExampleMeta(folder: string, files: Record<string, string>): Exampl
         ]
       },
       resumableFeatures: ['Lazy Event Delegation', 'Zero-Thrash Marker Adoption', 'Fine-grained State Resumption']
-    }
+    },
+    options: { mode: 'resumable', strategy: 'hydrate', whitelistAudit: true }
   };
 }

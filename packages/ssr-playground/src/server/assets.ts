@@ -1,7 +1,92 @@
 /**
  * @aureliajs/ssr-playground
- * Static assets & preview runtime handlers (CSS, Client Script, Favicon)
+ * Static assets & preview runtime handlers (CSS, Client Script, Favicon, Prism)
  */
+
+import fs from 'node:fs';
+import path from 'node:path';
+
+let cachedPrismBundle = '';
+let cachedPrismCss = '';
+
+export function getPrismBundleScript(): string {
+  if (cachedPrismBundle) return cachedPrismBundle;
+  try {
+    const prismDir = path.resolve(
+      typeof __dirname !== 'undefined' ? __dirname : process.cwd(),
+      typeof __dirname !== 'undefined' ? '../../node_modules/prismjs' : 'packages/ssr-playground/node_modules/prismjs'
+    );
+    const core = fs.readFileSync(path.join(prismDir, 'prism.js'), 'utf-8');
+    const ts = fs.readFileSync(path.join(prismDir, 'components/prism-typescript.min.js'), 'utf-8');
+    const json = fs.readFileSync(path.join(prismDir, 'components/prism-json.min.js'), 'utf-8');
+
+    const auxSyntax = `
+      // Aurelia 2 Directives, Commands, and .aux SFC Syntax for Prism
+      Prism.languages.aurelia = Prism.languages.extend('markup', {});
+      Prism.languages.insertBefore('aurelia', 'tag', {
+        'aurelia-interpolation': {
+          pattern: /\\$\\{[\\s\\S]*?\\}/,
+          inside: {
+            'punctuation': /^\\$\\{|\\}$/,
+            rest: Prism.languages.typescript
+          }
+        }
+      });
+      if (Prism.languages.aurelia.tag && Prism.languages.aurelia.tag.inside) {
+        Prism.languages.aurelia.tag.inside['attr-name'] = {
+          pattern: /^[^\\s>/=]+(?:\\.[^\\s>/=]+)?/,
+          inside: {
+            'punctuation': /\\./,
+            'attr-command': /^(trigger|bind|capture|two-way|to-view|from-view|one-time|for|attr|class|style)$/
+          }
+        };
+      }
+      Prism.languages.aux = Prism.languages.aurelia;
+    `;
+
+    cachedPrismBundle = [core, ts, json, auxSyntax].join('\n');
+    return cachedPrismBundle;
+  } catch (err) {
+    console.error('Failed to load Prism bundle:', err);
+    return '';
+  }
+}
+
+export function getPrismStylesheet(): string {
+  if (cachedPrismCss) return cachedPrismCss;
+  try {
+    const prismDir = path.resolve(
+      typeof __dirname !== 'undefined' ? __dirname : process.cwd(),
+      typeof __dirname !== 'undefined' ? '../../node_modules/prismjs' : 'packages/ssr-playground/node_modules/prismjs'
+    );
+    const css = fs.readFileSync(path.join(prismDir, 'themes/prism-tomorrow.css'), 'utf-8');
+    // Ensure dark background and clean fonts
+    cachedPrismCss = css + `
+      code[class*="language-"], pre[class*="language-"] {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+        background: transparent !important;
+        text-shadow: none !important;
+      }
+      .token.comment, .token.block-comment, .token.prolog, .token.doctype, .token.cdata {
+        color: #8b949e !important;
+        font-style: italic !important;
+      }
+      .token.punctuation { color: #8b949e !important; }
+      .token.tag, .token.attr-name, .token.namespace, .token.deleted { color: #7ee787 !important; }
+      .token.function-name { color: #d2a8ff !important; }
+      .token.boolean, .token.number, .token.function { color: #ffab70 !important; }
+      .token.property, .token.class-name, .token.constant, .token.symbol { color: #79c0ff !important; }
+      .token.selector, .token.important, .token.atrule, .token.keyword, .token.builtin { color: #d2a8ff !important; }
+      .token.string, .token.char, .token.attr-value, .token.regex, .token.variable { color: #a5d6ff !important; }
+      .token.operator, .token.entity, .token.url { color: #ff7b72 !important; }
+      .token.attr-command { color: #ffa657 !important; font-weight: bold !important; }
+    `;
+    return cachedPrismCss;
+  } catch (err) {
+    console.error('Failed to load Prism CSS:', err);
+    return '';
+  }
+}
 
 export function getFaviconSvg(): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
