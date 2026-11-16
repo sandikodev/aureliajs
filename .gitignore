@@ -19,7 +19,10 @@ Thumbs.db
 .idea/
 
 # Agent tooling that lives in the repo but is not part of the project.
-.agents/
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/aurelia-*
 
 # Compiled output that accidentally landed next to the sources once.
 # The real build output lives in `dist/` (already ignored above).
