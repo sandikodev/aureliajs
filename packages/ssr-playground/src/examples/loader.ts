@@ -65,6 +65,58 @@ export function loadAllExamples(): Record<string, ExampleMeta> {
 }
 
 function buildExampleMeta(folder: string, files: Record<string, string>): ExampleMeta {
+  if (files['meta.json']) {
+    try {
+      const meta = JSON.parse(files['meta.json']);
+      delete files['meta.json'];
+
+      const fileKeys = Object.keys(files);
+      const defaultFile = meta.defaultFile || fileKeys.find((f) => f.endsWith('.html') || f.endsWith('.aux')) || fileKeys[0] || 'index.html';
+      const componentName = meta.componentName || meta.id || folder.replace(/^\d+-/, '');
+
+      let context: Record<string, unknown> = meta.context || {};
+      if (files['auth-context.json']) {
+        try {
+          context = { ...context, ...JSON.parse(files['auth-context.json']) };
+        } catch {
+          // ignore
+        }
+      } else if (files['context.json']) {
+        try {
+          context = { ...context, ...JSON.parse(files['context.json']) };
+        } catch {
+          // ignore
+        }
+      }
+
+      return {
+        id: meta.id || folder.replace(/^\d+-/, ''),
+        folder,
+        category: meta.category || 'General',
+        title: meta.title || meta.id || folder,
+        description: meta.description || '',
+        componentName,
+        defaultFile,
+        files,
+        context,
+        ast: meta.ast || {
+          type: 'CustomElementDefinition',
+          name: componentName,
+          sourceFile: defaultFile,
+          template: {
+            file: defaultFile,
+            type: 'TemplateDefinition',
+            root: 'div',
+            children: []
+          }
+        },
+        options: meta.options || { mode: 'ssr', strategy: 'hydrate', whitelistAudit: true }
+      };
+    } catch (e) {
+      console.warn(`[ExampleLoader] Could not parse meta.json in ${folder}:`, e);
+    }
+  }
+
   if (folder.includes('01-introduction')) {
     return {
       id: 'hello-world',

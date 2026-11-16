@@ -1,0 +1,54 @@
+{
+  "id": "user-profile",
+  "category": "Fullstack Hono SSR",
+  "title": "Context Security & DTO Whitelist",
+  "description": "Hono SSR Context injection with strict security whitelist and XSS protection.",
+  "componentName": "user-profile",
+  "defaultFile": "user-profile.html",
+  "options": {
+    "mode": "ssr",
+    "strategy": "hydrate",
+    "whitelistAudit": true
+  },
+  "ast": {
+    "type": "CustomElementDefinition",
+    "name": "user-profile",
+    "sourceFile": "user-profile.ts",
+    "template": {
+      "file": "user-profile.html",
+      "type": "TemplateDefinition",
+      "root": "div.p-6.max-w-md",
+      "children": [
+        {
+          "tag": "h3",
+          "traceFile": "user-profile.html",
+          "traceSearch": "${user.name}",
+          "interpolation": "${user.name}"
+        },
+        {
+          "tag": "p",
+          "traceFile": "user-profile.html",
+          "traceSearch": "${user.email}",
+          "interpolation": "${user.email}"
+        },
+        {
+          "tag": "strong",
+          "traceFile": "user-profile.html",
+          "traceSearch": "${workspace.name}",
+          "interpolation": "${workspace.name}"
+        },
+        {
+          "tag": "strong",
+          "traceFile": "user-profile.html",
+          "traceSearch": "${role}",
+          "interpolation": "${role}"
+        }
+      ]
+    },
+    "contextBindings": [
+      "user",
+      "workspace",
+      "role"
+    ]
+  }
+}

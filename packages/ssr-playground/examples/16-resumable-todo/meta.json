@@ -1,0 +1,48 @@
+{
+  "id": "resumable-todo",
+  "category": "Resumable Hydration (Zero-JS)",
+  "title": "Resumable Tasks (On-Demand)",
+  "description": "Modern Qwik-like zero-hydration task list with on-demand event delegation.",
+  "componentName": "resumable-todo",
+  "defaultFile": "resumable-todo.html",
+  "options": {
+    "mode": "resumable",
+    "strategy": "hydrate",
+    "whitelistAudit": true
+  },
+  "ast": {
+    "type": "ResumableCustomElementDefinition",
+    "name": "resumable-todo",
+    "sourceFile": "resumable-todo.ts",
+    "template": {
+      "file": "resumable-todo.html",
+      "type": "ResumableTemplateDefinition",
+      "root": "div.p-6.max-w-md",
+      "children": [
+        {
+          "tag": "marker",
+          "traceFile": "resumable-todo.html",
+          "traceSearch": "<!--au-resumable:start",
+          "marker": "<!--au-resumable:start:resumable-todo-->"
+        },
+        {
+          "tag": "button",
+          "traceFile": "resumable-todo.html",
+          "traceSearch": "data-au-event",
+          "resumableEvent": "data-au-event=\"click->add\""
+        },
+        {
+          "tag": "marker",
+          "traceFile": "resumable-todo.html",
+          "traceSearch": "<!--au-resumable:end",
+          "marker": "<!--au-resumable:end:resumable-todo-->"
+        }
+      ]
+    },
+    "resumableFeatures": [
+      "Zero-Initial-JS Execution",
+      "HTML-First Delivery",
+      "Boundary Marker Resumption"
+    ]
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "id": "form-controls",
+  "category": "Reactivity & Forms",
+  "title": "Two-Way Form Controls",
+  "description": "Synchronized text inputs, boolean checkboxes, select menus, and real-time state mirroring.",
+  "componentName": "form-controls",
+  "defaultFile": "form-controls.html",
+  "options": {
+    "mode": "ssr",
+    "strategy": "hydrate",
+    "whitelistAudit": true
+  },
+  "ast": {
+    "type": "CustomElementDefinition",
+    "name": "form-controls",
+    "sourceFile": "form-controls.ts",
+    "template": {
+      "file": "form-controls.html",
+      "type": "TemplateDefinition",
+      "root": "div.p-6.max-w-md",
+      "children": [
+        {
+          "tag": "input",
+          "traceFile": "form-controls.html",
+          "traceSearch": "value.bind=\"username\"",
+          "binding": "TwoWayBinding [value.bind=\"username\"]"
+        },
+        {
+          "tag": "select",
+          "traceFile": "form-controls.html",
+          "traceSearch": "value.bind=\"framework\"",
+          "binding": "TwoWayBinding [value.bind=\"framework\"]"
+        },
+        {
+          "tag": "input",
+          "traceFile": "form-controls.html",
+          "traceSearch": "checked.bind=\"isActive\"",
+          "binding": "TwoWayBinding [checked.bind=\"isActive\"]"
+        },
+        {
+          "tag": "strong",
+          "traceFile": "form-controls.html",
+          "traceSearch": "${username}",
+          "interpolation": "${username}"
+        }
+      ]
+    },
+    "bindables": [
+      "username",
+      "framework",
+      "isActive"
+    ],
+    "methods": [
+      "toggleStatus()"
+    ]
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "id": "value-converters",
+  "category": "Reactivity & Forms",
+  "title": "Value Converters (Pipes)",
+  "description": "Pure, idempotent formatters for currency, dates, and text formatting in Aurelia 2.",
+  "componentName": "order-summary",
+  "defaultFile": "order-summary.html",
+  "options": {
+    "mode": "ssr",
+    "strategy": "hydrate",
+    "whitelistAudit": true
+  },
+  "ast": {
+    "type": "CustomElementDefinition",
+    "name": "order-summary",
+    "sourceFile": "order-summary.ts",
+    "template": {
+      "file": "order-summary.html",
+      "type": "TemplateDefinition",
+      "root": "div.p-6.max-w-md",
+      "children": [
+        {
+          "tag": "span",
+          "traceFile": "order-summary.html",
+          "traceSearch": "${orderCode}",
+          "interpolation": "${orderCode}"
+        },
+        {
+          "tag": "span",
+          "traceFile": "order-summary.html",
+          "traceSearch": "${tier}",
+          "interpolation": "${tier}"
+        }
+      ]
+    },
+    "bindables": [
+      "orderCode",
+      "tier",
+      "subtotal",
+      "timestamp"
+    ]
+  }
+}

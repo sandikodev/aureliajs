@@ -1,0 +1,52 @@
+{
+  "id": "data-table",
+  "category": "Template Controllers",
+  "title": "Data Table (repeat.for)",
+  "description": "High-performance template controller repetition with contextual variables.",
+  "componentName": "data-table",
+  "defaultFile": "data-table.html",
+  "options": {
+    "mode": "ssr",
+    "strategy": "hydrate",
+    "whitelistAudit": true
+  },
+  "ast": {
+    "type": "CustomElementDefinition",
+    "name": "data-table",
+    "sourceFile": "data-table.ts",
+    "template": {
+      "file": "data-table.html",
+      "type": "TemplateDefinition",
+      "root": "div.p-6.max-w-2xl",
+      "children": [
+        {
+          "tag": "h2",
+          "traceFile": "data-table.html",
+          "traceSearch": "${title}",
+          "interpolation": "${title}"
+        },
+        {
+          "tag": "tr",
+          "traceFile": "data-table.html",
+          "traceSearch": "repeat.for=\"row of rows\"",
+          "controller": "RepeatTemplateController [repeat.for=\"row of rows\"]"
+        },
+        {
+          "tag": "td",
+          "traceFile": "data-table.html",
+          "traceSearch": "${row.name}",
+          "interpolation": "${row.name}"
+        },
+        {
+          "tag": "td",
+          "traceFile": "data-table.html",
+          "traceSearch": "${row.value}",
+          "interpolation": "${row.value}"
+        }
+      ]
+    },
+    "templateControllers": [
+      "repeat.for"
+    ]
+  }
+}

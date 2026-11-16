@@ -1,0 +1,42 @@
+{
+  "id": "dependency-injection",
+  "category": "Enterprise Architecture",
+  "title": "Dependency Injection (resolve)",
+  "description": "Aurelia 2 decoupled enterprise service injection using the modern resolve() API.",
+  "componentName": "telemetry-card",
+  "defaultFile": "telemetry-card.html",
+  "options": {
+    "mode": "ssr",
+    "strategy": "hydrate",
+    "whitelistAudit": true
+  },
+  "ast": {
+    "type": "CustomElementDefinition",
+    "name": "telemetry-card",
+    "sourceFile": "telemetry-card.ts",
+    "template": {
+      "file": "telemetry-card.html",
+      "type": "TemplateDefinition",
+      "root": "div.p-6.max-w-md",
+      "children": [
+        {
+          "tag": "div",
+          "traceFile": "telemetry-card.html",
+          "traceSearch": "${serviceName}",
+          "interpolation": "${serviceName}"
+        },
+        {
+          "tag": "strong",
+          "traceFile": "telemetry-card.html",
+          "traceSearch": "${diScope}",
+          "interpolation": "${diScope}"
+        }
+      ]
+    },
+    "bindables": [
+      "serviceName",
+      "diScope",
+      "instanceCount"
+    ]
+  }
+}

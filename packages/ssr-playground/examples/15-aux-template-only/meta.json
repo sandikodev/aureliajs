@@ -1,0 +1,37 @@
+{
+  "id": "aux-template-only",
+  "category": "Aurelia in HTML (.aux SFC)",
+  "title": "Template-Only Card (.aux)",
+  "description": "Zero-boilerplate Single-File Component with pure <template> and scoped CSS.",
+  "componentName": "stat-card",
+  "defaultFile": "stat-card.aux",
+  "options": {
+    "mode": "ssr",
+    "strategy": "static",
+    "whitelistAudit": true
+  },
+  "ast": {
+    "type": "AuxComponentDefinition",
+    "name": "stat-card",
+    "sourceFile": "stat-card.aux",
+    "template": {
+      "file": "stat-card.aux",
+      "type": "AuxTemplateBlock",
+      "root": "div.p-6.max-w-sm",
+      "children": [
+        {
+          "tag": "span",
+          "traceFile": "stat-card.aux",
+          "traceSearch": "148.2k",
+          "text": "Static Value 148.2k"
+        },
+        {
+          "tag": "style",
+          "traceFile": "stat-card.aux",
+          "traceSearch": "<style scoped>",
+          "text": "Scoped CSS [.stat-progress-bar]"
+        }
+      ]
+    }
+  }
+}

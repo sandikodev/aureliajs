@@ -1,0 +1,44 @@
+{
+  "id": "conditional-flow",
+  "category": "Template Controllers",
+  "title": "Conditional Flow (if.bind)",
+  "description": "Structural DOM manipulation with if.bind, else conditions, and show.bind toggles.",
+  "componentName": "status-display",
+  "defaultFile": "status-display.html",
+  "options": {
+    "mode": "ssr",
+    "strategy": "hydrate",
+    "whitelistAudit": true
+  },
+  "ast": {
+    "type": "CustomElementDefinition",
+    "name": "status-display",
+    "sourceFile": "status-display.ts",
+    "template": {
+      "file": "status-display.html",
+      "type": "TemplateDefinition",
+      "root": "div.p-6.max-w-md",
+      "children": [
+        {
+          "tag": "span",
+          "traceFile": "status-display.html",
+          "traceSearch": "isOnline ?",
+          "interpolation": "${isOnline ? ...}"
+        },
+        {
+          "tag": "button",
+          "traceFile": "status-display.html",
+          "traceSearch": "click.trigger=\"toggle()\"",
+          "binding": "ListenerBinding [click.trigger=\"toggle()\"]"
+        }
+      ]
+    },
+    "bindables": [
+      "isOnline",
+      "statusMessage"
+    ],
+    "methods": [
+      "toggle()"
+    ]
+  }
+}

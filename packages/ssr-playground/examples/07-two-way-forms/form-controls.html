@@ -1,0 +1,41 @@
+<div class="p-6 max-w-md mx-auto bg-card rounded-xl shadow-md border space-y-4">
+  <div class="flex items-center justify-between border-b border-border pb-3">
+    <div>
+      <h2 class="text-xl font-bold text-foreground">Form Controls</h2>
+      <p class="text-xs text-muted-foreground">Bi-directional two-way synchronization</p>
+    </div>
+    <span class="px-2 py-0.5 text-xs rounded-full bg-emerald-100 text-emerald-800 font-mono font-medium">value.bind</span>
+  </div>
+
+  <div class="space-y-3 text-xs">
+    <!-- Text Input -->
+    <div>
+      <label class="block font-medium text-foreground mb-1">Developer Handle</label>
+      <input type="text" value.bind="username" class="w-full px-3 py-1.5 rounded-md border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+    </div>
+
+    <!-- Select Dropdown -->
+    <div>
+      <label class="block font-medium text-foreground mb-1">Architecture Preference</label>
+      <select value.bind="framework" class="w-full px-3 py-1.5 rounded-md border border-border bg-background text-foreground focus:outline-none">
+        <option value="Aurelia 2 SSR">Aurelia 2 SSR (Hono Edge)</option>
+        <option value="Aurelia .aux SFC">Aurelia in HTML (.aux)</option>
+        <option value="Aurelia Resumable">Aurelia Resumable Zero-JS</option>
+      </select>
+    </div>
+
+    <!-- Checkbox Boolean -->
+    <div class="flex items-center space-x-2 pt-1">
+      <input type="checkbox" id="sub-active" checked.bind="isActive" class="rounded border-border text-primary" />
+      <label for="sub-active" class="font-medium text-foreground">Enable Strict Security Sandbox</label>
+    </div>
+  </div>
+
+  <!-- Realtime Model Preview Box -->
+  <div class="p-3 bg-secondary rounded-lg border border-border text-xs space-y-1 font-mono">
+    <div class="text-[10px] uppercase font-semibold text-muted-foreground">Synchronized ViewModel State</div>
+    <div>Username: <strong class="text-primary">${username}</strong></div>
+    <div>Target: <strong class="text-emerald-700">${framework}</strong></div>
+    <div>Status: <span class="${isActive ? 'text-emerald-700 font-bold' : 'text-muted-foreground'}">${isActive ? 'ACTIVE' : 'DISABLED'}</span></div>
+  </div>
+</div>

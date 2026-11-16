@@ -1,0 +1,28 @@
+<div class="p-6 max-w-md mx-auto bg-card rounded-xl shadow-md border space-y-4">
+  <div class="flex items-center justify-between border-b border-border pb-3">
+    <div>
+      <h2 class="text-xl font-bold text-foreground">Dependency Injection</h2>
+      <p class="text-xs text-muted-foreground">Aurelia 2 modern resolve() function-based DI</p>
+    </div>
+    <span class="px-2 py-0.5 text-xs rounded-full bg-purple-500/10 text-purple-400 font-mono font-medium">resolve(ID)</span>
+  </div>
+
+  <div class="space-y-3 text-xs">
+    <div class="p-3 bg-secondary rounded-lg border border-border space-y-1">
+      <div class="text-muted-foreground text-[10px] uppercase font-semibold">Service Container Token</div>
+      <div class="font-mono text-foreground font-bold">${serviceName}</div>
+      <div class="text-muted-foreground">Injected via modern function-based resolve() without constructor boilerplate.</div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-2 text-xs">
+      <div class="p-2 rounded bg-surface border border-border">
+        <span class="text-muted-foreground block text-[10px]">DI Scope:</span>
+        <strong class="text-primary font-mono">${diScope}</strong>
+      </div>
+      <div class="p-2 rounded bg-surface border border-border">
+        <span class="text-muted-foreground block text-[10px]">Registered Instances:</span>
+        <strong class="text-emerald-700 font-mono">${instanceCount} Singleton</strong>
+      </div>
+    </div>
+  </div>
+</div>

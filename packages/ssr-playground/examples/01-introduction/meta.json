@@ -1,0 +1,48 @@
+{
+  "id": "hello-world",
+  "category": "Introduction",
+  "title": "Hello World",
+  "description": "Clean separation of concerns with paired template and view-model class.",
+  "componentName": "hello-world",
+  "defaultFile": "hello-world.html",
+  "options": {
+    "mode": "ssr",
+    "strategy": "hydrate",
+    "whitelistAudit": true
+  },
+  "ast": {
+    "type": "CustomElementDefinition",
+    "name": "hello-world",
+    "sourceFile": "hello-world.ts",
+    "template": {
+      "file": "hello-world.html",
+      "type": "TemplateDefinition",
+      "root": "div.p-8.max-w-lg",
+      "children": [
+        {
+          "tag": "h1",
+          "traceFile": "hello-world.html",
+          "traceSearch": "${greeting}",
+          "interpolation": "${greeting}, ${name}!"
+        },
+        {
+          "tag": "p",
+          "traceFile": "hello-world.html",
+          "traceSearch": "${description}",
+          "interpolation": "${description}"
+        },
+        {
+          "tag": "div",
+          "traceFile": "hello-world.html",
+          "traceSearch": "Server-Side Rendered",
+          "text": "Aurelia 2 Server-Side Rendered"
+        }
+      ]
+    },
+    "bindables": [
+      "greeting",
+      "name",
+      "description"
+    ]
+  }
+}

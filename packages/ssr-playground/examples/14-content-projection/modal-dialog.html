@@ -1,0 +1,32 @@
+<div class="p-6 max-w-md mx-auto bg-card rounded-xl shadow-md border space-y-4">
+  <div class="flex items-center justify-between border-b border-border pb-3">
+    <div>
+      <h2 class="text-xl font-bold text-foreground">Content Projection</h2>
+      <p class="text-xs text-muted-foreground">Transclusion with &lt;au-slot&gt; and fallback markup</p>
+    </div>
+    <span class="px-2 py-0.5 text-xs rounded-full bg-cyan-100 text-cyan-800 font-mono font-medium">&lt;au-slot&gt;</span>
+  </div>
+
+  <div class="p-4 bg-secondary rounded-xl border border-border space-y-3">
+    <!-- Header Projection Target -->
+    <div class="flex items-center space-x-2 border-b border-border pb-2">
+      <span class="text-xs font-bold text-foreground">${dialogTitle}</span>
+      <span class="px-2 py-0.5 rounded text-[10px] bg-primary text-white font-medium">${badge}</span>
+    </div>
+
+    <!-- Body Projection Target -->
+    <p class="text-xs text-muted-foreground leading-relaxed">
+      ${dialogBody}
+    </p>
+
+    <!-- Footer Action Target -->
+    <div class="flex items-center justify-end space-x-2 pt-2 border-t border-border">
+      <button type="button" class="px-3 py-1 bg-surface border border-border text-foreground rounded text-xs hover:bg-hover">
+        Dismiss
+      </button>
+      <button type="button" class="px-3 py-1 bg-primary text-white rounded text-xs font-medium hover:bg-primary/90">
+        Confirm Action
+      </button>
+    </div>
+  </div>
+</div>

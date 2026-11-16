@@ -118,4 +118,181 @@ describe('All Real Aurelia 2 Playground Examples SSR Verification', () => {
     expect(res.rawHtml).toContain('data-au-event="click->increment"');
     expect(res.rawHtml).toContain('data-au-bind="count"');
   });
+
+  test('07-two-way-forms: compiles form controls with bi-directional inputs', async () => {
+    const ex = examples['form-controls'];
+    expect(ex).toBeDefined();
+
+    const res = await compilePlaygroundExample({
+      exampleId: ex.id,
+      files: ex.files,
+      mode: 'ssr',
+      strategy: 'hydrate',
+    });
+
+    expect(res.success).toBe(true);
+    expect(res.rawHtml).toContain('Form Controls');
+    expect(res.rawHtml).toContain('Sandikodev');
+    expect(res.rawHtml).toContain('Aurelia 2 SSR');
+    expect(res.rawHtml).toContain('ACTIVE');
+  });
+
+  test('08-binding-behaviors: compiles & debounce timing modifier', async () => {
+    const ex = examples['binding-behaviors'];
+    expect(ex).toBeDefined();
+
+    const res = await compilePlaygroundExample({
+      exampleId: ex.id,
+      files: ex.files,
+      mode: 'ssr',
+      strategy: 'hydrate',
+    });
+
+    expect(res.success).toBe(true);
+    expect(res.rawHtml).toContain('Binding Behaviors');
+    expect(res.rawHtml).toContain('aurelia-ssr');
+    expect(res.rawHtml).toContain('8 modules');
+  });
+
+  test('09-value-converters: compiles pure formatting pipes', async () => {
+    const ex = examples['value-converters'];
+    expect(ex).toBeDefined();
+
+    const res = await compilePlaygroundExample({
+      exampleId: ex.id,
+      files: ex.files,
+      mode: 'ssr',
+      strategy: 'hydrate',
+    });
+
+    expect(res.success).toBe(true);
+    expect(res.rawHtml).toContain('Value Converters');
+    expect(res.rawHtml).toContain('AUR-ENTERPRISE-2026');
+    expect(res.rawHtml).toContain('Enterprise Pro');
+    expect(res.rawHtml).toContain('$499.00 USD');
+  });
+
+  test('10-conditional-flow: compiles if.bind conditional structural rendering', async () => {
+    const ex = examples['conditional-flow'];
+    expect(ex).toBeDefined();
+
+    const res = await compilePlaygroundExample({
+      exampleId: ex.id,
+      files: ex.files,
+      mode: 'ssr',
+      strategy: 'hydrate',
+    });
+
+    expect(res.success).toBe(true);
+    expect(res.rawHtml).toContain('Conditional Flow');
+    expect(res.rawHtml).toContain('Operational');
+    expect(res.rawHtml).toContain('All edge nodes serving Aurelia 2 SSR');
+  });
+
+  test('11-contextual-scoping: compiles with.bind contextual nesting', async () => {
+    const ex = examples['contextual-scoping'];
+    expect(ex).toBeDefined();
+
+    const res = await compilePlaygroundExample({
+      exampleId: ex.id,
+      files: ex.files,
+      mode: 'ssr',
+      strategy: 'hydrate',
+    });
+
+    expect(res.success).toBe(true);
+    expect(res.rawHtml).toContain('Contextual Scoping');
+    expect(res.rawHtml).toContain('Google DeepMind Laboratory');
+    expect(res.rawHtml).toContain('99.999%');
+  });
+
+  test('12-component-basics: compiles class getters and bindables', async () => {
+    const ex = examples['component-basics'];
+    expect(ex).toBeDefined();
+
+    const res = await compilePlaygroundExample({
+      exampleId: ex.id,
+      files: ex.files,
+      mode: 'ssr',
+      strategy: 'hydrate',
+    });
+
+    expect(res.success).toBe(true);
+    expect(res.rawHtml).toContain('Component Basics');
+    expect(res.rawHtml).toContain('Sandiko Dev');
+    expect(res.rawHtml).toContain('SD');
+    expect(res.rawHtml).toContain('Principal Systems Architect');
+  });
+
+  test('13-dependency-injection: compiles decoupled service injection', async () => {
+    const ex = examples['dependency-injection'];
+    expect(ex).toBeDefined();
+
+    const res = await compilePlaygroundExample({
+      exampleId: ex.id,
+      files: ex.files,
+      mode: 'ssr',
+      strategy: 'hydrate',
+    });
+
+    expect(res.success).toBe(true);
+    expect(res.rawHtml).toContain('Dependency Injection');
+    expect(res.rawHtml).toContain('ITelemetryService [HonoEdgeTelemetry]');
+    expect(res.rawHtml).toContain('Container.Singleton');
+  });
+
+  test('14-content-projection: compiles transclusion with <au-slot>', async () => {
+    const ex = examples['content-projection'];
+    expect(ex).toBeDefined();
+
+    const res = await compilePlaygroundExample({
+      exampleId: ex.id,
+      files: ex.files,
+      mode: 'ssr',
+      strategy: 'hydrate',
+    });
+
+    expect(res.success).toBe(true);
+    expect(res.rawHtml).toContain('Content Projection');
+    expect(res.rawHtml).toContain('System Firmware Upgrade');
+    expect(res.rawHtml).toContain('Release v2.0-rc2');
+  });
+
+  test('15-aux-template-only: compiles pure template SFC with zero JS footprint', async () => {
+    const ex = examples['aux-template-only'];
+    expect(ex).toBeDefined();
+
+    const res = await compilePlaygroundExample({
+      exampleId: ex.id,
+      files: ex.files,
+      mode: 'ssr',
+      strategy: 'static',
+    });
+
+    expect(res.success).toBe(true);
+    expect(res.rawHtml).toContain('Edge Throughput');
+    expect(res.rawHtml).toContain('148.2k');
+    expect(res.rawHtml).toContain('+14.6% vs avg');
+    expect(res.htmlDocument).toContain('.stat-progress-bar[');
+  });
+
+  test('16-resumable-todo: compiles Qwik-like resumable todo application', async () => {
+    const ex = examples['resumable-todo'];
+    expect(ex).toBeDefined();
+
+    const res = await compilePlaygroundExample({
+      exampleId: ex.id,
+      files: ex.files,
+      mode: 'resumable',
+      strategy: 'hydrate',
+    });
+
+    expect(res.success).toBe(true);
+    expect(res.rawHtml).toContain('Resumable Tasks');
+    expect(res.rawHtml).toContain('Compile Aurelia 2 on Hono edge runtime');
+    expect(res.rawHtml).toContain('Support .aux Single-File Components');
+    expect(res.rawHtml).toContain('Pioneer Enterprise Resumable SSR');
+    expect(res.rawHtml).toContain('data-au-event="click->add"');
+    expect(res.rawHtml).toContain('data-au-bind="tasks"');
+  });
 });

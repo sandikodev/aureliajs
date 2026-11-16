@@ -1,0 +1,54 @@
+{
+  "id": "resumable-counter",
+  "category": "Resumable Hydration (Zero-JS)",
+  "title": "Resumable Counter (Zero-Hydration)",
+  "description": "Fine-grained W3C marker adoption with on-demand event dispatching.",
+  "componentName": "counter-card",
+  "defaultFile": "resumable-counter.html",
+  "options": {
+    "mode": "resumable",
+    "strategy": "hydrate",
+    "whitelistAudit": true
+  },
+  "ast": {
+    "type": "ResumableCustomElementDefinition",
+    "name": "resumable-counter",
+    "sourceFile": "resumable-counter.ts",
+    "template": {
+      "file": "resumable-counter.html",
+      "type": "ResumableTemplateDefinition",
+      "root": "div.p-6.max-w-sm",
+      "children": [
+        {
+          "tag": "marker",
+          "traceFile": "resumable-counter.html",
+          "traceSearch": "<!--au-resumable:start",
+          "marker": "<!--au-resumable:start:resumable-counter-->"
+        },
+        {
+          "tag": "button",
+          "traceFile": "resumable-counter.html",
+          "traceSearch": "data-au-event",
+          "resumableEvent": "data-au-event=\"click->increment\""
+        },
+        {
+          "tag": "span",
+          "traceFile": "resumable-counter.html",
+          "traceSearch": "data-au-bind",
+          "resumableBind": "data-au-bind=\"count\""
+        },
+        {
+          "tag": "marker",
+          "traceFile": "resumable-counter.html",
+          "traceSearch": "<!--au-resumable:end",
+          "marker": "<!--au-resumable:end:resumable-counter-->"
+        }
+      ]
+    },
+    "resumableFeatures": [
+      "Lazy Event Delegation",
+      "Zero-Thrash Marker Adoption",
+      "Fine-grained State Resumption"
+    ]
+  }
+}

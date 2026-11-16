@@ -1,0 +1,24 @@
+<div class="p-6 max-w-sm mx-auto bg-card rounded-xl shadow-md border space-y-4">
+  <div class="flex items-center justify-between border-b border-border pb-3">
+    <div>
+      <h2 class="text-lg font-bold text-foreground">Component Basics</h2>
+      <p class="text-xs text-muted-foreground">Class getters and bindables</p>
+    </div>
+    <span class="px-2 py-0.5 text-xs rounded-full bg-emerald-100 text-emerald-800 font-mono font-medium">@customElement</span>
+  </div>
+
+  <div class="flex items-center space-x-3">
+    <div class="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg shrink-0">
+      ${initials}
+    </div>
+    <div>
+      <div class="font-bold text-foreground">${fullName}</div>
+      <div class="text-xs text-muted-foreground">${role}</div>
+      <div class="mt-1">
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          ${status}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

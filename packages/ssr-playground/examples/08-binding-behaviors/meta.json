@@ -1,0 +1,41 @@
+{
+  "id": "binding-behaviors",
+  "category": "Reactivity & Forms",
+  "title": "Binding Behaviors (& debounce)",
+  "description": "Control evaluation timing directly in templates using & debounce:300 and & throttle.",
+  "componentName": "search-filter",
+  "defaultFile": "search-filter.html",
+  "options": {
+    "mode": "ssr",
+    "strategy": "hydrate",
+    "whitelistAudit": true
+  },
+  "ast": {
+    "type": "CustomElementDefinition",
+    "name": "search-filter",
+    "sourceFile": "search-filter.ts",
+    "template": {
+      "file": "search-filter.html",
+      "type": "TemplateDefinition",
+      "root": "div.p-6.max-w-md",
+      "children": [
+        {
+          "tag": "input",
+          "traceFile": "search-filter.html",
+          "traceSearch": "& debounce:300",
+          "behavior": "BindingBehavior [& debounce:300]"
+        },
+        {
+          "tag": "span",
+          "traceFile": "search-filter.html",
+          "traceSearch": "${query || '(none)'}",
+          "interpolation": "${query || '(none)'}"
+        }
+      ]
+    },
+    "bindables": [
+      "query",
+      "matchCount"
+    ]
+  }
+}

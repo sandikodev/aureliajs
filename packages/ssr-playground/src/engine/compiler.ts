@@ -81,11 +81,13 @@ function parseTypeScriptClass(code: string): {
   className: string;
   fields: Record<string, unknown>;
   methods: Record<string, string>;
+  getters: Record<string, string>;
   bindables: string[];
   topLevel: string[];
 } {
   const fields: Record<string, unknown> = {};
   const methods: Record<string, string> = {};
+  const getters: Record<string, string> = {};
   const bindables: string[] = [];
   const topLevel: string[] = [];
   let className = 'AureliaComponent';
@@ -118,6 +120,9 @@ function parseTypeScriptClass(code: string): {
             if (member.body) {
               methods[mName] = member.body.getText(sourceFile);
             }
+          } else if (ts.isGetAccessor(member) && member.name && member.body) {
+            const gName = member.name.getText(sourceFile);
+            getters[gName] = member.body.getText(sourceFile);
           }
         }
       } else if (ts.isExpressionStatement(node)) {
@@ -135,7 +140,7 @@ function parseTypeScriptClass(code: string): {
     console.error('TypeScript AST parse error:', err);
   }
 
-  return { className, fields, methods, bindables, topLevel };
+  return { className, fields, methods, getters, bindables, topLevel };
 }
 
 /**
@@ -277,7 +282,7 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
     let compiledJs = '';
     let scopedStyles = '';
     let ast: Record<string, unknown> = {};
-    let parsedTs: ReturnType<typeof parseTypeScriptClass> = { className: '', fields: {}, methods: {}, bindables: [], topLevel: [] };
+    let parsedTs: ReturnType<typeof parseTypeScriptClass> = { className: '', fields: {}, methods: {}, getters: {}, bindables: [], topLevel: [] };
 
     // ----------------------------------------------------
     // CASE 1: Single-File Component (.aux)
@@ -371,7 +376,7 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
     // ----------------------------------------------------
     // Create Component & Props for Aurelia SSR
     // ----------------------------------------------------
-    const mergedProps: Record<string, unknown> = { ...parsedTs.fields };
+    const mergedProps: Record<string, unknown> = {};
     if (context.user && typeof context.user === 'object' && (context.user as { name?: string }).name) {
       mergedProps.user = context.user;
     }
@@ -381,11 +386,47 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
     if (context.role) {
       mergedProps.role = context.role;
     }
+    // ViewModel class fields take precedence over default context
+    Object.assign(mergedProps, parsedTs.fields);
+    if (jsonFile && resolvedFiles[jsonFile]) {
+      try {
+        Object.assign(mergedProps, JSON.parse(resolvedFiles[jsonFile]));
+      } catch {
+        // ignore
+      }
+    }
 
-    const dynamicComponent = {
+    const dynamicComponent: Record<string, unknown> = {
       template: templateString,
       ...parsedTs.methods,
     };
+
+    // Attach evaluated getters to dynamicComponent and mergedProps
+    for (const [gName, gBody] of Object.entries(parsedTs.getters)) {
+      try {
+        const bodyContent = gBody.trim().replace(/^\{|\}$/g, '');
+        const getterFn = new Function(bodyContent);
+        const safeGetter = function(this: unknown) {
+          try {
+            return getterFn.call(this);
+          } catch {
+            return '';
+          }
+        };
+        Object.defineProperty(dynamicComponent, gName, {
+          get: safeGetter,
+          enumerable: true,
+          configurable: true,
+        });
+        Object.defineProperty(mergedProps, gName, {
+          get: safeGetter,
+          enumerable: true,
+          configurable: true,
+        });
+      } catch {
+        // Ignore getter definition errors
+      }
+    }
 
     // ----------------------------------------------------
     // SSR Rendering & Metrics Inspection

@@ -1,0 +1,40 @@
+{
+  "id": "contextual-scoping",
+  "category": "Template Controllers",
+  "title": "Contextual Scoping (with.bind)",
+  "description": "Simplify complex nested data structures and avoid repetitive model navigation.",
+  "componentName": "nested-scope",
+  "defaultFile": "nested-scope.html",
+  "options": {
+    "mode": "ssr",
+    "strategy": "hydrate",
+    "whitelistAudit": true
+  },
+  "ast": {
+    "type": "CustomElementDefinition",
+    "name": "nested-scope",
+    "sourceFile": "nested-scope.ts",
+    "template": {
+      "file": "nested-scope.html",
+      "type": "TemplateDefinition",
+      "root": "div.p-6.max-w-md",
+      "children": [
+        {
+          "tag": "h3",
+          "traceFile": "nested-scope.html",
+          "traceSearch": "${organization.name}",
+          "interpolation": "${organization.name}"
+        },
+        {
+          "tag": "strong",
+          "traceFile": "nested-scope.html",
+          "traceSearch": "${organization.sla}",
+          "interpolation": "${organization.sla}"
+        }
+      ]
+    },
+    "bindables": [
+      "organization"
+    ]
+  }
+}

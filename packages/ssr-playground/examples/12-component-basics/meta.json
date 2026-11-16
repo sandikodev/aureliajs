@@ -1,0 +1,43 @@
+{
+  "id": "component-basics",
+  "category": "Enterprise Architecture",
+  "title": "Component Basics & Getters",
+  "description": "Pure TypeScript ES2022+ classes with @customElement, @bindable, and reactive getters.",
+  "componentName": "user-badge",
+  "defaultFile": "user-badge.html",
+  "options": {
+    "mode": "ssr",
+    "strategy": "hydrate",
+    "whitelistAudit": true
+  },
+  "ast": {
+    "type": "CustomElementDefinition",
+    "name": "user-badge",
+    "sourceFile": "user-badge.ts",
+    "template": {
+      "file": "user-badge.html",
+      "type": "TemplateDefinition",
+      "root": "div.p-6.max-w-sm",
+      "children": [
+        {
+          "tag": "div",
+          "traceFile": "user-badge.html",
+          "traceSearch": "${initials}",
+          "interpolation": "${initials}"
+        },
+        {
+          "tag": "div",
+          "traceFile": "user-badge.html",
+          "traceSearch": "${fullName}",
+          "interpolation": "${fullName}"
+        }
+      ]
+    },
+    "bindables": [
+      "firstName",
+      "lastName",
+      "role",
+      "status"
+    ]
+  }
+}

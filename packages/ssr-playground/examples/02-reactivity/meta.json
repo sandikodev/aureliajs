@@ -1,0 +1,57 @@
+{
+  "id": "counter-card",
+  "category": "Reactivity & State",
+  "title": "Interactive Counter",
+  "description": "Two-way bound state and DOM click listeners with zero virtual DOM overhead.",
+  "componentName": "counter-card",
+  "defaultFile": "counter-card.html",
+  "options": {
+    "mode": "ssr",
+    "strategy": "hydrate",
+    "whitelistAudit": true
+  },
+  "ast": {
+    "type": "CustomElementDefinition",
+    "name": "counter-card",
+    "sourceFile": "counter-card.ts",
+    "template": {
+      "file": "counter-card.html",
+      "type": "TemplateDefinition",
+      "root": "div.p-6.max-w-sm",
+      "children": [
+        {
+          "tag": "h2",
+          "traceFile": "counter-card.html",
+          "traceSearch": "${title}",
+          "interpolation": "${title}"
+        },
+        {
+          "tag": "p",
+          "traceFile": "counter-card.html",
+          "traceSearch": "${description}",
+          "interpolation": "${description}"
+        },
+        {
+          "tag": "button",
+          "traceFile": "counter-card.html",
+          "traceSearch": "click.trigger=\"increment()\"",
+          "binding": "ListenerBinding [click.trigger=\"increment()\"]"
+        },
+        {
+          "tag": "span",
+          "traceFile": "counter-card.html",
+          "traceSearch": "${count * 2}",
+          "interpolation": "${count * 2}"
+        }
+      ]
+    },
+    "bindables": [
+      "title",
+      "description",
+      "count"
+    ],
+    "methods": [
+      "increment()"
+    ]
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "id": "aux-component",
+  "category": "Aurelia in HTML (.aux SFC)",
+  "title": "Counter Widget (.aux)",
+  "description": "Single-File Component with scoped styles powered by @aureliajs/vite-plugin-aux.",
+  "componentName": "counter-card",
+  "defaultFile": "counter-widget.aux",
+  "options": {
+    "mode": "ssr",
+    "strategy": "hydrate",
+    "whitelistAudit": true
+  },
+  "ast": {
+    "type": "AuxComponentDefinition",
+    "name": "counter-widget",
+    "sourceFile": "counter-widget.aux",
+    "template": {
+      "file": "counter-widget.aux",
+      "type": "AuxTemplateBlock",
+      "root": "div.p-6.max-w-sm",
+      "children": [
+        {
+          "tag": "h2",
+          "traceFile": "counter-widget.aux",
+          "traceSearch": "${title}",
+          "interpolation": "${title}"
+        },
+        {
+          "tag": "button",
+          "traceFile": "counter-widget.aux",
+          "traceSearch": "click.trigger=\"increment()\"",
+          "binding": "ListenerBinding [click.trigger=\"increment()\"]"
+        },
+        {
+          "tag": "style",
+          "traceFile": "counter-widget.aux",
+          "traceSearch": "<style scoped>",
+          "text": "Scoped CSS [data-au-scope]"
+        }
+      ]
+    },
+    "script": {
+      "file": "counter-widget.aux",
+      "type": "TypeScriptBlock",
+      "className": "CounterWidget",
+      "methods": [
+        "increment()"
+      ]
+    }
+  }
+}

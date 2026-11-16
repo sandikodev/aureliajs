@@ -1,0 +1,42 @@
+{
+  "id": "content-projection",
+  "category": "Enterprise Architecture",
+  "title": "Content Projection (<au-slot>)",
+  "description": "Flexible transclusion and component wrapping using default and named <au-slot> targets.",
+  "componentName": "modal-dialog",
+  "defaultFile": "modal-dialog.html",
+  "options": {
+    "mode": "ssr",
+    "strategy": "hydrate",
+    "whitelistAudit": true
+  },
+  "ast": {
+    "type": "CustomElementDefinition",
+    "name": "modal-dialog",
+    "sourceFile": "modal-dialog.ts",
+    "template": {
+      "file": "modal-dialog.html",
+      "type": "TemplateDefinition",
+      "root": "div.p-6.max-w-md",
+      "children": [
+        {
+          "tag": "span",
+          "traceFile": "modal-dialog.html",
+          "traceSearch": "${dialogTitle}",
+          "interpolation": "${dialogTitle}"
+        },
+        {
+          "tag": "p",
+          "traceFile": "modal-dialog.html",
+          "traceSearch": "${dialogBody}",
+          "interpolation": "${dialogBody}"
+        }
+      ]
+    },
+    "bindables": [
+      "dialogTitle",
+      "badge",
+      "dialogBody"
+    ]
+  }
+}
