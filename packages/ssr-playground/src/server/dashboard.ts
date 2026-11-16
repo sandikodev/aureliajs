@@ -152,24 +152,67 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       background: #ff3e00 !important;
     }
 
-    /* In-Editor Highlight Overlay Layer */
+    /* Gutter & Line Numbers Column */
+    #editorLineNumbers {
+      padding-top: 8px !important;
+      padding-bottom: 8px !important;
+      line-height: 22px !important;
+      font-size: 11px !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+    #editorLineNumbers > div {
+      height: 22px !important;
+      line-height: 22px !important;
+      box-sizing: border-box !important;
+    }
+
+    /* In-Editor Highlight Overlay Layer and Textarea matching 1:1 */
+    #editorHighlightPre,
+    #codeEditorInput {
+      margin: 0 !important;
+      padding: 8px 12px !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+      font-size: 12px !important;
+      line-height: 22px !important;
+      letter-spacing: 0 !important;
+      tab-size: 2 !important;
+      -moz-tab-size: 2 !important;
+      white-space: pre !important;
+      word-wrap: normal !important;
+      word-break: normal !important;
+      box-sizing: border-box !important;
+      border: 0 !important;
+    }
     #editorHighlightPre {
-      margin: 0;
-      padding: 8px 12px 8px 0;
-      font-size: 12px;
-      line-height: 22px;
-      white-space: pre;
-      word-wrap: normal;
       background: transparent !important;
-      box-sizing: border-box;
-      pointer-events: none;
+      pointer-events: none !important;
+      overflow: hidden !important;
+      z-index: 0;
+    }
+    #editorHighlightPre code,
+    #editorHighlightCode {
+      font-family: inherit !important;
+      font-size: inherit !important;
+      line-height: inherit !important;
+      letter-spacing: inherit !important;
+      tab-size: inherit !important;
+      -moz-tab-size: inherit !important;
+      white-space: inherit !important;
+      word-wrap: inherit !important;
+      word-break: inherit !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border: 0 !important;
+      display: inline-block !important;
+      min-width: 100% !important;
     }
     #codeEditorInput {
-      padding: 8px 12px 8px 0;
-      font-size: 12px;
-      line-height: 22px;
-      white-space: pre;
-      box-sizing: border-box;
+      color: transparent !important;
+      -webkit-text-fill-color: transparent !important;
+      caret-color: #ffffff !important;
+      overflow: auto !important;
+      outline: none !important;
+      z-index: 20;
     }
   </style>
 </head>
@@ -241,23 +284,25 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         </div>
       </div>
 
-      <!-- Editor Canvas: Line Numbers, Syntax Highlight Layer, and Transparent Textarea -->
-      <div class="flex-1 relative flex overflow-hidden" id="editorCanvasWrapper">
-        <!-- Line Numbers Column -->
-        <div id="editorLineNumbers" class="w-11 bg-surface/40 border-r border-border/40 py-2 text-right pr-2 font-mono text-[11px] text-gray-600 select-none overflow-hidden leading-[22px] flex-shrink-0">
-          1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10
+      <!-- Editor Canvas: Line Numbers Gutter + Dedicated Code Area Container -->
+      <div class="flex-1 flex overflow-hidden relative" id="editorCanvasWrapper">
+        <!-- Line Numbers Column (Gutter) -->
+        <div id="editorLineNumbers" class="w-11 bg-surface/50 border-r border-border/40 text-right pr-2 font-mono text-[11px] text-gray-500 select-none overflow-hidden flex-shrink-0">
         </div>
 
-        <!-- Clean Line Highlight Overlay -->
-        <div id="editorTraceOverlay" class="pointer-events-none absolute inset-0 pl-11 overflow-hidden z-10">
-          <div id="traceHighlightBar" class="hidden editor-line-highlight"></div>
+        <!-- Code Editor Body Container (Houses Trace Overlay, Highlight Pre, and Textarea) -->
+        <div class="flex-1 relative overflow-hidden h-full" id="editorBodyContainer">
+          <!-- Clean Line Highlight Overlay -->
+          <div id="editorTraceOverlay" class="pointer-events-none absolute inset-0 overflow-hidden z-10">
+            <div id="traceHighlightBar" class="hidden editor-line-highlight"></div>
+          </div>
+
+          <!-- Syntax Highlighting Background Layer (Prism Tokenized) -->
+          <pre id="editorHighlightPre" class="pointer-events-none absolute inset-0 font-mono text-xs leading-[22px] overflow-hidden whitespace-pre bg-transparent text-gray-200 z-0 m-0"><code id="editorHighlightCode"></code></pre>
+
+          <!-- Interactive Textarea Layer (Transparent text, visible caret) -->
+          <textarea id="codeEditorInput" spellcheck="false" class="absolute inset-0 font-mono text-xs leading-[22px] resize-none focus:outline-none overflow-auto whitespace-pre bg-transparent text-transparent caret-white selection:bg-accent/30 z-20"></textarea>
         </div>
-
-        <!-- Syntax Highlighting Background Layer (Prism Tokenized) -->
-        <pre id="editorHighlightPre" class="pointer-events-none absolute inset-0 pl-11 font-mono text-xs leading-[22px] overflow-hidden whitespace-pre bg-transparent text-gray-200 z-0"><code id="editorHighlightCode"></code></pre>
-
-        <!-- Interactive Textarea Layer (Transparent text, visible caret) -->
-        <textarea id="codeEditorInput" spellcheck="false" class="absolute inset-0 pl-11 font-mono text-xs leading-[22px] resize-none focus:outline-none overflow-auto whitespace-pre bg-transparent text-transparent caret-white selection:bg-accent/30 z-20"></textarea>
       </div>
 
       <!-- Compact Status Footer (Height 24px) -->
@@ -616,7 +661,9 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         grammar = Prism.languages.aurelia || Prism.languages.markup;
       }
 
-      editorHighlightCode.innerHTML = Prism.highlight(code, grammar, lang);
+      // Ensure trailing newline has space so pre tag allocates height for empty trailing line
+      const textToHighlight = code.endsWith(String.fromCharCode(10)) ? code + ' ' : code;
+      editorHighlightCode.innerHTML = Prism.highlight(textToHighlight, grammar, lang);
     }
 
     // Initialize Dropdown
@@ -757,6 +804,12 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
 
       const ext = filename.split('.').pop() || '';
       document.getElementById('editorStatusText').textContent = filename + ' • ' + ext.toUpperCase();
+
+      codeEditorInput.scrollTop = 0;
+      codeEditorInput.scrollLeft = 0;
+      editorHighlightPre.scrollTop = 0;
+      editorHighlightPre.scrollLeft = 0;
+      editorLineNumbers.scrollTop = 0;
 
       updateLineNumbers();
       renderEditorHighlight();
