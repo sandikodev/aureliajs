@@ -1,44 +1,46 @@
-<div class="p-6 max-w-md mx-auto bg-card rounded-xl shadow-md border space-y-4">
+<div class="w-full max-w-sm mx-auto bg-card rounded-xl border border-border shadow-sm overflow-hidden">
   <!--au-resumable:start:resumable-todo-->
-  <div class="flex items-center justify-between border-b border-border pb-3">
+  <div class="px-5 py-3.5 border-b border-border/60 flex items-center justify-between gap-3 bg-surface/40">
     <div>
-      <h2 class="text-xl font-bold text-foreground">Resumable Tasks</h2>
-      <p class="text-xs text-muted-foreground">Zero initial JS overhead & on-demand event dispatch</p>
+      <h3 class="text-xs font-semibold text-foreground tracking-tight m-0">Resumable Tasks</h3>
+      <p class="text-[11px] text-muted-foreground mt-0.5 m-0">On-demand event dispatching</p>
     </div>
-    <span class="px-2 py-0.5 text-xs rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 font-mono font-medium">Qwik-like</span>
+    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 shrink-0">Qwik-like</span>
   </div>
 
-  <div class="space-y-2">
-    <div class="p-2.5 rounded-lg border border-border bg-secondary flex items-center justify-between text-xs">
-      <div class="flex items-center space-x-2">
-        <span class="text-emerald-400 font-bold">✓</span>
-        <span class="text-foreground">Compile Aurelia 2 on Hono edge runtime</span>
+  <div class="p-5 space-y-3.5 text-xs">
+    <div class="space-y-2">
+      <div class="p-2.5 rounded-lg border border-border/60 bg-surface/60 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-emerald-400 text-xs">✓</span>
+          <span class="text-foreground text-xs font-medium">Compile Aurelia 2 on Hono edge runtime</span>
+        </div>
+        <span class="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 font-medium">Done</span>
       </div>
-      <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 font-bold">Done</span>
+
+      <div class="p-2.5 rounded-lg border border-border/60 bg-surface/60 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-emerald-400 text-xs">✓</span>
+          <span class="text-foreground text-xs font-medium">Support .aux Single-File Components</span>
+        </div>
+        <span class="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 font-medium">Done</span>
+      </div>
+
+      <div class="p-2.5 rounded-lg border border-border/60 bg-surface/60 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-primary text-xs">●</span>
+          <span class="text-foreground text-xs font-medium">Pioneer Enterprise Resumable SSR</span>
+        </div>
+        <span class="px-1.5 py-0.5 rounded text-[10px] bg-primary/10 text-primary font-medium">Active</span>
+      </div>
     </div>
 
-    <div class="p-2.5 rounded-lg border border-border bg-secondary flex items-center justify-between text-xs">
-      <div class="flex items-center space-x-2">
-        <span class="text-emerald-400 font-bold">✓</span>
-        <span class="text-foreground">Support .aux Single-File Components</span>
-      </div>
-      <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 font-bold">Done</span>
+    <div class="flex items-center justify-between pt-1 border-t border-border/40">
+      <span class="text-[11px] text-muted-foreground">Milestones: <strong class="text-foreground font-mono" data-au-bind="tasks">3</strong></span>
+      <button type="button" data-au-event="click->add" class="px-3 py-1.5 bg-primary text-white rounded text-xs font-medium hover:bg-primary/90 transition shadow-sm">
+        + New Task
+      </button>
     </div>
-
-    <div class="p-2.5 rounded-lg border border-border bg-secondary flex items-center justify-between text-xs">
-      <div class="flex items-center space-x-2">
-        <span class="text-primary font-bold">●</span>
-        <span class="text-foreground">Pioneer Enterprise Resumable SSR</span>
-      </div>
-      <span class="px-2 py-0.5 rounded text-[10px] bg-primary/10 text-primary font-bold">Active</span>
-    </div>
-  </div>
-
-  <div class="flex items-center justify-between pt-2">
-    <span class="text-xs text-muted-foreground">Total Active Milestones: <strong class="text-foreground" data-au-bind="tasks">3</strong></span>
-    <button type="button" data-au-event="click->add" class="px-3 py-1.5 bg-primary text-white rounded-md text-xs font-medium hover:bg-primary/90">
-      + New Task
-    </button>
   </div>
   <!--au-resumable:end:resumable-todo-->
 </div>

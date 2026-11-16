@@ -1,27 +1,27 @@
-<div class="p-6 max-w-md mx-auto bg-card rounded-xl shadow-md border space-y-4">
-  <div class="flex items-center justify-between border-b border-border pb-3">
+<div class="w-full max-w-sm mx-auto bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+  <div class="px-5 py-3.5 border-b border-border/60 flex items-center justify-between gap-3 bg-surface/40">
     <div>
-      <h2 class="text-xl font-bold text-foreground">Dependency Injection</h2>
-      <p class="text-xs text-muted-foreground">Aurelia 2 modern resolve() function-based DI</p>
+      <h3 class="text-xs font-semibold text-foreground tracking-tight m-0">Dependency Injection</h3>
+      <p class="text-[11px] text-muted-foreground mt-0.5 m-0">Aurelia 2 function-based resolve(ID)</p>
     </div>
-    <span class="px-2 py-0.5 text-xs rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 font-mono font-medium">resolve(ID)</span>
+    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 shrink-0">resolve(ID)</span>
   </div>
 
-  <div class="space-y-3 text-xs">
-    <div class="p-3 bg-secondary rounded-lg border border-border space-y-1">
-      <div class="text-muted-foreground text-[10px] uppercase font-semibold">Service Container Token</div>
-      <div class="font-mono text-foreground font-bold">${serviceName}</div>
-      <div class="text-muted-foreground">Injected via modern function-based resolve() without constructor boilerplate.</div>
+  <div class="p-5 space-y-3.5 text-xs">
+    <div class="p-3 bg-surface/60 rounded-lg border border-border/60 space-y-1">
+      <div class="text-[10px] uppercase font-semibold text-muted-foreground">Injected Service Token</div>
+      <div class="font-mono text-foreground font-semibold text-xs">${serviceName}</div>
+      <p class="text-[11px] text-muted-foreground m-0 pt-0.5 leading-normal">Resolved without constructor parameter injection boilerplate.</p>
     </div>
 
-    <div class="grid grid-cols-2 gap-2 text-xs">
-      <div class="p-2 rounded bg-surface border border-border">
-        <span class="text-muted-foreground block text-[10px]">DI Scope:</span>
-        <strong class="text-primary font-mono">${diScope}</strong>
+    <div class="grid grid-cols-2 gap-2.5 text-xs">
+      <div class="p-2.5 rounded bg-surface/60 border border-border/40">
+        <span class="text-muted-foreground block text-[10px] uppercase font-semibold mb-0.5">DI Scope</span>
+        <strong class="text-primary font-mono text-xs font-medium">${diScope}</strong>
       </div>
-      <div class="p-2 rounded bg-surface border border-border">
-        <span class="text-muted-foreground block text-[10px]">Registered Instances:</span>
-        <strong class="text-emerald-400 font-mono">${instanceCount} Singleton</strong>
+      <div class="p-2.5 rounded bg-surface/60 border border-border/40">
+        <span class="text-muted-foreground block text-[10px] uppercase font-semibold mb-0.5">Instances</span>
+        <strong class="text-emerald-400 font-mono text-xs font-medium">${instanceCount} Singleton</strong>
       </div>
     </div>
   </div>

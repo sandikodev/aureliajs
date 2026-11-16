@@ -1,22 +1,29 @@
 <template>
-  <div class="p-6 max-w-sm mx-auto bg-card rounded-xl shadow-md border space-y-4">
-    <div class="flex items-center justify-between">
-      <span class="text-xs uppercase font-bold text-muted-foreground">Edge Throughput</span>
-      <span class="px-2 py-0.5 text-xs rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono font-medium">Template-Only</span>
+  <div class="w-full max-w-sm mx-auto bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+    <div class="px-5 py-3.5 border-b border-border/60 flex items-center justify-between gap-3 bg-surface/40">
+      <div>
+        <h3 class="text-xs font-semibold text-foreground tracking-tight m-0">Edge Throughput</h3>
+        <p class="text-[11px] text-muted-foreground mt-0.5 m-0">Realtime compute ingestion</p>
+      </div>
+      <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shrink-0">Template-Only</span>
     </div>
 
-    <div class="flex items-baseline space-x-2">
-      <span class="text-3xl font-extrabold text-foreground">148.2k</span>
-      <span class="text-xs font-semibold text-emerald-400">+14.6% vs avg</span>
-    </div>
+    <div class="p-5 space-y-3.5">
+      <div class="flex items-baseline justify-between">
+        <span class="text-2xl font-bold tracking-tight text-foreground font-mono">148.2k</span>
+        <span class="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-400">
+          <span class="text-[9px]">▲</span> +14.6% vs avg
+        </span>
+      </div>
 
-    <div class="stat-progress-bar">
-      <div class="stat-progress-fill" style="width: 78%;"></div>
-    </div>
+      <div class="stat-progress-bar">
+        <div class="stat-progress-fill" style="width: 78%;"></div>
+      </div>
 
-    <p class="text-xs text-muted-foreground">
-      Zero JavaScript footprint. Rendered entirely via static template SFC compilation.
-    </p>
+      <p class="text-[11px] text-muted-foreground m-0 leading-normal">
+        Zero JavaScript footprint. Rendered entirely via static template SFC compilation.
+      </p>
+    </div>
   </div>
 </template>
 

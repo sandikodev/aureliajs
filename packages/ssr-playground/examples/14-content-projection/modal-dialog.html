@@ -1,30 +1,30 @@
-<div class="p-6 max-w-md mx-auto bg-card rounded-xl shadow-md border space-y-4">
-  <div class="flex items-center justify-between border-b border-border pb-3">
+<div class="w-full max-w-sm mx-auto bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+  <div class="px-5 py-3.5 border-b border-border/60 flex items-center justify-between gap-3 bg-surface/40">
     <div>
-      <h2 class="text-xl font-bold text-foreground">Content Projection</h2>
-      <p class="text-xs text-muted-foreground">Transclusion with &lt;au-slot&gt; and fallback markup</p>
+      <h3 class="text-xs font-semibold text-foreground tracking-tight m-0">Content Projection</h3>
+      <p class="text-[11px] text-muted-foreground mt-0.5 m-0">Transclusion with &lt;au-slot&gt;</p>
     </div>
-    <span class="px-2 py-0.5 text-xs rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono font-medium">&lt;au-slot&gt;</span>
+    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shrink-0">&lt;au-slot&gt;</span>
   </div>
 
-  <div class="p-4 bg-secondary rounded-xl border border-border space-y-3">
-    <!-- Header Projection Target -->
-    <div class="flex items-center space-x-2 border-b border-border pb-2">
-      <span class="text-xs font-bold text-foreground">${dialogTitle}</span>
-      <span class="px-2 py-0.5 rounded text-[10px] bg-primary text-white font-medium">${badge}</span>
+  <div class="p-5 space-y-3.5 text-xs">
+    <!-- Header Target -->
+    <div class="flex items-center justify-between gap-2">
+      <span class="text-xs font-semibold text-foreground">${dialogTitle}</span>
+      <span class="px-1.5 py-0.5 rounded text-[10px] bg-primary/20 text-primary border border-primary/30 font-medium">${badge}</span>
     </div>
 
-    <!-- Body Projection Target -->
-    <p class="text-xs text-muted-foreground leading-relaxed">
+    <!-- Projected Body Content -->
+    <p class="text-xs text-muted-foreground leading-relaxed m-0 p-3 bg-surface/50 rounded-lg border border-border/40">
       ${dialogBody}
     </p>
 
-    <!-- Footer Action Target -->
-    <div class="flex items-center justify-end space-x-2 pt-2 border-t border-border">
-      <button type="button" class="px-3 py-1 bg-surface border border-border text-foreground rounded text-xs hover:bg-hover">
+    <!-- Footer Actions -->
+    <div class="flex items-center justify-end gap-2 pt-1">
+      <button type="button" class="px-3 py-1.5 bg-surface border border-border/60 text-foreground rounded text-xs hover:bg-hover transition">
         Dismiss
       </button>
-      <button type="button" class="px-3 py-1 bg-primary text-white rounded text-xs font-medium hover:bg-primary/90">
+      <button type="button" class="px-3 py-1.5 bg-primary text-white rounded text-xs font-medium hover:bg-primary/90 transition shadow-sm">
         Confirm Action
       </button>
     </div>
