@@ -94,20 +94,12 @@ app.get(
   })
 );
 
-// Route 2: Single Post Detail Page with SSR & Hydration
+// Route 2: Single Post Detail Page with co-located loader, SSR & Hydration
 app.get(
   '/posts/:slug',
   aurelia({
     component: PostDetailPage,
-    title: 'Article Detail - Aurelia 2 SSR',
     streaming: true,
-    loaders: {
-      post: async (c) => {
-        const slug = c.req.param('slug');
-        const found = posts.find((p) => p.slug === slug);
-        return found ?? null;
-      },
-    },
     document: {
       cssBundle: '/public/style.css',
       jsBundle: '/public/client.js',
@@ -115,18 +107,12 @@ app.get(
   })
 );
 
-// Route 3: Protected Dashboard Page with SSR
+// Route 3: Protected Dashboard Page with co-located metadata, loader & SSR
 app.get(
   '/dashboard',
   aurelia({
     component: DashboardPage,
-    title: 'Telemetry Dashboard - Aurelia 2 SSR',
-    requiresAuth: true,
     streaming: true,
-    loaders: {
-      stats: async () => dashboardStats,
-      activity: async () => activityStream,
-    },
     document: {
       cssBundle: '/public/style.css',
       jsBundle: '/public/client.js',

@@ -8,6 +8,18 @@ export interface PostDetailContext {
 
 @customElement({ name: 'post-detail-page', template })
 export class PostDetailPage {
+  static title = 'Article Detail - Aurelia 2 SSR';
+
+  /**
+   * Co-located route loader: executed on server during SSR and content-negotiation
+   */
+  static async loader(c: any) {
+    const { initialPosts } = await import('../data.js');
+    const slug = c.req.param('slug');
+    const found = initialPosts.find((p) => p.slug === slug);
+    return { post: found ?? null };
+  }
+
   post: Post | null = null;
   clapping = false;
   submitting = false;

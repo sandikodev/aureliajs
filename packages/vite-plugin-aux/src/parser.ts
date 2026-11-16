@@ -37,6 +37,8 @@ export function parseAux(content: string, filename: string): AuxDescriptor {
   const scopeId = createScopeId(filename);
   let template: AuxBlock | null = null;
   let script: AuxBlock | null = null;
+  let setupScript: AuxBlock | null = null;
+  let serverScript: AuxBlock | null = null;
   const styles: AuxBlock[] = [];
 
   let index = 0;
@@ -117,7 +119,7 @@ export function parseAux(content: string, filename: string): AuxDescriptor {
 
       if (closePos !== -1) {
         const attrs = parseAttrs(rawAttrs);
-        script = {
+        const block: AuxBlock = {
           type: 'script',
           content: content.slice(openTagEnd, closePos),
           attrs,
@@ -125,6 +127,15 @@ export function parseAux(content: string, filename: string): AuxDescriptor {
           end: closePos,
           lang: typeof attrs.lang === 'string' ? attrs.lang : 'ts',
         };
+
+        if ('server' in attrs) {
+          serverScript = block;
+        } else if ('setup' in attrs) {
+          setupScript = block;
+        } else {
+          script = block;
+        }
+
         index = closePos + closeTag.length;
       } else {
         index = openTagEnd;
@@ -157,6 +168,8 @@ export function parseAux(content: string, filename: string): AuxDescriptor {
     filename,
     template,
     script,
+    setupScript,
+    serverScript,
     styles,
     scopeId,
   };

@@ -14,6 +14,8 @@ export interface AuxDescriptor {
   filename: string;
   template: AuxBlock | null;
   script: AuxBlock | null;
+  setupScript?: AuxBlock | null;
+  serverScript?: AuxBlock | null;
   styles: AuxBlock[];
   scopeId: string;
 }
@@ -40,4 +42,9 @@ export interface AuxPluginOptions {
    * Shadow DOM mode ('open' | 'closed') if Shadow DOM is desired by default.
    */
   shadowOptions?: { mode: 'open' | 'closed' };
+  /**
+   * Whether compilation is targeting server (SSR) or client.
+   * Defaults to false (client).
+   */
+  isServer?: boolean;
 }

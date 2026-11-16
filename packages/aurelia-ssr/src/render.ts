@@ -296,6 +296,23 @@ export async function renderAurelia(options: RenderOptions): Promise<string> {
     throw new Error('renderAurelia: component is required');
   }
 
+  // Fast path for Client-Only components (Browser Islands)
+  const isClientOnly = (typeof component === 'function' && Boolean((component as Record<string, unknown>).clientOnly))
+    || Boolean((component as Record<string, unknown>)?.clientOnly);
+
+  if (isClientOnly) {
+    let tagName: string | undefined;
+    if (typeof component === 'function' && CustomElement.isType(component)) {
+      tagName = CustomElement.getDefinition(component).name;
+    } else if (typeof component === 'object' && component !== null && component.constructor && CustomElement.isType(component.constructor)) {
+      tagName = CustomElement.getDefinition(component.constructor).name;
+    } else {
+      tagName = ((component as Record<string, unknown>)?.name as string) || (typeof component === 'function' ? component.name : undefined);
+    }
+    const cleanTag = tagName || 'client-island';
+    return `<div class="au-client-island" data-au-client="${cleanTag}" style="min-height: 1rem;"><!-- client-only island --></div>`;
+  }
+
   const releaseMutex = await renderMutex.acquire();
   const snapshot = snapshotEnvironment();
 

@@ -1,5 +1,4 @@
 import { customElement } from 'aurelia';
-import { hydrateFromServer } from '@hono/aurelia-ssr/client';
 import template from './dashboard.html';
 import type { DashboardStats, ActivityItem } from '../data.js';
 
@@ -10,6 +9,20 @@ export interface DashboardContext {
 
 @customElement({ name: 'dashboard-page', template })
 export class DashboardPage {
+  static title = 'Telemetry Dashboard - Aurelia 2 SSR';
+  static requiresAuth = true;
+
+  /**
+   * Co-located route loader: executed on server during SSR and content-negotiation
+   */
+  static async loader() {
+    const { dashboardStats, activityStream } = await import('../data.js');
+    return {
+      stats: dashboardStats,
+      activity: activityStream,
+    };
+  }
+
   stats: DashboardStats = {
     title: 'Production Metrics',
     views: 0,
@@ -32,13 +45,8 @@ export class DashboardPage {
   }
 
   attached() {
-    const hydration = hydrateFromServer<DashboardContext>();
-    if (hydration?.initialData) {
-      if (hydration.initialData.stats) this.stats = hydration.initialData.stats;
-      if (hydration.initialData.activity) this.activity = hydration.initialData.activity;
-      if (hydration.context?.user) this.user = hydration.context.user;
-      if (hydration.context?.role) this.role = hydration.context.role;
-    } else if (typeof window !== 'undefined' && !this.stats.views) {
+    // If not hydrated from server (e.g. CSR navigation), fetch from API
+    if (typeof window !== 'undefined' && !this.stats.views) {
       this.refresh();
     }
   }

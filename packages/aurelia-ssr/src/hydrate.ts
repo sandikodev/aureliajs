@@ -409,11 +409,21 @@ export async function createClientHydrator(options: ClientHydratorOptions): Prom
     let rootInstance: object;
     if (typeof ComponentClass === 'function') {
       rootInstance = app.container.get(ComponentClass as Constructable) as object;
-      if (hydration?.initialData) {
-        Object.assign(rootInstance, hydration.initialData);
-      }
     } else {
-      rootInstance = { ...(ComponentClass as object), ...hydration?.initialData };
+      rootInstance = { ...(ComponentClass as object) };
+    }
+
+    const inst = rootInstance as Record<string, unknown>;
+    // Auto-inject server loader initialData directly onto component instance
+    if (hydration?.initialData) {
+      Object.assign(inst, hydration.initialData);
+    }
+    // Auto-inject server auth & request context directly onto component instance
+    if (hydration?.context) {
+      if (inst.user === undefined && hydration.context.user !== undefined) inst.user = hydration.context.user;
+      if (inst.role === undefined && hydration.context.role !== undefined) inst.role = hydration.context.role;
+      if (inst.workspace === undefined && hydration.context.workspace !== undefined) inst.workspace = hydration.context.workspace;
+      inst._renderContext = hydration.context;
     }
 
     await app.app({ host, component: rootInstance }).start();

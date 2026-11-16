@@ -1,5 +1,6 @@
 import { parseAttrs } from './parser.js';
 import { injectScopeToTemplate, scopeCss } from './scope.js';
+import { transformScriptSetup } from './setup.js';
 import type { AuxDescriptor, AuxPluginOptions } from './types.js';
 
 /**
@@ -235,6 +236,17 @@ export function compileAux(
     }
   }
 
+  // Process <script setup> if present (auto-infer bindables and convert to Aurelia class)
+  const setupScript = descriptor.setupScript;
+  const serverScript = descriptor.serverScript;
+  const isClientOnly = Boolean(template?.attrs['client-only'] || template?.attrs['clientOnly']);
+  const isServerOnly = Boolean(template?.attrs['server-only'] || template?.attrs['serverOnly']);
+
+  const transformedSetup = setupScript ? transformScriptSetup(setupScript.content) : null;
+  if (transformedSetup) {
+    Object.assign(templateBindables, transformedSetup.inferredBindables);
+  }
+
   // Merge <template alias="a, b"> attribute with <alias> child tags
   const aliases = [...templateMeta.aliases];
   const aliasAttr = template?.attrs['alias'];
@@ -297,6 +309,11 @@ export function compileAux(
   const headerLines: string[] = [`import { ${aureliaImports} } from 'aurelia';`];
   const dependencyIdentifiers: string[] = [];
 
+  // Hoist module imports extracted from <script setup>
+  if (transformedSetup && transformedSetup.moduleImports.length > 0) {
+    headerLines.push(...transformedSetup.moduleImports);
+  }
+
   // Emit imports from <import from="..."> / <require from="...">
   templateMeta.imports.forEach((importPath, index) => {
     const depIdent = `__au_dep_${index}`;
@@ -346,7 +363,27 @@ export function compileAux(
 
   let bodyCode = '';
 
-  if (!scriptContent) {
+  if (setupScript && transformedSetup) {
+    const setupConsts = transformedSetup.moduleConsts.length > 0
+      ? `\n${transformedSetup.moduleConsts.join('\n')}\n`
+      : '';
+
+    bodyCode = `
+${setupConsts}
+export class ${className} {
+${transformedSetup.classFields.join('\n')}
+
+${transformedSetup.classMethods.join('\n')}
+}
+
+__au_CE.define({
+${defOptions.join('\n')}
+}, ${className});
+
+export default ${className};
+export { ${className} };
+`;
+  } else if (!scriptContent) {
     // Template-only component
     bodyCode = `
 export class ${className} {}
@@ -388,6 +425,34 @@ ${processedScript}
 ${registration}
 ${namedExportLine}${defaultExportLine}
 `;
+  }
+
+  // Execution boundary markers
+  if (isClientOnly) {
+    bodyCode += `\n${className}.clientOnly = true;\n`;
+  }
+  if (isServerOnly) {
+    bodyCode += `\n${className}.serverOnly = true;\n`;
+  }
+
+  // Co-located server script block (attached for SSR, stripped for client)
+  if (serverScript && options.isServer) {
+    const serverCode = serverScript.content.trim();
+    const exportMatches = serverCode.matchAll(/export\s+(?:async\s+)?(?:function|const|let|var)\s+([a-zA-Z0-9_$]+)/g);
+    const serverExports: string[] = [];
+    for (const m of exportMatches) {
+      if (m[1]) serverExports.push(m[1]);
+    }
+
+    const strippedServerCode = serverCode
+      .replace(/export\s+default\s+/g, '')
+      .replace(/export\s+/g, '');
+
+    const assignments = serverExports
+      .map((exp) => `if (typeof ${exp} !== 'undefined') ${className}.${exp} = ${exp};`)
+      .join('\n');
+
+    bodyCode += `\n// --- Server-Only Script Block ---\n{\n${strippedServerCode}\n${assignments}\n}\n`;
   }
 
   const fullCode = `${headerLines.join('\n')}\n${templateConstant}\n${bodyCode}`.trim() + '\n';

@@ -265,4 +265,21 @@ describe('renderAurelia()', () => {
     expect(html).toContain('URL: https://example.com/posts/42');
     expect(html).toContain('Param: 42');
   });
+
+  it('should render lightweight island placeholder for clientOnly components', async () => {
+    const { CustomElement } = await import('aurelia');
+    const ClientHeavyChart = CustomElement.define({
+      name: 'heavy-chart',
+      template: '<canvas id="chart"></canvas>',
+    }, class {
+      static clientOnly = true;
+    });
+
+    const html = await renderAurelia({
+      component: ClientHeavyChart,
+    });
+
+    expect(html).toContain('class="au-client-island"');
+    expect(html).toContain('data-au-client="heavy-chart"');
+  });
 });
