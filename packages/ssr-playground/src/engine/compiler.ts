@@ -9,6 +9,7 @@ import { inspectAureliaSsr } from './inspector.js';
 import { parseAux, compileAux } from '@aureliajs/vite-plugin-aux';
 import { lintAureliaFiles, type LintDiagnostic } from './linter.js';
 import { getPreviewStylesheet } from '../server/assets.js';
+import { loadAllExamples } from '../examples/loader.js';
 import type { RenderContext } from '@hono/aurelia-ssr';
 
 export interface CompileRequest {
@@ -242,7 +243,10 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
   } = req;
 
   try {
-    const fileKeys = Object.keys(files);
+    const resolvedFiles = files && Object.keys(files).length > 0
+      ? files
+      : (exampleId ? (loadAllExamples()[exampleId]?.files ?? {}) : {});
+    const fileKeys = Object.keys(resolvedFiles);
     const auxFile = fileKeys.find((f) => f.endsWith('.aux'));
     const htmlFile = fileKeys.find((f) => f.endsWith('.html'));
     const tsFile = fileKeys.find((f) => f.endsWith('.ts'));
@@ -254,9 +258,9 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
       role: 'Owner',
     };
 
-    if (jsonFile && files[jsonFile]) {
+    if (jsonFile && resolvedFiles[jsonFile]) {
       try {
-        const parsedJson = JSON.parse(files[jsonFile]);
+        const parsedJson = JSON.parse(resolvedFiles[jsonFile]);
         context = { ...context, ...parsedJson };
       } catch {
         // ignore JSON syntax errors
@@ -278,8 +282,8 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
     // ----------------------------------------------------
     // CASE 1: Single-File Component (.aux)
     // ----------------------------------------------------
-    if (auxFile && files[auxFile]) {
-      const auxContent = files[auxFile];
+    if (auxFile && resolvedFiles[auxFile]) {
+      const auxContent = resolvedFiles[auxFile];
       const desc = parseAux(auxContent, auxFile);
       const compiled = compileAux(desc);
 
@@ -321,11 +325,11 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
       // ----------------------------------------------------
       // CASE 2: Paired Aurelia Convention (.html + .ts)
       // ----------------------------------------------------
-      templateString = (htmlFile && files[htmlFile]) ? files[htmlFile] : '<div>Default Template</div>';
+      templateString = (htmlFile && resolvedFiles[htmlFile]) ? resolvedFiles[htmlFile] : '<div>Default Template</div>';
       componentName = htmlFile ? htmlFile.replace(/\.html$/, '') : exampleId;
 
-      if (tsFile && files[tsFile]) {
-        parsedTs = parseTypeScriptClass(files[tsFile]);
+      if (tsFile && resolvedFiles[tsFile]) {
+        parsedTs = parseTypeScriptClass(resolvedFiles[tsFile]);
         className = parsedTs.className || 'AureliaComponent';
       }
 
@@ -627,7 +631,7 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
         secretStatus,
         xssStatus,
       },
-      diagnostics: lintAureliaFiles(files),
+      diagnostics: lintAureliaFiles(resolvedFiles),
     };
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);

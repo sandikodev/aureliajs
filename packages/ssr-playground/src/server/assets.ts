@@ -188,9 +188,13 @@ html, body {
 /* Utilities used by SSR fixtures */
 .max-w-sm { max-width: 24rem; }
 .max-w-md { max-width: 28rem; }
+.max-w-lg { max-width: 32rem; }
 .max-w-2xl { max-width: 42rem; }
 .mx-auto { margin-left: auto; margin-right: auto; }
 .p-6 { padding: 1.5rem; }
+.p-8 { padding: 2rem; }
+.px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+.py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
 .px-4 { padding-left: 1rem; padding-right: 1rem; }
 .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
 .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
@@ -199,17 +203,23 @@ html, body {
 
 .space-y-4 > * + * { margin-top: 1rem; }
 .space-x-4 > * + * { margin-left: 1rem; }
+.space-y-2 > * + * { margin-top: 0.5rem; }
+.space-x-2 > * + * { margin-left: 0.5rem; }
 .gap-2 { gap: 0.5rem; }
 
 .flex { display: flex; }
+.inline-flex { display: inline-flex; }
 .grid { display: grid; }
 .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .items-center { align-items: center; }
+.justify-center { justify-content: center; text-align: center; }
 .justify-between { justify-content: space-between; }
+.shrink-0 { flex-shrink: 0; }
 .overflow-hidden { overflow: hidden; }
 
 .rounded-md { border-radius: 0.375rem; }
 .rounded-xl { border-radius: 0.75rem; }
+.rounded-2xl { border-radius: 1rem; }
 .rounded-full { border-radius: 9999px; }
 
 .border { border-width: 1px; }
@@ -218,6 +228,9 @@ html, body {
 .divide-y > * + * { border-top-width: 1px; }
 .divide-border > * + * { border-color: #e5e7eb; }
 
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
 .shadow-md {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
@@ -226,17 +239,25 @@ html, body {
 .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
 .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
 .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+.text-2xl { font-size: 1.5rem; line-height: 2rem; }
 .font-medium { font-weight: 500; }
 .font-semibold { font-weight: 600; }
 .font-bold { font-weight: 700; }
 .text-left { text-align: left; }
+.text-center { text-align: center; }
+.uppercase { text-transform: uppercase; }
+.tracking-tight { letter-spacing: -0.025em; }
+.leading-relaxed { line-height: 1.625; }
+.font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 .w-full { width: 100%; }
 .size-12 { width: 3rem; height: 3rem; }
+.text-\\[10px\\] { font-size: 10px; line-height: 14px; }
 
 /* Colors */
 .bg-card { background-color: #ffffff; }
 .text-foreground { color: #111827; }
 .text-muted-foreground { color: #6b7280; }
+.text-white { color: #ffffff; }
 
 .bg-primary { background-color: #0284c7; }
 .bg-primary\\/10 { background-color: rgba(2, 132, 199, 0.1); }
@@ -253,6 +274,20 @@ html, body {
 .bg-emerald-100 { background-color: #d1fae5; }
 .text-emerald-700 { color: #047857; }
 .text-emerald-800 { color: #065f46; }
+.bg-emerald-500\\/10 { background-color: rgba(16, 185, 129, 0.1); }
+.text-emerald-400 { color: #34d399; }
+.border-emerald-500\\/20 { border-color: rgba(16, 185, 129, 0.2); }
+
+.bg-blue-100 { background-color: #dbeafe; }
+.text-blue-800 { color: #1e40af; }
+.text-cyan-400 { color: #22d3ee; }
+
+.bg-purple-500\\/10 { background-color: rgba(168, 85, 247, 0.1); }
+.text-purple-400 { color: #c084fc; }
+.border-purple-500\\/20 { border-color: rgba(168, 85, 247, 0.2); }
+
+.bg-cyan-100 { background-color: #cffafe; }
+.text-cyan-800 { color: #155e75; }
 
 .bg-amber-100 { background-color: #fef3c7; }
 .text-amber-700 { color: #b45309; }
@@ -279,8 +314,13 @@ table {
   .hover\\:bg-muted\\/30:hover { background-color: #374151; }
   .bg-emerald-100 { background-color: rgba(16, 185, 129, 0.2); }
   .text-emerald-700, .text-emerald-800 { color: #34d399; }
+  .bg-blue-100 { background-color: rgba(59, 130, 246, 0.2); }
+  .text-blue-800 { color: #60a5fa; }
+  .text-cyan-400 { color: #38bdf8; }
   .bg-amber-100 { background-color: rgba(245, 158, 11, 0.2); }
   .text-amber-700 { color: #fbbf24; }
+  .bg-cyan-100 { background-color: rgba(6, 182, 212, 0.2); }
+  .text-cyan-800 { color: #22d3ee; }
 }
 `;
 }
