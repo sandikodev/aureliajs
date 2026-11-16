@@ -62,7 +62,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       user-select: none;
     }
     pre, code, textarea {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+      font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace !important;
     }
     
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -158,7 +158,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       padding-bottom: 8px !important;
       line-height: 22px !important;
       font-size: 11px !important;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+      font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace !important;
     }
     #editorLineNumbers > div {
       height: 22px !important;
@@ -171,7 +171,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     #codeEditorInput {
       margin: 0 !important;
       padding: 8px 12px !important;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+      font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace !important;
       font-size: 12px !important;
       line-height: 22px !important;
       letter-spacing: 0 !important;
@@ -711,12 +711,21 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       });
     }
 
-    // Load an Example with its OWN profiling options
-    function loadExample(id) {
+    // Load an Example with its OWN profiling options and sync URL query param
+    function loadExample(id, updateUrl = true) {
       if (!EXAMPLES[id]) return;
       activeExampleId = id;
       const ex = EXAMPLES[id];
       currentExampleLabel.textContent = ex.title;
+
+      // Update URL search query parameter ergonomically (?example=<id>)
+      if (updateUrl && window.history && window.history.pushState) {
+        const url = new URL(window.location.href);
+        if (url.searchParams.get('example') !== id) {
+          url.searchParams.set('example', id);
+          window.history.pushState({ example: id }, '', url.toString());
+        }
+      }
 
       document.querySelectorAll('#dropdownExamplesList button[data-id]').forEach(btn => {
         if (btn.getAttribute('data-id') === id) {
@@ -726,14 +735,14 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         }
       });
 
-      if (id === 'aux-component') {
+      if (id.includes('aux') || (ex.defaultFile && ex.defaultFile.endsWith('.aux'))) {
         componentModelBadge.textContent = 'Aurelia in HTML (.aux SFC)';
         componentModelBadge.className = 'font-mono text-cyan-400';
-      } else if (id === 'resumable-counter') {
-        componentModelBadge.textContent = 'Resumable Event Delegation';
+      } else if (id.includes('resumable')) {
+        componentModelBadge.textContent = 'Resumable Hydration (Zero-JS)';
         componentModelBadge.className = 'font-mono text-purple-400';
       } else {
-        componentModelBadge.textContent = 'Aurelia 2 Paired Convention';
+        componentModelBadge.textContent = (ex.category || 'Aurelia 2') + ' Convention';
         componentModelBadge.className = 'font-mono text-gray-400';
       }
 
@@ -1383,9 +1392,29 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       }
     });
 
-    // Initial Bootstrap
+    // Initial Bootstrap with URL Search Parameter Support (?example=<id>)
     initDropdown();
-    loadExample('counter-card');
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedExample = urlParams.get('example') || urlParams.get('fixture');
+    let initialExampleId = 'hello-world';
+    if (requestedExample && EXAMPLES[requestedExample]) {
+      initialExampleId = requestedExample;
+    } else if (EXAMPLES['hello-world']) {
+      initialExampleId = 'hello-world';
+    } else {
+      initialExampleId = Object.keys(EXAMPLES)[0] || 'counter-card';
+    }
+    loadExample(initialExampleId, true);
+
+    // Ergonomic Browser Back / Forward History Navigation
+    window.addEventListener('popstate', (event) => {
+      const currentParams = new URLSearchParams(window.location.search);
+      const targetId = (event.state && event.state.example) || currentParams.get('example') || 'hello-world';
+      if (EXAMPLES[targetId] && targetId !== activeExampleId) {
+        loadExample(targetId, false);
+      }
+    });
   </script>
 </body>
 </html>
