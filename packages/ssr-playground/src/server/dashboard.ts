@@ -405,12 +405,12 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
             </div>
 
             <!-- Expandable Options Body Container -->
-            <div id="compilerOptionsBody" class="flex-1 p-2 pt-0 overflow-hidden">
-              <div class="font-mono text-[11px] text-gray-300 space-y-1 bg-background p-2 rounded border border-border/60">
-                <div class="text-gray-400 text-[10px]">result = await renderAurelia(component, {</div>
+            <div id="compilerOptionsBody" class="flex-1 px-2.5 pb-2 pt-0 overflow-hidden">
+              <div class="font-mono text-[11px] text-gray-300 space-y-0.5 bg-background p-2 rounded border border-border/60 overflow-hidden">
+                <div class="text-gray-400 text-[10px] select-none">result = await renderAurelia(component, {</div>
                 
-                <div class="pl-3 flex items-center space-x-5">
-                  <span class="text-gray-400 text-[10px]">mode:</span>
+                <div class="pl-3 py-0.5 flex items-center space-x-5">
+                  <span class="text-gray-400 text-[10px] select-none">mode:</span>
                   <label class="flex items-center space-x-1.5 cursor-pointer">
                     <input type="radio" name="opt-runtime-mode" value="ssr" checked class="text-accent focus:ring-0">
                     <span class="text-emerald-400 font-semibold text-[11px]">"ssr"</span>
@@ -425,8 +425,8 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
                   </label>
                 </div>
 
-                <div class="pl-3 flex items-center space-x-5">
-                  <span class="text-gray-400 text-[10px]">strategy:</span>
+                <div class="pl-3 py-0.5 flex items-center space-x-5">
+                  <span class="text-gray-400 text-[10px] select-none">strategy:</span>
                   <label class="flex items-center space-x-1.5 cursor-pointer">
                     <input type="radio" name="opt-strategy" value="hydrate" checked class="text-accent focus:ring-0">
                     <span class="text-white text-[11px]">"hydrate"</span>
@@ -437,15 +437,15 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
                   </label>
                 </div>
 
-                <div class="pl-3 flex items-center space-x-5">
-                  <span class="text-gray-400 text-[10px]">whitelistAudit:</span>
+                <div class="pl-3 py-0.5 flex items-center space-x-5">
+                  <span class="text-gray-400 text-[10px] select-none">whitelistAudit:</span>
                   <label class="flex items-center space-x-1.5 cursor-pointer">
                     <input type="checkbox" id="opt-whitelist-audit" checked class="text-accent focus:ring-0 rounded">
                     <span class="text-cyan-400 text-[11px]">true</span>
                   </label>
                 </div>
 
-                <div class="text-gray-400 text-[10px]">});</div>
+                <div class="text-gray-400 text-[10px] select-none">});</div>
               </div>
             </div>
           </div>
