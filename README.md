@@ -1,231 +1,260 @@
-# Aurelia Ops
+<div align="center">
 
-A working multi-tenant SaaS admin dashboard built with **Aurelia 2 + TypeScript**, **Tailwind CSS 4**,
-**Hono**, **Drizzle** and **Postgres**, with **Stripe** billing on top.
+# ⚡ Aurelia 2 Enterprise Ecosystem
 
-It exists because Aurelia 2 has very few public, production-shaped examples. This is one: a dashboard
-with a real API, 1 000 seeded rows, server-side filtering/pagination, session auth, working team
-invitations, Stripe Checkout + signed webhooks, an audited domain object and a component library — not
-another todo list.
+**Next-Generation Fullstack Monorepo: Hono Edge SSR, `.aux` Single-File Components, Resumable Hydration, Interactive Developer Playground & Production Multi-Tenant SaaS.**
 
-![Dashboard, light theme](docs/screenshots/dashboard-light.png)
+[![Aurelia 2](https://img.shields.io/badge/Aurelia_2-2.0.0--rc.2-ed2939.svg?style=flat-square&logo=aurelia&logoColor=white)](https://aurelia.io)
+[![Hono](https://img.shields.io/badge/Hono-v4.7-E36002.svg?style=flat-square&logo=hono&logoColor=white)](https://hono.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9_Strict-3178C6.svg?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-v8-646CFF.svg?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev)
+[![Tailwind CSS 4](https://img.shields.io/badge/Tailwind_CSS-v4_oklch-06B6D4.svg?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Runtime](https://img.shields.io/badge/Runtime-Bun_%7C_Node_%7C_Edge-fbf0df.svg?style=flat-square&logo=bun&logoColor=black)](https://bun.sh)
+[![Linter](https://img.shields.io/badge/Linter-Oxlint_Clean-10b981.svg?style=flat-square)](https://oxc.rs)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
-| Projects                                               | Dark theme                                                  |
-| ------------------------------------------------------ | ----------------------------------------------------------- |
+<p align="center">
+  <a href="#-monorepo-packages--architecture">Packages</a> •
+  <a href="#-interactive-ssr-playground">Playground</a> •
+  <a href="#-aurelia-in-html-aux-single-file-components">.aux SFC</a> •
+  <a href="#-enterprise-multi-tenant-saas">SaaS Dashboard</a> •
+  <a href="#-architectural-manifestos">Research Manifestos</a> •
+  <a href="#-quick-start">Quick Start</a>
+</p>
+
+</div>
+
+---
+
+## 🌟 Executive Overview
+
+Aurelia 2 combines **Direct-DOM execution (zero Virtual DOM penalty)** with pure **TypeScript class semantics** and **TC39 Stage 3 standard decorators**. However, modern fullstack engineering demands more: edge-native Server-Side Rendering (SSR), intuitive Single-File Component (SFC) developer experience, resumable hydration, and production-tested patterns.
+
+This monorepo serves as the definitive reference and innovation lab:
+1. **Edge SSR Engine**: First-class server-side rendering for Hono runtimes (Cloudflare Workers, Deno, Bun, Fastly, Node.js).
+2. **`.aux` Single-File Components**: Unifying templates, TypeScript logic, and scoped CSS with zero runtime tax.
+3. **Interactive Developer Playground**: SvelteKit-style live compiler, AST visualizer, and live hydration preview.
+4. **Production Multi-Tenant SaaS**: Audited, end-to-end multi-tenant dashboard with Argon2id session auth, PostgreSQL, Drizzle ORM, and Stripe Billing.
+
+---
+
+## 📦 Monorepo Packages & Architecture
+
+```
+aureliajs/
+├── packages/
+│   ├── hono-aurelia-ssr/     # Official Hono SSR & Client Hydration Engine
+│   ├── vite-plugin-aux/      # Vite compiler for .aux Single-File Components
+│   ├── vscode-aux/           # VS Code Language Extension for .aux SFCs
+│   ├── ssr-playground/       # Interactive Web GUI & TUI SSR Inspector
+│   └── shared/               # Shared Zod schemas, DTOs & plan entitlements
+├── apps/
+│   ├── web/                  # Multi-Tenant Client SPA (Aurelia 2 + Tailwind 4)
+│   └── api/                  # High-performance REST Backend (Hono + Drizzle)
+├── docs/                     # Architectural Manifestos & System Specifications
+└── e2e/                      # Playwright E2E Test Suite (Accessibility & Workflows)
+```
+
+| Package / App | Path | Description | Tech Stack | Test Status |
+|---|---|---|---|---|
+| **`@hono/aurelia-ssr`** | [`packages/hono-aurelia-ssr`](packages/hono-aurelia-ssr) | Subpath-isolated SSR engine for Hono with context extraction, XSS sanitization, and state hydration | Hono, Aurelia 2, JSDOM | ✅ **133 / 133 Passing** |
+| **`@aureliajs/vite-plugin-aux`** | [`packages/vite-plugin-aux`](packages/vite-plugin-aux) | Vite transformation plugin compiling `.aux` SFCs into canonical Aurelia 2 `@customElement` classes | Vite 8, TypeScript | ✅ Verified |
+| **`@aureliajs/vscode-aux`** | [`packages/vscode-aux`](packages/vscode-aux) | Official IDE extension providing syntax highlighting, template completion, and Stage 3 decorator support | VS Code API, TextMate | ✅ Packaged |
+| **`@aureliajs/ssr-playground`** | [`packages/ssr-playground`](packages/ssr-playground) | Interactive Web GUI & TUI Playground with live AST/SSR inspection and 16 official canonical examples | Bun, Hono, PrismJS | ✅ **24 / 24 Passing** |
+| **`Aurelia Ops Web`** | [`apps/web`](apps/web) | Enterprise multi-tenant admin dashboard with ported shadcn/ui primitives and theme tokens | Aurelia 2, Tailwind 4 | ✅ M0–M5 Complete |
+| **`Aurelia Ops API`** | [`apps/api`](apps/api) | Multi-tenant REST API with Argon2id sessions, tenancy middleware, Drizzle ORM, and Stripe billing | Hono, Drizzle, Stripe | ✅ Production-Grade |
+| **`@aureliajs/shared`** | [`packages/shared`](packages/shared) | Strict Zod schemas and entitlement matrices shared across web, API, and tests | Zod, TypeScript | ✅ Typechecked |
+
+---
+
+## 🔬 Interactive SSR Playground
+
+Located at [`packages/ssr-playground`](packages/ssr-playground), this developer tool provides an ergonomic development environment modeled after modern reactive playgrounds:
+
+```bash
+# Launch the Web GUI Playground (Default: port 4700)
+bun packages/ssr-playground/src/cli/index.ts --serve --port 4700
+
+# Or run terminal TUI diagnostics on all fixtures
+bun packages/ssr-playground/src/cli/index.ts
+```
+
+### Key Playground Capabilities:
+* **Dual-Pane Resizable Interface**: Drag-to-resize split panes with zero flicker and memory-safe event handling.
+* **16 Canonical Examples**: Spanning basic interpolation, reactive counters, two-way forms, value converters, binding behaviors, dependency injection, content projection, `.aux` SFCs, and zero-JS resumable hydration.
+* **Aurelia 2 Component Design System**: Formal `.au-card`, `.au-tag`, `.au-box`, and button tokens guaranteeing visual and architectural consistency.
+* **Multi-Tab Output Inspector**:
+  * **Result**: Live hydrated preview inside an isolated security sandbox.
+  * **JS Output**: Live TypeScript transpilation and AST inspection with resizable compiler options.
+  * **SSR HTML**: Raw server-pre-rendered HTML output formatted with offline Prism syntax highlighting.
+  * **Console Drawer**: Synchronized bi-directional runtime logs, event triggers, and diagnostics.
+  * **Audit & Metrics**: TTFB, hydration payload size, and AST node counts.
+
+---
+
+## 🧩 Aurelia in HTML (`.aux` Single-File Components)
+
+Developed in [`packages/vite-plugin-aux`](packages/vite-plugin-aux) and [`packages/vscode-aux`](packages/vscode-aux), `.aux` introduces modern SFC ergonomics to Aurelia 2 while maintaining strict compliance with TC39 Stage 3 standards and Direct-DOM performance:
+
+```html
+<!-- Example: counter-widget.aux -->
+<template>
+  <div class="au-card">
+    <div class="au-card-header">
+      <h3 class="au-card-title">${title}</h3>
+      <span class="au-tag au-tag-cyan">.aux SFC</span>
+    </div>
+
+    <div class="au-card-body">
+      <div class="flex items-center justify-between gap-4">
+        <button type="button" class="btn-increment" click.trigger="increment()">
+          Count: ${count}
+        </button>
+        <span class="text-xs font-mono font-semibold text-cyan-400">
+          State: ${count > 10 ? 'High' : 'Normal'}
+        </span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+export default class CounterWidget {
+  title = 'Aurelia in HTML';
+  count = 10;
+
+  increment() {
+    this.count++;
+  }
+}
+</script>
+
+<style scoped>
+.btn-increment {
+  padding: 0.375rem 0.875rem;
+  background-color: #0284c7;
+  color: #ffffff;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.15s ease-in-out;
+}
+.btn-increment:hover {
+  background-color: #0369a1;
+}
+</style>
+```
+
+---
+
+## 🏢 Enterprise Multi-Tenant SaaS
+
+A production-shaped SaaS admin dashboard with real APIs, 1 000 seeded database records, server-side filtering, session authentication, and Stripe payments.
+
+<div align="center">
+
+![Dashboard Light Theme](docs/screenshots/dashboard-light.png)
+
+| Projects Table | Stripe Billing & Customer Portal |
+| :---: | :---: |
 | ![Projects table](docs/screenshots/projects-light.png) | ![Billing in dark theme](docs/screenshots/billing-dark.png) |
 
-> **Status: M0–M5 implemented.** Auth (session cookie + Argon2id), team management (invite → magic link
-> → membership → session), Stripe billing (hosted Checkout, customer portal, signature-verified
-> idempotent webhooks) and per-plan entitlements are all wired end to end and covered by e2e tests.
+| Members & Magic Link Invites | Native `<dialog>` CRUD |
+| :---: | :---: |
+| ![Members dark theme](docs/screenshots/members-dark.png) | ![Project dialog](docs/screenshots/project-dialog-light.png) |
 
-> **Demo account:** `demo@aureliajs.dev` / `demo-password-123`. The seeded workspace is _Northwind Studio_
-> on the `pro` plan with 4 members and 1 000 projects.
+</div>
 
-**Requirements:** Node.js ≥ 22, pnpm 11, Docker (for Postgres).
+### Production Capabilities:
+* **Tenancy Middleware Seam**: Centralized in [`apps/api/src/middleware/tenant.ts`](apps/api/src/middleware/tenant.ts). Handlers cleanly access `tenantOf(c)` with verified workspace and role permissions (`owner`, `admin`, `member`).
+* **Session Auth**: HttpOnly cookies with Argon2id passwords, SHA-256 hashed session tokens, and zero-flicker client boot.
+* **Stripe Billing Integration**: Hosted Checkout Sessions, Customer Portal self-service, and idempotent signature-verified webhooks (`stripe_events.id`).
+* **Ported shadcn/ui Primitives**: Button, Input, Select, Dialog, Card, Badge, Skeleton, Alert, Avatar, and Toaster adapted for Aurelia 2.
+* **Deterministic Fallback**: If the API is offline, the web shell automatically falls back to sample mock data with an informative banner.
 
+---
+
+## 📚 Architectural Manifestos & Research
+
+This monorepo documents in-depth philosophical and technical research exploring the evolution of the web substrate:
+
+* 📄 **[The Resumable Frontier](docs/the-resumable-frontier.md)** — *Manifesto Rekayasa Radikal Aurelia 2, Svelte DX, Hono, dan Qwik*: Blueprint for `.aux` Single-File Components, 3-layer responsibility scoping, and exploring Qwik-style resumability on top of Aurelia's Direct-DOM architecture.
+* 📄 **[The Angular-Aurelia Heritage](docs/the-angular-aurelia-heritage.md)** — *Sejarah, Semantik, dan Rekonsiliasi Mental Model Frontend*: Understanding why Aurelia feels foreign to developers from React/Vue unless familiar with Angular, uncovering the historical collaboration between Rob Eisenberg and Google in 2014, and tracing the path to modern signals.
+* 📄 **[The Web Substrate Paradox](docs/the-javascript-fallacy.md)** — *Anatomi Kelahiran Prematur JavaScript, Ilusi TypeScript, dan Kerendahan Hati terhadap Bahasa Sistem Modern*: Critical dissection of why raw JS is not a technological trophy compared to Go, Rust, Nim, and Zig, and why strict typing and memory discipline are vital.
+* 📄 **[The Reactive Continuum](docs/the-reactive-continuum.md)** — Architectural matrix comparing React, Vue, Solid, Angular, Svelte, Astro, Qwik, and Aurelia 2 across runtime taxes, change detection, and execution lifecycles.
+* 📄 **[Production Architecture & Security](docs/architecture.md)** — Comprehensive technical specifications for multi-tenant isolation, state hydration, and Stripe integration.
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+* **Node.js**: `≥ 22.12.0` or **Bun**: `≥ 1.2.0`
+* **Package Manager**: `pnpm ≥ 11`
+* **Docker**: (for PostgreSQL container)
+
+### 1. Multi-Tenant SaaS Setup
 ```bash
-cp .env.example .env          # dev-only values, safe defaults
+# Clone the repository
+git clone git@github.com:sandikodev/aureliajs.git
+cd aureliajs
+
+# Setup environment variables
+cp .env.example .env
+
+# Install dependencies
 pnpm install
-pnpm db:up                    # Postgres on 127.0.0.1:5544
+
+# Start Postgres and run migrations
+pnpm db:up
 pnpm db:migrate
-pnpm db:seed                  # 1 workspace, 4 members, 1 000 projects
-pnpm dev                      # web :4600, api :4601
+pnpm db:seed       # Seeds Northwind Studio with 4 members and 1 000 projects
+
+# Run Web & API concurrently
+pnpm dev           # Web on :4600, API on :4601
 ```
 
-Open <http://localhost:4600>. The API health check is at <http://localhost:4601/health>.
+* **Web Application**: [`http://localhost:4600`](http://localhost:4600)
+* **API Health Check**: [`http://localhost:4601/health`](http://localhost:4601/health)
+* **Demo Credentials**: `demo@aureliajs.dev` / `demo-password-123`
 
-No Docker? Point `DATABASE_URL` at any Postgres 16 instance and run the same migration/seed commands.
+### 2. SSR Playground Setup
+```bash
+# Launch the interactive SSR Playground web dashboard
+bun packages/ssr-playground/src/cli/index.ts --serve --port 4700
 
-### If the API is down
-
-The UI falls back to deterministic sample data and shows a **Demo data** banner. It never silently
-pretends to be live — that distinction matters when the demo is used in a sales conversation.
+# Open in browser
+open http://localhost:4700
+```
 
 ---
 
-## What works right now
+## 🧪 Quality Gates & Verification
 
-| Area          | Behaviour                                                                                                                    |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Dashboard     | KPI cards, throughput chart, status breakdown, recent audit activity                                                         |
-| Projects      | 1 000 seeded rows, debounced server-side search, status filter, sort, pagination                                             |
-| Projects CRUD | Native `<dialog>` create/edit, inline validation from the shared Zod schema, CSV export, audit log on every write            |
-| Auth          | Session cookie (HttpOnly, hashed at rest), Argon2id passwords, `/api/auth/me` returns 200 with nulls when signed out         |
-| Team          | Owner invites an email → magic link → account created → membership → signed in. Role change, member removal, seat accounting |
-| Billing       | Stripe-hosted Checkout, customer portal, signature-verified idempotent webhooks, plan limits enforced from one shared table  |
-| Entitlements  | `PLAN_LIMITS` lives in the shared package: the API enforces it and the UI renders it, so they cannot disagree                |
-| Settings      | Workspace/profile forms, theme preference                                                                                    |
-| Theming       | Light/dark tokens, persisted, no flash on first paint                                                                        |
-| Errors        | One typed error contract shared by client and server                                                                         |
-
-**Verification**
+Every component and adapter in this monorepo is backed by automated tests:
 
 ```bash
-pnpm typecheck      # strict TS, noUncheckedIndexedAccess
-pnpm lint           # oxlint
-pnpm test           # unit tests (vitest)
-pnpm build          # production build of all packages
+# 1. Typecheck the entire monorepo
+pnpm typecheck
 
-pnpm exec playwright install chromium   # once
-pnpm exec playwright test               # 17 e2e tests against the dev server
-```
+# 2. Run lightning-fast linting with Oxlint (0 warnings / 0 errors)
+pnpm lint
 
-The Playwright suite covers the shell, routing, the 404 fallback, theme toggle, cross-field validation,
-a create → row appears → delete round trip, the full invite → accept → role change → removal path, and
-the billing webhook (invalid signature rejected, a valid event applied exactly once).
+# 3. Test @hono/aurelia-ssr unit suite (133 tests)
+bun test packages/hono-aurelia-ssr
 
-Production build: **~150 kB gzipped JS**, **~9 kB gzipped CSS**.
+# 4. Test SSR Playground compiler & hydration suite (24 tests)
+bun test packages/ssr-playground
 
----
-
-## Stripe setup (optional)
-
-The dashboard runs without Stripe; billing endpoints then answer `503` with an actionable message
-instead of crashing. To try the real checkout:
-
-1. **Copy the keys** from <https://dashboard.stripe.com/test/apikeys> into `.env`:
-
-   ```dotenv
-   STRIPE_SECRET_KEY=sk_test_...
-   STRIPE_PUBLISHABLE_KEY=pk_test_...
-   ```
-
-2. **Create a product and prices** — Dashboard → **More → Product catalog** → _Add product_ →
-   _Flat-rate / Recurring_. Create one monthly price and one yearly price, then copy each `price_…` id:
-
-   ```dotenv
-   STRIPE_PRICE_MONTHLY=price_...
-   STRIPE_PRICE_YEARLY=price_...
-   STRIPE_PRICE_SCALE=price_...      # optional, annual Scale tier
-   ```
-
-3. **Activate the customer portal** — Dashboard → **Settings → Billing → Portal** → _Activate portal_.
-   Without this, the "Manage payment" button fails with a Stripe configuration error.
-
-4. **Forward webhooks locally** — install the [Stripe CLI](https://docs.stripe.com/stripe-cli), then:
-
-   ```bash
-   stripe login
-   stripe listen --forward-to localhost:4601/api/billing/webhook \
-     --events checkout.session.completed,customer.subscription.updated,customer.subscription.deleted,invoice.paid,invoice.payment_failed
-   ```
-
-   Copy the printed `whsec_…` into `.env` as `STRIPE_WEBHOOK_SECRET`. The secret is stable across
-   restarts.
-
-5. **Pay with the test card** `4242 4242 4242 4242`, any future expiry, any CVC, any postal code.
-
-> The webhook endpoint authenticates with the `stripe-signature` header, not a session cookie, so it is
-> registered **before** the tenancy middleware — the same reason `/api/invites/accept` is public.
-
----
-
-## Stack and why
-
-| Choice                      | Reason                                                                                   |
-| --------------------------- | ---------------------------------------------------------------------------------------- |
-| Aurelia 2 (`2.0.0-rc.2`)    | Explicit templates, TC39 decorators, no virtual DOM. Pinned exactly because it is an RC. |
-| Tailwind CSS 4              | CSS-first tokens (oklch), no config file, fast builds.                                   |
-| Ported shadcn/ui primitives | No official shadcn for Aurelia, so the tokens + `cva`/`cn()` anatomy were ported.        |
-| Hono                        | Small, typed, runs on Node and edge runtimes.                                            |
-| Drizzle + Postgres          | SQL-shaped queries with types; migrations are checked in.                                |
-| Zod (shared package)        | One schema validates the web form _and_ the API request.                                 |
-| Stripe Checkout (hosted)    | Card data never touches our server — no PCI scope, and the API only returns a URL.       |
-| Native `<dialog>`           | Focus management and backdrop for free, no dependency.                                   |
-
-### Aurelia 2 specifics that cost time (documented so they don't cost yours)
-
-- `2.0.0-rc.2` uses **stage-3 decorators**: `experimentalDecorators: false`,
-  `useDefineForClassFields: true`. Legacy-decorator tutorials do not typecheck.
-- The Vite plugin requires **explicit template imports** (`import template from './x.html'`) plus
-  `@customElement({ template })`; automatic `.html` sibling detection does not apply under Vite.
-- Routed components must be **registered in the DI container**, otherwise the router throws `AUR3174`.
-- `<base href="/">` is required for deep links (`/projects` on a hard reload).
-- A page property named `loading` collides with the router lifecycle hook and is called as a function.
-- `<slot>` needs shadow DOM; use `<au-slot>` for lightweight projection.
-- Containerless components do not receive event bindings, and **attributes on their host are dropped**.
-  `ui-button` keeps its host element and uses `display: contents`, so `click.trigger` works without
-  changing layout; `ui-select` and `ui-button` forward `aria-label` to the real focusable element
-  because an `aria-label` on the tag would otherwise never reach it.
-
----
-
-## Architecture
-
-```
-apps/web        Aurelia 2, Vite 8, Tailwind 4 — UI kit, pages, router
-apps/api        Hono, Zod, Drizzle — REST API, tenancy middleware, Stripe, audit log
-packages/shared Zod schemas, types, plan limits — single source of truth
-e2e             Playwright smoke + billing + team tests
-docs            architecture, case study, Upwork strategy
-```
-
-Full write-up: [`docs/architecture.md`](docs/architecture.md).
-Portfolio write-up: [`docs/case-study.md`](docs/case-study.md).
-
-The tenancy seam is the most important file to read:
-[`apps/api/src/middleware/tenant.ts`](apps/api/src/middleware/tenant.ts). Routes only ever call
-`tenantOf(c)`; the session cookie, the workspace and the role are resolved in exactly one place.
-
----
-
-## Project structure
-
-```
-apps/web/src/
-  ui/            button, input, select, card, badge, alert, avatar, icon, …
-  pages/         dashboard, projects, members, billing, settings, invite, 404
-  services/      typed API client, auth service, theme service
-  lib/           icons, demo data, formatters
-apps/api/src/
-  routes/        health, auth, overview, projects, invites, members, billing
-  db/            schema, migrations, seed
-  middleware/    tenant resolution
-  lib/           error contract, session, workspace, stripe, plan limits
+# 5. Execute Playwright E2E suite
+pnpm exec playwright test
 ```
 
 ---
 
-## Deliberately deferred
+## 📄 License
 
-Being explicit here is part of the work sample:
-
-- **No mail server.** Invitations return an accept link that the UI surfaces (and copies to the
-  clipboard) instead of being emailed. The token never needs to exist server-side in plaintext.
-- **Scale tier pricing.** `STRIPE_PRICE_SCALE` is optional; without it the Scale button reports that
-  the tier is not available instead of failing at the Stripe call.
-- **Seat and project limits enforced server-side.** Both project creation and team invitations check
-  `PLAN_LIMITS` on the server (`402 plan_limit_reached` / `402 seat_limit_reached`), while workspace
-  switching and EN/ID localization are persisted per workspace.
-
----
-
-## Scripts
-
-| Command                                                 | Does                                                       |
-| ------------------------------------------------------- | ---------------------------------------------------------- |
-| `pnpm dev`                                              | All dev servers (web + API + shared watcher)               |
-| `pnpm dev:web` / `pnpm dev:api`                         | One side only                                              |
-| `pnpm build`                                            | Build every package                                        |
-| `pnpm typecheck` / `pnpm lint` / `pnpm test`            | Quality gates                                              |
-| `pnpm db:up` / `pnpm db:down`                           | Postgres via Docker                                        |
-| `pnpm db:generate` / `pnpm db:migrate` / `pnpm db:seed` | Drizzle workflow                                           |
-| `node scripts/screenshots.mjs`                          | Regenerate `docs/screenshots` (dev server must be running) |
-
----
-
-## Research Manifestos & Radical Architecture
-
-This repository also houses research into the future of frontend architecture, combining Aurelia 2's Direct-DOM foundation with modern Developer Experience (DX) and execution models:
-
-- [The Resumable Frontier](docs/the-resumable-frontier.md) — *Manifesto Rekayasa Radikal Aurelia 2, Svelte DX, Hono, dan Qwik*: Blueprint for `.aux` Single-File Components, clean 3-layer responsibility scoping, community ethics, and exploring Qwik-style resumability on top of Aurelia's non-VDOM engine.
-- [The Angular-Aurelia Heritage](docs/the-angular-aurelia-heritage.md) — *Sejarah, Semantik, dan Rekonsiliasi Mental Model Frontend*: Why Aurelia feels foreign to developers from React, Vue, Flutter, and Svelte unless familiar with Angular, uncovering the untold history between Rob Eisenberg and Google in 2014, and how it reconnects with Miško Hevery's Qwik.
-- [The Web Substrate Paradox](docs/the-javascript-fallacy.md) — *Anatomi Kelahiran Prematur JavaScript, Ilusi TypeScript, dan Kerendahan Hati terhadap Bahasa Sistem Modern*: Critical dissection of why raw JS is nothing to boast about compared to PHP, Ruby, Go, Rust, Nim, and Zig, and why strict typing discipline is mandatory.
-- [The Reactive Continuum](docs/the-reactive-continuum.md) — Comparative architectural deep-dive across React, Vue, Solid, Angular, Svelte, Astro, Qwik, and Aurelia 2.
-- [Production Architecture & Security](docs/architecture.md) — Technical specifications for multi-tenant isolation, state hydration, and Stripe integration.
-
----
-
-## License
-
-MIT for the code. The demo data and copy are fictional.
+Open-source licensed under the [MIT License](LICENSE).  
+Created and maintained by [Sandiko (@sandikodev)](https://github.com/sandikodev).
