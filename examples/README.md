@@ -13,8 +13,8 @@ production codebase in `apps/`.
 
 | Name | Description | Tech | Status |
 |------|-------------|------|--------|
-| `fullstack-ssr/` | Hono + Aurelia 2 SSR — server-rendered pages + client hydration | Hono, Aurelia 2, JSDOM | ✅ Working |
-| *(more coming)* | — | — | — |
+| `fullstack-ssr/` | Hono + Aurelia 2 SSR — server-rendered pages + client hydration | Hono, Aurelia 2, JSDOM, Web Streams | ✅ Active Reference |
+| `hono-react-ssr-shadcn-ui/` | Comparative SSR Benchmark — React 18 + Cloudflare D1 / Drizzle / shadcn-ui | Hono, React 18, Tailwind, Drizzle | 📦 Reference Benchmark |
 
 ---
 

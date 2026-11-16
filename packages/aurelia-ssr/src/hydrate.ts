@@ -386,13 +386,6 @@ export async function createClientHydrator(options: ClientHydratorOptions): Prom
     return null;
   }
 
-  let rootInstance: object;
-  if (typeof ComponentClass === 'function') {
-    rootInstance = new (ComponentClass as Constructable)(hydration?.initialData);
-  } else {
-    rootInstance = { ...(ComponentClass as object), ...hydration?.initialData };
-  }
-
   try {
     const app = new Aurelia();
 
@@ -401,9 +394,9 @@ export async function createClientHydrator(options: ClientHydratorOptions): Prom
       user: hydration?.context?.user ?? null,
       workspace: hydration?.context?.workspace ?? null,
       role: hydration?.context?.role ?? null,
-      url: window.location.href,
+      url: typeof window !== 'undefined' && window.location ? window.location.href : 'http://localhost/',
       params: {},
-      query: Object.fromEntries(new URLSearchParams(window.location.search)),
+      query: typeof window !== 'undefined' && window.location ? Object.fromEntries(new URLSearchParams(window.location.search)) : {},
       isServer: false,
       isClient: true,
     };
@@ -411,6 +404,16 @@ export async function createClientHydrator(options: ClientHydratorOptions): Prom
 
     if (options.registrations && Array.isArray(options.registrations)) {
       app.register(...options.registrations);
+    }
+
+    let rootInstance: object;
+    if (typeof ComponentClass === 'function') {
+      rootInstance = app.container.get(ComponentClass as Constructable) as object;
+      if (hydration?.initialData) {
+        Object.assign(rootInstance, hydration.initialData);
+      }
+    } else {
+      rootInstance = { ...(ComponentClass as object), ...hydration?.initialData };
     }
 
     await app.app({ host, component: rootInstance }).start();

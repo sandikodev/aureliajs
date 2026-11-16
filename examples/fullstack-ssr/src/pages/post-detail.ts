@@ -1,5 +1,4 @@
-import { customElement, resolve } from 'aurelia';
-import { IRequestContext } from '@hono/aurelia-ssr/client';
+import { customElement } from 'aurelia';
 import template from './post-detail.html';
 import type { Post } from '../data.js';
 
@@ -9,7 +8,6 @@ export interface PostDetailContext {
 
 @customElement({ name: 'post-detail-page', template })
 export class PostDetailPage {
-  readonly req = resolve(IRequestContext);
   post: Post | null = null;
   clapping = false;
   submitting = false;

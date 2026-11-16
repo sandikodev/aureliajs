@@ -388,6 +388,43 @@ describe('createClientHydrator', () => {
 
       expect(hydratedName).toBe('CounterWidget');
       expect(host.innerHTML).toContain('Count: 99');
+
+      // Test component using resolve(IRequestContext)
+      const { resolve } = await import('aurelia');
+      const { IRequestContext } = await import('../src/tokens.js');
+      const DiWidget = CustomElement.define({
+        name: 'di-widget',
+        template: '<div>User: ${req.user.name} Role: ${req.role}</div>',
+      }, class {
+        readonly req = resolve(IRequestContext);
+      });
+
+      payload.component = 'DiWidget';
+      payload.timestamp = Date.now();
+      payload.context = {
+        user: { id: 'u1', name: 'Bob', email: 'bob@example.com' },
+        workspace: null,
+        role: 'editor',
+        isAuthenticated: true,
+      };
+      (globalThis as any).__HYDRATION__ = payload;
+      (dom.window as any).__HYDRATION__ = payload;
+
+      const diHost = dom.window.document.createElement('div');
+      diHost.id = 'di-host';
+      dom.window.document.body.appendChild(diHost);
+
+      let diHydrated = '';
+      await createClientHydrator({
+        components: { DiWidget },
+        target: diHost as any,
+        onHydrated: (name) => { diHydrated = name; },
+        onError: (err) => { console.error('CLIENT HYDRATOR ERROR:', err); },
+      });
+
+      expect(diHydrated).toBe('DiWidget');
+      expect(diHost.innerHTML).toContain('User: Bob');
+      expect(diHost.innerHTML).toContain('Role: editor');
     } finally {
       for (const prop of domProps) {
         if (origProps[prop] !== undefined) {

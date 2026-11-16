@@ -1,5 +1,5 @@
-import { customElement, resolve } from 'aurelia';
-import { IRequestContext } from '@hono/aurelia-ssr/client';
+import { customElement } from 'aurelia';
+import { hydrateFromServer } from '@hono/aurelia-ssr/client';
 import template from './dashboard.html';
 import type { DashboardStats, ActivityItem } from '../data.js';
 
@@ -10,7 +10,6 @@ export interface DashboardContext {
 
 @customElement({ name: 'dashboard-page', template })
 export class DashboardPage {
-  readonly req = resolve(IRequestContext);
   stats: DashboardStats = {
     title: 'Production Metrics',
     views: 0,
@@ -18,16 +17,10 @@ export class DashboardPage {
     engagement: 0,
   };
   activity: ActivityItem[] = [];
+  user: { name?: string; email?: string } | null = null;
+  role: string | null = null;
   loading = false;
   error = '';
-
-  get user() {
-    return this.req.user;
-  }
-
-  get role() {
-    return this.req.role;
-  }
 
   constructor(initialData?: DashboardContext) {
     if (initialData?.stats) {
@@ -39,7 +32,13 @@ export class DashboardPage {
   }
 
   attached() {
-    if (!this.stats.views && typeof window !== 'undefined') {
+    const hydration = hydrateFromServer<DashboardContext>();
+    if (hydration?.initialData) {
+      if (hydration.initialData.stats) this.stats = hydration.initialData.stats;
+      if (hydration.initialData.activity) this.activity = hydration.initialData.activity;
+      if (hydration.context?.user) this.user = hydration.context.user;
+      if (hydration.context?.role) this.role = hydration.context.role;
+    } else if (typeof window !== 'undefined' && !this.stats.views) {
       this.refresh();
     }
   }
