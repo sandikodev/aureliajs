@@ -1,24 +1,24 @@
-<div class="w-full max-w-sm mx-auto bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+<div class="au-card">
   <!-- Card Header -->
-  <div class="px-5 py-3.5 border-b border-border/60 flex items-center justify-between gap-3 bg-surface/40">
+  <div class="au-card-header">
     <div>
-      <h3 class="text-xs font-semibold text-foreground tracking-tight m-0">Component Basics</h3>
-      <p class="text-[11px] text-muted-foreground mt-0.5 m-0">Class getters &amp; bindables</p>
+      <h3 class="au-card-title">Component Basics</h3>
+      <p class="au-card-subtitle">Class getters &amp; bindables</p>
     </div>
-    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">@customElement</span>
+    <span class="au-tag au-tag-emerald">@customElement</span>
   </div>
 
   <!-- Card Body -->
-  <div class="p-5">
+  <div class="au-card-body">
     <div class="flex items-center gap-3.5">
-      <div class="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0 border border-primary/20">
+      <div class="au-avatar">
         ${initials}
       </div>
       <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between gap-2">
           <div class="text-xs font-semibold text-foreground truncate">${fullName}</div>
-          <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
-            <span class="size-1 rounded-full bg-emerald-400"></span>
+          <span class="au-tag au-tag-emerald">
+            <span class="au-dot bg-emerald-400"></span>
             ${status}
           </span>
         </div>

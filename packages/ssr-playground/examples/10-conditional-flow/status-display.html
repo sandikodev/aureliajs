@@ -1,21 +1,21 @@
-<div class="w-full max-w-sm mx-auto bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+<div class="au-card">
   <!-- Card Header -->
-  <div class="px-5 py-3.5 border-b border-border/60 flex items-center justify-between gap-3 bg-surface/40">
+  <div class="au-card-header">
     <div>
-      <h3 class="text-xs font-semibold text-foreground tracking-tight m-0">Conditional Flow</h3>
-      <p class="text-[11px] text-muted-foreground mt-0.5 m-0">Structural DOM control via if.bind</p>
+      <h3 class="au-card-title">Conditional Flow</h3>
+      <p class="au-card-subtitle">Structural DOM control via if.bind</p>
     </div>
-    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0">if.bind</span>
+    <span class="au-tag au-tag-blue">if.bind</span>
   </div>
 
   <!-- Card Body -->
-  <div class="p-5 space-y-4">
+  <div class="au-card-body space-y-4">
     <!-- Status Row -->
-    <div class="p-3 bg-surface/60 rounded-lg border border-border/60 space-y-2">
+    <div class="au-box space-y-2">
       <div class="flex items-center justify-between">
         <span class="text-xs font-medium text-muted-foreground">Cluster Health</span>
-        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium ${isOnline ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
-          <span class="size-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
+        <span class="au-tag ${isOnline ? 'au-tag-emerald' : 'au-tag-rose'}">
+          <span class="au-dot ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
           ${isOnline ? 'Operational' : 'Degraded'}
         </span>
       </div>
@@ -25,7 +25,7 @@
     <!-- Action Row -->
     <div class="flex items-center justify-between gap-3 pt-1">
       <span class="text-[11px] text-muted-foreground">Simulate Service Fluctuation</span>
-      <button type="button" class="px-3 py-1.5 bg-primary text-white rounded text-xs font-medium hover:bg-primary/90 transition shadow-sm" click.trigger="toggle()">
+      <button type="button" class="au-btn-primary" click.trigger="toggle()">
         Toggle Server Health
       </button>
     </div>

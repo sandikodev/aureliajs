@@ -1,21 +1,23 @@
-<div class="w-full max-w-sm mx-auto bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+<div class="au-card">
   <!--au-resumable:start:resumable-counter-->
-  <div class="px-5 py-3.5 border-b border-border/60 flex items-center justify-between gap-3 bg-surface/40">
+  <div class="au-card-header">
     <div>
-      <h3 class="text-xs font-semibold text-foreground tracking-tight m-0">${title}</h3>
-      <p class="text-[11px] text-muted-foreground mt-0.5 m-0">${description}</p>
+      <h3 class="au-card-title">${title}</h3>
+      <p class="au-card-subtitle">${description}</p>
     </div>
-    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 shrink-0">Resumable</span>
+    <span class="au-tag au-tag-purple">Resumable</span>
   </div>
 
-  <div class="p-5 flex items-center justify-between gap-4">
-    <!-- Zero-Hydration Lazy Event Binding -->
-    <button type="button" data-au-event="click->increment" data-action="increment" class="px-3.5 py-1.5 bg-primary text-white rounded text-xs font-medium hover:bg-primary/90 transition shadow-sm">
-      Count: <span data-au-bind="count">${count}</span>
-    </button>
-    <div class="text-right">
-      <span class="text-[11px] text-muted-foreground block">Hydration Mode</span>
-      <span class="text-xs font-mono font-semibold text-purple-400">Zero JS On-Demand</span>
+  <div class="au-card-body">
+    <div class="flex items-center justify-between gap-4">
+      <!-- Zero-Hydration Lazy Event Binding -->
+      <button type="button" data-au-event="click->increment" data-action="increment" class="au-btn-primary">
+        Count: <span data-au-bind="count">${count}</span>
+      </button>
+      <div class="text-right">
+        <span class="text-[11px] text-muted-foreground block">Hydration Mode</span>
+        <span class="text-xs font-mono font-semibold text-purple-400">Zero JS On-Demand</span>
+      </div>
     </div>
   </div>
   <!--au-resumable:end:resumable-counter-->

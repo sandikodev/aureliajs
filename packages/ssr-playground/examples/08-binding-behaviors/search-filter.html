@@ -1,13 +1,13 @@
-<div class="w-full max-w-sm mx-auto bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-  <div class="px-5 py-3.5 border-b border-border/60 flex items-center justify-between gap-3 bg-surface/40">
+<div class="au-card">
+  <div class="au-card-header">
     <div>
-      <h3 class="text-xs font-semibold text-foreground tracking-tight m-0">Binding Behaviors</h3>
-      <p class="text-[11px] text-muted-foreground mt-0.5 m-0">Timing modifier &amp; debounce:300</p>
+      <h3 class="au-card-title">Binding Behaviors</h3>
+      <p class="au-card-subtitle">Timing modifier &amp; debounce:300</p>
     </div>
-    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 shrink-0">&amp; debounce</span>
+    <span class="au-tag au-tag-purple">&amp; debounce</span>
   </div>
 
-  <div class="p-5 space-y-4 text-xs">
+  <div class="au-card-body space-y-4">
     <div>
       <div class="flex items-center justify-between mb-1">
         <label class="text-[11px] font-medium text-muted-foreground">Instant Filter</label>
@@ -16,15 +16,15 @@
       <input type="text" value.bind="query & debounce:300" placeholder="Type to search packages..." class="w-full" />
     </div>
 
-    <div class="p-3 bg-surface/60 rounded-lg border border-border/60 font-mono text-[11px] space-y-1.5">
+    <div class="au-box font-mono text-[11px] space-y-1.5">
       <div class="flex items-center justify-between">
         <span class="text-muted-foreground">Active Filter:</span>
         <span class="font-bold text-primary">${query || '(none)'}</span>
       </div>
       <div class="flex items-center justify-between pt-1 border-t border-border/30">
         <span class="text-muted-foreground">Matches:</span>
-        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-          <span class="size-1 rounded-full bg-emerald-400"></span>
+        <span class="au-tag au-tag-emerald">
+          <span class="au-dot bg-emerald-400"></span>
           ${matchCount} modules
         </span>
       </div>

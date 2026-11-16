@@ -363,14 +363,17 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
           <div id="consoleSplitDivider" class="split-divider-v" title="Drag to resize console drawer"></div>
 
           <!-- Console Drawer (Attached exclusively to Result Tab) -->
-          <div id="consoleDrawer" class="h-36 border-t border-border bg-surface flex flex-col flex-shrink-0">
-            <div class="h-7 border-b border-border bg-hover px-2.5 flex items-center justify-between select-none flex-shrink-0">
-              <button id="toggleConsoleBtn" class="flex items-center space-x-2 text-[11px] font-mono font-semibold text-gray-300 hover:text-white">
-                <span id="consoleArrow">▼</span>
-                <span>CONSOLE</span>
-                <span id="consoleBadge" class="px-1.5 py-0.2 bg-primary/20 text-primary text-[10px] rounded-full">0</span>
-              </button>
-              <button id="clearConsoleBtn" class="text-[10px] font-mono text-gray-400 hover:text-white transition">
+          <div id="consoleDrawer" class="border-t border-border bg-surface select-none flex flex-col flex-shrink-0 overflow-hidden" style="height: 160px;">
+            <!-- Clickable Header Bar (Height 28px) -->
+            <div id="consoleHeader" class="h-7 px-2.5 flex items-center justify-between cursor-pointer hover:bg-hover transition flex-shrink-0" title="Click to minimize / maximize console panel">
+              <div class="flex items-center space-x-1.5">
+                <span id="consoleArrow" class="text-[9px] text-gray-500 font-mono select-none">▼</span>
+                <span class="text-[11px] font-mono font-semibold text-gray-300 flex items-center space-x-1.5">
+                  <span>CONSOLE</span>
+                  <span id="consoleBadge" class="px-1.5 py-0.2 bg-primary/20 text-primary text-[10px] rounded-full">0</span>
+                </span>
+              </div>
+              <button id="clearConsoleBtn" class="text-[10px] font-mono text-gray-400 hover:text-white transition px-1.5 py-0.5 rounded hover:bg-hover" title="Clear console output">
                 CLEAR
               </button>
             </div>
@@ -388,7 +391,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
           <div id="compilerOptionsSplitter" class="split-divider-v" title="Drag to resize compiler options panel"></div>
 
           <!-- Resizable Compiler & SSR Options Drawer (Default Maximized, Click Header to Minimize/Maximize) -->
-          <div id="compilerOptionsDrawer" class="border-t border-border bg-surface select-none flex flex-col flex-shrink-0 overflow-hidden" style="height: 144px;">
+          <div id="compilerOptionsDrawer" class="border-t border-border bg-surface select-none flex flex-col flex-shrink-0 overflow-hidden" style="height: 160px;">
             <!-- Clickable Header Bar (Height 28px) -->
             <div id="compilerOptionsHeader" class="h-7 px-2.5 flex items-center justify-between cursor-pointer hover:bg-hover transition flex-shrink-0" title="Click to minimize / maximize options panel">
               <div class="flex items-center space-x-1.5">
@@ -402,43 +405,43 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
             </div>
 
             <!-- Expandable Options Body Container -->
-            <div id="compilerOptionsBody" class="flex-1 p-2.5 pt-0 overflow-y-auto">
-              <div class="font-mono text-[11px] text-gray-300 space-y-1.5 bg-background p-2.5 rounded border border-border/60">
+            <div id="compilerOptionsBody" class="flex-1 p-2 pt-0 overflow-hidden">
+              <div class="font-mono text-[11px] text-gray-300 space-y-1 bg-background p-2 rounded border border-border/60">
                 <div class="text-gray-400 text-[10px]">result = await renderAurelia(component, {</div>
                 
-                <div class="pl-4 flex items-center space-x-6">
-                  <span class="text-gray-400">mode:</span>
+                <div class="pl-3 flex items-center space-x-5">
+                  <span class="text-gray-400 text-[10px]">mode:</span>
                   <label class="flex items-center space-x-1.5 cursor-pointer">
                     <input type="radio" name="opt-runtime-mode" value="ssr" checked class="text-accent focus:ring-0">
-                    <span class="text-emerald-400 font-semibold">"ssr"</span>
+                    <span class="text-emerald-400 font-semibold text-[11px]">"ssr"</span>
                   </label>
                   <label class="flex items-center space-x-1.5 cursor-pointer">
                     <input type="radio" name="opt-runtime-mode" value="client" class="text-accent focus:ring-0">
-                    <span class="text-gray-400">"client"</span>
+                    <span class="text-gray-400 text-[11px]">"client"</span>
                   </label>
                   <label class="flex items-center space-x-1.5 cursor-pointer">
                     <input type="radio" name="opt-runtime-mode" value="resumable" class="text-accent focus:ring-0">
-                    <span class="text-purple-400">"resumable"</span>
+                    <span class="text-purple-400 text-[11px]">"resumable"</span>
                   </label>
                 </div>
 
-                <div class="pl-4 flex items-center space-x-6">
-                  <span class="text-gray-400">strategy:</span>
+                <div class="pl-3 flex items-center space-x-5">
+                  <span class="text-gray-400 text-[10px]">strategy:</span>
                   <label class="flex items-center space-x-1.5 cursor-pointer">
                     <input type="radio" name="opt-strategy" value="hydrate" checked class="text-accent focus:ring-0">
-                    <span class="text-white">"hydrate"</span>
+                    <span class="text-white text-[11px]">"hydrate"</span>
                   </label>
                   <label class="flex items-center space-x-1.5 cursor-pointer">
                     <input type="radio" name="opt-strategy" value="static" class="text-accent focus:ring-0">
-                    <span class="text-gray-400">"static (zero-js)"</span>
+                    <span class="text-gray-400 text-[11px]">"static (zero-js)"</span>
                   </label>
                 </div>
 
-                <div class="pl-4 flex items-center space-x-6">
-                  <span class="text-gray-400">whitelistAudit:</span>
+                <div class="pl-3 flex items-center space-x-5">
+                  <span class="text-gray-400 text-[10px]">whitelistAudit:</span>
                   <label class="flex items-center space-x-1.5 cursor-pointer">
                     <input type="checkbox" id="opt-whitelist-audit" checked class="text-accent focus:ring-0 rounded">
-                    <span class="text-cyan-400">true</span>
+                    <span class="text-cyan-400 text-[11px]">true</span>
                   </label>
                 </div>
 
@@ -620,7 +623,18 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         const viewRect = resultView.getBoundingClientRect();
         const newHeight = viewRect.bottom - e.clientY;
         const clampedHeight = Math.max(28, Math.min(viewRect.height - 80, newHeight));
-        consoleDrawer.style.height = clampedHeight + 'px';
+        if (clampedHeight <= 36) {
+          isConsoleCollapsed = true;
+          consoleDrawer.style.height = '28px';
+          consoleArrow.textContent = '▲';
+          consoleLogsStream.classList.add('hidden');
+        } else {
+          isConsoleCollapsed = false;
+          lastConsoleHeight = clampedHeight;
+          consoleDrawer.style.height = clampedHeight + 'px';
+          consoleArrow.textContent = '▼';
+          consoleLogsStream.classList.remove('hidden');
+        }
       } else if (activeDrag === 'OPTIONS') {
         const jsView = document.getElementById('view-js');
         const viewRect = jsView.getBoundingClientRect();
@@ -1359,25 +1373,30 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       });
     }
 
-    // Console drawer collapse toggle (on Result view)
-    const toggleConsoleBtn = document.getElementById('toggleConsoleBtn');
+    // Console drawer minimize / maximize toggle (on Result view)
+    const consoleHeader = document.getElementById('consoleHeader');
     const consoleArrow = document.getElementById('consoleArrow');
     let isConsoleCollapsed = false;
+    let lastConsoleHeight = 160;
 
-    toggleConsoleBtn.addEventListener('click', () => {
+    consoleHeader.addEventListener('click', (e) => {
+      if (e.target && e.target.closest('#clearConsoleBtn')) return;
       isConsoleCollapsed = !isConsoleCollapsed;
       if (isConsoleCollapsed) {
+        lastConsoleHeight = Math.max(140, consoleDrawer.offsetHeight);
         consoleDrawer.style.height = '28px';
         consoleArrow.textContent = '▲';
+        consoleLogsStream.classList.add('hidden');
       } else {
-        consoleDrawer.style.height = '144px';
+        consoleDrawer.style.height = (lastConsoleHeight || 160) + 'px';
         consoleArrow.textContent = '▼';
+        consoleLogsStream.classList.remove('hidden');
       }
     });
 
     // Compiler & SSR Options Drawer minimize / maximize toggle (on JS Output view)
     let isOptionsCollapsed = false;
-    let lastOptionsHeight = 144;
+    let lastOptionsHeight = 160;
 
     compilerOptionsHeader.addEventListener('click', () => {
       isOptionsCollapsed = !isOptionsCollapsed;
@@ -1387,13 +1406,14 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         compilerOptionsArrow.textContent = '▲';
         compilerOptionsBody.classList.add('hidden');
       } else {
-        compilerOptionsDrawer.style.height = (lastOptionsHeight || 144) + 'px';
+        compilerOptionsDrawer.style.height = (lastOptionsHeight || 160) + 'px';
         compilerOptionsArrow.textContent = '▼';
         compilerOptionsBody.classList.remove('hidden');
       }
     });
 
-    document.getElementById('clearConsoleBtn').addEventListener('click', () => {
+    document.getElementById('clearConsoleBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
       consoleLogsStream.innerHTML = '';
       consoleLogCount = 0;
       consoleBadge.textContent = '0';
@@ -1404,8 +1424,9 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       document.querySelector('.output-tab[data-view="result"]').click();
       if (isConsoleCollapsed) {
         isConsoleCollapsed = false;
-        consoleDrawer.style.height = '144px';
+        consoleDrawer.style.height = (lastConsoleHeight || 160) + 'px';
         consoleArrow.textContent = '▼';
+        consoleLogsStream.classList.remove('hidden');
       }
       consoleLogsStream.scrollTop = consoleLogsStream.scrollHeight;
     });

@@ -1,8 +1,23 @@
-<div class="w-full max-w-sm mx-auto bg-card rounded-xl border border-border shadow-sm p-6 text-center space-y-3.5">
-  <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-    <span class="size-1.5 rounded-full bg-emerald-400"></span>
-    <span>Aurelia 2 Server-Side Rendered</span>
+<div class="au-card">
+  <div class="au-card-header">
+    <div>
+      <h3 class="au-card-title">Aurelia 2 SSR</h3>
+      <p class="au-card-subtitle">Zero client runtime overhead</p>
+    </div>
+    <span class="au-tag au-tag-emerald">
+      <span class="au-dot bg-emerald-400"></span>
+      SSR Hydrated
+    </span>
   </div>
-  <h1 class="text-xl font-bold tracking-tight text-foreground m-0">${greeting}, ${name}!</h1>
-  <p class="text-xs text-muted-foreground leading-relaxed max-w-xs mx-auto m-0">${description}</p>
+
+  <div class="au-card-body text-center space-y-3">
+    <h1 class="text-xl font-bold tracking-tight text-foreground m-0">${greeting || 'Hello'}, ${name}!</h1>
+    <p class="text-xs text-muted-foreground leading-relaxed m-0">${description}</p>
+    <div class="pt-2">
+      <span class="au-tag au-tag-emerald">
+        <span class="au-dot bg-emerald-400"></span>
+        Aurelia 2 Server-Side Rendered
+      </span>
+    </div>
+  </div>
 </div>

@@ -391,6 +391,196 @@ html, body {
 .text-amber-400 { color: #fbbf24; }
 .border-amber-500\\/20 { border-color: rgba(245, 158, 11, 0.25); }
 
+/* ====================================================
+   Aurelia 2 Playground Design System (.au-*)
+   Consistent, Professional, Clean Component Tokens
+   ==================================================== */
+.au-card {
+  width: 100%;
+  max-width: 24rem;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.au-card-wide {
+  max-width: 32rem;
+}
+
+.au-card-header {
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid rgba(48, 54, 61, 0.6);
+  background-color: rgba(22, 27, 34, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.au-card-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #f0f6fc;
+  letter-spacing: -0.015em;
+  margin: 0;
+  line-height: 1.25rem;
+}
+
+.au-card-subtitle {
+  font-size: 0.6875rem;
+  color: #8b949e;
+  margin: 0.125rem 0 0 0;
+  line-height: 0.875rem;
+}
+
+.au-card-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  font-size: 0.75rem;
+}
+
+.au-card-footer {
+  padding: 0.625rem 1.25rem;
+  border-top: 1px solid rgba(48, 54, 61, 0.5);
+  background-color: rgba(13, 17, 23, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.6875rem;
+  color: #8b949e;
+}
+
+.au-box {
+  padding: 0.625rem 0.75rem;
+  background-color: rgba(22, 27, 34, 0.6);
+  border: 1px solid rgba(48, 54, 61, 0.6);
+  border-radius: 0.5rem;
+}
+
+.au-box-accent {
+  background-color: rgba(13, 17, 23, 0.7);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.au-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1rem;
+  border: 1px solid transparent;
+  flex-shrink: 0;
+}
+
+.au-tag-emerald {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.au-tag-blue {
+  background-color: rgba(59, 130, 246, 0.12);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.25);
+}
+
+.au-tag-purple {
+  background-color: rgba(168, 85, 247, 0.12);
+  color: #c084fc;
+  border-color: rgba(168, 85, 247, 0.25);
+}
+
+.au-tag-cyan {
+  background-color: rgba(6, 182, 212, 0.12);
+  color: #22d3ee;
+  border-color: rgba(6, 182, 212, 0.25);
+}
+
+.au-tag-amber {
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+.au-tag-rose {
+  background-color: rgba(244, 63, 94, 0.12);
+  color: #fb7185;
+  border-color: rgba(244, 63, 94, 0.25);
+}
+
+.au-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  background-color: #0284c7;
+  color: #ffffff;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+.au-btn-primary:hover {
+  background-color: #0369a1;
+}
+
+.au-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  background-color: #21262d;
+  color: #f0f6fc;
+  border: 1px solid #30363d;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.au-btn-secondary:hover {
+  background-color: #30363d;
+}
+
+.au-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  background-color: rgba(2, 132, 199, 0.15);
+  color: #38bdf8;
+  font-weight: 700;
+  font-size: 0.75rem;
+  border: 1px solid rgba(2, 132, 199, 0.3);
+  flex-shrink: 0;
+}
+
+.au-dot {
+  display: inline-block;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+}
+
 /* Buttons & Interactive Elements */
 button, .btn-increment {
   cursor: pointer;

@@ -158,6 +158,21 @@ export function createPlaygroundApp(): Hono {
   // Iframe Preview Route: Renders complete HTML document for browser inspection
   app.get('/preview/:fixture', async (c) => {
     const fixtureId = c.req.param('fixture');
+    const examples = loadAllExamples();
+    const ex = examples[fixtureId];
+
+    if (ex) {
+      const result = await compilePlaygroundExample({
+        exampleId: ex.id,
+        files: ex.files,
+        mode: ex.options?.mode || 'ssr',
+        strategy: ex.options?.strategy || 'hydrate',
+      });
+      if (result.success && result.htmlDocument) {
+        return c.html(result.htmlDocument);
+      }
+    }
+
     const component = FIXTURES[fixtureId] || FIXTURES['counter-card'];
 
     const context = {
