@@ -123,7 +123,7 @@ export interface HydrationOptions {
  * Options for client-side automated component hydration (createClientHydrator)
  */
 export interface ClientHydratorOptions {
-  components: Record<string, unknown>;
+  components: Record<string, unknown> | unknown[];
   target?: string | HTMLElement;
   fallback?: unknown;
   registrations?: unknown[];

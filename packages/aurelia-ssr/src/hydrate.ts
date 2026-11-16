@@ -6,7 +6,7 @@
  */
 
 import type { HydrationPayload, HydrationResult, ClientHydratorOptions, IRequestContext } from './types.js';
-import { Aurelia, Registration, type Constructable } from 'aurelia';
+import { Aurelia, Registration, CustomElement, type Constructable } from 'aurelia';
 import { IRequestContext as IRequestContextToken } from './tokens.js';
 
 export type { HydrationResult, ClientHydratorOptions };
@@ -338,9 +338,75 @@ export const hydrationCache = new HydrationCache()
  * 
  * Inspects hydration payload, dynamically maps the component name against
  * registered components, registers IRequestContext into DI, and starts Aurelia.
+ * 
+ * Supports full options object, an array of components, or an imported module namespace.
+ * 
+ * @example
+ * ```typescript
+ * // Array of page components
+ * createClientHydrator([HomePage, PostDetailPage, DashboardPage]);
+ * 
+ * // Module dictionary (import * as pages from './pages')
+ * createClientHydrator(pages);
+ * ```
  */
-export async function createClientHydrator(options: ClientHydratorOptions): Promise<unknown> {
+export async function createClientHydrator(
+  optionsOrComponents: ClientHydratorOptions | unknown[] | Record<string, unknown>
+): Promise<unknown> {
   if (typeof window === 'undefined') return null;
+
+  let options: ClientHydratorOptions;
+
+  if (Array.isArray(optionsOrComponents)) {
+    const compMap: Record<string, unknown> = {};
+    for (const comp of optionsOrComponents) {
+      if (!comp) continue;
+      let name: string | undefined;
+      if (typeof comp === 'function' && CustomElement.isType(comp)) {
+        name = CustomElement.getDefinition(comp).name;
+      } else if (typeof comp === 'function') {
+        name = comp.name;
+      } else if (typeof comp === 'object' && comp !== null) {
+        name = (comp as { name?: string }).name;
+      }
+      if (name) {
+        compMap[name] = comp;
+        const pascal = name.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('');
+        compMap[pascal] = comp;
+      }
+    }
+    options = { components: compMap };
+  } else if (optionsOrComponents && typeof optionsOrComponents === 'object') {
+    if ('components' in optionsOrComponents) {
+      options = { ...(optionsOrComponents as ClientHydratorOptions) };
+      if (Array.isArray(options.components)) {
+        const compList = options.components as unknown[];
+        const compMap: Record<string, unknown> = {};
+        for (const comp of compList) {
+          if (!comp) continue;
+          let name: string | undefined;
+          if (typeof comp === 'function' && CustomElement.isType(comp)) {
+            name = CustomElement.getDefinition(comp).name;
+          } else if (typeof comp === 'function') {
+            name = comp.name;
+          } else if (typeof comp === 'object' && comp !== null) {
+            name = (comp as { name?: string }).name;
+          }
+          if (name) {
+            compMap[name] = comp;
+            const pascal = name.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('');
+            compMap[pascal] = comp;
+          }
+        }
+        options.components = compMap;
+      }
+    } else {
+      // It is an imported module namespace: import * as pages from './pages'
+      options = { components: optionsOrComponents as Record<string, unknown> };
+    }
+  } else {
+    throw new Error('[createClientHydrator] Expected component array, module record, or ClientHydratorOptions.');
+  }
 
   // Peek component name before hydrateFromServer consumes and deletes it
   const rawPayload = peekHydrationPayload(options.payloadKey);
@@ -348,25 +414,31 @@ export async function createClientHydrator(options: ClientHydratorOptions): Prom
 
   const hydration = hydrateFromServer({ payloadKey: options.payloadKey });
 
-  const targetSelector = typeof options.target === 'string' ? options.target : 'app-root';
   let host: HTMLElement | null = null;
   if (typeof options.target === 'object' && options.target !== null && 'nodeType' in (options.target as Node)) {
     host = options.target as HTMLElement;
+  } else if (typeof options.target === 'string') {
+    host = document.querySelector<HTMLElement>(options.target) || document.getElementById(options.target.replace(/^#/, ''));
   } else {
-    host = document.querySelector<HTMLElement>(targetSelector) || document.getElementById(targetSelector.replace(/^#/, ''));
+    // Default smart fallback sequence: app-root -> #ssr-root -> [data-au-ssr] -> body
+    host = document.querySelector<HTMLElement>('app-root')
+      || document.querySelector<HTMLElement>('#ssr-root')
+      || document.querySelector<HTMLElement>('[data-au-ssr]')
+      || document.body;
   }
 
   if (!host) {
-    const error = new Error(`[createClientHydrator] Target element "${targetSelector}" not found in DOM.`);
+    const error = new Error(`[createClientHydrator] Target element "${options.target || 'app-root'}" not found in DOM.`);
     options.onError?.(error);
     return null;
   }
 
-  let ComponentClass: unknown = componentName ? options.components[componentName] : undefined;
+  const compDict = options.components as Record<string, unknown>;
+  let ComponentClass: unknown = componentName ? compDict[componentName] : undefined;
   if (!ComponentClass && componentName) {
     // Try normalized match (kebab-case vs PascalCase)
     const normalizedTarget = componentName.replace(/[-_]/g, '').toLowerCase();
-    for (const [key, comp] of Object.entries(options.components)) {
+    for (const [key, comp] of Object.entries(compDict)) {
       if (key.replace(/[-_]/g, '').toLowerCase() === normalizedTarget) {
         ComponentClass = comp;
         break;

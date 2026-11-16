@@ -297,7 +297,7 @@ export async function renderAurelia(options: RenderOptions): Promise<string> {
   }
 
   // Fast path for Client-Only components (Browser Islands)
-  const isClientOnly = (typeof component === 'function' && Boolean((component as Record<string, unknown>).clientOnly))
+  const isClientOnly = (typeof component === 'function' && Boolean((component as unknown as Record<string, unknown>).clientOnly))
     || Boolean((component as Record<string, unknown>)?.clientOnly);
 
   if (isClientOnly) {

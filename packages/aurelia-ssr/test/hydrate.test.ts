@@ -425,6 +425,27 @@ describe('createClientHydrator', () => {
       expect(diHydrated).toBe('DiWidget');
       expect(diHost.innerHTML).toContain('User: Bob');
       expect(diHost.innerHTML).toContain('Role: editor');
+
+      // Test array-based components registration and auto-target fallback
+      const arrayHost = dom.window.document.createElement('app-root');
+      dom.window.document.body.appendChild(arrayHost);
+      const arrayPayload = {
+        component: 'DiWidget',
+        context: { user: { name: 'Alice' }, role: 'admin' },
+        initialData: {},
+        timestamp: Date.now(),
+      };
+      (globalThis as any).__HYDRATION__ = arrayPayload;
+      (dom.window as any).__HYDRATION__ = arrayPayload;
+
+      let arrayHydrated = '';
+      await createClientHydrator({
+        components: [DiWidget],
+        target: arrayHost as any,
+        onHydrated: (name) => { arrayHydrated = name; },
+      });
+      expect(arrayHydrated).toBe('DiWidget');
+      expect(arrayHost.innerHTML).toContain('User: Alice');
     } finally {
       for (const prop of domProps) {
         if (origProps[prop] !== undefined) {

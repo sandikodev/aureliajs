@@ -14,9 +14,13 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readFileSync, existsSync } from 'node:fs';
-import { aurelia, createAuthMiddleware } from '@hono/aurelia-ssr/server';
-import { initialPosts, dashboardStats, activityStream } from './data.js';
+import {
+  aurelia,
+  aureliaDefaults,
+  serveAureliaAssets,
+  createAuthMiddleware,
+} from '@hono/aurelia-ssr/server';
+import { initialPosts } from './data.js';
 import { HomePage } from './pages/home.js';
 import { PostDetailPage } from './pages/post-detail.js';
 import { DashboardPage } from './pages/dashboard.js';
@@ -46,79 +50,56 @@ app.get('/favicon.ico', (c) => {
   });
 });
 
-// Serve static assets (CSS, bundled client script) reliably across any cwd
-app.get('/public/*', (c) => {
-  const rel = c.req.path.replace(/^\/public\//, '');
-  const filePath = resolve(publicDir, rel);
-  if (existsSync(filePath)) {
-    const content = readFileSync(filePath);
-    const mimeType = filePath.endsWith('.css')
-      ? 'text/css'
-      : filePath.endsWith('.js')
-      ? 'application/javascript'
-      : 'application/octet-stream';
-    return c.body(content, 200, { 'Content-Type': mimeType });
-  }
-  return c.text('Not found', 404);
-});
+// Serve static assets (CSS, bundled client script) reliably using framework middleware
+app.use('/public/*', serveAureliaAssets({ root: publicDir }));
+
+// Global Aurelia SSR Defaults: Streaming enabled + standard document bundles
+app.use(
+  '*',
+  aureliaDefaults({
+    document: {
+      cssBundle: '/public/style.css',
+      jsBundle: '/public/client.js',
+    },
+    streaming: true,
+  })
+);
 
 // Auth Middleware: sets user, workspace, and role in Hono context
-app.use('*', createAuthMiddleware({
-  getUserFromToken: async (token) => {
-    if (token === 'demo-token') {
-      return { id: 'usr_1', email: 'operator@aureliajs.dev', name: 'Demo Operator' };
-    }
-    return null;
-  },
-  getWorkspaceFromRequest: async () => ({
-    id: 'ws_demo',
-    name: 'Northwind Studio',
-  }),
-  getRoleForUser: () => 'owner',
-}));
+app.use(
+  '*',
+  createAuthMiddleware({
+    getUserFromToken: async (token) => {
+      if (token === 'demo-token') {
+        return { id: 'usr_1', email: 'operator@aureliajs.dev', name: 'Demo Operator' };
+      }
+      return null;
+    },
+    getWorkspaceFromRequest: async () => ({
+      id: 'ws_demo',
+      name: 'Northwind Studio',
+    }),
+    getRoleForUser: () => 'owner',
+  })
+);
 
-// Route 1: Public Home Page with SSR
+// Route 1: Public Home Page with SSR (loaders enrich initial posts)
 app.get(
   '/',
   aurelia({
     component: HomePage,
     title: 'Hono + Aurelia 2 SSR - Engineering Blog',
-    streaming: true,
     loaders: {
       posts: async () => posts,
     },
-    document: {
-      cssBundle: '/public/style.css',
-      jsBundle: '/public/client.js',
-    },
   })
 );
 
-// Route 2: Single Post Detail Page with co-located loader, SSR & Hydration
-app.get(
-  '/posts/:slug',
-  aurelia({
-    component: PostDetailPage,
-    streaming: true,
-    document: {
-      cssBundle: '/public/style.css',
-      jsBundle: '/public/client.js',
-    },
-  })
-);
+// Route 2: Single Post Detail Page (One-liner! Co-located loader & metadata)
+app.get('/posts/:slug', aurelia(PostDetailPage));
 
-// Route 3: Protected Dashboard Page with co-located metadata, loader & SSR
-app.get(
-  '/dashboard',
-  aurelia({
-    component: DashboardPage,
-    streaming: true,
-    document: {
-      cssBundle: '/public/style.css',
-      jsBundle: '/public/client.js',
-    },
-  })
-);
+// Route 3: Protected Dashboard Page (One-liner! Co-located loader, auth guard & metadata)
+app.get('/dashboard', aurelia(DashboardPage));
 
 // REST API Endpoints
 app.get('/api/posts', (c) => c.json(posts));

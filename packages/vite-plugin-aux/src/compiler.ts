@@ -215,7 +215,7 @@ export function compileAux(
   const scriptContent = script ? script.content.trim() : '';
   const detectedClass = scriptContent ? findExportedClassName(scriptContent) : null;
   const baseFile = filename.split('/').pop()?.replace(/\.aux(\?.*)?$/, '') || 'AuxComponent';
-  const className = detectedClass || toPascalCase(baseFile);
+  const className = detectedClass || (explicitName ? toPascalCase(explicitName) : toPascalCase(baseFile));
   const tagName = options.tagNameResolver
     ? options.tagNameResolver(filename, className)
     : deriveTagName(filename, className, explicitName);
