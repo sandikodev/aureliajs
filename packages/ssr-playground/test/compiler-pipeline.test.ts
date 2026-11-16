@@ -94,4 +94,51 @@ export default class AuxWidget {
     expect(result.success).toBe(true);
     expect(result.metrics.secretStatus).toContain('WARN: Leaked sensitive key(s): secretApiKey');
   });
+
+  test('4. Real Linter detects unknown Aurelia binding commands and missing ViewModel properties', async () => {
+    const result = await compilePlaygroundExample({
+      exampleId: 'invalid-binding',
+      files: {
+        'invalid-binding.html': '<button click.fakeCommand="handleClick()">${unregisteredProperty}</button>',
+        'invalid-binding.ts': 'export class InvalidBinding { validProp = 10; }',
+      },
+      mode: 'ssr',
+      strategy: 'hydrate',
+    });
+
+    expect(result.diagnostics.length).toBeGreaterThanOrEqual(2);
+    const commandDiag = result.diagnostics.find(d => d.message.includes('fakeCommand'));
+    expect(commandDiag).toBeDefined();
+    expect(commandDiag?.severity).toBe('warning');
+
+    const propDiag = result.diagnostics.find(d => d.message.includes('unregisteredProperty'));
+    expect(propDiag).toBeDefined();
+    expect(propDiag?.severity).toBe('error');
+  });
+
+  test('5. Real Linter validates Single-File Component (.aux) template against script block', async () => {
+    const auxCode = `
+<template>
+  <button click.trigger="unknownMethod()">\${nonExistentField}</button>
+</template>
+<script lang="ts">
+export default class MyAux {
+  count = 1;
+}
+</script>
+    `.trim();
+
+    const result = await compilePlaygroundExample({
+      exampleId: 'aux-err',
+      files: {
+        'aux-err.aux': auxCode,
+      },
+      mode: 'ssr',
+      strategy: 'hydrate',
+    });
+
+    expect(result.diagnostics.length).toBeGreaterThanOrEqual(2);
+    expect(result.diagnostics.some(d => d.message.includes('unknownMethod'))).toBe(true);
+    expect(result.diagnostics.some(d => d.message.includes('nonExistentField'))).toBe(true);
+  });
 });

@@ -7,6 +7,7 @@ import zlib from 'node:zlib';
 import { CustomElement } from 'aurelia';
 import { inspectAureliaSsr } from './inspector.js';
 import { parseAux, compileAux } from '@aureliajs/vite-plugin-aux';
+import { lintAureliaFiles, type LintDiagnostic } from './linter.js';
 import { getPreviewStylesheet } from '../server/assets.js';
 import type { RenderContext } from '@hono/aurelia-ssr';
 
@@ -39,6 +40,7 @@ export interface CompileResponse {
   compiledJs: string;
   ast: Record<string, unknown>;
   metrics: CompileMetrics;
+  diagnostics: LintDiagnostic[];
 }
 
 /**
@@ -583,6 +585,7 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
         secretStatus,
         xssStatus,
       },
+      diagnostics: lintAureliaFiles(files),
     };
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);
@@ -605,6 +608,7 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
         secretStatus: 'ERROR',
         xssStatus: 'ERROR',
       },
+      diagnostics: [],
     };
   }
 }

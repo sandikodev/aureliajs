@@ -1,7 +1,7 @@
 /**
  * @aureliajs/ssr-playground
  * Enterprise Aurelia 2 + Hono SSR & .aux Playground Dashboard
- * Dynamic Multi-File Architecture, Authentic Aurelia Conventions & Clean Line-Tracing
+ * Compact UI/UX, Fully Resizable Split Panes, In-Editor Syntax Highlighting & Real Linter
  */
 
 import type { ExampleMeta } from '../examples/loader.js';
@@ -36,7 +36,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
             surface: '#161b22',
             card: '#161b22',
             border: '#30363d',
-            accent: '#ff3e00', // Svelte-like fiery coral accent
+            accent: '#ff3e00',
             primary: '#0ea5e9',
             hover: '#21262d',
           },
@@ -60,12 +60,12 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
     }
     
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #0d1117; }
-    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: #484f58; }
 
-    /* Clean Line-level Hover Tracing (Zero text duplication) */
+    /* Clean Line-level Hover Tracing */
     .editor-line-highlight {
       position: absolute;
       left: 0;
@@ -97,9 +97,9 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     }
 
     .file-tab {
-      height: 36px;
-      padding: 0 14px;
-      font-size: 12px;
+      height: 32px;
+      padding: 0 12px;
+      font-size: 11px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       color: #8b949e;
       background-color: transparent;
@@ -121,284 +121,335 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       border-top: 2px solid #ff3e00 !important;
       font-weight: 500 !important;
     }
+
+    /* Resizable Dividers */
+    .split-divider-h {
+      width: 5px;
+      background: #21262d;
+      cursor: col-resize;
+      transition: background 0.15s ease;
+      z-index: 25;
+      flex-shrink: 0;
+    }
+    .split-divider-h:hover, .split-divider-h.active {
+      background: #ff3e00 !important;
+    }
+
+    .split-divider-v {
+      height: 5px;
+      background: #21262d;
+      cursor: row-resize;
+      transition: background 0.15s ease;
+      z-index: 25;
+      flex-shrink: 0;
+    }
+    .split-divider-v:hover, .split-divider-v.active {
+      background: #ff3e00 !important;
+    }
+
+    /* Diagnostic squiggly underlines */
+    .lint-error-squiggly {
+      text-decoration: underline wavy #ef4444 !important;
+      text-underline-offset: 3px;
+    }
+    .lint-warning-squiggly {
+      text-decoration: underline wavy #f59e0b !important;
+      text-underline-offset: 3px;
+    }
   </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden text-sm">
+<body class="h-screen flex flex-col overflow-hidden text-xs">
 
-  <!-- Top Navigation Header -->
-  <header class="h-12 border-b border-border bg-surface px-4 flex items-center justify-between z-30 select-none">
-    <div class="flex items-center space-x-4">
-      <!-- Logo -->
-      <a href="/" class="flex items-center space-x-2.5 text-white font-bold tracking-tight hover:opacity-90 transition">
-        <svg class="size-6 text-accent" viewBox="0 0 24 24" fill="currentColor">
+  <!-- Compact Top Navigation Header (Height 40px) -->
+  <header class="h-10 border-b border-border bg-surface px-3 flex items-center justify-between z-30 select-none flex-shrink-0">
+    <div class="flex items-center space-x-3">
+      <!-- Minimalist Logo -->
+      <a href="/" class="flex items-center space-x-2 text-white font-bold tracking-tight hover:opacity-90 transition">
+        <svg class="size-5 text-accent" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2L2 19.7778H22L12 2ZM12 6.22222L18.8889 17.5556H5.11111L12 6.22222Z"/>
         </svg>
-        <span class="text-base font-extrabold tracking-wider text-white">AURELIA 2</span>
+        <span class="text-xs font-black tracking-wider text-white">AURELIA 2</span>
       </a>
 
       <!-- Category & Example Accordion Dropdown Selector -->
       <div class="relative">
-        <button id="menuDropdownBtn" class="flex items-center space-x-2 px-3 py-1.5 rounded-md bg-hover hover:bg-border text-gray-200 border border-border text-xs font-medium transition">
-          <svg class="size-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+        <button id="menuDropdownBtn" class="flex items-center space-x-1.5 px-2.5 py-1 rounded bg-hover hover:bg-border text-gray-200 border border-border text-[11px] font-medium transition">
+          <svg class="size-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M3 5h14a1 1 0 010 2H3a1 1 0 110-2zm0 4h14a1 1 0 010 2H3a1 1 0 110-2zm0 4h14a1 1 0 010 2H3a1 1 0 110-2z" clip-rule="evenodd"/>
           </svg>
           <span id="currentExampleLabel">Loading Examples...</span>
-          <svg class="size-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+          <svg class="size-2.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
           </svg>
         </button>
 
-        <!-- Dropdown Menu List (Exact Svelte Playground style) -->
-        <div id="exampleDropdownMenu" class="hidden absolute top-full left-0 mt-1 w-72 max-h-[82vh] overflow-y-auto bg-[#161b22] border border-border rounded-lg shadow-2xl z-50 py-1">
-          <div id="dropdownExamplesList" class="py-1">
+        <!-- Dropdown Menu List -->
+        <div id="exampleDropdownMenu" class="hidden absolute top-full left-0 mt-1 w-72 max-h-[80vh] overflow-y-auto bg-[#161b22] border border-border rounded-lg shadow-2xl z-50 py-1">
+          <div id="dropdownExamplesList" class="py-0.5">
             <!-- Populated dynamically with accordion categories -->
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Right Header Actions (Utilitarian & Developer-First) -->
-    <div class="flex items-center space-x-3">
-      <button id="headerRunBtn" class="flex items-center space-x-1.5 px-3 py-1 rounded bg-accent hover:bg-accent/90 text-white text-xs font-semibold shadow-md shadow-accent/20 transition">
+    <!-- Right Header Actions (Compact) -->
+    <div class="flex items-center space-x-2">
+      <button id="headerRunBtn" class="flex items-center space-x-1.5 px-2.5 py-1 rounded bg-accent hover:bg-accent/90 text-white text-[11px] font-semibold shadow transition">
         <span>▶</span>
         <span>Run (Ctrl+S)</span>
       </button>
 
-      <button id="headerResetBtn" class="px-2.5 py-1 rounded bg-hover hover:bg-border text-gray-300 text-xs font-medium border border-border transition">
+      <button id="headerResetBtn" class="px-2 py-1 rounded bg-hover hover:bg-border text-gray-300 text-[11px] font-medium border border-border transition">
         ↻ Reset
       </button>
 
-      <a href="https://github.com/sandikodev/hono-aurelia-ssr" target="_blank" class="text-xs text-gray-400 hover:text-gray-200 transition">
+      <a href="https://github.com/sandikodev/hono-aurelia-ssr" target="_blank" class="text-[11px] text-gray-400 hover:text-gray-200 transition pl-1">
         GitHub ↗
       </a>
     </div>
   </header>
 
-  <!-- Main Split Pane Interface -->
-  <div class="flex-1 flex overflow-hidden">
+  <!-- Main Split Pane Interface (Fully Resizable) -->
+  <div id="mainContainer" class="flex-1 flex overflow-hidden relative">
 
     <!-- LEFT PANEL: Dynamic Multi-File Editor -->
-    <div class="w-1/2 flex flex-col border-r border-border bg-background">
+    <div id="leftEditorPane" class="w-1/2 flex flex-col bg-background overflow-hidden min-w-[200px]">
       
-      <!-- Dynamic File Tabs Bar (Populated per Example) -->
-      <div class="h-9 border-b border-border bg-surface flex items-center justify-between px-0 select-none">
+      <!-- Dynamic File Tabs Bar (Height 32px) -->
+      <div class="h-8 border-b border-border bg-surface flex items-center justify-between px-0 select-none flex-shrink-0">
         <div class="flex items-center space-x-0" id="editorTabsBar">
           <!-- Dynamically populated files for the active example -->
         </div>
 
-        <div class="flex items-center space-x-2 text-xs text-gray-400 pr-3">
-          <span class="text-[11px] font-mono text-gray-500" id="componentModelBadge">Aurelia 2 Convention</span>
+        <div class="flex items-center space-x-2 text-[11px] text-gray-400 pr-2">
+          <span class="font-mono text-gray-500" id="componentModelBadge">Aurelia 2 Convention</span>
         </div>
       </div>
 
-      <!-- Editor Code Canvas with Line Numbers & Clean Line Tracing -->
-      <div class="flex-1 relative flex overflow-hidden">
+      <!-- Editor Canvas: Line Numbers, Syntax Highlight Layer, and Transparent Textarea -->
+      <div class="flex-1 relative flex overflow-hidden" id="editorCanvasWrapper">
         <!-- Line Numbers Column -->
-        <div id="editorLineNumbers" class="w-12 bg-surface/50 border-r border-border/50 py-3 text-right pr-3 text-xs font-mono text-gray-600 select-none overflow-hidden leading-6">
+        <div id="editorLineNumbers" class="w-11 bg-surface/40 border-r border-border/40 py-2 text-right pr-2 font-mono text-[11px] text-gray-600 select-none overflow-hidden leading-[22px] flex-shrink-0">
           1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10
         </div>
 
-        <!-- Clean Line Highlight Overlay (Zero text duplication!) -->
-        <div id="editorTraceOverlay" class="pointer-events-none absolute inset-0 pl-12 overflow-hidden">
+        <!-- Clean Line Highlight Overlay -->
+        <div id="editorTraceOverlay" class="pointer-events-none absolute inset-0 pl-11 overflow-hidden z-10">
           <div id="traceHighlightBar" class="hidden editor-line-highlight"></div>
         </div>
 
-        <!-- Code Textarea with Real Code Editor Behavior -->
-        <textarea id="codeEditorInput" spellcheck="false" class="flex-1 bg-transparent text-gray-200 p-3 text-xs font-mono leading-6 resize-none focus:outline-none overflow-auto whitespace-pre selection:bg-accent/30 z-10"></textarea>
+        <!-- Syntax Highlighting Background Layer (Pixel-perfect aligned with Textarea) -->
+        <pre id="editorHighlightPre" class="pointer-events-none absolute inset-0 pl-11 p-2 font-mono text-xs leading-[22px] overflow-hidden whitespace-pre bg-transparent text-gray-200 z-0 m-0"><code id="editorHighlightCode"></code></pre>
+
+        <!-- Interactive Textarea Layer (Transparent text, visible caret) -->
+        <textarea id="codeEditorInput" spellcheck="false" class="absolute inset-0 pl-11 p-2 font-mono text-xs leading-[22px] resize-none focus:outline-none overflow-auto whitespace-pre bg-transparent text-transparent caret-white selection:bg-accent/30 z-20"></textarea>
       </div>
 
-      <!-- Status Footer -->
-      <div class="h-6 border-t border-border bg-surface px-3 flex items-center justify-between text-[11px] text-gray-500 font-mono select-none">
-        <span id="editorStatusText">File • UTF-8</span>
-        <span id="editorLiveIndicator" class="text-emerald-400">● Live Compilation Ready</span>
+      <!-- Compact Status Footer (Height 24px) -->
+      <div class="h-6 border-t border-border bg-surface px-2.5 flex items-center justify-between text-[10px] text-gray-500 font-mono select-none flex-shrink-0">
+        <div class="flex items-center space-x-3">
+          <span id="editorStatusText">File • UTF-8</span>
+          <button id="linterStatusPill" class="flex items-center space-x-1 text-emerald-400 hover:underline">
+            <span id="linterStatusIcon">✔</span>
+            <span id="linterStatusText">0 errors, 0 warnings</span>
+          </button>
+        </div>
+        <span id="editorLiveIndicator" class="text-emerald-400">● Live Synchronized</span>
       </div>
     </div>
 
-    <!-- RIGHT PANEL: Multi-Tab Outputs -->
-    <div class="w-1/2 flex flex-col bg-background">
+    <!-- RESIZABLE SPLIT DIVIDER (Horizontal: Left vs Right) -->
+    <div id="hSplitDivider" class="split-divider-h" title="Drag to resize panes"></div>
+
+    <!-- RIGHT PANEL: Multi-Tab Outputs & Resizable Console -->
+    <div id="rightOutputPane" class="flex-1 flex flex-col bg-background overflow-hidden min-w-[200px]">
       
-      <!-- Right Panel Tab Bar -->
-      <div class="h-9 border-b border-border bg-surface flex items-center justify-between px-2 select-none">
+      <!-- Right Panel Tab Bar (Height 32px) -->
+      <div class="h-8 border-b border-border bg-surface flex items-center justify-between px-2 select-none flex-shrink-0">
         <div class="flex items-center space-x-1" id="outputTabsBar">
-          <button class="output-tab tab-active px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-white transition" data-view="result">
+          <button class="output-tab tab-active px-2.5 py-1 text-[11px] font-medium text-gray-400 hover:text-white transition" data-view="result">
             Result
           </button>
-          <button class="output-tab px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-white transition" data-view="js">
+          <button class="output-tab px-2.5 py-1 text-[11px] font-medium text-gray-400 hover:text-white transition" data-view="js">
             JS output
           </button>
-          <button class="output-tab px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-white transition" data-view="html">
+          <button class="output-tab px-2.5 py-1 text-[11px] font-medium text-gray-400 hover:text-white transition" data-view="html">
             SSR HTML
           </button>
-          <button class="output-tab px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-white transition" data-view="ast">
+          <button class="output-tab px-2.5 py-1 text-[11px] font-medium text-gray-400 hover:text-white transition" data-view="ast">
             AST output
           </button>
-          <button class="output-tab px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-white transition" data-view="metrics">
+          <button class="output-tab px-2.5 py-1 text-[11px] font-medium text-gray-400 hover:text-white transition" data-view="metrics">
             Audit & Metrics
           </button>
         </div>
 
-        <div class="flex items-center space-x-2 pr-2">
+        <div class="flex items-center space-x-1.5 pr-1">
           <span id="outputStatusIndicator" class="size-2 rounded-full bg-emerald-500 inline-block"></span>
-          <span class="text-[11px] font-mono text-gray-400" id="outputStatusText">Hydrated</span>
+          <span class="text-[10px] font-mono text-gray-400" id="outputStatusText">Hydrated</span>
         </div>
       </div>
 
-      <!-- Tab 1: Result (Live Preview + Console Drawer) -->
-      <div id="view-result" class="output-view flex-1 flex flex-col relative overflow-hidden">
-        <div class="flex-1 bg-white relative">
+      <!-- Tab Content Area -->
+      <div class="flex-1 flex flex-col overflow-hidden relative">
+
+        <!-- Tab 1: Result (Live Preview) -->
+        <div id="view-result" class="output-view flex-1 flex flex-col relative overflow-hidden bg-white">
           <iframe id="previewIframe" class="w-full h-full border-0"></iframe>
         </div>
 
-        <!-- Console Drawer -->
-        <div id="consoleDrawer" class="h-44 border-t border-border bg-surface flex flex-col transition-all duration-200">
-          <div class="h-7 border-b border-border bg-hover px-3 flex items-center justify-between select-none">
-            <button id="toggleConsoleBtn" class="flex items-center space-x-2 text-xs font-mono font-semibold text-gray-300 hover:text-white">
-              <span id="consoleArrow">▼</span>
-              <span>CONSOLE</span>
-              <span id="consoleBadge" class="px-1.5 py-0.2 bg-primary/20 text-primary text-[10px] rounded-full">0</span>
-            </button>
-            <button id="clearConsoleBtn" class="text-[11px] font-mono text-gray-400 hover:text-white transition">
-              CLEAR
-            </button>
-          </div>
-          <div id="consoleLogsStream" class="flex-1 p-2 font-mono text-xs overflow-y-auto space-y-1 text-gray-300 select-text">
-            <div class="text-gray-500 italic text-[11px]">[Playground Ready] Event triggers, user console.log, and hydration logs appear here...</div>
+        <!-- Tab 2: JS Output -->
+        <div id="view-js" class="output-view hidden flex-1 flex flex-col relative overflow-hidden bg-surface/30">
+          <pre class="flex-1 p-3 font-mono text-[11px] overflow-auto text-gray-200 leading-5 select-text whitespace-pre-wrap m-0" id="compiledJsCode">/* Select a component to see its compiled code */</pre>
+
+          <!-- Compiler & SSR Options (Svelte Playground Style) -->
+          <div class="border-t border-border bg-surface p-2.5 select-none flex-shrink-0">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[11px] font-mono font-semibold text-gray-300 flex items-center space-x-1.5">
+                <span>⚙</span>
+                <span>COMPILER & SSR OPTIONS</span>
+              </span>
+              <span class="text-[10px] text-gray-500 font-mono">renderAurelia() config</span>
+            </div>
+
+            <div class="font-mono text-[11px] text-gray-300 space-y-1.5 bg-background p-2.5 rounded border border-border/60">
+              <div class="text-gray-400 text-[10px]">result = await renderAurelia(component, {</div>
+              
+              <div class="pl-4 flex items-center space-x-6">
+                <span class="text-gray-400">mode:</span>
+                <label class="flex items-center space-x-1.5 cursor-pointer">
+                  <input type="radio" name="opt-runtime-mode" value="ssr" checked class="text-accent focus:ring-0">
+                  <span class="text-emerald-400 font-semibold">"ssr"</span>
+                </label>
+                <label class="flex items-center space-x-1.5 cursor-pointer">
+                  <input type="radio" name="opt-runtime-mode" value="client" class="text-accent focus:ring-0">
+                  <span class="text-gray-400">"client"</span>
+                </label>
+                <label class="flex items-center space-x-1.5 cursor-pointer">
+                  <input type="radio" name="opt-runtime-mode" value="resumable" class="text-accent focus:ring-0">
+                  <span class="text-purple-400">"resumable"</span>
+                </label>
+              </div>
+
+              <div class="pl-4 flex items-center space-x-6">
+                <span class="text-gray-400">strategy:</span>
+                <label class="flex items-center space-x-1.5 cursor-pointer">
+                  <input type="radio" name="opt-strategy" value="hydrate" checked class="text-accent focus:ring-0">
+                  <span class="text-white">"hydrate"</span>
+                </label>
+                <label class="flex items-center space-x-1.5 cursor-pointer">
+                  <input type="radio" name="opt-strategy" value="static" class="text-accent focus:ring-0">
+                  <span class="text-gray-400">"static (zero-js)"</span>
+                </label>
+              </div>
+
+              <div class="pl-4 flex items-center space-x-6">
+                <span class="text-gray-400">whitelistAudit:</span>
+                <label class="flex items-center space-x-1.5 cursor-pointer">
+                  <input type="checkbox" id="opt-whitelist-audit" checked class="text-accent focus:ring-0 rounded">
+                  <span class="text-cyan-400">true</span>
+                </label>
+              </div>
+
+              <div class="text-gray-400 text-[10px]">});</div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Tab 2: JS Output (Aurelia 2 Runtime Architecture & Compiler Modes) -->
-      <div id="view-js" class="output-view hidden flex-1 flex flex-col relative overflow-hidden bg-surface/30">
-        <div class="flex-1 p-4 font-mono text-xs overflow-auto text-gray-200 leading-6 select-text whitespace-pre-wrap" id="compiledJsCode">
-          /* Select a component to see its compiled Aurelia 2 definition */
+        <!-- Tab 3: SSR HTML Output -->
+        <div id="view-html" class="output-view hidden flex-1 flex flex-col p-3 bg-surface/30 overflow-auto font-mono text-xs select-text">
+          <div class="mb-2 text-xs font-semibold text-gray-400 flex items-center justify-between">
+            <span>Pre-rendered Server HTML (with Aurelia hydration markers)</span>
+            <button id="copyHtmlBtn" class="px-2 py-0.5 rounded bg-hover text-gray-300 hover:text-white border border-border">Copy HTML</button>
+          </div>
+          <pre id="rawServerHtmlCode" class="flex-1 text-gray-200 bg-background p-3 rounded border border-border overflow-auto whitespace-pre-wrap leading-5 m-0"></pre>
         </div>
 
-        <!-- Aurelia 2 Execution & Compiler Options (Svelte Playground Style) -->
-        <div class="border-t border-border bg-surface p-3 select-none">
+        <!-- Tab 4: AST Output with Clean Line Tracing -->
+        <div id="view-ast" class="output-view hidden flex-1 flex flex-col p-3 bg-surface/30 overflow-auto font-mono text-xs">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-mono font-semibold text-gray-300 flex items-center space-x-1.5">
-              <span>⚙</span>
-              <span>COMPILER & SSR OPTIONS</span>
-            </span>
-            <span class="text-[11px] text-gray-500 font-mono">renderAurelia() config</span>
+            <span class="text-xs font-semibold text-gray-300">Aurelia 2 Component AST Tree</span>
+            <span class="text-[11px] text-gray-500">Hover nodes to trace corresponding code region</span>
           </div>
 
-          <div class="font-mono text-xs text-gray-300 space-y-2 bg-background p-3 rounded border border-border/60">
-            <div class="text-gray-400 text-[11px] mb-1">result = await renderAurelia(component, {</div>
-            
-            <div class="pl-4 flex items-center space-x-6">
-              <span class="text-gray-400">mode:</span>
-              <label class="flex items-center space-x-1.5 cursor-pointer">
-                <input type="radio" name="opt-runtime-mode" value="ssr" checked class="text-accent focus:ring-0">
-                <span class="text-emerald-400 font-semibold">"ssr"</span>
-              </label>
-              <label class="flex items-center space-x-1.5 cursor-pointer">
-                <input type="radio" name="opt-runtime-mode" value="client" class="text-accent focus:ring-0">
-                <span class="text-gray-400">"client"</span>
-              </label>
-              <label class="flex items-center space-x-1.5 cursor-pointer">
-                <input type="radio" name="opt-runtime-mode" value="resumable" class="text-accent focus:ring-0">
-                <span class="text-purple-400">"resumable"</span>
-              </label>
-            </div>
-
-            <div class="pl-4 flex items-center space-x-6">
-              <span class="text-gray-400">strategy:</span>
-              <label class="flex items-center space-x-1.5 cursor-pointer">
-                <input type="radio" name="opt-strategy" value="hydrate" checked class="text-accent focus:ring-0">
-                <span class="text-white">"hydrate"</span>
-              </label>
-              <label class="flex items-center space-x-1.5 cursor-pointer">
-                <input type="radio" name="opt-strategy" value="static" class="text-accent focus:ring-0">
-                <span class="text-gray-400">"static (zero-js)"</span>
-              </label>
-            </div>
-
-            <div class="pl-4 flex items-center space-x-6">
-              <span class="text-gray-400">whitelistAudit:</span>
-              <label class="flex items-center space-x-1.5 cursor-pointer">
-                <input type="checkbox" id="opt-whitelist-audit" checked class="text-accent focus:ring-0 rounded">
-                <span class="text-cyan-400">true</span>
-              </label>
-            </div>
-
-            <div class="text-gray-400 text-[11px] mt-1">});</div>
+          <div id="astTreeContainer" class="flex-1 bg-background p-3 rounded border border-border overflow-auto text-gray-300 space-y-1">
+            <!-- Dynamically populated AST nodes -->
           </div>
         </div>
+
+        <!-- Tab 5: Audit & Metrics -->
+        <div id="view-metrics" class="output-view hidden flex-1 p-4 bg-surface/20 overflow-y-auto space-y-4">
+          <div class="grid grid-cols-4 gap-3">
+            <div class="p-3 rounded-lg border border-border bg-surface">
+              <span class="text-[11px] text-gray-400">TTFB Server Duration</span>
+              <p id="metricServerMs" class="text-xl font-bold text-white mt-0.5">0 ms</p>
+            </div>
+            <div class="p-3 rounded-lg border border-border bg-surface">
+              <span class="text-[11px] text-gray-400">Wire Size (Gzip)</span>
+              <p id="metricGzipSize" class="text-xl font-bold text-emerald-400 mt-0.5">0 kB</p>
+            </div>
+            <div class="p-3 rounded-lg border border-border bg-surface">
+              <span class="text-[11px] text-gray-400">Compression Savings</span>
+              <p id="metricSavings" class="text-xl font-bold text-cyan-400 mt-0.5">0%</p>
+            </div>
+            <div class="p-3 rounded-lg border border-border bg-surface">
+              <span class="text-[11px] text-gray-400">Core Web Vitals</span>
+              <p id="metricGrade" class="text-xl font-bold text-emerald-400 mt-0.5">A+</p>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-lg border border-border bg-surface space-y-2">
+            <h3 class="text-[11px] font-semibold text-gray-300 uppercase tracking-wider">Hydration Security & Whitelist DTO Audit</h3>
+            <div class="grid grid-cols-2 gap-3 text-xs font-mono">
+              <div class="p-2.5 bg-background rounded border border-border flex items-center justify-between">
+                <span class="text-gray-400">Sensitive Secret Leak Scan:</span>
+                <span id="metricSecretStatus" class="font-bold text-emerald-400">CLEAN (0 leaked)</span>
+              </div>
+              <div class="p-2.5 bg-background rounded border border-border flex items-center justify-between">
+                <span class="text-gray-400">Script Context XSS Check:</span>
+                <span id="metricXssStatus" class="font-bold text-emerald-400">SECURE (Escaped \\u003c, \\u003e)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-lg border border-border bg-surface space-y-2">
+            <h3 class="text-[11px] font-semibold text-gray-300 uppercase tracking-wider">Estimated Core Web Vitals (Production Readiness)</h3>
+            <div class="grid grid-cols-3 gap-3 text-xs font-mono">
+              <div class="p-2.5 bg-background rounded border border-border">
+                <span class="text-gray-500">Est. FCP</span>
+                <p id="metricFcp" class="text-base font-bold text-white mt-0.5">0 ms</p>
+              </div>
+              <div class="p-2.5 bg-background rounded border border-border">
+                <span class="text-gray-500">Est. LCP</span>
+                <p id="metricLcp" class="text-base font-bold text-white mt-0.5">0 ms</p>
+              </div>
+              <div class="p-2.5 bg-background rounded border border-border">
+                <span class="text-gray-500">CLS Risk</span>
+                <p id="metricCls" class="text-base font-bold text-emerald-400 mt-0.5">LOW</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Tab 3: SSR HTML Output -->
-      <div id="view-html" class="output-view hidden flex-1 flex flex-col p-4 bg-surface/30 overflow-auto font-mono text-xs select-text">
-        <div class="mb-2 text-xs font-semibold text-gray-400 flex items-center justify-between">
-          <span>Pre-rendered Server HTML (with Aurelia hydration markers)</span>
-          <button id="copyHtmlBtn" class="px-2 py-0.5 rounded bg-hover text-gray-300 hover:text-white border border-border">Copy HTML</button>
-        </div>
-        <pre id="rawServerHtmlCode" class="flex-1 text-gray-200 bg-background p-3 rounded border border-border overflow-auto whitespace-pre-wrap leading-5"></pre>
-      </div>
+      <!-- RESIZABLE SPLIT DIVIDER (Vertical: Content vs Console Drawer) -->
+      <div id="vSplitDivider" class="split-divider-v" title="Drag to resize console drawer"></div>
 
-      <!-- Tab 4: AST Output with Clean Line Tracing -->
-      <div id="view-ast" class="output-view hidden flex-1 flex flex-col p-4 bg-surface/30 overflow-auto font-mono text-xs">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-semibold text-gray-300">Aurelia 2 Component AST Tree</span>
-          <span class="text-[11px] text-gray-500">Hover nodes to trace corresponding code region</span>
+      <!-- Compact Resizable Console Drawer -->
+      <div id="consoleDrawer" class="h-36 border-t border-border bg-surface flex flex-col flex-shrink-0">
+        <div class="h-7 border-b border-border bg-hover px-2.5 flex items-center justify-between select-none">
+          <button id="toggleConsoleBtn" class="flex items-center space-x-2 text-[11px] font-mono font-semibold text-gray-300 hover:text-white">
+            <span id="consoleArrow">▼</span>
+            <span>CONSOLE</span>
+            <span id="consoleBadge" class="px-1.5 py-0.2 bg-primary/20 text-primary text-[10px] rounded-full">0</span>
+          </button>
+          <button id="clearConsoleBtn" class="text-[10px] font-mono text-gray-400 hover:text-white transition">
+            CLEAR
+          </button>
         </div>
-
-        <div id="astTreeContainer" class="flex-1 bg-background p-3 rounded border border-border overflow-auto text-gray-300 space-y-1">
-          <!-- Dynamically populated AST nodes -->
-        </div>
-      </div>
-
-      <!-- Tab 5: Audit & Metrics -->
-      <div id="view-metrics" class="output-view hidden flex-1 p-6 bg-surface/20 overflow-y-auto space-y-6">
-        <div class="grid grid-cols-4 gap-4">
-          <div class="p-4 rounded-xl border border-border bg-surface">
-            <span class="text-xs text-gray-400">TTFB Server Duration</span>
-            <p id="metricServerMs" class="text-2xl font-bold text-white mt-1">0 ms</p>
-          </div>
-          <div class="p-4 rounded-xl border border-border bg-surface">
-            <span class="text-xs text-gray-400">Wire Size (Gzip)</span>
-            <p id="metricGzipSize" class="text-2xl font-bold text-emerald-400 mt-1">0 kB</p>
-          </div>
-          <div class="p-4 rounded-xl border border-border bg-surface">
-            <span class="text-xs text-gray-400">Compression Savings</span>
-            <p id="metricSavings" class="text-2xl font-bold text-cyan-400 mt-1">0%</p>
-          </div>
-          <div class="p-4 rounded-xl border border-border bg-surface">
-            <span class="text-xs text-gray-400">Core Web Vitals Grade</span>
-            <p id="metricGrade" class="text-2xl font-bold text-emerald-400 mt-1">A+</p>
-          </div>
-        </div>
-
-        <div class="p-4 rounded-xl border border-border bg-surface space-y-3">
-          <h3 class="text-xs font-semibold text-gray-300 uppercase tracking-wider">Hydration Security & Whitelist DTO Audit</h3>
-          <div class="grid grid-cols-2 gap-4 text-xs font-mono">
-            <div class="p-3 bg-background rounded border border-border flex items-center justify-between">
-              <span class="text-gray-400">Sensitive Secret Leak Scan:</span>
-              <span id="metricSecretStatus" class="font-bold text-emerald-400">CLEAN (0 leaked)</span>
-            </div>
-            <div class="p-3 bg-background rounded border border-border flex items-center justify-between">
-              <span class="text-gray-400">Script Context XSS Check:</span>
-              <span id="metricXssStatus" class="font-bold text-emerald-400">SECURE (Escaped \\u003c, \\u003e)</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="p-4 rounded-xl border border-border bg-surface space-y-3">
-          <h3 class="text-xs font-semibold text-gray-300 uppercase tracking-wider">Estimated Core Web Vitals (Production Readiness)</h3>
-          <div class="grid grid-cols-3 gap-4 text-xs font-mono">
-            <div class="p-3 bg-background rounded border border-border">
-              <span class="text-gray-500">Est. FCP</span>
-              <p id="metricFcp" class="text-lg font-bold text-white mt-0.5">0 ms</p>
-            </div>
-            <div class="p-3 bg-background rounded border border-border">
-              <span class="text-gray-500">Est. LCP</span>
-              <p id="metricLcp" class="text-lg font-bold text-white mt-0.5">0 ms</p>
-            </div>
-            <div class="p-3 bg-background rounded border border-border">
-              <span class="text-gray-500">CLS Risk</span>
-              <p id="metricCls" class="text-lg font-bold text-emerald-400 mt-0.5">LOW</p>
-            </div>
-          </div>
+        <div id="consoleLogsStream" class="flex-1 p-2 font-mono text-[11px] overflow-y-auto space-y-0.5 text-gray-300 select-text">
+          <div class="text-gray-500 italic text-[10px]">[Playground Ready] Event triggers, diagnostics, and console.log appear here...</div>
         </div>
       </div>
 
@@ -410,7 +461,6 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
 
   <!-- Client-side Logic -->
   <script>
-    // Real Examples Manifest injected from server / disk
     let EXAMPLES = JSON.parse(document.getElementById('__EXAMPLES_DATA__').textContent || '{}');
     const ORIGINAL_EXAMPLES = JSON.parse(JSON.stringify(EXAMPLES));
     let activeExampleId = 'counter-card';
@@ -418,9 +468,12 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     let activeHighlightedLine = 0;
     let consoleLogCount = 0;
     let liveUpdateTimer = null;
+    let currentDiagnostics = [];
 
     // DOM Elements
     const codeEditorInput = document.getElementById('codeEditorInput');
+    const editorHighlightCode = document.getElementById('editorHighlightCode');
+    const editorHighlightPre = document.getElementById('editorHighlightPre');
     const editorLineNumbers = document.getElementById('editorLineNumbers');
     const traceHighlightBar = document.getElementById('traceHighlightBar');
     const editorTabsBar = document.getElementById('editorTabsBar');
@@ -436,8 +489,132 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     const componentModelBadge = document.getElementById('componentModelBadge');
     const editorLiveIndicator = document.getElementById('editorLiveIndicator');
     const optWhitelistAudit = document.getElementById('opt-whitelist-audit');
+    const linterStatusIcon = document.getElementById('linterStatusIcon');
+    const linterStatusText = document.getElementById('linterStatusText');
 
-    // Initialize Dropdown with Svelte-style expandable categories
+    // Panes & Splitters
+    const mainContainer = document.getElementById('mainContainer');
+    const leftEditorPane = document.getElementById('leftEditorPane');
+    const rightOutputPane = document.getElementById('rightOutputPane');
+    const hSplitDivider = document.getElementById('hSplitDivider');
+    const vSplitDivider = document.getElementById('vSplitDivider');
+    const consoleDrawer = document.getElementById('consoleDrawer');
+
+    // ----------------------------------------------------
+    // RESIZABLE SPLIT PANES LOGIC (Horizontal & Vertical)
+    // ----------------------------------------------------
+    let isDraggingH = false;
+    let isDraggingV = false;
+
+    hSplitDivider.addEventListener('mousedown', (e) => {
+      isDraggingH = true;
+      hSplitDivider.classList.add('active');
+      previewIframe.style.pointerEvents = 'none';
+      document.body.style.cursor = 'col-resize';
+      e.preventDefault();
+    });
+
+    vSplitDivider.addEventListener('mousedown', (e) => {
+      isDraggingV = true;
+      vSplitDivider.classList.add('active');
+      previewIframe.style.pointerEvents = 'none';
+      document.body.style.cursor = 'row-resize';
+      e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isDraggingH) {
+        const containerRect = mainContainer.getBoundingClientRect();
+        const offsetX = e.clientX - containerRect.left;
+        const totalWidth = containerRect.width;
+        let percentage = (offsetX / totalWidth) * 100;
+        percentage = Math.max(20, Math.min(80, percentage));
+        leftEditorPane.style.width = percentage + '%';
+        rightOutputPane.style.width = (100 - percentage) + '%';
+      }
+
+      if (isDraggingV) {
+        const rightRect = rightOutputPane.getBoundingClientRect();
+        const newHeight = rightRect.bottom - e.clientY;
+        const clampedHeight = Math.max(28, Math.min(rightRect.height - 80, newHeight));
+        consoleDrawer.style.height = clampedHeight + 'px';
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDraggingH) {
+        isDraggingH = false;
+        hSplitDivider.classList.remove('active');
+        previewIframe.style.pointerEvents = 'auto';
+        document.body.style.cursor = 'default';
+      }
+      if (isDraggingV) {
+        isDraggingV = false;
+        vSplitDivider.classList.remove('active');
+        previewIframe.style.pointerEvents = 'auto';
+        document.body.style.cursor = 'default';
+      }
+    });
+
+    // ----------------------------------------------------
+    // IN-EDITOR SYNTAX HIGHLIGHTING ENGINE (Aligned Overlay)
+    // ----------------------------------------------------
+    function renderEditorHighlight() {
+      const code = codeEditorInput.value;
+      const ext = activeFileName.split('.').pop() || '';
+      editorHighlightCode.innerHTML = highlightSyntax(code, ext, currentDiagnostics);
+    }
+
+    function highlightSyntax(code, ext, diagnostics = []) {
+      // Create a map of lines with diagnostic errors
+      const diagLineMap = {};
+      diagnostics.forEach(d => {
+        if (!d.file || d.file === activeFileName) {
+          diagLineMap[d.line] = d;
+        }
+      });
+
+      const lines = code.split(String.fromCharCode(10));
+      return lines.map((line, idx) => {
+        const lineNum = idx + 1;
+        let escaped = escapeHtml(line);
+
+        if (ext === 'aux' || ext === 'html') {
+          // HTML & .aux syntax
+          escaped = escaped
+            .replace(/(&lt;!--[\\s\\S]*?--&gt;)/g, '<span style="color:#8b949e;font-style:italic;">$1</span>')
+            .replace(/\\b([a-zA-Z0-9_-]+)\\.(trigger|bind|capture|two-way|to-view|from-view|one-time|for|attr|class|style)\\b/g, '<span style="color:#ff7b72;font-weight:600;">$1</span>.<span style="color:#ffa657;font-weight:700;">$2</span>')
+            .replace(/(\\$\\{)([^}]+)(\\})/g, '<span style="color:#eab308;font-weight:700;">$1</span><span style="color:#79c0ff;">$2</span><span style="color:#eab308;font-weight:700;">$3</span>')
+            .replace(/(&lt;\\/?)([a-zA-Z0-9_-]+)/g, '$1<span style="color:#7ee787;font-weight:600;">$2</span>')
+            .replace(/\\b([a-zA-Z0-9_-]+)=(&quot;[^&]*&quot;|&#39;[^&]*&#39;)/g, '<span style="color:#79c0ff;">$1</span>=<span style="color:#a5d6ff;">$2</span>');
+        } else if (ext === 'ts') {
+          // TypeScript syntax
+          escaped = escaped
+            .replace(/(\\/\\/.*$)/g, '<span style="color:#8b949e;font-style:italic;">$1</span>')
+            .replace(/\\b(export|default|class|const|let|var|function|return|this|import|from|extends|implements|new|async|await)\\b/g, '<span style="color:#d2a8ff;font-weight:600;">$1</span>')
+            .replace(/\\b(string|number|boolean|any|void|Array)\\b/g, '<span style="color:#56d364;">$1</span>')
+            .replace(/(&quot;[^&]*&quot;|&#39;[^&]*&#39;)/g, '<span style="color:#a5d6ff;">$1</span>')
+            .replace(/\\b(\\d+)\\b/g, '<span style="color:#ffab70;">$1</span>');
+        } else if (ext === 'json') {
+          // JSON syntax
+          escaped = escaped
+            .replace(/(&quot;[^&]+&quot;)\\s*:/g, '<span style="color:#79c0ff;font-weight:600;">$1</span>:')
+            .replace(/:\\s*(&quot;[^&]*&quot;)/g, ': <span style="color:#a5d6ff;">$1</span>')
+            .replace(/:\\s*(\\d+|true|false|null)/g, ': <span style="color:#ffab70;">$1</span>');
+        }
+
+        // Apply linter error squiggle if line has diagnostic
+        if (diagLineMap[lineNum]) {
+          const d = diagLineMap[lineNum];
+          const squigglyClass = d.severity === 'error' ? 'lint-error-squiggly' : 'lint-warning-squiggly';
+          return '<span class="' + squigglyClass + '" title="' + escapeHtml(d.message) + '">' + escaped + '</span>';
+        }
+
+        return escaped;
+      }).join(String.fromCharCode(10));
+    }
+
+    // Initialize Dropdown
     function initDropdown() {
       dropdownExamplesList.innerHTML = '';
       const categories = {};
@@ -452,8 +629,8 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         catDiv.className = 'py-0.5';
         
         const catHeader = document.createElement('button');
-        catHeader.className = 'w-full px-3 py-1.5 text-xs font-semibold text-gray-300 select-none flex items-center justify-between hover:bg-hover rounded transition';
-        catHeader.innerHTML = '<div class="flex items-center space-x-1.5"><span class="text-[10px] text-gray-500 font-mono">›</span><span>' + categoryName + '</span></div><span class="text-[10px] text-gray-500">' + items.length + '</span>';
+        catHeader.className = 'w-full px-2.5 py-1 text-[11px] font-semibold text-gray-300 select-none flex items-center justify-between hover:bg-hover rounded transition';
+        catHeader.innerHTML = '<div class="flex items-center space-x-1.5"><span class="text-[9px] text-gray-500 font-mono">›</span><span>' + categoryName + '</span></div><span class="text-[9px] text-gray-500">' + items.length + '</span>';
         
         const itemsContainer = document.createElement('div');
         itemsContainer.className = 'py-0.5 space-y-0.5';
@@ -465,7 +642,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
 
         items.forEach(it => {
           const btn = document.createElement('button');
-          btn.className = 'w-full text-left pl-6 pr-3 py-1.5 text-xs text-gray-300 hover:text-white hover:bg-hover rounded transition block';
+          btn.className = 'w-full text-left pl-5 pr-2 py-1 text-[11px] text-gray-300 hover:text-white hover:bg-hover rounded transition block';
           btn.setAttribute('data-id', it.id);
           btn.textContent = it.title;
           
@@ -489,38 +666,31 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       const ex = EXAMPLES[id];
       currentExampleLabel.textContent = ex.title;
 
-      // Update Active Item in Dropdown
       document.querySelectorAll('#dropdownExamplesList button[data-id]').forEach(btn => {
         if (btn.getAttribute('data-id') === id) {
-          btn.className = 'w-full text-left pl-6 pr-3 py-1.5 text-xs text-accent font-medium bg-accent/10 rounded transition block';
+          btn.className = 'w-full text-left pl-5 pr-2 py-1 text-[11px] text-accent font-medium bg-accent/10 rounded transition block';
         } else {
-          btn.className = 'w-full text-left pl-6 pr-3 py-1.5 text-xs text-gray-300 hover:text-white hover:bg-hover rounded transition block';
+          btn.className = 'w-full text-left pl-5 pr-2 py-1 text-[11px] text-gray-300 hover:text-white hover:bg-hover rounded transition block';
         }
       });
 
-      // Update Component Model Badge
       if (id === 'aux-component') {
         componentModelBadge.textContent = 'Aurelia in HTML (.aux SFC)';
-        componentModelBadge.className = 'text-[11px] font-mono text-cyan-400';
+        componentModelBadge.className = 'font-mono text-cyan-400';
       } else if (id === 'resumable-counter') {
         componentModelBadge.textContent = 'Resumable Event Delegation';
-        componentModelBadge.className = 'text-[11px] font-mono text-purple-400';
+        componentModelBadge.className = 'font-mono text-purple-400';
       } else {
         componentModelBadge.textContent = 'Aurelia 2 Paired Convention';
-        componentModelBadge.className = 'text-[11px] font-mono text-gray-400';
+        componentModelBadge.className = 'font-mono text-gray-400';
       }
 
-      // Rebuild File Tabs for THIS example's actual files
       renderFileTabs(ex);
-
-      // Load Default File
       switchFile(ex.defaultFile || Object.keys(ex.files)[0]);
-
-      // Run Dynamic Compilation & SSR
       compileAndRender();
     }
 
-    // Render Dynamic File Tabs with dirty state tracking
+    // Render Dynamic File Tabs
     function renderFileTabs(ex) {
       editorTabsBar.innerHTML = '';
       const fileNames = Object.keys(ex.files);
@@ -558,7 +728,6 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       activeFileName = filename;
       codeEditorInput.value = ex.files[filename];
 
-      // Update active tab styling
       document.querySelectorAll('.file-tab').forEach(tab => {
         const f = tab.getAttribute('data-filename');
         if (f === filename) {
@@ -569,24 +738,37 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         updateTabLabel(tab, f);
       });
 
-      // Update footer
       const ext = filename.split('.').pop() || '';
       document.getElementById('editorStatusText').textContent = filename + ' • ' + ext.toUpperCase();
 
       updateLineNumbers();
+      renderEditorHighlight();
       clearHighlight();
     }
 
     function updateLineNumbers() {
       const lines = codeEditorInput.value.split(String.fromCharCode(10)).length;
+      const diagLineMap = {};
+      currentDiagnostics.forEach(d => {
+        if (!d.file || d.file === activeFileName) {
+          diagLineMap[d.line] = d;
+        }
+      });
+
       let numbersHtml = '';
       for (let i = 1; i <= Math.max(lines, 16); i++) {
-        numbersHtml += '<div data-line="' + i + '">' + i + '</div>';
+        if (diagLineMap[i]) {
+          const d = diagLineMap[i];
+          const dotColor = d.severity === 'error' ? 'text-red-400' : 'text-amber-400';
+          numbersHtml += '<div data-line="' + i + '" class="flex items-center justify-end space-x-1" title="' + escapeHtml(d.message) + '"><span class="' + dotColor + '">●</span><span>' + i + '</span></div>';
+        } else {
+          numbersHtml += '<div data-line="' + i + '">' + i + '</div>';
+        }
       }
       editorLineNumbers.innerHTML = numbersHtml;
     }
 
-    // Clean Line-Level Hover Tracing (Zero text duplication)
+    // Clean Line-Level Hover Tracing
     function highlightLine(targetFile, searchPhrase) {
       if (targetFile && targetFile !== activeFileName) {
         switchFile(targetFile);
@@ -608,11 +790,12 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       const lineNum = before.split(String.fromCharCode(10)).length;
       activeHighlightedLine = lineNum;
 
-      const lineHeight = 24;
+      const lineHeight = 22;
       const targetTop = (lineNum - 1) * lineHeight;
-      codeEditorInput.scrollTop = Math.max(0, targetTop - 48);
+      codeEditorInput.scrollTop = Math.max(0, targetTop - 44);
       editorLineNumbers.scrollTop = codeEditorInput.scrollTop;
-      traceHighlightBar.style.top = (targetTop + 12 - codeEditorInput.scrollTop) + 'px';
+      editorHighlightPre.scrollTop = codeEditorInput.scrollTop;
+      traceHighlightBar.style.top = (targetTop + 8 - codeEditorInput.scrollTop) + 'px';
       traceHighlightBar.style.height = lineHeight + 'px';
       traceHighlightBar.classList.remove('hidden');
 
@@ -636,7 +819,6 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       const ex = EXAMPLES[activeExampleId];
       if (!ex) return;
 
-      // Update current file buffer from editor
       if (activeFileName && ex.files[activeFileName] !== undefined) {
         ex.files[activeFileName] = codeEditorInput.value;
       }
@@ -667,9 +849,11 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         });
 
         const data = await res.json();
+        currentDiagnostics = data.diagnostics || [];
+        updateLinterUI(currentDiagnostics);
+
         if (!data.success && data.error) {
-          console.error('[Compilation Error]:', data.error);
-          logToConsole('error', 'Compilation/SSR Error: ' + data.error);
+          logToConsole('error', 'Compilation Error: ' + data.error);
         }
 
         renderCompilationOutputs(data, ex);
@@ -682,13 +866,36 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       }
     }
 
+    function updateLinterUI(diagnostics) {
+      const errors = diagnostics.filter(d => d.severity === 'error').length;
+      const warnings = diagnostics.filter(d => d.severity === 'warning').length;
+
+      if (errors > 0 || warnings > 0) {
+        linterStatusIcon.textContent = errors > 0 ? '✖' : '▲';
+        linterStatusText.textContent = errors + ' error' + (errors > 1 ? 's' : '') + (warnings > 0 ? ', ' + warnings + ' warning' + (warnings > 1 ? 's' : '') : '');
+        linterStatusPill.className = errors > 0 ? 'flex items-center space-x-1 text-red-400 hover:underline cursor-pointer' : 'flex items-center space-x-1 text-amber-400 hover:underline cursor-pointer';
+
+        // Log diagnostics to console drawer
+        diagnostics.forEach(d => {
+          logToConsole(d.severity, '[' + d.source + '] ' + d.file + ':' + d.line + ':' + d.col + ' - ' + d.message);
+        });
+      } else {
+        linterStatusIcon.textContent = '✔';
+        linterStatusText.textContent = '0 errors, 0 warnings';
+        linterStatusPill.className = 'flex items-center space-x-1 text-emerald-400 hover:underline cursor-pointer';
+      }
+
+      updateLineNumbers();
+      renderEditorHighlight();
+    }
+
     function renderCompilationOutputs(data, ex) {
-      // 1. Live Preview Iframe (Instant HTML Document execution via srcdoc)
+      // 1. Live Preview Iframe
       if (data.htmlDocument) {
         previewIframe.srcdoc = data.htmlDocument;
       }
 
-      // 2. JS Output (Authentic Aurelia 2 definition)
+      // 2. JS Output
       if (data.compiledJs) {
         compiledJsCode.textContent = data.compiledJs;
       }
@@ -740,7 +947,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         statusText.textContent = 'CSR Mounted';
       } else if (mode === 'resumable') {
         statusIndicator.className = 'size-2 rounded-full bg-purple-500 inline-block';
-        statusText.textContent = 'Resumable Event Ready';
+        statusText.textContent = 'Resumable Ready';
       } else {
         statusIndicator.className = 'size-2 rounded-full bg-emerald-500 inline-block';
         statusText.textContent = 'Hydrated';
@@ -819,7 +1026,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     }
 
     // ----------------------------------------------------
-    // REAL CODE EDITOR KEYBOARD HANDLERS (Indent, Enter, Brackets)
+    // CODE EDITOR KEYBOARD HANDLERS (Indent, Enter, Brackets)
     // ----------------------------------------------------
     codeEditorInput.addEventListener('keydown', (e) => {
       const start = codeEditorInput.selectionStart;
@@ -830,7 +1037,6 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       if (e.key === 'Tab') {
         e.preventDefault();
         if (e.shiftKey) {
-          // Outdent
           const startLineIndex = val.lastIndexOf(String.fromCharCode(10), start - 1) + 1;
           let endLineIndex = val.indexOf(String.fromCharCode(10), end);
           if (endLineIndex === -1) endLineIndex = val.length;
@@ -852,13 +1058,10 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
           codeEditorInput.selectionStart = Math.max(startLineIndex, start - 2);
           codeEditorInput.selectionEnd = Math.max(startLineIndex, end - removedTotal);
         } else {
-          // Indent
           if (start === end) {
-            // Single cursor: insert 2 spaces
             codeEditorInput.value = val.substring(0, start) + '  ' + val.substring(end);
             codeEditorInput.selectionStart = codeEditorInput.selectionEnd = start + 2;
           } else {
-            // Multiline selection
             const startLineIndex = val.lastIndexOf(String.fromCharCode(10), start - 1) + 1;
             let endLineIndex = val.indexOf(String.fromCharCode(10), end);
             if (endLineIndex === -1) endLineIndex = val.length;
@@ -871,6 +1074,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
             codeEditorInput.selectionEnd = end + (lines.length * 2);
           }
         }
+        renderEditorHighlight();
         triggerLiveUpdate();
         return;
       }
@@ -904,6 +1108,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
           codeEditorInput.selectionStart = codeEditorInput.selectionEnd = start + insert.length;
         }
         updateLineNumbers();
+        renderEditorHighlight();
         triggerLiveUpdate();
         return;
       }
@@ -920,10 +1125,10 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
           codeEditorInput.value = val.substring(0, start) + e.key + selected + pairs[e.key] + val.substring(end);
           codeEditorInput.selectionStart = start + 1;
           codeEditorInput.selectionEnd = end + 1;
+          renderEditorHighlight();
           triggerLiveUpdate();
           return;
         } else {
-          // If next character is already the closing character and user typed it, skip over it
           if (val.charAt(start) === e.key && ["'", '"', bt].includes(e.key)) {
             e.preventDefault();
             codeEditorInput.selectionStart = codeEditorInput.selectionEnd = start + 1;
@@ -932,6 +1137,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
           e.preventDefault();
           codeEditorInput.value = val.substring(0, start) + e.key + pairs[e.key] + val.substring(end);
           codeEditorInput.selectionStart = codeEditorInput.selectionEnd = start + 1;
+          renderEditorHighlight();
           triggerLiveUpdate();
           return;
         }
@@ -959,12 +1165,13 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
           e.preventDefault();
           codeEditorInput.value = val.substring(0, start - 1) + val.substring(start + 1);
           codeEditorInput.selectionStart = codeEditorInput.selectionEnd = start - 1;
+          renderEditorHighlight();
           triggerLiveUpdate();
           return;
         }
       }
 
-      // Shortcut: Ctrl+S / Cmd+S (Run immediately)
+      // Shortcut: Ctrl+S / Cmd+S
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         if (liveUpdateTimer) clearTimeout(liveUpdateTimer);
@@ -972,9 +1179,22 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       }
     });
 
-    // Debounced Live Updates on Edit
+    // Synchronize scrolling between textarea and syntax highlight overlay
+    codeEditorInput.addEventListener('scroll', () => {
+      editorHighlightPre.scrollTop = codeEditorInput.scrollTop;
+      editorHighlightPre.scrollLeft = codeEditorInput.scrollLeft;
+      editorLineNumbers.scrollTop = codeEditorInput.scrollTop;
+
+      if (activeHighlightedLine > 0) {
+        const lineHeight = 22;
+        const targetTop = (activeHighlightedLine - 1) * lineHeight + 8 - codeEditorInput.scrollTop;
+        traceHighlightBar.style.top = targetTop + 'px';
+      }
+    });
+
     function triggerLiveUpdate() {
       updateLineNumbers();
+      renderEditorHighlight();
       if (liveUpdateTimer) clearTimeout(liveUpdateTimer);
       liveUpdateTimer = setTimeout(() => {
         compileAndRender();
@@ -982,15 +1202,6 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     }
 
     codeEditorInput.addEventListener('input', triggerLiveUpdate);
-
-    codeEditorInput.addEventListener('scroll', () => {
-      editorLineNumbers.scrollTop = codeEditorInput.scrollTop;
-      if (activeHighlightedLine > 0) {
-        const lineHeight = 24;
-        const targetTop = (activeHighlightedLine - 1) * lineHeight + 12 - codeEditorInput.scrollTop;
-        traceHighlightBar.style.top = targetTop + 'px';
-      }
-    });
 
     // Output views tab switching
     document.querySelectorAll('.output-tab').forEach(tab => {
@@ -1021,7 +1232,6 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     });
 
     document.getElementById('headerResetBtn').addEventListener('click', () => {
-      // Revert files to original disk snapshot
       EXAMPLES[activeExampleId] = JSON.parse(JSON.stringify(ORIGINAL_EXAMPLES[activeExampleId]));
       loadExample(activeExampleId);
     });
@@ -1045,7 +1255,6 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     }
 
     // Console drawer collapse toggle
-    const consoleDrawer = document.getElementById('consoleDrawer');
     const toggleConsoleBtn = document.getElementById('toggleConsoleBtn');
     const consoleArrow = document.getElementById('consoleArrow');
     let isConsoleCollapsed = false;
@@ -1056,7 +1265,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         consoleDrawer.style.height = '28px';
         consoleArrow.textContent = '▲';
       } else {
-        consoleDrawer.style.height = '176px';
+        consoleDrawer.style.height = '144px';
         consoleArrow.textContent = '▼';
       }
     });
@@ -1067,13 +1276,22 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       consoleBadge.textContent = '0';
     });
 
+    document.getElementById('linterStatusPill').addEventListener('click', () => {
+      if (isConsoleCollapsed) {
+        isConsoleCollapsed = false;
+        consoleDrawer.style.height = '144px';
+        consoleArrow.textContent = '▼';
+      }
+      consoleLogsStream.scrollTop = consoleLogsStream.scrollHeight;
+    });
+
     function logToConsole(level, message) {
       consoleLogCount++;
       consoleBadge.textContent = String(consoleLogCount);
 
       const row = document.createElement('div');
-      row.className = 'flex items-start space-x-2 py-0.5 text-xs';
-      const badgeColor = level === 'error' ? 'text-red-400' : (level === 'warn' ? 'text-amber-400' : 'text-primary');
+      row.className = 'flex items-start space-x-2 py-0.5 text-[11px]';
+      const badgeColor = level === 'error' ? 'text-red-400' : (level === 'warning' ? 'text-amber-400' : (level === 'warn' ? 'text-amber-400' : 'text-primary'));
       row.innerHTML = '<span class="opacity-50 font-mono text-[10px]">' + new Date().toLocaleTimeString() + '</span> ' +
                        '<span class="font-bold uppercase text-[10px] ' + badgeColor + '">[' + level + ']</span> ' +
                        '<span class="flex-1 select-text text-gray-200">' + escapeHtml(message) + '</span>';
