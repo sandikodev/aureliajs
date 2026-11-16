@@ -14,9 +14,6 @@
     "vscode": "^1.90.0"
   },
   "main": "./dist/extension.js",
-  "activationEvents": [
-    "onLanguage:aux"
-  ],
   "scripts": {
     "build": "node build.js"
   },
