@@ -4,7 +4,6 @@ import { customElement, bindable } from 'aurelia';
   name: 'hello-world',
   template: './hello-world.html'
 })
-
 export class HelloWorld {
   @bindable greeting = 'Hello';
   @bindable name = 'Sandiko';

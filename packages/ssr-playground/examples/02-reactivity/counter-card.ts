@@ -4,7 +4,6 @@ import { customElement, bindable } from 'aurelia';
   name: 'counter-card',
   template: './counter-card.html'
 })
-
 export class CounterCard {
   @bindable title = 'Interactive Counter';
   @bindable description = 'Pre-rendered on Hono server, hydrated seamlessly on client.';
