@@ -57,13 +57,18 @@ export async function serializeState(
       : undefined;
 
     // Create hydration payload
+    const isAuthenticated = cleanedContext.isAuthenticated !== undefined
+      ? Boolean(cleanedContext.isAuthenticated)
+      : Boolean(cleanedContext.user);
+
     const payload: HydrationPayload = {
       component: componentName || 'unknown',
       context: {
-        user: cleanedContext.user ?? null,
-        workspace: cleanedContext.workspace ?? null,
-        role: cleanedContext.role ?? null,
-        isAuthenticated: (cleanedContext.user ?? null) !== null,
+        ...cleanedContext,
+        user: (cleanedContext.user as User) ?? null,
+        workspace: (cleanedContext.workspace as Workspace) ?? null,
+        role: (cleanedContext.role as string) ?? null,
+        isAuthenticated,
       },
       initialData: cleanedData,
       timestamp: Date.now(),
@@ -87,16 +92,43 @@ export async function serializeState(
   }
 }
 
+const SENSITIVE_KEY_PATTERN = /(?:password|token|secret|hash|salt|credential)/i;
+
 /**
- * Whitelist-based projection of auth context.
- * Guarantees that only explicitly approved properties are serialized.
+ * Projection of render context.
+ * Guarantees that sensitive credentials and tokens are redacted while preserving
+ * arbitrary custom application context variables and whitelisting user/workspace DTOs.
  */
 function projectContext(context: RenderContext): RenderContext {
-  return {
-    user: context.user ? projectObject<User>(context.user, ALLOWED_USER_FIELDS) : null,
-    workspace: context.workspace ? projectObject<Workspace>(context.workspace, ALLOWED_WORKSPACE_FIELDS) : null,
-    role: typeof context.role === 'string' ? context.role : null,
-  };
+  const result: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(context)) {
+    if (key.startsWith('_') || key.startsWith('$')) {
+      continue;
+    }
+
+    if (key === 'user') {
+      result.user = value ? projectObject<User>(value, ALLOWED_USER_FIELDS) : null;
+    } else if (key === 'workspace') {
+      result.workspace = value ? projectObject<Workspace>(value, ALLOWED_WORKSPACE_FIELDS) : null;
+    } else if (key === 'role') {
+      result.role = typeof value === 'string' ? value : null;
+    } else {
+      if (SENSITIVE_KEY_PATTERN.test(key)) {
+        continue;
+      }
+      const cleaned = cleanData(value);
+      if (cleaned !== undefined) {
+        result[key] = cleaned;
+      }
+    }
+  }
+
+  if (!('user' in result)) result.user = null;
+  if (!('workspace' in result)) result.workspace = null;
+  if (!('role' in result)) result.role = null;
+
+  return result;
 }
 
 /**

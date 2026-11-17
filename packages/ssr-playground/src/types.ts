@@ -3,7 +3,7 @@
  * Types & Contracts for Server-Side Rendering & Hydration Inspector
  */
 
-import type { RenderContext, HydrationPayload } from '@hono/aurelia';
+import type { RenderContext, HydrationPayload } from '@aureliajs/ssr';
 
 export type { RenderContext, HydrationPayload };
 

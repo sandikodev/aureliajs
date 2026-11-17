@@ -14,6 +14,7 @@ export * from './types.js';
 export * from './parser.js';
 export * from './compiler.js';
 export * from './scope.js';
+export * from './esbuild.js';
 
 const AUX_QUERY_REGEX = /[?&]aux(&|$)/;
 const STYLE_QUERY_REGEX = /[?&]type=style(&|$)/;

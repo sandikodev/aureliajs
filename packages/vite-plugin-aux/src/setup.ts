@@ -223,9 +223,10 @@ export function transformScriptSetup(setupCode: string): TransformedSetup {
       continue;
     }
 
-    // 7. Top-level functions: async function name(...) { ... } or function name(...) { ... }
-    const funcMatch = /^(?:export\s+)?(async\s+)?function\s+([a-zA-Z0-9_$]+)\s*\(([^)]*)\)(?:\s*:\s*[^{]+)?\s*\{/.exec(rawCode.slice(pos));
-    if (funcMatch) {
+    // 7. Top-level functions & methods: function name(...) { ... }, async name(...) { ... }, name(...) { ... }
+    const funcMatch = /^(?:export\s+)?(?:public\s+)?(async\s+)?(?:function\s+)?([a-zA-Z0-9_$]+)\s*\(([^)]*)\)(?:\s*:\s*[^{]+)?\s*\{/.exec(rawCode.slice(pos));
+    const KEYWORDS = new Set(['if', 'for', 'while', 'switch', 'catch', 'do', 'return', 'import', 'export', 'type', 'interface', 'class', 'const', 'let', 'var', 'get', 'set']);
+    if (funcMatch && !KEYWORDS.has(funcMatch[2]!)) {
       const isAsync = Boolean(funcMatch[1]);
       const funcName = funcMatch[2]!;
       const params = funcMatch[3]!;
@@ -251,11 +252,52 @@ export function transformScriptSetup(setupCode: string): TransformedSetup {
     }
 
     // 8. Top-level let / var declarations (auto-inferred bindables & class fields)
-    const letMatch = /^(?:export\s+)?(?:let|var)\s+([a-zA-Z0-9_$]+)(?:\s*:\s*([^=;]+))?(?:\s*=\s*([^;]+))?;?/.exec(rawCode.slice(pos));
-    if (letMatch) {
-      const varName = letMatch[1]!;
-      const typeAnno = letMatch[2]?.trim();
-      const initVal = letMatch[3]?.trim();
+    const letHeaderMatch = /^(?:export\s+)?(?:let|var)\s+([a-zA-Z0-9_$]+)/.exec(rawCode.slice(pos));
+    if (letHeaderMatch) {
+      const varName = letHeaderMatch[1]!;
+      let cur = pos + letHeaderMatch[0].length;
+      let pDepth = 0;
+      let bDepth = 0;
+      let cDepth = 0;
+      let aDepth = 0;
+      let equalPos = -1;
+
+      while (cur < len) {
+        const ch = rawCode[cur]!;
+        if (ch === '(') pDepth++;
+        else if (ch === ')') pDepth = Math.max(0, pDepth - 1);
+        else if (ch === '[') bDepth++;
+        else if (ch === ']') bDepth = Math.max(0, bDepth - 1);
+        else if (ch === '{') cDepth++;
+        else if (ch === '}') cDepth = Math.max(0, cDepth - 1);
+        else if (ch === '<') aDepth++;
+        else if (ch === '>') aDepth = Math.max(0, aDepth - 1);
+        else if (ch === '=' && equalPos === -1 && pDepth === 0 && bDepth === 0 && cDepth === 0 && aDepth === 0) {
+          equalPos = cur;
+        } else if (ch === ';' && pDepth === 0 && bDepth === 0 && cDepth === 0 && aDepth === 0) {
+          cur++;
+          break;
+        } else if (ch === '\n' && pDepth === 0 && bDepth === 0 && cDepth === 0 && aDepth === 0) {
+          break;
+        }
+        cur++;
+      }
+
+      let typeAnno: string | undefined;
+      let initVal: string | undefined;
+
+      if (equalPos !== -1) {
+        const typePart = rawCode.slice(pos + letHeaderMatch[0].length, equalPos).trim();
+        if (typePart.startsWith(':')) {
+          typeAnno = typePart.slice(1).trim();
+        }
+        initVal = rawCode.slice(equalPos + 1, cur).replace(/;$/, '').trim();
+      } else {
+        const rest = rawCode.slice(pos + letHeaderMatch[0].length, cur).replace(/;$/, '').trim();
+        if (rest.startsWith(':')) {
+          typeAnno = rest.slice(1).trim();
+        }
+      }
 
       // If variable doesn't start with private prefix '_', treat as bindable
       if (!varName.startsWith('_')) {
@@ -271,7 +313,7 @@ export function transformScriptSetup(setupCode: string): TransformedSetup {
       fieldStr += ';';
 
       classFields.push(fieldStr);
-      pos += letMatch[0].length;
+      pos = cur;
       continue;
     }
 

@@ -399,9 +399,9 @@ async function performAureliaRender(
   const app = new Aurelia();
   try {
     const requestContext: IRequestContext = {
-      user: context.user ?? null,
-      workspace: context.workspace ?? null,
-      role: context.role ?? null,
+      user: (context.user as any) ?? null,
+      workspace: (context.workspace as any) ?? null,
+      role: typeof context.role === 'string' ? context.role : null,
       url: options.url || 'http://localhost/',
       params: options.params || {},
       query: options.query || {},

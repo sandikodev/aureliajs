@@ -5,6 +5,7 @@
     "rootDir": "./src",
     "declaration": true,
     "paths": {
+      "@aureliajs/ssr": ["../aurelia-ssr/dist/index.d.ts"],
       "@hono/aurelia": ["../hono-aurelia/dist/index.d.ts"]
     },
     "types": ["node"]

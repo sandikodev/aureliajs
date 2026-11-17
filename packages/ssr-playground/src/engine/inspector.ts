@@ -4,7 +4,7 @@
  */
 
 import { performance } from 'node:perf_hooks';
-import { renderAurelia, serializeState, stringifyPayload, createHtmlDocument } from '@hono/aurelia';
+import { renderAurelia, serializeState, stringifyPayload, createHtmlDocument } from '@aureliajs/ssr';
 import { calculateNetworkMetrics } from './network.js';
 import { auditSsrOutput } from './audit.js';
 import { simulateClientHydration } from './client-simulator.js';

@@ -1,0 +1,107 @@
+<script setup lang="ts">
+import type { DashboardStats, ActivityItem } from '../data.js';
+
+let stats: DashboardStats = {
+  title: 'Production Metrics',
+  views: 0,
+  posts: 0,
+  engagement: 0,
+};
+let activity: ActivityItem[] = [];
+let user: { name?: string; email?: string } | null = null;
+let role: string | null = null;
+let loading = false;
+let error = '';
+
+async function refresh() {
+  if (typeof fetch === 'undefined') return;
+  loading = true;
+  error = '';
+  try {
+    const res = await fetch('/api/dashboard/stats', {
+      headers: { 'Accept': 'application/json' },
+    });
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data = (await res.json()) as { stats?: DashboardStats; activity?: ActivityItem[] };
+    if (data.stats) stats = data.stats;
+    if (data.activity) activity = data.activity;
+  } catch (err) {
+    error = err instanceof Error ? err.message : String(err);
+  } finally {
+    loading = false;
+  }
+}
+</script>
+
+<script server lang="ts">
+export const title = 'Telemetry Dashboard - Aurelia 2 SSR';
+export const requiresAuth = true;
+
+export async function loader() {
+  const { dashboardStats, activityStream } = await import('../data.js');
+  return {
+    stats: dashboardStats,
+    activity: activityStream,
+  };
+}
+</script>
+
+<template as-custom-element="dashboard-page">
+  <div class="dashboard-view">
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="brand">
+          <a href="/">⚡ Aurelia 2 + Hono</a>
+          <span class="brand-badge">Dashboard (Protected)</span>
+        </div>
+        <div class="nav-links">
+          <a href="/">Home</a>
+          <a href="/dashboard" target="_blank">Stats (JSON)</a>
+          <a href="https://github.com/sandikodev/hono-aurelia" target="_blank">GitHub</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="page-container">
+      <header class="article-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+        <div>
+          <h1 class="article-title" style="font-size: 2.2rem; margin-bottom: 0.5rem;">${stats.title}</h1>
+          <p style="color: var(--text-muted); font-size: 1rem;">
+            Protected telemetry session authenticated as <strong>${user ? user.name : 'Operator'}</strong> (${role || 'Owner'})
+          </p>
+        </div>
+        <button click.trigger="refresh()" class="btn btn-outline" disabled.bind="loading">
+          ${loading ? 'Refreshing...' : '🔄 Refresh Metrics'}
+        </button>
+      </header>
+
+      <!-- Metrics Cards -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-value">${stats.views}</div>
+          <div class="metric-label">Monthly Impressions</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">${stats.posts}</div>
+          <div class="metric-label">Published Articles</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">${stats.engagement}%</div>
+          <div class="metric-label">Audience Engagement</div>
+        </div>
+      </div>
+
+      <!-- Activity Stream -->
+      <section class="card" style="margin-top: 2rem;">
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">Audit &amp; Deployment Trail</h3>
+        <div repeat.for="item of activity" class="comment-item">
+          <div class="comment-author">
+            <span>${item.action}</span>
+            <span class="comment-date">${item.timestamp}</span>
+          </div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Event Type: ${item.type}</div>
+        </div>
+      </section>
+    </main>
+  </div>
+</template>

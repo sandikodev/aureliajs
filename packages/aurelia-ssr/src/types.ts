@@ -6,31 +6,27 @@
  */
 
 /**
- * Render context passed from server environment to renderer
+ * Render context passed from server environment to renderer.
+ * Completely generic dictionary allowing arbitrary application and auth state.
  */
-export interface RenderContext {
-  user?: User | null;
-  workspace?: Workspace | null;
-  role?: string | null;
-  [key: string]: unknown;
-}
+export type RenderContext = Record<string, unknown>;
 
 /**
- * Standard user representation in rendering context
+ * Standard user representation in rendering context (optional DTO)
  */
 export interface User {
-  id: string;
-  email: string;
-  name: string;
+  id?: string;
+  email?: string;
+  name?: string;
   [key: string]: unknown;
 }
 
 /**
- * Standard workspace/tenant representation in rendering context
+ * Standard workspace/tenant representation in rendering context (optional DTO)
  */
 export interface Workspace {
-  id: string;
-  name: string;
+  id?: string;
+  name?: string;
   [key: string]: unknown;
 }
 
@@ -41,10 +37,10 @@ export interface Workspace {
 export interface HydrationPayload {
   component: string;
   context: {
-    user: User | null;
-    workspace: Workspace | null;
-    role: string | null;
-    isAuthenticated: boolean;
+    user?: User | null;
+    workspace?: Workspace | null;
+    role?: string | null;
+    isAuthenticated?: boolean;
     [key: string]: unknown;
   };
   initialData?: Record<string, unknown>;
@@ -57,9 +53,9 @@ export interface HydrationPayload {
  */
 export interface HydrationResult<TData = Record<string, unknown>> {
   context: {
-    user?: User;
-    workspace?: Workspace;
-    role?: string;
+    user?: User | null;
+    workspace?: Workspace | null;
+    role?: string | null;
     isAuthenticated: boolean;
     [key: string]: unknown;
   };
@@ -71,7 +67,7 @@ export interface HydrationResult<TData = Record<string, unknown>> {
  * Isomorphic Request Context interface accessible via Aurelia DI (resolve(IRequestContext))
  * across both server-side SSR and client-side hydration.
  */
-export interface IRequestContext<TUser = User, TWorkspace = Workspace> {
+export interface IRequestContext<TUser = unknown, TWorkspace = unknown> {
   readonly user: TUser | null;
   readonly workspace: TWorkspace | null;
   readonly role: string | null;

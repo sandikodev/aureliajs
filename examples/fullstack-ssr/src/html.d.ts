@@ -4,8 +4,13 @@ declare module '*.html' {
 }
 
 declare module '*.aux' {
-  import type { Constructable } from 'aurelia';
-  const component: Constructable;
+  const component: any;
   export default component;
-  export const SsrBadge: Constructable;
+  export const HomePage: any;
+  export const PostDetailPage: any;
+  export const DashboardPage: any;
+  export const SsrBadge: any;
+  export const loader: any;
+  export const actions: any;
+  export const title: any;
 }
