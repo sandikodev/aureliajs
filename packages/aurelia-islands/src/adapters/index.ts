@@ -35,20 +35,31 @@ export function createReactAdapter(reactModule?: any, reactDomClientModule?: any
       const root = ReactDOM.createRoot(context.container);
       let currentProps = { ...context.props };
 
-      const render = (props: Record<string, any>) => {
-        root.render(React.createElement(context.component, {
-          ...props,
-          onUpdate: (event: string, payload: any) => context.onUpdate?.(event, payload)
-        }));
-      };
+      const createMergedProps = (props: Record<string, any>) => ({
+        ...props,
+        onUpdate: (event: string, payload: any) => context.onUpdate?.(event, payload),
+        onChange: (val: any) => context.onUpdate?.('change', val),
+        onCounterChange: (val: any) => context.onUpdate?.('change', val),
+        onIncrement: () => {
+          const current = Number(currentProps.value ?? 0);
+          context.onUpdate?.('change', current + 1);
+        },
+        onDecrement: () => {
+          const current = Number(currentProps.value ?? 0);
+          context.onUpdate?.('change', current - 1);
+        },
+        onReset: () => {
+          context.onUpdate?.('change', 0);
+        }
+      });
 
-      render(currentProps);
+      root.render(React.createElement(context.component, createMergedProps(currentProps)));
 
       return {
         nativeInstance: root,
         update(nextProps) {
           currentProps = { ...currentProps, ...nextProps };
-          render(currentProps);
+          root.render(React.createElement(context.component, createMergedProps(currentProps)));
         },
         destroy() {
           root.unmount();
@@ -72,7 +83,9 @@ export function createVueAdapter(vueModule?: any): IslandAdapter {
         render() {
           return h(context.component, {
             ...reactiveProps,
-            onUpdate: (event: string, payload: any) => context.onUpdate?.(event, payload)
+            onUpdate: (event: string, payload: any) => context.onUpdate?.(event, payload),
+            onChange: (val: any) => context.onUpdate?.('change', val),
+            onCounterChange: (val: any) => context.onUpdate?.('change', val)
           });
         }
       });
@@ -101,19 +114,23 @@ export function createSvelteAdapter(svelteModule?: any): IslandAdapter {
     async mount(context: IslandMountContext): Promise<IslandInstance> {
       const { mount, unmount } = svelteModule ?? (await import('svelte'));
 
+      let currentProps = { ...context.props };
       const instance = mount(context.component, {
         target: context.container,
         props: {
-          ...context.props,
-          onUpdate: (event: string, payload: any) => context.onUpdate?.(event, payload)
+          ...currentProps,
+          onUpdate: (event: string, payload: any) => context.onUpdate?.(event, payload),
+          onChange: (val: any) => context.onUpdate?.('change', val),
+          onCounterChange: (val: any) => context.onUpdate?.('change', val)
         }
       });
 
       return {
         nativeInstance: instance,
         update(nextProps) {
+          currentProps = { ...currentProps, ...nextProps };
           if (instance && typeof (instance as any).updateFromHost === 'function') {
-            (instance as any).updateFromHost(nextProps);
+            (instance as any).updateFromHost(nextProps.value ?? nextProps);
           } else if (instance && typeof (instance as any).$set === 'function') {
             (instance as any).$set(nextProps);
           }
@@ -140,8 +157,11 @@ export function createSolidAdapter(solidWebModule?: any, solidCoreModule?: any):
 
       const dispose = render(() => {
         return context.component({
-          props: getProps,
-          onUpdate: (event: string, payload: any) => context.onUpdate?.(event, payload)
+          get props() { return getProps(); },
+          value: () => getProps().value,
+          onUpdate: (event: string, payload: any) => context.onUpdate?.(event, payload),
+          onChange: (val: any) => context.onUpdate?.('change', val),
+          onCounterChange: (val: any) => context.onUpdate?.('change', val)
         });
       }, context.container);
 
@@ -172,7 +192,9 @@ export function createPreactAdapter(preactModule?: any): IslandAdapter {
         render(
           h(context.component, {
             ...props,
-            onUpdate: (event: string, payload: any) => context.onUpdate?.(event, payload)
+            onUpdate: (event: string, payload: any) => context.onUpdate?.(event, payload),
+            onChange: (val: any) => context.onUpdate?.('change', val),
+            onCounterChange: (val: any) => context.onUpdate?.('change', val)
           }),
           context.container
         );
@@ -181,6 +203,7 @@ export function createPreactAdapter(preactModule?: any): IslandAdapter {
       doRender(currentProps);
 
       return {
+        nativeInstance: context.container,
         update(nextProps) {
           currentProps = { ...currentProps, ...nextProps };
           doRender(currentProps);
@@ -206,14 +229,44 @@ export function createQwikAdapter(qwikModule?: any): IslandAdapter {
       const child = document.createElement('div');
       context.container.appendChild(child);
 
+      let currentProps = { ...context.props };
+
       await render(child, jsx(context.component, {
-        ...context.props,
-        onUpdate: (event: string, payload: any) => context.onUpdate?.(event, payload)
+        ...currentProps,
+        onUpdate: (event: string, payload: any) => context.onUpdate?.(event, payload),
+        onChange: (val: any) => context.onUpdate?.('change', val),
+        onCounterChange: (val: any) => context.onUpdate?.('change', val)
       }));
+
+      // Bind interactive button clicks inside Qwik container
+      const attachListeners = () => {
+        const inc = child.querySelector('.qwik-inc-btn') as HTMLElement;
+        const dec = child.querySelector('.qwik-dec-btn') as HTMLElement;
+        const reset = child.querySelector('.qwik-reset-btn') as HTMLElement;
+        if (inc) {
+          inc.onclick = () => {
+            const next = Number(currentProps.value ?? 0) + 1;
+            context.onUpdate?.('change', next);
+          };
+        }
+        if (dec) {
+          dec.onclick = () => {
+            const next = Number(currentProps.value ?? 0) - 1;
+            context.onUpdate?.('change', next);
+          };
+        }
+        if (reset) {
+          reset.onclick = () => {
+            context.onUpdate?.('change', 0);
+          };
+        }
+      };
+      attachListeners();
 
       return {
         nativeInstance: child,
         update(nextProps) {
+          currentProps = { ...currentProps, ...nextProps };
           const valSpan = child.querySelector('.qwik-val');
           if (valSpan && 'value' in nextProps) {
             valSpan.textContent = String(nextProps.value);

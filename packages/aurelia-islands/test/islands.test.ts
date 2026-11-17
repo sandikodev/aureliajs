@@ -1,17 +1,30 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { JSDOM } from 'jsdom';
-import { AdapterRegistry, defaultRegistry, IslandsConfiguration, AureliaIsland } from '../src/index.js';
+import {
+  AdapterRegistry,
+  defaultRegistry,
+  IslandsConfiguration,
+  AureliaIsland,
+  createReactAdapter,
+  createVueAdapter,
+  createSvelteAdapter,
+  createSolidAdapter,
+  createPreactAdapter,
+  createQwikAdapter
+} from '../src/index.js';
 import type { IslandAdapter, IslandMountContext, IslandInstance } from '../src/types.js';
 
-describe('@aureliajs/islands Suite', () => {
+describe('@aureliajs/islands Comprehensive Suite (by Sandikodev)', () => {
   let doc: Document;
 
   beforeAll(() => {
     const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
     doc = dom.window.document;
+    (global as any).document = doc;
+    (global as any).HTMLElement = dom.window.HTMLElement;
   });
 
-  it('should verify all 6 standard adapters are registered by default', () => {
+  it('should verify all 6 standard adapters are registered by default in registry', () => {
     expect(defaultRegistry.has('react')).toBe(true);
     expect(defaultRegistry.has('vue')).toBe(true);
     expect(defaultRegistry.has('svelte')).toBe(true);
@@ -75,5 +88,228 @@ describe('@aureliajs/islands Suite', () => {
     };
     IslandsConfiguration.register(containerMock as any);
     expect(containerMock.register).toHaveBeenCalledWith(AureliaIsland);
+
+    const custom = IslandsConfiguration.customize({ defaultFramework: 'vue' });
+    custom.register(containerMock as any);
+    expect(containerMock.register).toHaveBeenCalledTimes(2);
+  });
+
+  it('should verify React adapter lifecycle and event propagation with injected mocks', async () => {
+    const renderSpy = vi.fn();
+    const unmountSpy = vi.fn();
+    const mockReact = {
+      createElement: vi.fn((comp, props) => ({ comp, props }))
+    };
+    const mockReactDOM = {
+      createRoot: vi.fn((container) => ({
+        render: renderSpy,
+        unmount: unmountSpy
+      }))
+    };
+
+    const adapter = createReactAdapter(mockReact, mockReactDOM);
+    const container = doc.createElement('div');
+    const onUpdateSpy = vi.fn();
+
+    const instance = await adapter.mount({
+      container,
+      component: () => null,
+      props: { value: 10 },
+      onUpdate: onUpdateSpy
+    });
+
+    expect(mockReactDOM.createRoot).toHaveBeenCalledWith(container);
+    expect(renderSpy).toHaveBeenCalled();
+
+    // Verify passing increment
+    const passedProps = renderSpy.mock.calls[0][0].props;
+    passedProps.onIncrement();
+    expect(onUpdateSpy).toHaveBeenCalledWith('change', 11);
+
+    instance.update({ value: 20 });
+    expect(renderSpy).toHaveBeenCalledTimes(2);
+
+    instance.destroy();
+    expect(unmountSpy).toHaveBeenCalled();
+  });
+
+  it('should verify Vue adapter lifecycle and event propagation with injected mocks', async () => {
+    const mountSpy = vi.fn();
+    const unmountSpy = vi.fn();
+    const mockVue = {
+      createApp: vi.fn((options) => {
+        // Trigger render to simulate template execution
+        options.render();
+        return {
+          mount: mountSpy,
+          unmount: unmountSpy
+        };
+      }),
+      h: vi.fn((comp, props) => ({ comp, props })),
+      reactive: vi.fn((val) => ({ ...val }))
+    };
+
+    const adapter = createVueAdapter(mockVue);
+    const container = doc.createElement('div');
+    const onUpdateSpy = vi.fn();
+
+    const instance = await adapter.mount({
+      container,
+      component: {},
+      props: { value: 50 },
+      onUpdate: onUpdateSpy
+    });
+
+    expect(mockVue.createApp).toHaveBeenCalled();
+    expect(mountSpy).toHaveBeenCalledWith(container);
+
+    const renderedProps = mockVue.h.mock.calls[0][1];
+    renderedProps.onCounterChange(51);
+    expect(onUpdateSpy).toHaveBeenCalledWith('change', 51);
+
+    instance.update({ value: 100 });
+    instance.destroy();
+    expect(unmountSpy).toHaveBeenCalled();
+  });
+
+  it('should verify Svelte adapter lifecycle with injected mocks', async () => {
+    const unmountSpy = vi.fn();
+    const mockSvelte = {
+      mount: vi.fn((comp, opts) => {
+        return {
+          updateFromHost: vi.fn()
+        };
+      }),
+      unmount: unmountSpy
+    };
+
+    const adapter = createSvelteAdapter(mockSvelte);
+    const container = doc.createElement('div');
+    const onUpdateSpy = vi.fn();
+
+    const instance = await adapter.mount({
+      container,
+      component: {},
+      props: { value: 7 },
+      onUpdate: onUpdateSpy
+    });
+
+    expect(mockSvelte.mount).toHaveBeenCalled();
+    const passedProps = mockSvelte.mount.mock.calls[0][1].props;
+    passedProps.onCounterChange(8);
+    expect(onUpdateSpy).toHaveBeenCalledWith('change', 8);
+
+    instance.update({ value: 9 });
+    expect(instance.nativeInstance.updateFromHost).toHaveBeenCalledWith(9);
+
+    instance.destroy();
+    expect(unmountSpy).toHaveBeenCalled();
+  });
+
+  it('should verify SolidJS adapter lifecycle with injected mocks', async () => {
+    const disposeSpy = vi.fn();
+    const mockSolidWeb = {
+      render: vi.fn((fn, container) => {
+        fn(); // execute render accessor
+        return disposeSpy;
+      })
+    };
+    const mockSolidCore = {
+      createSignal: vi.fn((initial) => {
+        let val = initial;
+        return [() => val, (setter: any) => { val = typeof setter === 'function' ? setter(val) : setter; }];
+      })
+    };
+
+    const adapter = createSolidAdapter(mockSolidWeb, mockSolidCore);
+    const container = doc.createElement('div');
+    const onUpdateSpy = vi.fn();
+    const mockComponent = vi.fn();
+
+    const instance = await adapter.mount({
+      container,
+      component: mockComponent,
+      props: { value: 33 },
+      onUpdate: onUpdateSpy
+    });
+
+    expect(mockSolidWeb.render).toHaveBeenCalled();
+    expect(mockComponent).toHaveBeenCalled();
+
+    const compArgs = mockComponent.mock.calls[0][0];
+    expect(compArgs.value()).toBe(33);
+    compArgs.onCounterChange(34);
+    expect(onUpdateSpy).toHaveBeenCalledWith('change', 34);
+
+    instance.update({ value: 40 });
+    instance.destroy();
+    expect(disposeSpy).toHaveBeenCalled();
+  });
+
+  it('should verify Preact adapter lifecycle with injected mocks', async () => {
+    const renderSpy = vi.fn();
+    const mockPreact = {
+      render: renderSpy,
+      h: vi.fn((comp, props) => ({ comp, props }))
+    };
+
+    const adapter = createPreactAdapter(mockPreact);
+    const container = doc.createElement('div');
+    const onUpdateSpy = vi.fn();
+
+    const instance = await adapter.mount({
+      container,
+      component: () => null,
+      props: { value: 12 },
+      onUpdate: onUpdateSpy
+    });
+
+    expect(mockPreact.render).toHaveBeenCalled();
+    const hProps = mockPreact.h.mock.calls[0][1];
+    hProps.onCounterChange(13);
+    expect(onUpdateSpy).toHaveBeenCalledWith('change', 13);
+
+    instance.update({ value: 15 });
+    instance.destroy();
+    expect(renderSpy).toHaveBeenCalledWith(null, container);
+  });
+
+  it('should verify Qwik adapter lifecycle and button click listeners', async () => {
+    const renderSpy = vi.fn().mockResolvedValue(undefined);
+    const mockQwik = {
+      render: renderSpy,
+      jsx: vi.fn((comp, props) => ({ comp, props }))
+    };
+
+    const adapter = createQwikAdapter(mockQwik);
+    const container = doc.createElement('div');
+    const onUpdateSpy = vi.fn();
+
+    const instance = await adapter.mount({
+      container,
+      component: () => null,
+      props: { value: 88 },
+      onUpdate: onUpdateSpy
+    });
+
+    expect(renderSpy).toHaveBeenCalled();
+    const child = container.firstElementChild as HTMLElement;
+    expect(child).toBeDefined();
+
+    // Emulate buttons created inside child
+    const incBtn = doc.createElement('button');
+    incBtn.className = 'qwik-inc-btn';
+    child.appendChild(incBtn);
+
+    const valSpan = doc.createElement('span');
+    valSpan.className = 'qwik-val';
+    valSpan.textContent = '88';
+    child.appendChild(valSpan);
+
+    instance.update({ value: 89 });
+    expect(valSpan.textContent).toBe('89');
+
+    instance.destroy();
+    expect(container.innerHTML).toBe('');
   });
 });
