@@ -214,6 +214,21 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       outline: none !important;
       z-index: 20;
     }
+
+    /* Dropdown Accordion & Focus Ring Precision */
+    #exampleDropdownMenu,
+    #exampleDropdownMenu * {
+      outline: none !important;
+    }
+    #dropdownExamplesList button {
+      outline: none !important;
+      position: relative;
+    }
+    #dropdownExamplesList button:focus,
+    #dropdownExamplesList button:focus-visible {
+      outline: none !important;
+      box-shadow: inset 0 0 0 1.5px rgba(255, 62, 0, 0.85) !important;
+    }
   </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden text-xs">
@@ -242,8 +257,8 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         </button>
 
         <!-- Dropdown Menu List (Inset padding and outline-none to avoid clipped focus rings) -->
-        <div id="exampleDropdownMenu" class="hidden absolute top-full left-0 mt-1 w-72 max-h-[80vh] overflow-y-auto bg-[#161b22] border border-border rounded-lg shadow-2xl z-50 p-1.5 focus:outline-none">
-          <div id="dropdownExamplesList" class="space-y-0.5">
+        <div id="exampleDropdownMenu" class="hidden absolute top-full left-0 mt-1 w-72 max-h-[80vh] overflow-y-auto bg-[#161b22] border border-border rounded-lg shadow-2xl z-50 p-2 focus:outline-none">
+          <div id="dropdownExamplesList" class="space-y-1">
             <!-- Populated dynamically with accordion categories -->
           </div>
         </div>
@@ -718,7 +733,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         
         const catHeader = document.createElement('button');
         catHeader.type = 'button';
-        catHeader.className = 'w-full px-2.5 py-1.5 text-[11px] font-semibold text-gray-300 select-none flex items-center justify-between hover:bg-hover hover:text-white rounded-md transition outline-none focus-visible:ring-1 focus-visible:ring-accent/70';
+        catHeader.className = 'w-full px-2.5 py-1.5 text-[11px] font-semibold text-gray-300 select-none flex items-center justify-between hover:bg-hover hover:text-white rounded-md transition outline-none focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-accent';
         catHeader.innerHTML = '<div class="flex items-center space-x-1.5"><span data-chevron class="text-[9px] text-gray-500 font-mono inline-block w-2 text-center">›</span><span>' + categoryName + '</span></div><span class="text-[9px] text-gray-500 font-mono">' + items.length + '</span>';
         
         const itemsContainer = document.createElement('div');
@@ -747,7 +762,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         items.forEach(it => {
           const btn = document.createElement('button');
           btn.type = 'button';
-          btn.className = 'w-full text-left pl-6 pr-2.5 py-1 text-[11px] text-gray-300 hover:text-white hover:bg-hover rounded-md transition block outline-none focus-visible:ring-1 focus-visible:ring-accent/70';
+          btn.className = 'w-full text-left pl-6 pr-2.5 py-1 text-[11px] text-gray-300 hover:text-white hover:bg-hover rounded-md transition block outline-none focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-accent';
           btn.setAttribute('data-id', it.id);
           btn.textContent = it.title;
           
@@ -761,6 +776,22 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         catDiv.appendChild(catHeader);
         catDiv.appendChild(itemsContainer);
         dropdownExamplesList.appendChild(catDiv);
+      });
+    }
+
+    // Auto-expand ONLY the category of the open example, collapse all others
+    function syncActiveCategoryExpansion(targetCategory) {
+      document.querySelectorAll('#dropdownExamplesList [data-category]').forEach(catEl => {
+        const catName = catEl.getAttribute('data-category');
+        const itemsEl = catEl.querySelector('[data-items]');
+        const chevronEl = catEl.querySelector('[data-chevron]');
+        if (catName === targetCategory) {
+          if (itemsEl) itemsEl.classList.remove('hidden');
+          if (chevronEl) chevronEl.textContent = '▾';
+        } else {
+          if (itemsEl) itemsEl.classList.add('hidden');
+          if (chevronEl) chevronEl.textContent = '›';
+        }
       });
     }
 
@@ -781,25 +812,13 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       }
 
       // Auto-expand ONLY the category of the open example, collapse all others
-      const targetCategory = ex.category;
-      document.querySelectorAll('#dropdownExamplesList [data-category]').forEach(catEl => {
-        const catName = catEl.getAttribute('data-category');
-        const itemsEl = catEl.querySelector('[data-items]');
-        const chevronEl = catEl.querySelector('[data-chevron]');
-        if (catName === targetCategory) {
-          if (itemsEl) itemsEl.classList.remove('hidden');
-          if (chevronEl) chevronEl.textContent = '▾';
-        } else {
-          if (itemsEl) itemsEl.classList.add('hidden');
-          if (chevronEl) chevronEl.textContent = '›';
-        }
-      });
+      syncActiveCategoryExpansion(ex.category);
 
       document.querySelectorAll('#dropdownExamplesList button[data-id]').forEach(btn => {
         if (btn.getAttribute('data-id') === id) {
-          btn.className = 'w-full text-left pl-6 pr-2.5 py-1 text-[11px] text-accent font-medium bg-accent/15 rounded-md transition block outline-none focus-visible:ring-1 focus-visible:ring-accent/70';
+          btn.className = 'w-full text-left pl-6 pr-2.5 py-1 text-[11px] text-accent font-medium bg-accent/15 rounded-md transition block outline-none focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-accent';
         } else {
-          btn.className = 'w-full text-left pl-6 pr-2.5 py-1 text-[11px] text-gray-300 hover:text-white hover:bg-hover rounded-md transition block outline-none focus-visible:ring-1 focus-visible:ring-accent/70';
+          btn.className = 'w-full text-left pl-6 pr-2.5 py-1 text-[11px] text-gray-300 hover:text-white hover:bg-hover rounded-md transition block outline-none focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-accent';
         }
       });
 
@@ -1367,10 +1386,14 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
       });
     });
 
-    // Dropdown toggle
+    // Dropdown toggle: auto-expand ONLY active example category every time menu is opened
     document.getElementById('menuDropdownBtn').addEventListener('click', (e) => {
       e.stopPropagation();
+      const willOpen = exampleDropdownMenu.classList.contains('hidden');
       exampleDropdownMenu.classList.toggle('hidden');
+      if (willOpen && activeExampleId && EXAMPLES[activeExampleId]) {
+        syncActiveCategoryExpansion(EXAMPLES[activeExampleId].category);
+      }
     });
 
     document.addEventListener('click', () => {

@@ -49,6 +49,11 @@ To adhere strictly to community conventions and eliminate confusion, the package
 │  🧩 vscode-aux (packages/vscode-aux)                                        │
 │  - VS Code language extension for .aux syntax highlighting & IntelliSense   │
 │                                                                             │
+│  🏝️ @aureliajs/islands (packages/aurelia-islands)                           │
+│  - Framework-agnostic Islands Architecture for Aurelia 2 by Sandikodev      │
+│  - Zero-boilerplate Universal Island element (<aurelia-island>)             │
+│  - Native bridges for React 18/19, Vue 3, Svelte 5, Solid, Preact, & Qwik   │
+│                                                                             │
 │  🧱 @aureliajs/shared (packages/shared)                                     │
 │  - Shared TypeScript interfaces, Zod schemas, and utility functions         │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -65,6 +70,7 @@ To adhere strictly to community conventions and eliminate confusion, the package
 | [`ssr-playground`](./ssr-playground) | `ssr-playground` | Interactive Web GUI & Headless Reversing Inspector | `@hono/aurelia`, `hono`, `aurelia` |
 | [`vite-plugin-aux`](./vite-plugin-aux) | `@aureliajs/vite-plugin-aux` | Vite SFC (`.aux`) compiler plugin | `vite`, `@rollup/pluginutils` |
 | [`vscode-aux`](./vscode-aux) | `vscode-aux` | VS Code extension for `.aux` components | VS Code Extension API |
+| [`aurelia-islands`](./aurelia-islands) | `@aureliajs/islands` | Universal Islands Architecture & Multi-Frontend Adapters | `aurelia` |
 | [`shared`](./shared) | `@aureliajs/shared` | Common business schemas and utilities | `zod` |
 
 ---
@@ -83,7 +89,10 @@ bun test packages/hono-aurelia
 # 3. Test SSR Playground & Headless Diagnostics (34 tests)
 bun test packages/ssr-playground
 
-# 4. Zero-tolerance linter check (oxlint)
+# 4. Test Aurelia Islands Architecture Suite (3 tests)
+bun test packages/aurelia-islands
+
+# 5. Zero-tolerance linter check (oxlint)
 bun x oxlint packages/aurelia-ssr packages/hono-aurelia packages/ssr-playground
 ```
 

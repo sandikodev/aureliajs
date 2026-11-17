@@ -4,12 +4,12 @@
   "description": "Production-ready Hono + Aurelia SSR example",
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development tsx scripts/build.ts && node --watch dist/server.js",
-    "build:client": "NODE_ENV=production tsx scripts/build.ts",
-    "build": "NODE_ENV=production tsx scripts/build.ts && tsc --noEmit",
-    "start": "NODE_ENV=production node dist/server.js",
+    "dev": "bun scripts/build.ts && bun --watch src/index.ts",
+    "build:client": "bun scripts/build.ts",
+    "build": "bun scripts/build.ts && tsc --noEmit",
+    "start": "bun src/index.ts",
     "typecheck": "tsc --noEmit --strict",
-    "test": "echo 'No tests configured yet'",
+    "test": "bun test",
     "lint": "echo 'No linter configured yet'"
   },
   "dependencies": {

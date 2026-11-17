@@ -1,0 +1,63 @@
+{
+  "name": "@aureliajs/islands",
+  "version": "0.1.0",
+  "description": "Framework-agnostic Islands Architecture and Multi-Frontend Adapter Suite for Aurelia 2 by sandikodev.",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./adapters": {
+      "types": "./dist/adapters/index.d.ts",
+      "import": "./dist/adapters/index.js",
+      "default": "./dist/adapters/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsc -w -p tsconfig.build.json --preserveWatchOutput",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "aurelia",
+    "aurelia2",
+    "islands",
+    "islands-architecture",
+    "react",
+    "vue",
+    "svelte",
+    "solid",
+    "preact",
+    "qwik",
+    "micro-frontend"
+  ],
+  "author": "Sandikodev <androxoss@hotmail.com>",
+  "license": "MIT",
+  "peerDependencies": {
+    "aurelia": "^2.0.0-rc.2"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "react-dom": { "optional": true },
+    "vue": { "optional": true },
+    "svelte": { "optional": true },
+    "solid-js": { "optional": true },
+    "preact": { "optional": true },
+    "@builder.io/qwik": { "optional": true }
+  },
+  "devDependencies": {
+    "aurelia": "^2.0.0-rc.2",
+    "typescript": "5.9.3",
+    "vitest": "5.1.0"
+  }
+}

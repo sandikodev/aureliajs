@@ -1,0 +1,5 @@
+# Aurelia 2 Monorepo Bun Configuration
+preload = ["./preload.ts"]
+
+[test]
+preload = ["./preload.ts"]

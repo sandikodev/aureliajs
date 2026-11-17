@@ -50,7 +50,7 @@ describe('Headless Reversing & Diagnostics Suite', () => {
       const res = await app.request('/');
       const html = await res.text();
       expect(html).toContain('id="exampleDropdownMenu"');
-      expect(html).toContain('p-1.5 focus:outline-none');
+      expect(html).toContain('p-2 focus:outline-none');
 
       // Verify DOM script functions for single active category expansion
       const dom = new JSDOM(html, { runScripts: 'dangerously', url: 'http://localhost:4700/?example=hello-world' });

@@ -72,7 +72,8 @@ async function addComment(event: Event) {
 </script>
 
 <script server lang="ts">
-export const title = 'Article Detail - Aurelia 2 SSR';
+export const title = ({ post }: any) => (post ? `${post.title} — Aurelia 2 SSR` : 'Article Not Found');
+export const status = ({ post }: any) => (post ? 200 : 404);
 
 export async function loader(c: any) {
   const { initialPosts } = await import('../data.js');
