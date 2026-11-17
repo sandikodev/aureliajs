@@ -12,7 +12,7 @@
 
 import { describe, it, expect } from 'bun:test';
 import { JSDOM } from 'jsdom';
-import { renderAurelia, serializeState, createHtmlDocument } from '@hono/aurelia-ssr';
+import { renderAurelia, serializeState, createHtmlDocument } from '@hono/aurelia';
 import { createPlaygroundApp } from '../src/server/app.js';
 import { loadAllExamples } from '../src/examples/loader.js';
 import { compilePlaygroundExample } from '../src/engine/compiler.js';

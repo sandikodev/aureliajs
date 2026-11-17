@@ -26,7 +26,7 @@ To adhere strictly to community conventions and eliminate confusion, the package
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                 TIER 2: WEB FRAMEWORK ADAPTERS (MIDDLEWARE)                 │
 │                                                                             │
-│  📦 @hono/aurelia-ssr (packages/hono-aurelia-ssr) [Git Submodule]           │
+│  📦 @hono/aurelia (packages/hono-aurelia) [Git Submodule]           │
 │  - Official/community Hono SSR adapter                                      │
 │  - Route handler factory: aurelia({ component, loaders, requiresAuth })     │
 │  - HTTP Content negotiation (Accept: text/html vs application/json)         │
@@ -61,8 +61,8 @@ To adhere strictly to community conventions and eliminate confusion, the package
 | Package | Namespace | Purpose / Scope | Dependencies |
 | :--- | :--- | :--- | :--- |
 | [`aurelia-ssr`](./aurelia-ssr) | `@aureliajs/ssr` | Framework-agnostic SSR and Direct-DOM Hydration Core | `aurelia`, `jsdom` |
-| [`hono-aurelia-ssr`](./hono-aurelia-ssr) | `@hono/aurelia-ssr` | Hono middleware & route handler adapter | `hono`, `@aureliajs/ssr` |
-| [`ssr-playground`](./ssr-playground) | `ssr-playground` | Interactive Web GUI & Headless Reversing Inspector | `@hono/aurelia-ssr`, `hono`, `aurelia` |
+| [`hono-aurelia`](./hono-aurelia) | `@hono/aurelia` | Hono middleware & route handler adapter | `hono`, `@aureliajs/ssr` |
+| [`ssr-playground`](./ssr-playground) | `ssr-playground` | Interactive Web GUI & Headless Reversing Inspector | `@hono/aurelia`, `hono`, `aurelia` |
 | [`vite-plugin-aux`](./vite-plugin-aux) | `@aureliajs/vite-plugin-aux` | Vite SFC (`.aux`) compiler plugin | `vite`, `@rollup/pluginutils` |
 | [`vscode-aux`](./vscode-aux) | `vscode-aux` | VS Code extension for `.aux` components | VS Code Extension API |
 | [`shared`](./shared) | `@aureliajs/shared` | Common business schemas and utilities | `zod` |
@@ -78,13 +78,13 @@ Run all test suites across the entire monorepo:
 bun test packages/aurelia-ssr
 
 # 2. Test Hono Aurelia SSR Adapter (134 tests)
-bun test packages/hono-aurelia-ssr
+bun test packages/hono-aurelia
 
 # 3. Test SSR Playground & Headless Diagnostics (34 tests)
 bun test packages/ssr-playground
 
 # 4. Zero-tolerance linter check (oxlint)
-bun x oxlint packages/aurelia-ssr packages/hono-aurelia-ssr packages/ssr-playground
+bun x oxlint packages/aurelia-ssr packages/hono-aurelia packages/ssr-playground
 ```
 
 ---

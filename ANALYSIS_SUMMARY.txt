@@ -11,7 +11,7 @@
 
 📊 DELIVERABLE BREAKDOWN
 
-  packages/hono-aurelia-ssr/            ✅ PRODUCTION READY
+  packages/hono-aurelia/            ✅ PRODUCTION READY
   ├── src/                              ✅ 1,316 lines code
   ├── test/                             ✅ 111 tests (86%+ passing)
   ├── README.md + DEPLOYMENT.md         ✅ 1,157 lines docs

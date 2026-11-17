@@ -15,7 +15,7 @@ This skill is invoked to:
 1. **Detect Architectural Drift**: Catch ghost files, duplicate test suites, obsolete shims, and dual-package hazards.
 2. **Headless Reversing & Verification**: Validate HTTP endpoints, SSR markup, AST parsing, and client hydration headlessly without manual browser clicking.
 3. **Guard Playground UI/UX & Containment**: Keep the Playground daemon on port 4700 responsive, maintain strict drawer isolation, and prevent layout regressions.
-4. **Submodule & Monorepo Synchronization**: Ensure `packages/hono-aurelia-ssr` submodule commits and root repo pointer commits remain in lockstep.
+4. **Submodule & Monorepo Synchronization**: Ensure `packages/hono-aurelia` submodule commits and root repo pointer commits remain in lockstep.
 
 ---
 
@@ -88,7 +88,7 @@ Whenever preparing a release, refactor, or major PR, execute this sequential aud
 
 ```mermaid
 flowchart TD
-    A["Step 1: Submodule Check\n(packages/hono-aurelia-ssr)"] --> B["Step 2: TypeScript Build\n(All 4 packages)"]
+    A["Step 1: Submodule Check\n(packages/hono-aurelia)"] --> B["Step 2: TypeScript Build\n(All 4 packages)"]
     B --> C["Step 3: Monorepo Test Suite\n(205+ tests, 0 fails)"]
     C --> D["Step 4: Oxlint Verification\n(0 errors, 0 warnings)"]
     D --> E["Step 5: Headless Server Probe\n(examples/fullstack-ssr)"]
@@ -98,7 +98,7 @@ flowchart TD
 
 ### Step 1: Submodule Verification
 ```bash
-cd packages/hono-aurelia-ssr
+cd packages/hono-aurelia
 git status
 # Ensure no uncommitted shims or duplicate test files
 bun test
@@ -107,7 +107,7 @@ bun run build
 
 ### Step 2: Build All Packages
 ```bash
-cd packages/hono-aurelia-ssr && bun run build
+cd packages/hono-aurelia && bun run build
 cd ../aurelia-ssr && bun run build
 cd ../vite-plugin-aux && bun run build
 cd ../ssr-playground && bun run build
@@ -115,7 +115,7 @@ cd ../ssr-playground && bun run build
 
 ### Step 3: Run Full Test Suite
 ```bash
-bun test packages/hono-aurelia-ssr/test packages/aurelia-ssr/test packages/vite-plugin-aux/test packages/ssr-playground/test
+bun test packages/hono-aurelia/test packages/aurelia-ssr/test packages/vite-plugin-aux/test packages/ssr-playground/test
 ```
 
 ### Step 4: Run Oxlint
@@ -138,5 +138,5 @@ curl -I http://localhost:4700
 ```
 
 ### Step 7: Push Strategy
-- Always push `packages/hono-aurelia-ssr` to remote `main` **before** committing the updated submodule pointer in the main repo.
+- Always push `packages/hono-aurelia` to remote `main` **before** committing the updated submodule pointer in the main repo.
 - Main repo commits must reference the precise submodule commit hash.

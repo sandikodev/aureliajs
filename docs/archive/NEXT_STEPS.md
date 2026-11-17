@@ -1,4 +1,4 @@
-# NEXT STEPS - @hono/aurelia-ssr PoC
+# NEXT STEPS - @hono/aurelia PoC
 ## What To Do Now
 
 **Current Time**: 2026-11-13 09:30 UTC  

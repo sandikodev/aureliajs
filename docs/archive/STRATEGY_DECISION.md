@@ -2,7 +2,7 @@
 
 **Finding:** `/apps/web` sudah solved flickering dengan clean SPA pattern + localStorage caching.
 
-**Implication:** Library `@hono/aurelia-ssr` **TIDAK DIBUTUHKAN** oleh `/apps` karena architecture mereka berbeda.
+**Implication:** Library `@hono/aurelia` **TIDAK DIBUTUHKAN** oleh `/apps` karena architecture mereka berbeda.
 
 ---
 
@@ -74,7 +74,7 @@ Single Hono server:
 
 | Aspect | `/apps` (SPA) | `/examples` (SSR) |
 |--------|---------------|-------------------|
-| **Uses @hono/aurelia-ssr?** | ❌ NO | ✅ YES |
+| **Uses @hono/aurelia?** | ❌ NO | ✅ YES |
 | **Flicker issue?** | Mild (cached) | None |
 | **Architecture** | Separated | Integrated |
 | **Deployment** | 2 servers | 1 server |
@@ -105,7 +105,7 @@ Single Hono server:
 
 ---
 
-### For @hono/aurelia-ssr Library
+### For @hono/aurelia Library
 
 **DO:**
 - ✅ Market for **public-facing apps** (marketing, blogs)
@@ -158,7 +158,7 @@ const projects = await api.projects.list();
 
 ---
 
-#### Package 2: `@hono/aurelia-ssr` (Fullstack SSR)
+#### Package 2: `@hono/aurelia` (Fullstack SSR)
 
 **Target:** Integrated fullstack apps (like `/examples`)
 
@@ -173,7 +173,7 @@ const projects = await api.projects.list();
 
 **Example:**
 ```typescript
-import { aurelia } from '@hono/aurelia-ssr';
+import { aurelia } from '@hono/aurelia';
 
 app.get('/', aurelia({
   component: HomePage,
@@ -209,7 +209,7 @@ app.get('/', aurelia({
 3. SPA allows best deployment (CDN + workers)
 4. Architecture separation is a feature, not a bug
 
-**`@hono/aurelia-ssr` is for different use case:** Public apps, marketing, SEO-driven content.
+**`@hono/aurelia` is for different use case:** Public apps, marketing, SEO-driven content.
 
 **Library should NOT claim** to "fix" SPA dashboards. It's for a **different audience** with **different requirements**.
 

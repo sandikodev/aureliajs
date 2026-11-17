@@ -13,7 +13,7 @@
 **Root Cause:** HTML served as empty shell → browser boots Aurelia → fetch auth state → render content.  
 **Result:** 100-500ms visible spinner on EVERY page load, even for authenticated users.
 
-**Solution:** Migrate `/apps/web` to **hybrid SSR** using `/packages/hono-aurelia-ssr` package.  
+**Solution:** Migrate `/apps/web` to **hybrid SSR** using `/packages/hono-aurelia` package.  
 **Impact:** Eliminates flicker, reduces TTFB from 300ms → 45ms, improves FCP by 60%.
 
 ---
@@ -130,7 +130,7 @@ Even with cache, **200ms JS boot is visible** as blank screen.
 
 ## The SSR Solution
 
-### How @hono/aurelia-ssr Works
+### How @hono/aurelia Works
 
 **Architecture:**
 ```
@@ -188,7 +188,7 @@ app.route('/api', api);  // Only JSON
 
 **After (SSR):**
 ```typescript
-import { aurelia } from '@hono/aurelia-ssr';
+import { aurelia } from '@hono/aurelia';
 import { DashboardPage } from '../web/pages/dashboard';
 
 // Serve HTML with data pre-loaded
@@ -214,7 +214,7 @@ app.route('/api', api);
 **Client hydration:**
 ```typescript
 // apps/web/src/main.ts
-import { hydrateFromServer } from '@hono/aurelia-ssr';
+import { hydrateFromServer } from '@hono/aurelia';
 
 const serverState = hydrateFromServer();
 if (serverState) {
@@ -247,7 +247,7 @@ if (serverState) {
 2. **Add SSR routes:**
    ```typescript
    // apps/api/src/routes/pages.ts
-   import { aurelia } from '@hono/aurelia-ssr';
+   import { aurelia } from '@hono/aurelia';
    
    export const pageRoutes = new Hono();
    
@@ -404,7 +404,7 @@ Remove SPA-specific workarounds:
 
 ## References
 
-- **SSR Library:** `/packages/hono-aurelia-ssr/README.md`
+- **SSR Library:** `/packages/hono-aurelia/README.md`
 - **Example:** `/examples/fullstack-ssr/` (working reference)
 - **Hono Docs:** https://hono.dev
 - **Aurelia SSR:** https://docs.aurelia.io

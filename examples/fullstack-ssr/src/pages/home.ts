@@ -1,5 +1,5 @@
 import { customElement } from 'aurelia';
-import { hydrateFromServer } from '@hono/aurelia-ssr/client';
+import { hydrateFromServer } from '@hono/aurelia/client';
 import template from './home.html';
 import type { Post } from '../data.js';
 import { SsrBadge } from '../components/ssr-badge.aux';

@@ -1,6 +1,6 @@
 ---
 name: aurelia-framework-architect
-description: "Core mental model, architectural principles, and engineering reference for Framework Maintainers, Meta-Framework Builders, and Systems Engineers developing @hono/aurelia-ssr, @aureliajs/ssr, and @aureliajs/vite-plugin-aux. Use when building compilers, SSR runtimes, hydration engines, execution boundaries, and thin adapters."
+description: "Core mental model, architectural principles, and engineering reference for Framework Maintainers, Meta-Framework Builders, and Systems Engineers developing @hono/aurelia, @aureliajs/ssr, and @aureliajs/vite-plugin-aux. Use when building compilers, SSR runtimes, hydration engines, execution boundaries, and thin adapters."
 ---
 
 # Aurelia Framework Architect (Framework & Meta-Framework Engineering Skill)
@@ -24,8 +24,8 @@ The Aurelia 2 + Hono meta-framework is organized into three decoupled, complemen
 │     - State serialization & anti-XSS JSON stringification.             │
 │     - Core client hydrator (createClientHydrator) with DI activation.  │
 ├────────────────────────────────────────────────────────────────────────┤
-│  2. @hono/aurelia-ssr (Adapter & Integration Layer)                    │
-│     - Submodule at packages/hono-aurelia-ssr (git submodule).          │
+│  2. @hono/aurelia (Adapter & Integration Layer)                    │
+│     - Submodule at packages/hono-aurelia (git submodule).          │
 │     - Thin adapter for Hono HTTP framework.                            │
 │     - Content negotiation (HTML vs JSON Accept header priority).       │
 │     - Co-located loader execution (static loader(c) / loaders).        │
@@ -51,7 +51,7 @@ The Aurelia 2 + Hono meta-framework is organized into three decoupled, complemen
    - Never import `hono` or Express into `@aureliajs/ssr`.
    - The core SSR engine accepts standard `RenderOptions` (`component`, `context`, `props`, `url`) and returns HTML strings or payloads.
 2. **Never Leak Server-Side DOM or Secrets into `./client`**:
-   - In `@hono/aurelia-ssr/client`, export **only** lightweight hydration primitives (`createClientHydrator`, `hydrateFromServer`, `peekHydrationPayload`).
+   - In `@hono/aurelia/client`, export **only** lightweight hydration primitives (`createClientHydrator`, `hydrateFromServer`, `peekHydrationPayload`).
    - If `JSDOM` or `node:fs` ends up in `./client`, client bundles will explode by 2MB and crash in browser runtimes.
 3. **Container Activation Must Precede Component Resolution**:
    - In Aurelia 2, calling `new ComponentClass()` or resolving tokens before container registration triggers `AUR0016:no_active_container_for_resolve`.
@@ -110,7 +110,7 @@ Every PR and refactor must satisfy the **Zero Drift Rule**:
 1. All 4 packages must compile via `bun run build` with zero TypeScript errors.
 2. The entire test suite must pass 100%:
    - `@aureliajs/ssr`: 83+ tests
-   - `@hono/aurelia-ssr`: 60+ tests
+   - `@hono/aurelia`: 60+ tests
    - `@aureliajs/vite-plugin-aux`: 28+ tests
    - `packages/ssr-playground`: 34+ tests
 3. `bun x oxlint` must report **0 warnings and 0 errors** across all files.

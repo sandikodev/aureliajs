@@ -1,5 +1,5 @@
 # RINGKASAN ANALISIS MENDALAM
-## @hono/aurelia-ssr PoC — Siap untuk Keputusan
+## @hono/aurelia PoC — Siap untuk Keputusan
 
 **Dipersiapkan oleh**: Sandikodev (@sandikodev)  
 **Tanggal**: 2026-11-13 09:35 UTC  

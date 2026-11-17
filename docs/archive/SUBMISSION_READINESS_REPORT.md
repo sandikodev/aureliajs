@@ -1,5 +1,5 @@
 # SUBMISSION READINESS REPORT
-## @hono/aurelia-ssr Library PoC
+## @hono/aurelia Library PoC
 
 **Date**: 2026-11-13 09:15 UTC  
 **Status**: ⚠️ **CONDITIONAL GREEN** — Library is production-ready, example needs fixes  
@@ -25,7 +25,7 @@
 ### ✅ STRENGTHS (Ready to Ship)
 
 ```
-packages/hono-aurelia-ssr/
+packages/hono-aurelia/
 ├── src/
 │   ├── render.ts (219) .................... ✅ Server-side rendering
 │   ├── serialize.ts (224) ................ ✅ State serialization  

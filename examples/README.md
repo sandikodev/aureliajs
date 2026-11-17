@@ -23,7 +23,7 @@ production codebase in `apps/`.
 A minimal example showing how to server-render Aurelia components with Hono,
 including hydration payload so the client doesn't need to refetch data.
 
-**Goal**: Demonstrate the `packages/hono-aurelia-ssr` adapter patterns in a standalone
+**Goal**: Demonstrate the `packages/hono-aurelia` adapter patterns in a standalone
 setting, so the main `apps/` monorepo stays focused on the production SPA + API split.
 
 ### ✅ Quick Start
@@ -168,7 +168,7 @@ This example teaches:
 | You want **SSR by default** (SEO, faster FCP) | ✅ Yes | ❌ No (SPA loads JS first) |
 | You want **shared code** between server & client (Aurelia components rendered both places) | ✅ Yes | ❌ No (separate bundles) |
 | You want **fullstack monorepo** with unified auth + data layer | ✅ Yes | ✅ Yes (your current setup) |
-| You want **hydration without API calls** on first paint | ✅ Yes | ✅ Yes (also via `packages/hono-aurelia-ssr`) |
+| You want **hydration without API calls** on first paint | ✅ Yes | ✅ Yes (also via `packages/hono-aurelia`) |
 | You're building a **marketing site + admin dashboard** mix | ✅ Yes | ❌ No (separate concerns) |
 
 **TL;DR**: If you're a solo dev or full-stack team wanting one server to rule them all → `examples/fullstack-ssr` pattern. If you have separate FE/BE teams or need independent deployments → `apps/` (SPA + API) pattern.
@@ -177,7 +177,7 @@ This example teaches:
 
 - [Hono documentation](https://hono.dev)
 - [Aurelia 2 SSR patterns](https://aurelia.io/docs/patterns/ssr)
-- [@hono/aurelia-ssr package](../packages/hono-aurelia-ssr) — the library this example showcases
+- [@hono/aurelia package](../packages/hono-aurelia) — the library this example showcases
 - [Docker multi-stage builds](https://docs.docker.com/develop/develop-images/multistage-build/)
 
 ---
@@ -205,7 +205,7 @@ If it imports `@aureliajs/*` from the workspace, it's better placed under `apps/
 
 - **Port 3000** is hardcoded in `src/index.ts` — change `PORT` env var if you need another port.
 - **Auth is simplified** — `token === 'demo-token'` is the only valid token. No DB, no JWT, no refresh tokens.
-- **Hydration payload is inline** in HTML strings. Real projects would serialize via `packages/hono-aurelia-ssr`.
+- **Hydration payload is inline** in HTML strings. Real projects would serialize via `packages/hono-aurelia`.
 - **No database** — all data is in-memory (arrays). Add Drizzle + Postgres if you need persistence.
 
 ---

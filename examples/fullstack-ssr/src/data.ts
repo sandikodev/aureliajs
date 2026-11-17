@@ -41,7 +41,7 @@ export const initialPosts: Post[] = [
   {
     id: 1,
     title: 'Hono + Aurelia 2 SSR Architecture',
-    slug: 'hono-aurelia-ssr-architecture',
+    slug: 'hono-aurelia-architecture',
     category: 'Architecture',
     excerpt: 'Deep-dive into executing isolated virtual DOM scopes per request in Node and edge runtimes.',
     content: `Server-Side Rendering (SSR) in Aurelia 2 delivers pre-rendered HTML straight from the server, eliminating First Contentful Paint (FCP) latency and guaranteeing full SEO indexing.
@@ -81,7 +81,7 @@ In Aurelia 2 SSR, the HTML document is assembled on the server with complete sty
     excerpt: 'Serializing server loaders into window.__HYDRATION__ to prevent redundant client network calls.',
     content: `When a page renders on the server, data loaders resolve databases and cache entries. 
 
-If the client application blindly refetches the same REST or GraphQL endpoints upon mounting, server resources are wasted. In @hono/aurelia-ssr, loaders serialize their payload into a secure JSON script block, which hydrateFromServer() recovers instantly.`,
+If the client application blindly refetches the same REST or GraphQL endpoints upon mounting, server resources are wasted. In @hono/aurelia, loaders serialize their payload into a secure JSON script block, which hydrateFromServer() recovers instantly.`,
     author: 'Sandiko Dev',
     date: 'Nov 12, 2026',
     readTime: '5 min read',

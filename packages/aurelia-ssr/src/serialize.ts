@@ -1,5 +1,5 @@
 /**
- * @hono/aurelia-ssr State Serialization
+ * @hono/aurelia State Serialization
  * 
  * Serialize auth context and initial data for hydration with strict whitelist
  * projection to guarantee sensitive fields are never leaked to the client.

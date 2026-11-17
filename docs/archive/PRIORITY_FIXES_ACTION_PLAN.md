@@ -37,7 +37,7 @@ export const HomePage = {
 ```typescript
 import { customElement } from 'aurelia';
 import template from './home.html';
-import { hydrateFromServer } from '@hono/aurelia-ssr';
+import { hydrateFromServer } from '@hono/aurelia';
 
 export type Post = {
   id: number;
@@ -154,7 +154,7 @@ export class HomePage {
 import { customElement, inject } from 'aurelia';
 import type { Context } from 'hono';
 import template from './dashboard.html';
-import { hydrateFromServer } from '@hono/aurelia-ssr';
+import { hydrateFromServer } from '@hono/aurelia';
 
 export type DashboardContext = {
   stats: {
@@ -395,7 +395,7 @@ Should include:
     "deploy:cf": "wrangler deploy --path cf-worker.ts"
   },
   "dependencies": {
-    "@hono/aurelia-ssr": "workspace:*",
+    "@hono/aurelia": "workspace:*",
     "@aureliajs/shared": "workspace:*",
     "aurelia": "^2.0.0-rc.2",
     "hono": "^4.0.0"

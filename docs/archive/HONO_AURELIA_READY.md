@@ -1,8 +1,8 @@
-# 🚀 @hono/aurelia-ssr Initiative — Complete Package Ready
+# 🚀 @hono/aurelia Initiative — Complete Package Ready
 
 **Status:** ✅ READY FOR PROPOSAL SUBMISSION  
 **Date:** 2026-11-13  
-**Location:** `/packages/hono-aurelia-ssr/` (in monorepo)  
+**Location:** `/packages/hono-aurelia/` (in monorepo)  
 **Ownership:** Sandikodev (@sandikodev) — awaiting maintainer feedback
 
 ---
@@ -142,7 +142,7 @@ Week 4: Phase 4 — Release + marketing
 
 ```
 → Incorporate maintainer feedback
-→ Publish to npm (@hono/aurelia-ssr)
+→ Publish to npm (@hono/aurelia)
 → Open-source on GitHub
 → Community contributions
 → Featured in official docs
@@ -162,7 +162,7 @@ Week 4: Phase 4 — Release + marketing
 ## 📂 File Structure
 
 ```
-packages/hono-aurelia-ssr/
+packages/hono-aurelia/
 ├── src/
 │   ├── types.ts              (Type definitions)
 │   ├── render.ts             (renderAurelia function)
@@ -195,12 +195,12 @@ packages/hono-aurelia-ssr/
 2. **`ARCHITECTURE_SSR_SPEC.md`** — Technical specification (in parent dir)
 
 ### To Understand Phase 1
-1. **`packages/hono-aurelia-ssr/README.md`** — Quick start
-2. **`packages/hono-aurelia-ssr/PHASE_1_SUMMARY.md`** — Complete details
+1. **`packages/hono-aurelia/README.md`** — Quick start
+2. **`packages/hono-aurelia/PHASE_1_SUMMARY.md`** — Complete details
 
 ### To Submit
-1. **`packages/hono-aurelia-ssr/PROPOSAL_TO_MAINTAINERS.md`** — What to send
-2. **`packages/hono-aurelia-ssr/SUBMISSION_GUIDE.md`** — How to send
+1. **`packages/hono-aurelia/PROPOSAL_TO_MAINTAINERS.md`** — What to send
+2. **`packages/hono-aurelia/SUBMISSION_GUIDE.md`** — How to send
 
 ---
 
@@ -281,7 +281,7 @@ Next steps:
 
 **Maintainer:** Sandikodev (@sandikodev)  
 **Email:** androxoss@hotmail.com  
-**Repository:** `/packages/hono-aurelia-ssr/`  
+**Repository:** `/packages/hono-aurelia/`  
 **Status:** Ready for community + maintainer feedback
 
 ---

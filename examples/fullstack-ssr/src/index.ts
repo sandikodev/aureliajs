@@ -19,7 +19,7 @@ import {
   aureliaDefaults,
   serveAureliaAssets,
   createAuthMiddleware,
-} from '@hono/aurelia-ssr/server';
+} from '@hono/aurelia/server';
 import { initialPosts, dashboardStats, activityStream } from './data.js';
 import { HomePage } from './pages/home.js';
 import { PostDetailPage } from './pages/post-detail.js';
@@ -136,7 +136,7 @@ if (process.env.NODE_ENV !== 'test' && !('bun' in process.versions)) {
     console.log(`📍 URL: http://localhost:${info.port}`);
     console.log(`\n🔗 Test routes:`);
     console.log(`   • http://localhost:${info.port}/                          (Public SSR Home)`);
-    console.log(`   • http://localhost:${info.port}/posts/hono-aurelia-ssr-architecture (Post Detail SSR)`);
+    console.log(`   • http://localhost:${info.port}/posts/hono-aurelia-architecture (Post Detail SSR)`);
     console.log(`   • http://localhost:${info.port}/dashboard?token=demo-token  (Protected SSR Dashboard)`);
     console.log(`   • http://localhost:${info.port}/api/posts                 (JSON Endpoint)`);
   });

@@ -32,7 +32,7 @@ pnpm test       # ✅ PASSING (127 SSR tests)
 ```
 
 ### Known Issues
-- `packages/hono-aurelia-ssr` excluded from workspace (nested git repo, should be npm package)
+- `packages/hono-aurelia` excluded from workspace (nested git repo, should be npm package)
 - E2E tests not verified recently (require running dev servers)
 
 ## 🚀 How to Run

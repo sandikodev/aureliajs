@@ -1,5 +1,5 @@
 # FINAL ANALYSIS SUMMARY
-## @hono/aurelia-ssr PoC — Ready for Decision
+## @hono/aurelia PoC — Ready for Decision
 
 **Prepared by**: Sandikodev (@sandikodev)  
 **Date**: 2026-11-13 09:35 UTC  

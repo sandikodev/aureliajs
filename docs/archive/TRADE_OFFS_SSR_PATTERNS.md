@@ -1,5 +1,5 @@
 <!-- markdown-toc start - Don't edit this section. Run `markdown-toc -i` to regenerate -->
-# Trade-offs: @hono/aurelia-ssr vs Next.js vs SvelteKit
+# Trade-offs: @hono/aurelia vs Next.js vs SvelteKit
 
 **Updated:** 2026-11-13  
 **Status:** PoC Phase 5 — Real metrics from working example
@@ -10,7 +10,7 @@
 
 Three popular SSR solutions compared on honest trade-offs:
 
-| Aspect | @hono/aurelia-ssr | Next.js 15 | SvelteKit |
+| Aspect | @hono/aurelia | Next.js 15 | SvelteKit |
 |--------|-------------------|-----------|----------|
 | Setup Time | **5 min** ✅ | 10 min | 8 min |
 | Mental Model | **Simple** ✅ | Complex | Medium |
@@ -29,12 +29,12 @@ Three popular SSR solutions compared on honest trade-offs:
 
 ### 1. Setup & Onboarding
 
-#### @hono/aurelia-ssr
+#### @hono/aurelia
 **Time: 5 minutes**
 
 ```bash
 # 1. Install dependencies
-pnpm add hono aurelia @hono/aurelia-ssr
+pnpm add hono aurelia @hono/aurelia
 
 # 2. Create Hono app
 const app = new Hono();
@@ -96,7 +96,7 @@ npm create svelte@latest myapp
 
 ### 2. Mental Model Complexity
 
-#### @hono/aurelia-ssr
+#### @hono/aurelia
 
 **Single pattern:**
 ```
@@ -179,7 +179,7 @@ export async function load() {
 
 ### 3. Data Loading & Type Safety
 
-#### @hono/aurelia-ssr
+#### @hono/aurelia
 
 **Pattern: Parallel loaders**
 ```typescript
@@ -261,7 +261,7 @@ export async function load({ locals }) {
 
 From actual **examples/fullstack-ssr/** runs:
 
-#### @hono/aurelia-ssr (Single Server)
+#### @hono/aurelia (Single Server)
 
 ```
 Homepage:
@@ -318,13 +318,13 @@ Bundle Size:
   Total HTML:   45KB average
 ```
 
-**Performance Winner:** @hono/aurelia-ssr (simplicity = speed)
+**Performance Winner:** @hono/aurelia (simplicity = speed)
 
 ---
 
 ### 5. Flexibility & Escape Hatches
 
-#### @hono/aurelia-ssr
+#### @hono/aurelia
 
 **Easy to customize:**
 ```typescript
@@ -389,7 +389,7 @@ import { goto } from '$app/navigation';
 
 ### 6. Production Readiness
 
-#### @hono/aurelia-ssr
+#### @hono/aurelia
 
 **Status:** Production-ready pattern ✅
 
@@ -454,7 +454,7 @@ import { goto } from '$app/navigation';
 
 #### Scenario: Add a new protected page with data loading
 
-**@hono/aurelia-ssr (5 minutes)**
+**@hono/aurelia (5 minutes)**
 ```typescript
 // src/pages/settings.ts
 export const SettingsPage = { /* component */ };
@@ -506,13 +506,13 @@ export async function load({ locals }) {
 </script>
 ```
 
-**Winner:** @hono/aurelia-ssr (unified pattern)
+**Winner:** @hono/aurelia (unified pattern)
 
 ---
 
 #### Scenario: Migrate from SPA to SSR with existing users
 
-**@hono/aurelia-ssr**
+**@hono/aurelia**
 - ✅ Gradual: Can run SPA + SSR pages side-by-side
 - ✅ Client library is small (12KB) — no bandwidth impact
 - ✅ Content negotiation means old JS clients still work (JSON responses)
@@ -529,7 +529,7 @@ export async function load({ locals }) {
 - ✅ Can coexist with old Svelte SPA
 - ⏱️ Estimated migration: 3-4 weeks
 
-**Winner:** @hono/aurelia-ssr (most flexible for gradual migration)
+**Winner:** @hono/aurelia (most flexible for gradual migration)
 
 ---
 
@@ -537,7 +537,7 @@ export async function load({ locals }) {
 
 #### Horizontal Scaling
 
-**@hono/aurelia-ssr (Single Server)**
+**@hono/aurelia (Single Server)**
 ```
 Limitation: One instance = one process
 Solution 1: Load balancer + multiple instances
@@ -562,7 +562,7 @@ Cost at 100K DAU:
 
 **SvelteKit (Self-hosted)**
 ```
-Similar to @hono/aurelia-ssr
+Similar to @hono/aurelia
 - Load balancer + multiple instances
 - Or use adapter (vercel/netlify)
 
@@ -571,7 +571,7 @@ Cost at 100K DAU:
 - Or $100-300/month (serverless)
 ```
 
-**Winner (for cost):** @hono/aurelia-ssr + SvelteKit (if self-hosted)
+**Winner (for cost):** @hono/aurelia + SvelteKit (if self-hosted)
 
 ---
 
@@ -579,7 +579,7 @@ Cost at 100K DAU:
 
 #### Type Safety
 
-**@hono/aurelia-ssr**
+**@hono/aurelia**
 ```typescript
 // Full type inference across the stack
 app.get('/dashboard', aurelia({
@@ -635,7 +635,7 @@ export let data; // Type: { data: MyType }
 
 ### 10. When to Use Each
 
-#### Use @hono/aurelia-ssr when:
+#### Use @hono/aurelia when:
 
 ✅ **Learning SSR** — Simplest mental model  
 ✅ **Building quickly** — 5-minute setup  
@@ -686,7 +686,7 @@ export let data; // Type: { data: MyType }
 
 ## Honest Assessment
 
-### @hono/aurelia-ssr
+### @hono/aurelia
 
 **Strengths:**
 - Simplest to understand
@@ -753,22 +753,22 @@ export let data; // Type: { data: MyType }
 
 | If you prioritize | Choose |
 |------------------|--------|
-| **Learning SSR** | @hono/aurelia-ssr |
-| **Speed to market** | @hono/aurelia-ssr |
-| **Type safety** | @hono/aurelia-ssr |
+| **Learning SSR** | @hono/aurelia |
+| **Speed to market** | @hono/aurelia |
+| **Type safety** | @hono/aurelia |
 | **React ecosystem** | Next.js |
 | **Vercel deployment** | Next.js |
 | **Bundle size** | SvelteKit |
 | **Form handling** | SvelteKit |
-| **Self-hosting** | @hono/aurelia-ssr or SvelteKit |
-| **Low cost at scale** | @hono/aurelia-ssr |
+| **Self-hosting** | @hono/aurelia or SvelteKit |
+| **Low cost at scale** | @hono/aurelia |
 | **Enterprise support** | Next.js |
 
 ---
 
 ## Conclusion
 
-**@hono/aurelia-ssr** is the right choice for:
+**@hono/aurelia** is the right choice for:
 - Understanding SSR fundamentals
 - Building quickly without framework overhead
 - Teams valuing simplicity and flexibility

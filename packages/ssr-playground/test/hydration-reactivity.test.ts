@@ -8,7 +8,7 @@
 
 import { describe, it, expect } from 'bun:test';
 import { JSDOM } from 'jsdom';
-import { renderAurelia, serializeState, createHtmlDocument } from '@hono/aurelia-ssr';
+import { renderAurelia, serializeState, createHtmlDocument } from '@hono/aurelia';
 import { CounterCard } from '../src/fixtures/counter-card.js';
 import { getClientHydrationScript, getPreviewStylesheet } from '../src/server/assets.js';
 

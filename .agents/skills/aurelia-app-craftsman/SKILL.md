@@ -12,7 +12,7 @@ description: "Mental model, architectural guidelines, and best practices for Ful
 ## 🧠 Core Philosophy
 
 1. **Write Applications, Not Framework Plumbing**:
-   - If you find yourself writing repetitive `document: { cssBundle, jsBundle }`, manual `window.__HYDRATION__` unpacking in `attached()`, or manual `isLoading = true; try {} finally {}` state machines, **STOP**. Leverage the native framework capabilities (`@hono/aurelia-ssr` and `@aureliajs/vite-plugin-aux`).
+   - If you find yourself writing repetitive `document: { cssBundle, jsBundle }`, manual `window.__HYDRATION__` unpacking in `attached()`, or manual `isLoading = true; try {} finally {}` state machines, **STOP**. Leverage the native framework capabilities (`@hono/aurelia` and `@aureliajs/vite-plugin-aux`).
 2. **Co-locate Everything Relevant**:
    - Route data loaders, auth guard requirements, page titles, and UI presentation belong together in the component, not scattered across 4 different routing files.
 3. **No Split-Brain Routing**:
@@ -29,7 +29,7 @@ Never duplicate document configurations or data loading in `index.ts`. Declare t
 ```typescript
 // src/index.ts
 import { Hono } from 'hono';
-import { aurelia } from '@hono/aurelia-ssr/server';
+import { aurelia } from '@hono/aurelia/server';
 import { PostDetailPage } from './pages/post-detail.js';
 import { DashboardPage } from './pages/dashboard.js';
 
@@ -176,7 +176,7 @@ In `src/client.ts`, eliminate manual unpacking:
 
 ```typescript
 // src/client.ts
-import { createClientHydrator } from '@hono/aurelia-ssr/client';
+import { createClientHydrator } from '@hono/aurelia/client';
 import * as pages from './pages/index.js';
 
 // Pass all pages directly; the hydrator auto-detects the matching component

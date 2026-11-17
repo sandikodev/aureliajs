@@ -86,7 +86,7 @@ pnpm --filter @aureliajs/web dev   # :4600 only (mock mode)
 aureliajs/
 ├── packages/                # Shared deps & types
 │   ├── shared/              # Zod schemas, PLAN_LIMITS, API types
-│   └── hono-aurelia-ssr/    # SSR adapter (future unification)
+│   └── hono-aurelia/    # SSR adapter (future unification)
 ├── apps/                    # ← This directory
 │   ├── api/                 # Backend (Hono + Drizzle)
 │   └── web/                 # Frontend (Aurelia 2 + Vite)
@@ -163,7 +163,7 @@ See `Dockerfile` and `docker-compose.prod.yml` for the multi-stage build.
 | Path | Purpose |
 |------|---------|
 | `packages/shared/` | Shared Zod schemas, PLAN_LIMITS, API types |
-| `packages/hono-aurelia-ssr/` | SSR adapter (WIP — enables future unification) |
+| `packages/hono-aurelia/` | SSR adapter (WIP — enables future unification) |
 | `examples/fullstack-ssr/` | Reference: Hono + Aurelia SSR (standalone) |
 | `docker-compose.prod.yml` | Production deployment config |
 

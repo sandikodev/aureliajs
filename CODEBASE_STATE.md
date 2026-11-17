@@ -20,7 +20,7 @@ apps/
 
 packages/
 ├── shared/              Zod schemas + types + PLAN_LIMITS (single source of truth)
-└── hono-aurelia-ssr/    ⚠️ Nested git repo (excluded from workspace)
+└── hono-aurelia/    ⚠️ Nested git repo (excluded from workspace)
 
 examples/
 └── fullstack-ssr/       ⚠️ Standalone (NOT in workspace) — SSR reference implementation
@@ -71,7 +71,7 @@ Every query: `WHERE workspace_id = ?` — enforced by middleware, not per-handle
 
 1. ✅ **Fixed typecheck**: Import `PUBLIC_ROUTES`, align `session-cache.ts` types with shared
 2. ✅ **Cleaned junk**: Removed `.deb` file, `i` file, `bun.lock`
-3. ✅ **Fixed nested repo**: Excluded `packages/hono-aurelia-ssr` from workspace
+3. ✅ **Fixed nested repo**: Excluded `packages/hono-aurelia` from workspace
 4. ✅ **Consolidated docs**: 32 files → 3 files (archived 29 to `docs/archive/`)
 
 ## Development

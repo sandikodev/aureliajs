@@ -7,7 +7,7 @@ import { Hono } from 'hono';
 import { FIXTURES } from '../fixtures/index.js';
 import { inspectAureliaSsr } from '../engine/inspector.js';
 import { compilePlaygroundExample, type CompileRequest } from '../engine/compiler.js';
-import { renderAurelia, serializeState, createHtmlDocument, type RenderContext } from '@hono/aurelia-ssr';
+import { renderAurelia, serializeState, createHtmlDocument, type RenderContext } from '@hono/aurelia';
 import {
   getFaviconSvg,
   getClientHydrationScript,

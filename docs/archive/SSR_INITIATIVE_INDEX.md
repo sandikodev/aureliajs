@@ -89,7 +89,7 @@ Client doesn't know when server auth changes
 
 ## The Solution (1 Minute Summary)
 
-**Proposed:** Native SSR adapter (`@hono/aurelia-ssr`) that:
+**Proposed:** Native SSR adapter (`@hono/aurelia`) that:
 
 ```typescript
 app.get('/dashboard', aurelia({
@@ -279,7 +279,7 @@ Aurelia hydrates
 
 **Week of Dec 10, 2026:**
 
-1. ✅ @hono/aurelia-ssr v1.0.0 published on npm
+1. ✅ @hono/aurelia v1.0.0 published on npm
 2. ✅ Current dashboard project using SSR (faster, no auth issues)
 3. ✅ Blog post published: "Why SPA + API is Broken"
 4. ✅ GitHub repo public (or organization repo)

@@ -112,7 +112,7 @@ Agar proyek ini tetap tangguh (*robust*) dan mudah dipelihara, kita membedah ars
                                    │
                                    ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│ LAPISAN 3: EDGE DELIVERY ADAPTER (@hono/aurelia-ssr)                   │
+│ LAPISAN 3: EDGE DELIVERY ADAPTER (@hono/aurelia)                   │
 │ Scope: Jembatan tipis antara Router Hono dan Lapisan 2                 │
 │ Bebas dari: Modifikasi internal Aurelia core                           │
 └────────────────────────────────────────────────────────────────────────┘
@@ -246,7 +246,7 @@ Kami menolak jalan pintas yang merusak keandalan sistem. Di repositori ini berla
 - [`packages/vscode-aux`](file:///home/dev/project/aureliajs/packages/vscode-aux): Extension VS Code untuk sintaks, linter, analyzer, dan autocompletion `.aux`.
 - [`packages/skills`](file:///home/dev/project/aureliajs/packages/skills): Agent knowledge base murni Aurelia 2 (bebas dari coupling backend).
 - [`packages/shared`](file:///home/dev/project/aureliajs/packages/shared): Subpath contracts (`/utils` dan `/schemas`) dengan `"sideEffects": false`.
-- [`packages/hono-aurelia-ssr`](file:///home/dev/project/aureliajs/packages/hono-aurelia-ssr): Laboratorium integrasi SSR Aurelia dengan runtime Hono.
+- [`packages/hono-aurelia`](file:///home/dev/project/aureliajs/packages/hono-aurelia): Laboratorium integrasi SSR Aurelia dengan runtime Hono.
 - [`scripts/emulate-devtools.ts`](file:///home/dev/project/aureliajs/scripts/emulate-devtools.ts): Emulator DevTools terminal untuk memverifikasi modul, binding, dan reaktivitas DOM secara instan tanpa browser fisik.
 
 ---

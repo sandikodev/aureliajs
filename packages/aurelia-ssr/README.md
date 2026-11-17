@@ -41,7 +41,7 @@ Aurelia 2 (`v2.0.0-rc.2`) was engineered with low-level platform abstractions (`
                      ┌─────────────────┴─────────────────┐
                      ▼                                   ▼
           ┌─────────────────────┐             ┌─────────────────────┐
-          │  @hono/aurelia-ssr  │             │ Vite / Express /    │
+          │  @hono/aurelia  │             │ Vite / Express /    │
           │    (Hono Adapter)   │             │ Nitro / Fastify     │
           └─────────────────────┘             └─────────────────────┘
 ```
@@ -189,10 +189,10 @@ bootstrap();
 
 ---
 
-## 🤝 Relationship with `@hono/aurelia-ssr`
+## 🤝 Relationship with `@hono/aurelia`
 
 * **`@aureliajs/ssr` (This Package)**: Core rendering and hydration engine. 100% framework-agnostic.
-* **`@hono/aurelia-ssr`**: Official Hono web adapter built on top of `@aureliajs/ssr`. Adds high-level route handlers (`aurelia()`), Hono context negotiation (`Accept: text/html` vs `application/json`), auth guards, and loaders.
+* **`@hono/aurelia`**: Official Hono web adapter built on top of `@aureliajs/ssr`. Adds high-level route handlers (`aurelia()`), Hono context negotiation (`Accept: text/html` vs `application/json`), auth guards, and loaders.
 
 ---
 

@@ -138,7 +138,7 @@ examples/fullstack-ssr/
 
 ```typescript
 import { Hono } from 'hono'
-import { renderAurelia, serializeState, createHtmlDocument } from '@hono/aurelia-ssr'
+import { renderAurelia, serializeState, createHtmlDocument } from '@hono/aurelia'
 
 const app = new Hono()
 
@@ -238,7 +238,7 @@ export async function getUsersLoader() {
 
 ```json
 {
-  "name": "hono-aurelia-ssr-example",
+  "name": "hono-aurelia-example",
   "scripts": {
     "dev": "wrangler dev src/index.ts",
     "build": "wrangler build",
@@ -246,7 +246,7 @@ export async function getUsersLoader() {
   },
   "dependencies": {
     "hono": "latest",
-    "@hono/aurelia-ssr": "workspace:*",
+    "@hono/aurelia": "workspace:*",
     "aurelia": "2.0.0-rc.2"
   },
   "devDependencies": {

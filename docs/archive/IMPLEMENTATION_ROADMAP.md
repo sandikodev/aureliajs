@@ -5,7 +5,7 @@
 **Question:** Should we proceed with the proposal?
 
 **If YES:**
-1. Create `@hono/aurelia-ssr` package
+1. Create `@hono/aurelia` package
 2. Implement Phase 1 (Renderer)
 3. Iterate through Phases 2-3
 4. Document and release
@@ -25,7 +25,7 @@ Render Aurelia components to HTML strings on Hono server
 
 #### 1.1 Setup Package Structure
 ```
-@hono/aurelia-ssr/
+@hono/aurelia/
 ├── src/
 │   ├── types.ts           # Interfaces & types
 │   ├── render.ts          # Main renderAurelia() function
@@ -42,7 +42,7 @@ Render Aurelia components to HTML strings on Hono server
 #### 1.2 Implement renderAurelia()
 
 ```typescript
-// @hono/aurelia-ssr/src/render.ts
+// @hono/aurelia/src/render.ts
 export async function renderAurelia(
   component: any,
   context?: RenderContext,
@@ -111,7 +111,7 @@ Send server state to browser, hydrate SPA without API calls
 #### 2.1 State Serialization
 
 ```typescript
-// @hono/aurelia-ssr/src/serialize.ts
+// @hono/aurelia/src/serialize.ts
 export async function serializeState(
   context: RenderContext,
   initialData?: Record<string, any>,
@@ -134,7 +134,7 @@ export async function serializeState(
 #### 2.2 HTML Document Builder
 
 ```typescript
-// @hono/aurelia-ssr/src/html-template.ts
+// @hono/aurelia/src/html-template.ts
 export function createHtmlDocument(
   bodyContent: string,
   hydrationPayload: HydrationPayload,
@@ -209,7 +209,7 @@ Single-file route handler that does SSR + API + auth
 #### 3.1 aurelia() Route Adapter
 
 ```typescript
-// @hono/aurelia-ssr/src/route.ts
+// @hono/aurelia/src/route.ts
 export function aurelia(config: AureliaRouteConfig)
 ```
 

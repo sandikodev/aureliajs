@@ -1,9 +1,9 @@
 [submodule "packages/skills"]
 	path = packages/skills
 	url = git@github.com:sandikodev/skills.git
-[submodule "packages/hono-aurelia-ssr"]
-	path = packages/hono-aurelia-ssr
-	url = git@github.com:sandikodev/hono-aurelia-ssr.git
+[submodule "packages/hono-aurelia"]
+	path = packages/hono-aurelia
+	url = git@github.com:sandikodev/hono-aurelia.git
 [submodule "examples/hono-react-ssr-shadcn-ui"]
 	path = examples/hono-react-ssr-shadcn-ui
 	url = git@github.com:sandikodev/hono-react-ssr-shadcn-ui.git

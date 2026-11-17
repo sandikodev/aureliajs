@@ -18,7 +18,7 @@ When building modern fullstack applications, you face a fundamental architectura
 - Remix (React)
 
 **Option B: Compose your own with SSR adapter**
-- Hono (backend) + Aurelia (frontend) + `@hono/aurelia-ssr`
+- Hono (backend) + Aurelia (frontend) + `@hono/aurelia`
 - Hono (backend) + React + custom SSR
 - Hono (backend) + Vue + custom SSR
 
@@ -111,7 +111,7 @@ This document explores what each approach actually costs, in real terms.
 
 ---
 
-## The Composition Approach (@hono/aurelia-ssr)
+## The Composition Approach (@hono/aurelia)
 
 ### What It Gives You
 
@@ -239,7 +239,7 @@ This document explores what each approach actually costs, in real terms.
 
 ### Scenario 2: Multi-Tenant SaaS (Growth)
 
-**Best Choice:** Hono + @hono/aurelia-ssr (Composition)
+**Best Choice:** Hono + @hono/aurelia (Composition)
 
 **Why:**
 - Each tenant is separate deployment
@@ -316,7 +316,7 @@ These are valid reasons. Frameworks win on velocity.
 
 ### When Composition Is The Right Call
 
-Use Hono + @hono/aurelia-ssr if:
+Use Hono + @hono/aurelia if:
 1. **You need true architectural flexibility**
 2. **Multi-tenant or multi-deployment is core**
 3. **You can afford extra upfront work**
@@ -426,7 +426,7 @@ This is the wrong choice IF:
 
 ### For Your PoC: Do This
 
-1. **Complete the @hono/aurelia-ssr PoC honestly**
+1. **Complete the @hono/aurelia PoC honestly**
    - Make it work with your monorepo structure
    - Don't hide the complexity
    - Show what's easy, what's hard
@@ -469,7 +469,7 @@ This honesty is **more valuable** than any framework pitch. Teams will respect y
 
 There is no objectively correct choice. Both are right for different situations.
 
-The job of @hono/aurelia-ssr is not to replace frameworks. It's to serve the teams where frameworks don't fit and composition makes sense.
+The job of @hono/aurelia is not to replace frameworks. It's to serve the teams where frameworks don't fit and composition makes sense.
 
 And the job of this document is to help teams **choose wisely** instead of being convinced by marketing.
 

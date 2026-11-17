@@ -1,7 +1,7 @@
-# @hono/aurelia-ssr — PoC Execution Plan
+# @hono/aurelia — PoC Execution Plan
 
 **Status:** Preparing Phase 2-4 Implementation  
-**Branch:** main (packages/hono-aurelia-ssr)  
+**Branch:** main (packages/hono-aurelia)  
 **Timeline:** 3-4 weeks  
 **Objective:** Build, validate, document — THEN propose
 
@@ -69,7 +69,7 @@ Keep existing `apps/{web,api}` as-is. Build new minimal example alongside.
 - New example monorepo: `examples/fullstack-ssr/`
   - `examples/fullstack-ssr/apps/web/` (Aurelia SPA + SSR pages)
   - `examples/fullstack-ssr/apps/api/` (Hono API with loaders)
-  - `examples/fullstack-ssr/packages/ssr/` (symlink to @hono/aurelia-ssr)
+  - `examples/fullstack-ssr/packages/ssr/` (symlink to @hono/aurelia)
 - 3-5 simple pages showing pattern
 - Clean file structure (like Hono JSX examples)
 - Development & build instructions
@@ -209,7 +209,7 @@ Proposal (Dec+):     After everything proven
 
 ### After Phase 7, You Can Say:
 
-> "We built @hono/aurelia-ssr because our architectural requirements didn't fit existing frameworks.
+> "We built @hono/aurelia because our architectural requirements didn't fit existing frameworks.
 > 
 > Here's what we discovered:
 > - **Works:** Real monorepo example, actual SSR rendering, honest performance gains

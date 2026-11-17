@@ -1,6 +1,6 @@
 # DX Validation Checklist
 
-**Phase 5: Verify that @hono/aurelia-ssr pattern is genuinely easy to use**
+**Phase 5: Verify that @hono/aurelia pattern is genuinely easy to use**
 
 Date: 2026-11-13  
 Status: PoC validation phase
@@ -439,7 +439,7 @@ console.log(payload);
 // (network tab shows only server request)
 
 // Check cache status
-import { peekHydrationPayload } from '@hono/aurelia-ssr';
+import { peekHydrationPayload } from '@hono/aurelia';
 console.log(peekHydrationPayload());
 ```
 
@@ -513,7 +513,7 @@ console.log(peekHydrationPayload());
 
 ### Conclusion
 
-**@hono/aurelia-ssr achieves the goal of being genuinely easy to use.**
+**@hono/aurelia achieves the goal of being genuinely easy to use.**
 
 The pattern is:
 - ✅ Simple enough to learn in hours

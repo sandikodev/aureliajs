@@ -6,7 +6,7 @@
       "name": "@aureliajs/ssr-playground",
       "dependencies": {
         "@aureliajs/vite-plugin-aux": "link:../vite-plugin-aux",
-        "@hono/aurelia-ssr": "link:../hono-aurelia-ssr",
+        "@hono/aurelia": "link:../hono-aurelia",
         "@hono/node-server": "^1.19.19",
         "aurelia": "^2.0.0-rc.2",
         "hono": "^4.7.4",
@@ -55,7 +55,7 @@
 
     "@csstools/css-tokenizer": ["@csstools/css-tokenizer@3.0.4", "", {}, "sha512-Vd/9EVDiu6PPJt9yAh6roZP6El1xHrdvIVGjyBsHR0RYwNHgL7FJPyIIW4fANJNG6FtyZfvlRPpFI4ZM/lubvw=="],
 
-    "@hono/aurelia-ssr": ["@hono/aurelia-ssr@link:../hono-aurelia-ssr", {}],
+    "@hono/aurelia": ["@hono/aurelia@link:../hono-aurelia", {}],
 
     "@hono/node-server": ["@hono/node-server@1.19.19", "", { "peerDependencies": { "hono": "^4" } }, "sha512-Fy9R7PACOzHU9LDpfnuzVyuVYevKQRcEG2mZhmfc+DRdmayEd3RVfa2XOt2IgGcPNgA77Yk63KBszepcMFK5Ng=="],
 

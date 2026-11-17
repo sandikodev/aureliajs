@@ -43,7 +43,7 @@ This monorepo serves as the definitive reference and innovation lab:
 ```
 aureliajs/
 ├── packages/
-│   ├── hono-aurelia-ssr/     # Official Hono SSR & Client Hydration Engine
+│   ├── hono-aurelia/     # Official Hono SSR & Client Hydration Engine
 │   ├── vite-plugin-aux/      # Vite compiler for .aux Single-File Components
 │   ├── vscode-aux/           # VS Code Language Extension for .aux SFCs
 │   ├── ssr-playground/       # Interactive Web GUI & TUI SSR Inspector
@@ -57,7 +57,7 @@ aureliajs/
 
 | Package / App | Path | Description | Tech Stack | Test Status |
 |---|---|---|---|---|
-| **`@hono/aurelia-ssr`** | [`packages/hono-aurelia-ssr`](packages/hono-aurelia-ssr) | Subpath-isolated SSR engine for Hono with context extraction, XSS sanitization, and state hydration | Hono, Aurelia 2, JSDOM | ✅ **133 / 133 Passing** |
+| **`@hono/aurelia`** | [`packages/hono-aurelia`](packages/hono-aurelia) | Subpath-isolated SSR engine for Hono with context extraction, XSS sanitization, and state hydration | Hono, Aurelia 2, JSDOM | ✅ **133 / 133 Passing** |
 | **`@aureliajs/vite-plugin-aux`** | [`packages/vite-plugin-aux`](packages/vite-plugin-aux) | Vite transformation plugin compiling `.aux` SFCs into canonical Aurelia 2 `@customElement` classes | Vite 8, TypeScript | ✅ Verified |
 | **`@aureliajs/vscode-aux`** | [`packages/vscode-aux`](packages/vscode-aux) | Official IDE extension providing syntax highlighting, template completion, and Stage 3 decorator support | VS Code API, TextMate | ✅ Packaged |
 | **`@aureliajs/ssr-playground`** | [`packages/ssr-playground`](packages/ssr-playground) | Interactive Web GUI & TUI Playground with live AST/SSR inspection and 16 official canonical examples | Bun, Hono, PrismJS | ✅ **24 / 24 Passing** |
@@ -242,8 +242,8 @@ pnpm typecheck
 # 2. Run lightning-fast linting with Oxlint (0 warnings / 0 errors)
 pnpm lint
 
-# 3. Test @hono/aurelia-ssr unit suite (133 tests)
-bun test packages/hono-aurelia-ssr
+# 3. Test @hono/aurelia unit suite (133 tests)
+bun test packages/hono-aurelia
 
 # 4. Test SSR Playground compiler & hydration suite (24 tests)
 bun test packages/ssr-playground

@@ -41,7 +41,7 @@ This transforms Aurelia from "SPA-only framework" to "fullstack framework" — p
 
 ## What We're Building
 
-### Deliverable: @hono/aurelia-ssr Package
+### Deliverable: @hono/aurelia Package
 
 **Core capability:**
 ```typescript
@@ -131,7 +131,7 @@ app.get('/dashboard', aurelia({
 - ✅ Typecheck: 100% pass
 
 ### Market
-- 📦 npm package published (@hono/aurelia-ssr)
+- 📦 npm package published (@hono/aurelia)
 - ⭐ 100+ GitHub stars (if open-source)
 - 📝 Blog post: "Why SPA + API is Broken (And How to Fix It)"
 - 💼 Upwork case study: "Enterprise Aurelia + Hono Fullstack"

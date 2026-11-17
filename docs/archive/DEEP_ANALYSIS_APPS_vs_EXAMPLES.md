@@ -3,7 +3,7 @@
 
 **Date:** 2026-11-13 09:09 UTC  
 **Analysis Scope:** Comparing `/apps/{web,api}` with `/examples/fullstack-ssr`  
-**Goal:** Identify drift from clean `@hono/aurelia-ssr` implementation patterns
+**Goal:** Identify drift from clean `@hono/aurelia` implementation patterns
 
 ---
 
@@ -15,7 +15,7 @@
   - Built for REAL use case: multi-tenant SaaS
   - Complex auth, billing, team management
   - Heavy coupling to business logic
-  - NOT following `@hono/aurelia-ssr` patterns cleanly
+  - NOT following `@hono/aurelia` patterns cleanly
 
 - **`/examples/fullstack-ssr`**: Minimal SSR example
   - Single-server pattern (DIFFERENT architecture)
@@ -24,7 +24,7 @@
   - Demonstrates library API clearly
 
 ### Key Finding
-⚠️ **The `/apps` monorepo DOES NOT use `@hono/aurelia-ssr`**
+⚠️ **The `/apps` monorepo DOES NOT use `@hono/aurelia`**
 
 The `/apps` directory is **NOT an implementation client of the library** — it's a **separate production project** that HAPPENS to use Hono on the backend and Aurelia on the frontend, but with its own custom SSR patterns, auth middleware, routing system, and deployment strategy.
 
@@ -187,7 +187,7 @@ app.onError((error, c) => errorResponse(c, error));
 
 ### Answer: **NO — And This Is Correct** ✅
 
-**Why `/apps` SHOULD NOT use `@hono/aurelia-ssr`**:
+**Why `/apps` SHOULD NOT use `@hono/aurelia`**:
 
 1. **Mismatched Deployment Model**
    - Library assumes: SSR component → HTML serialization → client hydration
@@ -206,7 +206,7 @@ app.onError((error, c) => errorResponse(c, error));
 
 ### Real-World Comparison
 
-**`@hono/aurelia-ssr` is for**:
+**`@hono/aurelia` is for**:
 - Blog sites (need SEO, need server render)
 - Content platforms (posts, articles, etc.)
 - Public-facing pages (landing, docs)
@@ -251,7 +251,7 @@ export const HomePage = {
 ```typescript
 import { customElement } from 'aurelia';
 import template from './home.html';
-import { hydrateFromServer } from '@hono/aurelia-ssr';
+import { hydrateFromServer } from '@hono/aurelia';
 
 @customElement({ name: 'home-page', template })
 export class HomePage {
@@ -310,7 +310,7 @@ docker run -p 3000:3000 example
 // examples/fullstack-ssr/src/pages/home.ts
 import { customElement, inject } from 'aurelia';
 import template from './home.html';
-import type { RenderContext } from '@hono/aurelia-ssr';
+import type { RenderContext } from '@hono/aurelia';
 
 @customElement({ name: 'home-page', template })
 export class HomePage {
@@ -482,7 +482,7 @@ const loaders = {
 |----------|--------|-----------|
 | Should `/apps` adopt `/examples` structure? | **NO** | `/apps` is production SPA, `/examples` is SSR showcase |
 | Should `/examples` adopt `/apps` auth? | **NO** | Would over-complicate library example |
-| Should they share libraries? | **YES** | Both use `@hono/aurelia-ssr` from `packages/` |
+| Should they share libraries? | **YES** | Both use `@hono/aurelia` from `packages/` |
 | Should they share types? | **MAYBE** | Only shared types from `packages/shared/` |
 | Should they share middleware? | **NO** | Patterns are fundamentally different |
 
@@ -527,7 +527,7 @@ The example needs:
 ## CONCLUSION
 
 ### The Library is CLEAN ✅
-- `packages/hono-aurelia-ssr/src/` follows all best practices
+- `packages/hono-aurelia/src/` follows all best practices
 - Types are correct, tests pass, documentation is comprehensive
 - Ready for production use
 

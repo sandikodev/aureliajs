@@ -167,7 +167,7 @@ export async function renderToString(
 ```
 
 **Deliverables:**
-- `@hono/aurelia-ssr` npm package
+- `@hono/aurelia` npm package
 - `renderAurelia(component, context)` function
 - Support for component lifecycle (`attached()`)
 - Context injection (auth, workspace, role)
@@ -245,7 +245,7 @@ export function createHtmlDocument(
 
 ```typescript
 // apps/web/src/hydration.ts (NEW)
-import type { HydrationPayload } from '@hono/aurelia-ssr';
+import type { HydrationPayload } from '@hono/aurelia';
 
 export async function hydrateFromServer(): Promise<HydrationPayload | null> {
   const payload = (window as any).__HYDRATION__;
@@ -469,7 +469,7 @@ User Action        Timeline
 ## File Structure: New Package
 
 ```
-@hono/aurelia-ssr/
+@hono/aurelia/
 ├── src/
 │   ├── render.ts           # Render components to HTML
 │   ├── renderer.ts         # Template rendering engine
@@ -524,7 +524,7 @@ apps/
 
 **Key file: api/src/routes/pages.ts**
 ```typescript
-import { aurelia } from '@hono/aurelia-ssr';
+import { aurelia } from '@hono/aurelia';
 import { DashboardPage } from '@web/pages/dashboard-page';
 import { ProjectsPage } from '@web/pages/projects-page';
 
@@ -687,7 +687,7 @@ Week 4 (Dec 4-10)      Polish & Release
 ## Next Steps
 
 1. **Get alignment** — Confirm scope, timeline, resource allocation
-2. **Create npm package** — Set up @hono/aurelia-ssr workspace
+2. **Create npm package** — Set up @hono/aurelia workspace
 3. **Implement Phase 1** — Start with renderer, add tests
 4. **Iterate** — Each phase feeds into next
 5. **Release** — npm + GitHub + blog post + Upwork case study
@@ -698,7 +698,7 @@ Week 4 (Dec 4-10)      Polish & Release
 
 1. Should we start with this proposal, or refine the architecture first?
 2. Is ~4 weeks realistic given current project load?
-3. Should we keep it as `@hono/aurelia-ssr` or propose to upstream Hono?
+3. Should we keep it as `@hono/aurelia` or propose to upstream Hono?
 4. How do we handle different Aurelia versions (2.x, future 3.x)?
 5. Do we need to support Aurelia's component shadow DOM in SSR?
 

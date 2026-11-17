@@ -10,7 +10,7 @@ import { parseAux, compileAux } from '@aureliajs/vite-plugin-aux';
 import { lintAureliaFiles, type LintDiagnostic } from './linter.js';
 import { getPreviewStylesheet } from '../server/assets.js';
 import { loadAllExamples } from '../examples/loader.js';
-import type { RenderContext } from '@hono/aurelia-ssr';
+import type { RenderContext } from '@hono/aurelia';
 
 export interface CompileRequest {
   exampleId: string;

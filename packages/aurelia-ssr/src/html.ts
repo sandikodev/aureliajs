@@ -1,5 +1,5 @@
 /**
- * @hono/aurelia-ssr HTML Document Builder
+ * @hono/aurelia HTML Document Builder
  * 
  * Build complete HTML documents with hydration payload injection.
  */

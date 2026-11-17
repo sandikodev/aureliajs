@@ -261,7 +261,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         ↻ Reset
       </button>
 
-      <a href="https://github.com/sandikodev/hono-aurelia-ssr" target="_blank" class="text-[11px] text-gray-400 hover:text-gray-200 transition pl-1">
+      <a href="https://github.com/sandikodev/hono-aurelia" target="_blank" class="text-[11px] text-gray-400 hover:text-gray-200 transition pl-1">
         GitHub ↗
       </a>
     </div>

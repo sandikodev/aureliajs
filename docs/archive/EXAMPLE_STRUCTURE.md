@@ -136,7 +136,7 @@ GET /about → Static page
 
 ```typescript
 import { Hono } from 'hono'
-import { renderAurelia, serializeState, createHtmlDocument } from '@hono/aurelia-ssr'
+import { renderAurelia, serializeState, createHtmlDocument } from '@hono/aurelia'
 import * as pages from './pages'
 import * as apiRoutes from './api'
 import * as loaders from './loaders'

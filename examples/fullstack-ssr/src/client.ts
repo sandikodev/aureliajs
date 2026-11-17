@@ -1,4 +1,4 @@
-import { createClientHydrator } from '@hono/aurelia-ssr/client';
+import { createClientHydrator } from '@hono/aurelia/client';
 import { HomePage } from './pages/home.js';
 import { PostDetailPage } from './pages/post-detail.js';
 import { DashboardPage } from './pages/dashboard.js';

@@ -3,7 +3,7 @@
 **Status:** Architecture Definition  
 **Version:** 1.0  
 **Date:** 2026-11-13  
-**For:** @hono/aurelia-ssr package & integration
+**For:** @hono/aurelia package & integration
 
 ---
 
@@ -60,7 +60,7 @@ Status: INTERACTIVE (auth ✓)     └─ No refetch needed
 
 ## 2. Component Architecture
 
-### 2.1 @hono/aurelia-ssr Package
+### 2.1 @hono/aurelia Package
 
 ```typescript
 // Public API Surface
@@ -516,7 +516,7 @@ app.get('/api/projects', projectsHandler);   // JSON only
 **After:**
 ```typescript
 // routes/pages.ts (NEW)
-import { aurelia } from '@hono/aurelia-ssr';
+import { aurelia } from '@hono/aurelia';
 import { DashboardPage } from '@web/pages/dashboard-page';
 import { ProjectsPage } from '@web/pages/projects-page';
 
@@ -748,7 +748,7 @@ test('dashboard renders consistently', async () => {
 
 ### 8.3 Bundle Size Impact
 
-**@hono/aurelia-ssr package:**
+**@hono/aurelia package:**
 - Minified: ~15 KB
 - Gzipped: ~5 KB
 - Runtime overhead: < 100ms
@@ -801,7 +801,7 @@ return c.html(`
 ### 10.1 Unit Tests
 
 ```typescript
-describe('@hono/aurelia-ssr', () => {
+describe('@hono/aurelia', () => {
   describe('renderAurelia()', () => {
     it('renders simple component', async () => { ... });
     it('calls attached() lifecycle', async () => { ... });
@@ -861,7 +861,7 @@ describe('Hono + Aurelia integration', () => {
 ## 11. Migration Path (Existing Project)
 
 ### Phase 1: No-op
-- Deploy @hono/aurelia-ssr (unused)
+- Deploy @hono/aurelia (unused)
 - All routes still SPA
 
 ### Phase 2: Opt-in

@@ -74,7 +74,7 @@ function ensureSessionStorage(): Storage {
  * @example
  * ```typescript
  * // In app.ts (Aurelia bootstrapping)
- * import { hydrateFromServer } from '@hono/aurelia-ssr'
+ * import { hydrateFromServer } from '@hono/aurelia'
  * 
  * const hydration = hydrateFromServer()
  * if (hydration) {
