@@ -17,12 +17,12 @@
     "noEmit": true,
     "declaration": false,
     "sourceMap": true,
-    "baseUrl": ".",
+    "types": ["node"],
     "paths": {
-      "@/*": ["src/*"],
-      "@components/*": ["src/components/*"],
-      "@bridge/*": ["src/bridge/*"],
-      "@frameworks/*": ["src/bridge/frameworks/*"]
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"],
+      "@bridge/*": ["./src/bridge/*"],
+      "@frameworks/*": ["./src/bridge/frameworks/*"]
     }
   },
   "include": ["src/**/*"],

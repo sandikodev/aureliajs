@@ -282,7 +282,7 @@ async function build() {
           code = `import { createLitAdapter } from '@aureliajs/bridge/adapters';\nimport Component from '${src}';\nexport const adapter = createLitAdapter();\nexport const component = Component;\nexport default Component;\n`;
           break;
         case 'htmx':
-          code = `import htmx from 'htmx.org';\nexport default htmx;\n`;
+          code = `import htmx from 'htmx.org';\nhtmx.config.allowEval = false;\nhtmx.config.selfRequestsOnly = true;\nexport default htmx;\n`;
           break;
       }
       writeFileSync(entryPath, code, 'utf8');
@@ -361,9 +361,9 @@ async function build() {
         id: 'htmx',
         name: 'HTMX 2 Hypermedia',
         trigger: 'au-htmx attribute',
-        sourceFile: 'src/bridge/frameworks/htmx.ts',
+        sourceFile: 'src/bridge/frameworks/htmx.html',
         chunkFile: 'htmx-runtime.js',
-        compiler: 'Native HTML attributes + htmx.org@2 via au-htmx Custom Attribute',
+        compiler: 'Zero-JS Compiler (Native HTML Hypermedia Engine)',
         plugins: [],
       },
     ];
@@ -383,7 +383,9 @@ async function build() {
       const sourceCode = readFileSync(resolve(root, spec.sourceFile), 'utf8');
       const snapshot = compiledSnapshots.get(spec.id);
       let compiledPreview = snapshot ? snapshot.slice(0, 1500) : '';
-      if (!compiledPreview && typeof Bun !== 'undefined') {
+      if (!compiledPreview && spec.id === 'htmx') {
+        compiledPreview = `<!-- Zero Compilation Step: Pure HTML Hypermedia Fragment -->\n<!-- Enhanced dynamically at runtime by Aurelia 2 via the \`au-htmx\` custom attribute -->\n${sourceCode.trim()}`;
+      } else if (!compiledPreview && typeof Bun !== 'undefined') {
         try {
           const transpiler = new (Bun as any).Transpiler({
             loader: spec.sourceFile.endsWith('.ts') ? 'ts' : 'tsx',

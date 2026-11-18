@@ -35,7 +35,7 @@ const DEFAULT_FALLBACK_MANIFEST: BridgeManifest = {
     { id: 'solid', name: 'SolidJS 1.9', trigger: 'island="visible"', sourceFile: 'src/bridge/frameworks/Widget.solid.tsx', compiler: 'Babel SolidJS', chunkUrl: '/public/bridge/chunks/solid-widget.js', rawBytes: 0, gzipBytes: 0, sourceCode: '', compiledPreview: '' },
     { id: 'qwik', name: 'Qwik 1.20', trigger: 'island="visible"', sourceFile: 'src/bridge/frameworks/Widget.qwik.tsx', compiler: 'Bun TSX', chunkUrl: '/public/bridge/chunks/qwik-widget.js', rawBytes: 0, gzipBytes: 0, sourceCode: '', compiledPreview: '' },
     { id: 'lit', name: 'Lit 3', trigger: 'island="visible"', sourceFile: 'src/bridge/frameworks/Widget.lit.ts', compiler: 'Bun TS', chunkUrl: '/public/bridge/chunks/lit-widget.js', rawBytes: 0, gzipBytes: 0, sourceCode: '', compiledPreview: '' },
-    { id: 'htmx', name: 'HTMX 2', trigger: 'au-htmx attribute', sourceFile: 'src/bridge/frameworks/htmx.ts', compiler: 'Bun ESM', chunkUrl: '/public/bridge/chunks/htmx-runtime.js', rawBytes: 0, gzipBytes: 0, sourceCode: '', compiledPreview: '' },
+    { id: 'htmx', name: 'HTMX 2', trigger: 'au-htmx attribute', sourceFile: 'src/bridge/frameworks/htmx.html', compiler: 'Zero Compiler (Native HTML Hypermedia)', chunkUrl: '/public/bridge/chunks/htmx-runtime.js', rawBytes: 0, gzipBytes: 0, sourceCode: '', compiledPreview: '' },
     { id: 'aurelia-aux', name: 'Aurelia 2 .aux', trigger: 'island="visible"', sourceFile: 'src/components/pricing-island.aux', compiler: '@aureliajs/vite-plugin-aux', chunkUrl: '/public/islands/pricing.js', rawBytes: 0, gzipBytes: 0, sourceCode: '', compiledPreview: '' },
   ],
 };
