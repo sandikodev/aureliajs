@@ -277,12 +277,12 @@
         <div class="telemetry-host-pills">
           <div class="host-pill">
             <span class="pill-label">Bridge Host Shell:</span>
-            <strong>${formatKb(manifest.bridgeHost.rawBytes)} (${formatKb(manifest.bridgeHost.gzipBytes)} gz)</strong>
+            <strong class="nowrap">${formatKb(manifest.bridgeHost.rawBytes)} <span class="muted">(${formatKb(manifest.bridgeHost.gzipBytes)} gz)</span></strong>
             <span class="pill-note">(0 KB foreign frameworks)</span>
           </div>
           <div class="host-pill">
             <span class="pill-label">Zero-JS Loader:</span>
-            <strong>${formatKb(manifest.islandLoader.rawBytes)} (${formatKb(manifest.islandLoader.gzipBytes)} gz)</strong>
+            <strong class="nowrap">${formatKb(manifest.islandLoader.rawBytes)} <span class="muted">(${formatKb(manifest.islandLoader.gzipBytes)} gz)</span></strong>
             <span class="pill-note">(Standalone scheduler)</span>
           </div>
         </div>
@@ -292,20 +292,25 @@
         <table class="manifest-table">
           <thead>
             <tr>
-              <th>Framework</th>
-              <th>Native Source File</th>
-              <th>Hydration Trigger</th>
-              <th>Compiler Toolchain</th>
-              <th>Bundle Size</th>
+              <th class="col-fw">Framework</th>
+              <th class="col-source">Native Source File</th>
+              <th class="col-trigger">Hydration Trigger</th>
+              <th class="col-compiler">Compiler Toolchain</th>
+              <th class="col-size">Bundle Size</th>
             </tr>
           </thead>
           <tbody>
             <tr repeat.for="fw of manifest.frameworks">
-              <td><strong>${fw.name}</strong></td>
-              <td><code>${fw.sourceFile}</code></td>
-              <td><span class="trigger-badge badge-${fw.id}">${fw.trigger}</span></td>
-              <td>${fw.compiler}</td>
-              <td><strong>${formatKb(fw.rawBytes)}</strong> <span class="muted">(${formatKb(fw.gzipBytes)} gz)</span></td>
+              <td class="col-fw"><strong>${fw.name}</strong></td>
+              <td class="col-source"><code>${fw.sourceFile}</code></td>
+              <td class="col-trigger"><span class="trigger-badge badge-${fw.id}">${fw.trigger}</span></td>
+              <td class="col-compiler">${fw.compiler}</td>
+              <td class="col-size">
+                <span class="bundle-size-nowrap">
+                  <strong>${formatKb(fw.rawBytes)}</strong>
+                  <span class="size-gz">(${formatKb(fw.gzipBytes)} gz)</span>
+                </span>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -340,13 +345,24 @@
       <!-- Detail Box for selected framework -->
       <div class="inspector-detail-box" if.bind="currentInspectorRecord">
         <div class="inspector-meta-bar">
-          <div>
-            <strong>${currentInspectorRecord.name}</strong>
-            <span class="muted">| Compiler:</span> ${currentInspectorRecord.compiler}
+          <div class="meta-row meta-row-primary">
+            <span class="meta-item">
+              <strong class="meta-fw-title">${currentInspectorRecord.name}</strong>
+              <span class="meta-divider">|</span>
+              <span class="muted">Compiler:</span>
+              <span class="meta-compiler-tag">${currentInspectorRecord.compiler}</span>
+            </span>
           </div>
-          <div>
-            <span class="muted">Chunk:</span> <code>${currentInspectorRecord.chunkUrl}</code>
-            <span class="muted">| Size:</span> <strong>${formatKb(currentInspectorRecord.rawBytes)}</strong> (${formatKb(currentInspectorRecord.gzipBytes)} gz)
+          <div class="meta-row meta-row-secondary">
+            <span class="meta-item meta-chunk-item">
+              <span class="muted">Chunk:</span>
+              <code>${currentInspectorRecord.chunkUrl}</code>
+            </span>
+            <span class="meta-item meta-size-item nowrap">
+              <span class="muted">Bundle Size:</span>
+              <strong>${formatKb(currentInspectorRecord.rawBytes)}</strong>
+              <span class="muted">(${formatKb(currentInspectorRecord.gzipBytes)} gz)</span>
+            </span>
           </div>
         </div>
 
