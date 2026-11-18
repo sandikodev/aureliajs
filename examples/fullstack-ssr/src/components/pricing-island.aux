@@ -1,0 +1,16 @@
+<template island="visible" root-margin="200px">
+  <section class="pricing-island">
+    <h2>${plan} Plan</h2>
+    <p>Seats: ${seats} — Total: $${seats * 15}/mo</p>
+    <button type="button" click.trigger="addSeat()">Add Seat (+1)</button>
+  </section>
+</template>
+
+<script setup lang="ts">
+let plan: string = 'Pro';
+let seats: number = 5;
+
+function addSeat() {
+  this.seats++;
+}
+</script>

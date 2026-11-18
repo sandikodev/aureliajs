@@ -13,7 +13,7 @@ describe('examples/fullstack-ssr integration tests', () => {
     expect(html).toContain('<!DOCTYPE html>');
     expect(html).toContain('Hono + Aurelia 2 SSR - Engineering Blog');
     expect(html).toContain('Hono + Aurelia 2 SSR Architecture');
-    expect(html).toContain('window.__HYDRATION__');
+    expect(html).toContain('id="__AURELIA_SSR_DATA__" type="application/json"');
   });
 
   it('serves JSON payload via content negotiation on the same route', async () => {
@@ -76,5 +76,45 @@ describe('examples/fullstack-ssr integration tests', () => {
     const html = await res.text();
     expect(html).toContain('Telemetry Dashboard');
     expect(html).toContain('Production Metrics');
+  });
+
+  it('renders Zero-JS selective hydration island route from <template island="visible">', async () => {
+    const res = await app.request('http://localhost:3000/islands', {
+      headers: { Accept: 'text/html' },
+    });
+
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain('Zero-JS HTML-First Architecture');
+    expect(html).not.toContain('/public/client.js');
+    expect(html).toContain('<pricing-island ');
+    expect(html).toContain('data-au-island="visible"');
+    expect(html).toContain('data-au-root-margin="200px"');
+    expect(html).toContain('data-au-src="/public/islands/pricing.js"');
+    expect(html).toContain('Pro Plan');
+    expect(html).toContain('Total: $75/mo');
+    expect(html).toContain('<script type="application/json" data-au-island-data>');
+  });
+
+  it('serves /bridge polyglot showcase with compiler manifest and HTMX pulse endpoint', async () => {
+    const res = await app.request('http://localhost:3000/bridge', {
+      headers: { Accept: 'text/html' },
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain('Aurelia 2 Polyglot Bridge + Orthogonal Islands');
+    expect(html).toContain('/public/bridge/app.js');
+    expect(html).toContain('ReactWidget.tsx');
+    expect(html).toContain('VueWidget.vue');
+    expect(html).toContain('SvelteWidget.svelte');
+    expect(html).toContain('Widget.solid.tsx');
+    expect(html).toContain('Widget.preact.tsx');
+    expect(html).toContain('Widget.qwik.tsx');
+    expect(html).toContain('Widget.lit.ts');
+
+    const htmxRes = await app.request('http://localhost:3000/api/htmx/pulse');
+    expect(htmxRes.status).toBe(200);
+    const fragment = await htmxRes.text();
+    expect(fragment).toContain('HTMX Server Swap #');
   });
 });

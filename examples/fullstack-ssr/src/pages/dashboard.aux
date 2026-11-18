@@ -15,33 +15,34 @@ let error = '';
 
 async function refresh() {
   if (typeof fetch === 'undefined') return;
-  loading = true;
-  error = '';
+  this.loading = true;
+  this.error = '';
   try {
     const res = await fetch('/api/dashboard/stats', {
       headers: { 'Accept': 'application/json' },
     });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data = (await res.json()) as { stats?: DashboardStats; activity?: ActivityItem[] };
-    if (data.stats) stats = data.stats;
-    if (data.activity) activity = data.activity;
+    if (data.stats) this.stats = data.stats;
+    if (data.activity) this.activity = data.activity;
   } catch (err) {
-    error = err instanceof Error ? err.message : String(err);
+    this.error = err instanceof Error ? err.message : String(err);
   } finally {
-    loading = false;
+    this.loading = false;
   }
 }
 </script>
 
 <script server lang="ts">
 export const title = 'Telemetry Dashboard - Aurelia 2 SSR';
-export const requiresAuth = true;
 
-export async function loader() {
+export async function loader(c: any) {
   const { dashboardStats, activityStream } = await import('../data.js');
   return {
     stats: dashboardStats,
     activity: activityStream,
+    user: c.get('user') ?? null,
+    role: c.get('role') ?? null,
   };
 }
 </script>
@@ -51,23 +52,31 @@ export async function loader() {
     <nav class="navbar">
       <div class="nav-container">
         <div class="brand">
-          <a href="/">⚡ Aurelia 2 + Hono</a>
-          <span class="brand-badge">Dashboard (Protected)</span>
+          <a href="/" class="brand-link">
+            <svg class="brand-logo" width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="46" stroke="#ed2578" stroke-width="8"/>
+              <circle cx="50" cy="50" r="24" fill="#ed2578"/>
+            </svg>
+            <span class="brand-title">Aurelia <span class="brand-accent">2</span></span>
+            <span class="brand-divider">/</span>
+            <span class="brand-sub">Hono SSR</span>
+          </a>
         </div>
         <div class="nav-links">
-          <a href="/">Home</a>
-          <a href="/dashboard" target="_blank">Stats (JSON)</a>
-          <a href="https://github.com/sandikodev/hono-aurelia" target="_blank">GitHub</a>
+          <a href="/" class="nav-item">Overview</a>
+          <a href="/islands" class="nav-item">Zero-JS Islands</a>
+          <a href="/bridge" class="nav-item">Polyglot Bridge</a>
+          <a href="/dashboard?token=demo-token" class="nav-item is-active">Telemetry</a>
         </div>
       </div>
     </nav>
 
     <main class="page-container">
-      <header class="article-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+      <header class="dashboard-header">
         <div>
-          <h1 class="article-title" style="font-size: 2.2rem; margin-bottom: 0.5rem;">${stats.title}</h1>
-          <p style="color: var(--text-muted); font-size: 1rem;">
-            Protected telemetry session authenticated as <strong>${user ? user.name : 'Operator'}</strong> (${role || 'Owner'})
+          <h1 class="dashboard-title">${stats.title}</h1>
+          <p class="dashboard-sub">
+            Session authenticated as <strong>${user ? user.name : 'Operator'}</strong> (${role || 'Owner'})
           </p>
         </div>
         <button click.trigger="refresh()" class="btn btn-outline" disabled.bind="loading">

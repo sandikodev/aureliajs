@@ -1,5 +1,3 @@
-<import from="../components/ssr-badge.aux"></import>
-
 <script setup lang="ts">
 import type { Post } from '../data.js';
 
@@ -39,15 +37,22 @@ export async function loader() {
     <nav class="navbar">
       <div class="nav-container">
         <div class="brand">
-          <span>⚡ Aurelia 2 + Hono</span>
-          <span class="brand-badge">SSR &amp; Hydration</span>
-          <ssr-badge text="SFC .aux Live"></ssr-badge>
+          <a href="/" class="brand-link">
+            <svg class="brand-logo" width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="46" stroke="#ed2578" stroke-width="8"/>
+              <circle cx="50" cy="50" r="24" fill="#ed2578"/>
+            </svg>
+            <span class="brand-title">Aurelia <span class="brand-accent">2</span></span>
+            <span class="brand-divider">/</span>
+            <span class="brand-sub">Hono SSR</span>
+          </a>
         </div>
         <div class="nav-links">
-          <a href="/">Home</a>
-          <a href="/dashboard?token=demo-token">Dashboard</a>
-          <a href="/api/posts" target="_blank">API (JSON)</a>
-          <a href="https://github.com/sandikodev/hono-aurelia" target="_blank">GitHub</a>
+          <a href="/" class="nav-item is-active">Overview</a>
+          <a href="/islands" class="nav-item">Zero-JS Islands</a>
+          <a href="/bridge" class="nav-item">Polyglot Bridge</a>
+          <a href="/dashboard?token=demo-token" class="nav-item">Telemetry</a>
+          <a href="/api/posts" target="_blank" class="nav-item">API (JSON)</a>
         </div>
       </div>
     </nav>
@@ -55,17 +60,11 @@ export async function loader() {
     <main class="page-container">
       <section class="hero">
         <h1>Aurelia 2 Fullstack SSR</h1>
-        <p>Instant server-rendered HTML powered by Hono with progressive zero-overhead client hydration.</p>
-        <div class="hero-tags">
-          <span class="tag">🚀 Direct DOM Rendering</span>
-          <span class="tag">🛡️ Request-Scoped Isolation</span>
-          <span class="tag">⚡ Zero-FOUC</span>
-          <span class="tag">📦 window.__HYDRATION__</span>
-        </div>
+        <p class="hero-subtitle">Server-rendered HTML powered by Hono with progressive zero-overhead client hydration.</p>
       </section>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; margin-bottom: 1rem;">
-        <h2 style="font-size: 1.5rem; font-weight: 700;">Featured Engineering Articles</h2>
+      <div class="section-header">
+        <h2>Featured Engineering Articles</h2>
         <button click.trigger="refresh()" class="btn btn-outline" style="font-size: 0.85rem;">
           ${loading ? 'Refreshing...' : '🔄 Refresh Data'}
         </button>

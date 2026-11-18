@@ -16,8 +16,19 @@
     "noFallthroughCasesInSwitch": true,
     "noEmit": true,
     "declaration": false,
-    "sourceMap": true
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@components/*": ["src/components/*"],
+      "@bridge/*": ["src/bridge/*"],
+      "@frameworks/*": ["src/bridge/frameworks/*"]
+    }
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/bridge/frameworks/*.tsx"
+  ]
 }

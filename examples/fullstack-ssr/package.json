@@ -13,21 +13,30 @@
     "lint": "echo 'No linter configured yet'"
   },
   "dependencies": {
-    "@aureliajs/ssr": "link:../../packages/aurelia-ssr",
-    "@aureliajs/vite-plugin-aux": "link:../../packages/vite-plugin-aux",
-    "@hono/aurelia": "link:../../packages/hono-aurelia",
+    "@aureliajs/bridge": "workspace:*",
+    "@aureliajs/islands": "workspace:*",
+    "@aureliajs/ssr": "workspace:*",
+    "@aureliajs/vite-plugin-aux": "workspace:*",
+    "@builder.io/qwik": "1.20.4",
+    "@hono/aurelia": "workspace:*",
     "@hono/node-server": "^1.12.0",
     "aurelia": "^2.0.0-rc.2",
-    "hono": "^4.0.0"
+    "hono": "^4.0.0",
+    "htmx.org": "^2.0.4",
+    "lit": "^3.2.0",
+    "preact": "11.2.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "solid-js": "1.9.19",
+    "svelte": "5.57.3",
+    "vue": "3.5.45"
   },
   "devDependencies": {
+    "@babel/core": "7.29.13",
+    "@babel/preset-typescript": "7.29.7",
     "@types/node": "^22.0.0",
-    "typescript": "^5.4.0",
-    "tsx": "^4.0.0"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
+    "@vue/compiler-sfc": "3.5.45",
+    "babel-preset-solid": "1.9.19",
+    "typescript": "^5.4.0"
   }
 }

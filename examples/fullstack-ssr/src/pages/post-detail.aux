@@ -8,9 +8,9 @@ let newAuthor = '';
 let newComment = '';
 
 async function clap() {
-  if (!post || clapping) return;
-  clapping = true;
-  post.claps += 1;
+  if (!this.post || this.clapping) return;
+  this.clapping = true;
+  this.post.claps += 1;
   try {
     const res = await fetch(`${window.location.pathname}?_action=like`, {
       method: 'POST',
@@ -19,24 +19,24 @@ async function clap() {
     if (res.ok) {
       const result = await res.json() as { claps?: number };
       if (typeof result.claps === 'number') {
-        post.claps = result.claps;
+        this.post.claps = result.claps;
       }
     }
   } catch (err) {
     console.error('Failed to register clap:', err);
   } finally {
-    clapping = false;
+    this.clapping = false;
   }
 }
 
 async function addComment(event: Event) {
   event.preventDefault();
-  if (!post || submitting || !newComment.trim()) return;
+  if (!this.post || this.submitting || !this.newComment.trim()) return;
 
-  submitting = true;
+  this.submitting = true;
   const payload = {
-    author: newAuthor.trim() || 'Anonymous Engineer',
-    text: newComment.trim(),
+    author: this.newAuthor.trim() || 'Anonymous Engineer',
+    text: this.newComment.trim(),
   };
 
   try {
@@ -52,21 +52,21 @@ async function addComment(event: Event) {
     if (res.ok) {
       const data = await res.json() as { comment?: any };
       if (data.comment) {
-        post.comments.push(data.comment);
+        this.post.comments.push(data.comment);
       } else {
-        post.comments.push({
+        this.post.comments.push({
           id: Date.now(),
           author: payload.author,
           text: payload.text,
           date: 'Just now',
         });
       }
-      newComment = '';
+      this.newComment = '';
     }
   } catch (err) {
     console.error('Failed to post comment:', err);
   } finally {
-    submitting = false;
+    this.submitting = false;
   }
 }
 </script>
@@ -114,12 +114,21 @@ export const actions = {
     <nav class="navbar">
       <div class="nav-container">
         <div class="brand">
-          <a href="/">⚡ Aurelia 2 + Hono</a>
-          <span class="brand-badge">Article</span>
+          <a href="/" class="brand-link">
+            <svg class="brand-logo" width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="46" stroke="#ed2578" stroke-width="8"/>
+              <circle cx="50" cy="50" r="24" fill="#ed2578"/>
+            </svg>
+            <span class="brand-title">Aurelia <span class="brand-accent">2</span></span>
+            <span class="brand-divider">/</span>
+            <span class="brand-sub">Hono SSR</span>
+          </a>
         </div>
         <div class="nav-links">
-          <a href="/">← Back to Articles</a>
-          <a href="/dashboard?token=demo-token">Dashboard</a>
+          <a href="/" class="nav-item">Overview</a>
+          <a href="/islands" class="nav-item">Zero-JS Islands</a>
+          <a href="/bridge" class="nav-item">Polyglot Bridge</a>
+          <a href="/dashboard?token=demo-token" class="nav-item">Telemetry</a>
         </div>
       </div>
     </nav>
@@ -128,13 +137,16 @@ export const actions = {
       <div if.bind="!post" class="card" style="text-align: center; padding: 3rem;">
         <h2>Article Not Found</h2>
         <p style="color: var(--text-muted); margin: 1rem 0;">The requested article does not exist.</p>
-        <a href="/" class="btn btn-primary">Return to Articles</a>
+        <a href="/" class="btn btn-primary">Back to Overview</a>
       </div>
 
       <div if.bind="post">
         <header class="article-header">
-          <a href="/" class="back-link">← Back to all articles</a>
-          <div class="card-category">${post.category}</div>
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/">Overview</a>
+            <span class="breadcrumb-sep">/</span>
+            <span>${post.category}</span>
+          </nav>
           <h1 class="article-title">${post.title}</h1>
           <div class="article-meta">
             <span>By <strong>${post.author}</strong></span>
@@ -179,12 +191,17 @@ export const actions = {
           <form submit.trigger="addComment($event)" class="comment-form">
             <input 
               type="text" 
+              id="comment-author"
+              name="author"
               value.bind="newAuthor" 
               placeholder="Your name or handle" 
               class="form-input" 
+              autocomplete="name"
               required 
             />
             <textarea 
+              id="comment-text"
+              name="comment"
               value.bind="newComment" 
               placeholder="Write a constructive comment..." 
               rows="3" 

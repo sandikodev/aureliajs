@@ -8,8 +8,8 @@ It's a reference implementation showing how to use Hono for server-side renderin
 **Quick Start:**
 ```bash
 cd examples/fullstack-ssr
-pnpm install  # Install independently
-pnpm dev      # Run standalone dev server
+bun install  # Install independently
+bun run dev      # Run standalone dev server
 ```
 
 This example demonstrates core SSR patterns:
@@ -19,14 +19,14 @@ This example demonstrates core SSR patterns:
 - ✅ **JSON API endpoints** - Content negotiation (HTML/JSON)
 - ✅ **TypeScript strict** - 100% type-safe
 - ✅ **Docker ready** - Multi-stage production build
-- ✅ **Zero-config dev** - `pnpm dev` just works
+- ✅ **Zero-config dev** - `bun run dev` just works
 
 ## Quick Start
 
 ```bash
 cd examples/fullstack-ssr
-pnpm install
-pnpm dev
+bun install
+bun run dev
 ```
 
 Then open **http://localhost:3000** in your browser.
@@ -74,16 +74,16 @@ app.use(async (c, next) => {
 
 ```bash
 # Watch mode with auto-reload
-pnpm dev
+bun run dev
 
 # TypeScript check
-pnpm typecheck
+bun run typecheck
 
 # Production build
-pnpm build
+bun run build
 
 # Production start
-pnpm start
+bun run start
 ```
 
 ## Production Deployment
@@ -105,11 +105,11 @@ docker-compose up --build
 
 ```bash
 # Install + Build
-pnpm install
-pnpm build
+bun install
+bun run build
 
 # Start
-NODE_ENV=production PORT=3000 pnpm start
+NODE_ENV=production PORT=3000 bun run start
 
 # With PM2
 pm2 start src/index.ts --name ssr-app
@@ -120,7 +120,7 @@ pm2 start src/index.ts --name ssr-app
 ```bash
 # Start 4 instances
 for i in {1..4}; do
-  PORT=$((3000 + i)) NODE_ENV=production pnpm start &
+  PORT=$((3000 + i)) NODE_ENV=production bun run start &
 done
 
 # Add nginx reverse proxy to distribute traffic
@@ -183,18 +183,18 @@ curl http://localhost:3000/ | grep "window.__HYDRATION__"
 
 **Port already in use**
 ```bash
-PORT=3001 pnpm dev
+PORT=3001 bun run dev
 ```
 
 **Module not found**
 ```bash
-rm -rf node_modules pnpm-lock.yaml
-pnpm install
+rm -rf node_modules bun.lock
+bun install
 ```
 
 **TypeScript errors**
 ```bash
-pnpm typecheck
+bun run typecheck
 ```
 
 **Docker build fails**
@@ -219,6 +219,6 @@ DOCKER_BUILDKIT=1 docker build -t app .
 
 ---
 
-**✅ Verified working** - Tested with Node.js 22+, pnpm 11+
+**✅ Verified working** - Tested with Bun 1.2+
 
 Built with ❤️ using Hono

@@ -4,6 +4,12 @@
 [submodule "packages/hono-aurelia"]
 	path = packages/hono-aurelia
 	url = git@github.com:sandikodev/hono-aurelia.git
-[submodule "examples/hono-react-ssr-shadcn-ui"]
-	path = examples/hono-react-ssr-shadcn-ui
-	url = git@github.com:sandikodev/hono-react-ssr-shadcn-ui.git
+[submodule "packages/aurelia-islands"]
+	path = packages/aurelia-islands
+	url = git@github.com:sandikodev/aurelia-islands.git
+[submodule "packages/aurelia-bridge"]
+	path = packages/aurelia-bridge
+	url = git@github.com:sandikodev/aurelia-bridge.git
+[submodule "packages/aurelia-ssr"]
+	path = packages/aurelia-ssr
+	url = git@github.com:sandikodev/aurelia-ssr.git

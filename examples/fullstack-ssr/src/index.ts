@@ -1,27 +1,26 @@
 /**
  * Hono + Aurelia 2 SSR Reference Implementation
- * 
- * Demonstrates:
+ *
+ * Demonstrates idiomatic, zero-boilerplate meta-framework composition:
  * - Real Aurelia 2 Single-File Component (.aux) server-side rendering
- * - Thin @hono/aurelia route adapter with zero glue code
- * - Co-located loaders & actions (<script server>)
- * - Request-scoped isolation per request
+ * - Thin @hono/aurelia route & action adapters (aurelia + aureliaAction)
+ * - Native Bun static asset streaming via hono/bun (zero-copy kernel I/O)
+ * - Composable Hono auth middleware (requireAuth)
+ * - Scoped aureliaDefaults middleware with streaming & opt-in dataEndpoint
  * - Automated client-side hydration via createClientHydrator
- * - Protected routes with auth guards
  */
 
 import { Hono } from 'hono';
-import { serve } from '@hono/node-server';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { aurelia, aureliaDefaults, serveAureliaAssets } from '@hono/aurelia';
+import { createMiddleware } from 'hono/factory';
+import { serveStatic } from 'hono/bun';
+import { aurelia, aureliaAction, aureliaDefaults } from '@hono/aurelia';
 import { initialPosts, dashboardStats, activityStream } from './data.js';
+
+// Clean Aurelia 2 Page Components
 import { HomePage } from './pages/home.aux';
 import { PostDetailPage } from './pages/post-detail.aux';
 import { DashboardPage } from './pages/dashboard.aux';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const publicDir = resolve(__dirname, '../public');
+import { registerShowcaseRoutes } from './routes/showcase.js';
 
 type AppEnv = {
   Variables: {
@@ -41,24 +40,32 @@ app.get('/favicon.ico', (c) => {
   });
 });
 
-// Serve static assets (CSS, client hydration script)
-app.use('/public/*', serveAureliaAssets({ root: publicDir }));
+// Native Bun static asset streaming (zero-copy kernel I/O via hono/bun)
+app.use(
+  '/public/*',
+  serveStatic({
+    root: './',
+    rewriteRequestPath: (path) => path.replace(/^\/public/, 'public'),
+  })
+);
 
-// Global Aurelia SSR Defaults: Streaming enabled + standard document bundles
+// Scoped Aurelia SSR Defaults: Streaming + opt-in JSON data endpoint + document bundles
 app.use(
   '*',
-  aureliaDefaults({
+  aureliaDefaults<AppEnv>({
     document: {
       cssBundle: '/public/style.css',
       jsBundle: '/public/client.js',
     },
     streaming: true,
+    dataEndpoint: true,
   })
 );
 
-// Standard idiomatic Hono auth middleware
+// Idiomatic Hono session resolution middleware
 app.use('*', async (c, next) => {
-  const token = c.req.query('token') || c.req.header('Authorization')?.replace(/^Bearer\s+/i, '');
+  const token =
+    c.req.query('token') || c.req.header('Authorization')?.replace(/^Bearer\s+/i, '');
   if (token === 'demo-token') {
     c.set('user', { id: 'usr_1', email: 'operator@aureliajs.dev', name: 'Demo Operator' });
     c.set('role', 'owner');
@@ -66,38 +73,35 @@ app.use('*', async (c, next) => {
   await next();
 });
 
-// --- One-Liner Aurelia SSR Routes (.aux SFCs with co-located loaders & actions) ---
-app.get('/', aurelia(HomePage));
-app.all('/posts/:slug', aurelia(PostDetailPage));
-app.get('/dashboard', aurelia(DashboardPage));
-
-// JSON Endpoints
-app.get('/api/posts', (c) => c.json(initialPosts));
-app.get('/api/dashboard/stats', (c) => {
-  const user = c.get('user');
-  if (!user) return c.json({ error: 'Unauthorized' }, 401);
-  return c.json({ stats: dashboardStats, activity: activityStream });
+// Composable Hono auth guard middleware
+const requireAuth = createMiddleware<AppEnv>(async (c, next) => {
+  if (!c.get('user')) {
+    return c.json({ error: 'Unauthorized', message: 'Authentication required' }, 401);
+  }
+  await next();
+  return;
 });
 
+// --- Clean Aurelia 2 SSR & Action Routes ---
+app.get('/', aurelia(HomePage));
+app.get('/posts/:slug', aurelia(PostDetailPage));
+app.post('/posts/:slug', aureliaAction(PostDetailPage));
+app.get('/dashboard', requireAuth, aurelia(DashboardPage));
+
+// Register showcase routes (Zero-JS Selective Hydration & Polyglot Bridge)
+registerShowcaseRoutes(app);
+
+// Standard JSON API Endpoints
+app.get('/api/posts', (c) => c.json(initialPosts));
+app.get('/api/dashboard/stats', requireAuth, (c) =>
+  c.json({ stats: dashboardStats, activity: activityStream })
+);
 app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
 const port = parseInt(process.env.PORT || '3000', 10);
 
-if (process.env.NODE_ENV !== 'test' && !('bun' in process.versions)) {
-  serve(
-    {
-      fetch: app.fetch,
-      port,
-    },
-    (info) => {
-      console.log(`\n🚀 Real Aurelia 2 SSR + Hono Server running`);
-      console.log(`📍 URL: http://localhost:${info.port}`);
-      console.log(`\n🔗 Test routes:`);
-      console.log(`   • http://localhost:${info.port}/                          (Public SSR Home)`);
-      console.log(`   • http://localhost:${info.port}/posts/hono-aurelia-architecture (Post Detail SSR)`);
-      console.log(`   • http://localhost:${info.port}/dashboard?token=demo-token  (Protected SSR Dashboard)`);
-    }
-  );
+if (process.env.NODE_ENV !== 'test' && import.meta.main) {
+  console.log(`\n🚀 Native Bun Aurelia 2 SSR + Hono Server running on http://localhost:${port}`);
 }
 
 export { app };
