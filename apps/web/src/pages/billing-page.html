@@ -3,6 +3,45 @@
   <p class="mt-1 text-sm text-muted-foreground">${copy['billing.subtitle']}</p>
 </div>
 
+<!-- Stripe Checkout Return In-Page Banners -->
+<div if.bind="checkoutResult === 'cancelled'" class="mt-4">
+  <ui-alert tone="warning">
+    <div class="flex items-center justify-between gap-3 w-full min-w-0">
+      <div class="flex items-center gap-2 min-w-0">
+        <ui-icon name="alert" size="16" class="shrink-0 text-amber-600 dark:text-amber-400"></ui-icon>
+        <span class="truncate text-xs font-medium">${copy['billing.bannerCancelled']}</span>
+      </div>
+      <button
+        type="button"
+        class="shrink-0 rounded-md p-1 hover:bg-amber-500/20 text-amber-800 dark:text-amber-200 transition-colors"
+        aria-label="Dismiss"
+        click.trigger="dismissResult()"
+      >
+        <ui-icon name="x" size="14"></ui-icon>
+      </button>
+    </div>
+  </ui-alert>
+</div>
+
+<div if.bind="checkoutResult === 'success'" class="mt-4">
+  <ui-alert tone="success">
+    <div class="flex items-center justify-between gap-3 w-full min-w-0">
+      <div class="flex items-center gap-2 min-w-0">
+        <ui-icon name="check" size="16" class="shrink-0 text-emerald-600 dark:text-emerald-400"></ui-icon>
+        <span class="truncate text-xs font-medium">${copy['billing.bannerSuccess']}</span>
+      </div>
+      <button
+        type="button"
+        class="shrink-0 rounded-md p-1 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-200 transition-colors"
+        aria-label="Dismiss"
+        click.trigger="dismissResult()"
+      >
+        <ui-icon name="x" size="14"></ui-icon>
+      </button>
+    </div>
+  </ui-alert>
+</div>
+
 <div if.bind="isLoading" class="mt-5 grid gap-4 lg:grid-cols-3">
   <div class="lg:col-span-2">
     <ui-skeleton width="100%" height="14rem" rounded="rounded-xl"></ui-skeleton>
@@ -19,7 +58,7 @@
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
             <ui-card-title>${copy['billing.currentPlan']}</ui-card-title>
-            <ui-card-description> ${renewsOnLabel} </ui-card-description>
+            <ui-card-description>${renewsOnLabel}</ui-card-description>
           </div>
           <span data-testid="subscription-status">
             <ui-badge variant.bind="statusTone">${statusLabel}</ui-badge>
@@ -33,15 +72,21 @@
             <p class="mt-1 text-xs text-muted-foreground">${limitsLabel}</p>
           </div>
           <div class="flex flex-wrap gap-2">
-            <ui-button variant="outline" size="sm" disabled.bind="busy || !isPaid" click.trigger="openPortal()">
+            <ui-button
+              if.bind="isPaid"
+              variant="outline"
+              size="sm"
+              disabled.bind="busy || !canManage"
+              click.trigger="openPortal()"
+            >
               <ui-icon name="creditCard" size="15"></ui-icon>
               ${copy['billing.managePayment']}
             </ui-button>
             <ui-button
               if.bind="!isPaid"
               size="sm"
-              disabled.bind="busy || !canBuyMonthly"
-              click.trigger="checkout('pro', 'monthly')"
+              disabled.bind="busy || !canManage || !canBuyMonthly"
+              click.trigger="checkout('pro', selectedInterval)"
             >
               <ui-icon name="sparkles" size="15"></ui-icon>
               ${copy['billing.upgradePro']}
@@ -52,20 +97,36 @@
         <div class="mt-5 space-y-3">
           <div>
             <div class="flex items-center justify-between text-xs">
-              <span class="text-muted-foreground">Projects</span>
-              <span class="font-medium tabular-nums"> ${projectsUsageLabel} </span>
+              <div class="flex items-center gap-2">
+                <span class="text-muted-foreground">Projects</span>
+                <ui-badge if.bind="isProjectsAtLimit" variant="destructive">${copy['billing.limitReached']}</ui-badge>
+              </div>
+              <span class="font-medium tabular-nums ${isProjectsAtLimit ? 'text-destructive font-semibold' : ''}">
+                ${projectsUsageLabel}
+              </span>
             </div>
             <div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-              <div class="h-full rounded-full bg-primary" style="width: ${projectsPercent}%"></div>
+              <div
+                class="h-full rounded-full transition-all duration-300 ${isProjectsAtLimit ? 'bg-destructive' : 'bg-primary'}"
+                style="width: ${projectsPercent}%"
+              ></div>
             </div>
           </div>
           <div>
             <div class="flex items-center justify-between text-xs">
-              <span class="text-muted-foreground">Seats</span>
-              <span class="font-medium tabular-nums">${seatsUsageLabel}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-muted-foreground">Seats</span>
+                <ui-badge if.bind="isSeatsAtLimit" variant="destructive">${copy['billing.limitReached']}</ui-badge>
+              </div>
+              <span class="font-medium tabular-nums ${isSeatsAtLimit ? 'text-destructive font-semibold' : ''}">
+                ${seatsUsageLabel}
+              </span>
             </div>
             <div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-              <div class="h-full rounded-full bg-primary" style="width: ${seatsPercent}%"></div>
+              <div
+                class="h-full rounded-full transition-all duration-300 ${isSeatsAtLimit ? 'bg-destructive' : 'bg-primary'}"
+                style="width: ${seatsPercent}%"
+              ></div>
             </div>
           </div>
         </div>
@@ -127,8 +188,28 @@
   <div class="space-y-4">
     <ui-card>
       <ui-card-header>
-        <ui-card-title>${copy['billing.plans']}</ui-card-title>
-        <ui-card-description>${copy['billing.plansDescription']}</ui-card-description>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <ui-card-title>${copy['billing.plans']}</ui-card-title>
+            <ui-card-description>${copy['billing.plansDescription']}</ui-card-description>
+          </div>
+          <div class="inline-flex rounded-lg border bg-muted/40 p-0.5 text-xs font-medium">
+            <button
+              type="button"
+              class="rounded-md px-2 py-1 transition-colors ${selectedInterval === 'monthly' ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}"
+              click.trigger="selectInterval('monthly')"
+            >
+              ${copy['billing.monthly']}
+            </button>
+            <button
+              type="button"
+              class="rounded-md px-2 py-1 transition-colors ${selectedInterval === 'yearly' ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}"
+              click.trigger="selectInterval('yearly')"
+            >
+              ${copy['billing.yearly']}
+            </button>
+          </div>
+        </div>
       </ui-card-header>
       <ui-card-content>
         <div class="space-y-3">
@@ -139,16 +220,19 @@
             <div class="flex items-center justify-between gap-2">
               <div class="min-w-0">
                 <p class="text-[13px] font-medium">${tierLabel(tier)}</p>
-                <p class="text-[11px] text-muted-foreground">${tierPrice(tier)}</p>
+                <p class="text-[11px] text-muted-foreground">
+                  ${tierPrice(tier)}
+                  <span if.bind="selectedInterval === 'yearly' && tier.id !== 'free'" class="text-[10px]">(${copy['billing.billedYearlyNote']})</span>
+                </p>
               </div>
               <ui-button
                 if.bind="tier.id !== 'free' && tier.id !== plan"
                 variant="outline"
                 size="sm"
-                disabled.bind="busy"
-                click.trigger="checkout(tier.id === 'scale' ? 'scale' : 'pro', tier.id === 'scale' ? 'yearly' : 'monthly')"
+                disabled.bind="busy || !canManage"
+                click.trigger="checkout(tier.id, selectedInterval)"
               >
-                ${tier.id === 'scale' ? copy['billing.upgrade'] : copy['billing.choose']}
+                ${tierActionLabel(tier)}
               </ui-button>
               <ui-badge if.bind="tier.id === plan" variant="success">${copy['billing.current']}</ui-badge>
             </div>
@@ -162,6 +246,9 @@
             </ul>
           </div>
         </div>
+        <p if.bind="!canManage" class="mt-3 text-[11px] text-muted-foreground leading-normal">
+          ${copy['billing.onlyAdminCanManage']}
+        </p>
       </ui-card-content>
     </ui-card>
 
@@ -183,11 +270,12 @@
           </div>
         </div>
         <ui-button
+          if.bind="isPaid"
           class="mt-3"
           variant="outline"
           size="sm"
           full
-          disabled.bind="busy || !isPaid"
+          disabled.bind="busy || !canManage"
           click.trigger="openPortal()"
         >
           ${copy['billing.openPortal']}
@@ -197,10 +285,27 @@
 
     <ui-card>
       <ui-card-header>
-        <ui-card-title>${copy['billing.wiringTitle']}</ui-card-title>
+        <div class="flex items-center gap-2">
+          <ui-icon name="shieldCheck" size="18" class="text-emerald-500"></ui-icon>
+          <ui-card-title>${copy['billing.trustTitle']}</ui-card-title>
+        </div>
       </ui-card-header>
       <ui-card-content>
-        <p class="text-[13px] leading-relaxed text-muted-foreground">${copy['billing.wiringDescription']}</p>
+        <p class="text-[13px] leading-relaxed text-muted-foreground">${copy['billing.trustDescription']}</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3 pt-3 border-t text-[11px] text-muted-foreground">
+          <span class="inline-flex items-center gap-1">
+            <ui-icon name="check" size="13" class="text-emerald-500"></ui-icon>
+            256-bit SSL
+          </span>
+          <span class="inline-flex items-center gap-1">
+            <ui-icon name="check" size="13" class="text-emerald-500"></ui-icon>
+            PCI-DSS Level 1
+          </span>
+          <span class="inline-flex items-center gap-1">
+            <ui-icon name="check" size="13" class="text-emerald-500"></ui-icon>
+            Stripe Verified
+          </span>
+        </div>
       </ui-card-content>
     </ui-card>
   </div>
