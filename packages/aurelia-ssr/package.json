@@ -30,7 +30,7 @@
     "dev": "tsc -w -p tsconfig.build.json --preserveWatchOutput",
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "bun test",
     "clean": "rm -rf dist"
   },
   "keywords": [
@@ -54,7 +54,6 @@
     "@types/jsdom": "^21.1.6",
     "@types/node": "24.10.1",
     "aurelia": "^2.0.0-rc.2",
-    "typescript": "5.9.3",
-    "vitest": "5.1.0"
+    "typescript": "5.9.3"
   }
 }

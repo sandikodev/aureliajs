@@ -83,23 +83,23 @@ Berdasarkan audit forensik menyeluruh, berikut adalah 7 titik yang belum murni n
 
 ---
 
-### Fase 1: Zero-Risk Hygiene & Test Runner Unification (Prioritas: Segera)
+### Fase 1: Zero-Risk Hygiene & Test Runner Unification (Status: Selesai ✅)
 **Tujuan**: Menghilangkan seluruh zombi Vitest dan menstandarkan eksekusi test runner ke `bun test` di seluruh paket tanpa mengubah fungsionalitas bisnis.
 
-* [ ] **Langkah 1.1**: Bersihkan `package.json` di `apps/web`, `apps/api`, `packages/shared`, `packages/aurelia-ssr`, `packages/vite-plugin-aux`:
+* [x] **Langkah 1.1**: Bersihkan `package.json` di `apps/web`, `apps/api`, `packages/shared`, `packages/aurelia-ssr`, `packages/vite-plugin-aux`, `packages/vscode-aux`, `packages/ssr-playground`, `packages/hono-aurelia`:
   - Ubah `"test": "vitest run"` menjadi `"test": "bun test"`.
   - Hapus dependensi `"vitest": "5.1.0"` dari `devDependencies`.
-* [ ] **Langkah 1.2**: Hapus file konfigurasi zombi:
+* [x] **Langkah 1.2**: Hapus file konfigurasi zombi:
   - `packages/aurelia-ssr/vitest.config.ts`
   - `packages/hono-aurelia/vitest.config.ts`
-* [ ] **Langkah 1.3**: Di root `package.json`, standarkan script:
+* [x] **Langkah 1.3**: Di root `package.json`, standarkan script:
   ```json
   "scripts": {
     "test": "bun test packages/ apps/ examples/",
     "test:coverage": "bun test --coverage"
   }
   ```
-* [ ] **Verifikasi**: Jalankan `bun test` dari root. Pastikan **212/212 tests pass (0 fail)**.
+* [x] **Verifikasi**: Jalankan `bun test` dari root. Pastikan **222/222 tests pass (0 fail)**.
 
 ---
 
@@ -209,7 +209,7 @@ cd examples/fullstack-ssr && bun test
 | Tanggal | Fase | Aksi yang Dijalankan | Hasil / Catatan | Petugas |
 | :--- | :--- | :--- | :--- | :--- |
 | **2026-11-17** | **Inisiasi** | Penyusunan Master Manifesto & Analisis Forensik 7 Vektor | Roadmap disahkan; Baseline 212 tests pass; Playground focus ring fixed. | Sandikodev |
-| *(Pending)* | **Fase 1** | Pembersihan zombi Vitest & standardisasi `bun test` di semua package | Menghapus dependensi vitest fiktif & zombi config | *Next Step* |
+| **2026-11-18** | **Fase 1** | Pembersihan zombi Vitest & standardisasi `bun test` di semua package | Selesai (222 tests pass, 0 fail; oxlint 0 warnings / 0 errors; vitest & config zombi dihapus). | Sandikodev |
 | *(Pending)* | **Fase 2** | Konsolidasi workspace root & penghapusan lockfile ganda | Mendaftarkan semua package ke root workspace | *Next Step* |
 | *(Pending)* | **Fase 3** | Pembersihan `tsx` & aktivasi native Bun HTTP server di `apps/api` | Zero external runner; native Bun execution | *Next Step* |
 | *(Pending)* | **Fase 4** | Perapian folder `examples/` dari artefak React benchmark | Isolasi benchmark eksternal | *Next Step* |

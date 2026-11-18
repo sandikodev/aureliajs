@@ -15,7 +15,8 @@
   },
   "main": "./dist/extension.js",
   "scripts": {
-    "build": "node build.js"
+    "build": "node build.js",
+    "test": "bun test"
   },
   "categories": [
     "Programming Languages",
@@ -71,7 +72,6 @@
     "esbuild": "^0.25.12",
     "jpeg-js": "^0.4.4",
     "pngjs": "^7.0.0",
-    "typescript": "^5.9.3",
-    "vitest": "5.1.0"
+    "typescript": "^5.9.3"
   }
 }

@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
-import { JSDOM } from 'jsdom';
 import {
   AdapterRegistry,
   defaultRegistry,
@@ -14,14 +13,50 @@ import {
 } from '../src/index.js';
 import type { IslandAdapter, IslandMountContext, IslandInstance } from '../src/types.js';
 
+// Zero-dependency Mock DOM Engine for lightning-fast hermetic testing
+class MockElement {
+  tagName: string;
+  textContent: string = '';
+  innerHTML: string = '';
+  className: string = '';
+  children: MockElement[] = [];
+  parentElement: MockElement | null = null;
+  onclick: (() => void) | null = null;
+
+  constructor(tagName: string) {
+    this.tagName = tagName.toUpperCase();
+  }
+
+  get firstElementChild(): MockElement | null {
+    return this.children[0] || null;
+  }
+
+  appendChild(child: MockElement): MockElement {
+    child.parentElement = this;
+    this.children.push(child);
+    return child;
+  }
+
+  querySelector(selector: string): MockElement | null {
+    const cls = selector.replace(/^\./, '');
+    for (const c of this.children) {
+      if (c.className.split(' ').includes(cls)) return c;
+      const found = c.querySelector(selector);
+      if (found) return found;
+    }
+    return null;
+  }
+}
+
 describe('@aureliajs/islands Comprehensive Suite (by Sandikodev)', () => {
-  let doc: Document;
+  let doc: any;
 
   beforeAll(() => {
-    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-    doc = dom.window.document;
-    (global as any).document = doc;
-    (global as any).HTMLElement = dom.window.HTMLElement;
+    doc = {
+      createElement: (tag: string) => new MockElement(tag)
+    };
+    (globalThis as any).document = doc;
+    (globalThis as any).HTMLElement = MockElement;
   });
 
   it('should verify all 6 standard adapters are registered by default in registry', () => {
@@ -71,15 +106,15 @@ describe('@aureliajs/islands Comprehensive Suite (by Sandikodev)', () => {
       props: { count: 42 }
     });
 
-    expect(container.textContent).toBe('Count: 42');
+    expect(container.children[0].textContent).toBe('Count: 42');
 
     instance.update({ count: 99 });
     expect(updateSpy).toHaveBeenCalledWith({ count: 99 });
-    expect(container.textContent).toBe('Count: 99');
+    expect(container.children[0].textContent).toBe('Count: 99');
 
     instance.destroy();
     expect(destroySpy).toHaveBeenCalled();
-    expect(container.textContent).toBe('');
+    expect(container.innerHTML).toBe('');
   });
 
   it('should register AureliaIsland to container via IslandsConfiguration', () => {
@@ -101,7 +136,7 @@ describe('@aureliajs/islands Comprehensive Suite (by Sandikodev)', () => {
       createElement: vi.fn((comp, props) => ({ comp, props }))
     };
     const mockReactDOM = {
-      createRoot: vi.fn((container) => ({
+      createRoot: vi.fn((_container) => ({
         render: renderSpy,
         unmount: unmountSpy
       }))
@@ -138,7 +173,6 @@ describe('@aureliajs/islands Comprehensive Suite (by Sandikodev)', () => {
     const unmountSpy = vi.fn();
     const mockVue = {
       createApp: vi.fn((options) => {
-        // Trigger render to simulate template execution
         options.render();
         return {
           mount: mountSpy,
@@ -175,7 +209,7 @@ describe('@aureliajs/islands Comprehensive Suite (by Sandikodev)', () => {
   it('should verify Svelte adapter lifecycle with injected mocks', async () => {
     const unmountSpy = vi.fn();
     const mockSvelte = {
-      mount: vi.fn((comp, opts) => {
+      mount: vi.fn((_comp, _opts) => {
         return {
           updateFromHost: vi.fn()
         };
@@ -209,8 +243,8 @@ describe('@aureliajs/islands Comprehensive Suite (by Sandikodev)', () => {
   it('should verify SolidJS adapter lifecycle with injected mocks', async () => {
     const disposeSpy = vi.fn();
     const mockSolidWeb = {
-      render: vi.fn((fn, container) => {
-        fn(); // execute render accessor
+      render: vi.fn((fn, _container) => {
+        fn();
         return disposeSpy;
       })
     };
@@ -293,7 +327,7 @@ describe('@aureliajs/islands Comprehensive Suite (by Sandikodev)', () => {
     });
 
     expect(renderSpy).toHaveBeenCalled();
-    const child = container.firstElementChild as HTMLElement;
+    const child = container.firstElementChild as MockElement;
     expect(child).toBeDefined();
 
     // Emulate buttons created inside child

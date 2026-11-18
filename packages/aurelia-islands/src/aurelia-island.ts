@@ -57,7 +57,7 @@ export class AureliaIsland {
     }
 
     const mergedProps = {
-      ...(this.props || {}),
+      ...this.props,
       ...(this.value !== undefined ? { value: this.value } : {})
     };
 
@@ -86,7 +86,7 @@ export class AureliaIsland {
   propsChanged(newProps: Record<string, any>): void {
     if (this.instance) {
       const merged = {
-        ...(newProps || {}),
+        ...newProps,
         ...(this.value !== undefined ? { value: this.value } : {})
       };
       this.instance.update(merged);

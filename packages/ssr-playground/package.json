@@ -12,7 +12,7 @@
     "build": "tsc",
     "inspect": "bun src/cli/index.ts",
     "serve": "bun --watch src/cli/index.ts --serve",
-    "test": "bun test test/hydration-reactivity.test.ts",
+    "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [
