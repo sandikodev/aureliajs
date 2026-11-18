@@ -1,5 +1,5 @@
 name = "aurelia-hono-ssr"
-main = "src/index.ts"
+main = "dist/worker.js"
 compatibility_date = "2026-11-01"
 compatibility_flags = ["nodejs_compat"]
 
@@ -9,3 +9,6 @@ binding = "ASSETS"
 
 [vars]
 WORKER = "true"
+
+[build]
+command = "bun run build && bun run build:worker"

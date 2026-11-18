@@ -12,7 +12,6 @@
 
 import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
-import { serveStatic } from 'hono/bun';
 import { aurelia, aureliaAction, aureliaDefaults } from '@hono/aurelia';
 import { initialPosts, dashboardStats, activityStream } from './data.js';
 
@@ -40,14 +39,21 @@ app.get('/favicon.ico', (c) => {
   });
 });
 
-// Native Bun static asset streaming (zero-copy kernel I/O via hono/bun)
-app.use(
-  '/public/*',
-  serveStatic({
-    root: './',
-    rewriteRequestPath: (path) => path.replace(/^\/public/, 'public'),
-  })
-);
+// Universal static asset streaming (Cloudflare Workers ASSETS binding or Bun zero-copy I/O)
+app.use('/public/*', async (c, next) => {
+  const env = c.env as { ASSETS?: { fetch: typeof fetch } } | undefined;
+  if (env?.ASSETS) {
+    return env.ASSETS.fetch(c.req.raw);
+  }
+  if (typeof Bun !== 'undefined') {
+    const { serveStatic } = await import('hono/bun');
+    return serveStatic({
+      root: './',
+      rewriteRequestPath: (path) => path.replace(/^\/public/, 'public'),
+    })(c, next);
+  }
+  return next();
+});
 
 // Scoped Aurelia SSR Defaults: Streaming + opt-in JSON data endpoint + document bundles
 app.use(
