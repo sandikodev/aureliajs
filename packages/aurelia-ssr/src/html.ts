@@ -1,83 +1,200 @@
 /**
- * @hono/aurelia HTML Document Builder
- * 
- * Build complete HTML documents with hydration payload injection.
+ * @aureliajs/ssr HTML5 Document Builder
+ *
+ * Standards-compliant HTML5 document assembler and streaming shell generator.
+ * Embeds serialized state via inert `<script type="application/json">` elements —
+ * zero `window` global pollution and strict-CSP compatible without `unsafe-inline`.
  */
 
-import type { HydrationPayload, DocumentOptions } from './types.js';
+import type {
+  DocumentOptions,
+  DocumentShell,
+  DocumentTemplateContext,
+  HydrationPayload,
+} from './types.js';
 import { stringifyPayload } from './serialize.js';
 
-/**
- * Create complete HTML document with hydration payload
- * 
- * @param bodyContent - Rendered component HTML
- * @param payload - Hydration payload with auth + data
- * @param options - Document options (title, lang, bundle paths)
- * @returns string - Complete HTML document
- * 
- * @example
- * ```typescript
- * const html = createHtmlDocument(
- *   renderedHtml,
- *   payload,
- *   { title: 'Dashboard', cssBundle: '/assets/main.css' }
- * );
- * ```
- */
-export function createHtmlDocument(
-  bodyContent: string,
-  payload: HydrationPayload,
-  options: DocumentOptions = {}
-): string {
+export const DEFAULT_SCRIPT_ID = '__AURELIA_SSR_DATA__';
+
+function renderAttrs(attrs?: Readonly<Record<string, string>>): string {
+  if (!attrs) return '';
+  const parts: string[] = [];
+  for (const [key, value] of Object.entries(attrs)) {
+    if (!key) continue;
+    parts.push(`${escapeAttr(key)}="${escapeAttr(value)}"`);
+  }
+  return parts.length > 0 ? ` ${parts.join(' ')}` : '';
+}
+
+function toArray(value?: string | readonly string[]): string[] {
+  if (!value) return [];
+  return Array.isArray(value) ? value.filter(Boolean) : [value as string];
+}
+
+function resolveSafeRootTag(rootTag?: string | false): string {
+  if (rootTag === false || rootTag === '') return '';
+  const candidate = rootTag ?? 'app-root';
+  return /^[a-zA-Z][a-zA-Z0-9-]*$/.test(candidate) ? candidate : '';
+}
+
+function buildHeadAndScripts<
+  TContext extends Record<string, unknown>,
+  TData,
+>(options: DocumentOptions<TContext, TData>): {
+  head: string;
+  scripts: string;
+  htmlAttrStr: string;
+  bodyAttrStr: string;
+  safeRootTag: string;
+} {
   const {
-    title = 'Application',
+    title = 'Aurelia App',
     lang = 'en',
-    basePath = '/',
-    cssBundle = '/assets/main.css',
-    jsBundle = '/src/main.ts',
+    basePath,
+    rootTag = 'app-root',
+    htmlAttrs,
+    bodyAttrs,
+    cssBundle,
+    jsBundle,
+    head: extraHead = '',
     nonce,
   } = options;
 
-  // Serialize payload for injection
-  const payloadJson = stringifyPayload(payload);
   const nonceAttr = nonce ? ` nonce="${escapeAttr(nonce)}"` : '';
 
-  // Build HTML document
-  const html = `<!DOCTYPE html>
-<html lang="${escapeAttr(lang)}" class="h-full">
-  <head>
-    <!-- Meta -->
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light dark" />
-    <title>${escapeHtml(title)}</title>
-    
-    <!-- Router base -->
-    <base href="${escapeAttr(basePath)}" />
-    
-    <!-- Styles -->
-    <link rel="stylesheet" href="${escapeAttr(cssBundle)}" />
-    
-    <!-- Hydration Payload -->
-    <script${nonceAttr}>
-      window.__HYDRATION__ = ${payloadJson};
-      window.__HYDRATION_TIME__ = ${payload.timestamp};
-    </script>
-  </head>
-  <body class="h-full">
-    <!-- App Root -->
-    <app-root>${bodyContent}</app-root>
-    
-    <!-- Main Application -->
-    <script type="module" src="${escapeAttr(jsBundle)}"${nonceAttr}></script>
-  </body>
-</html>`;
+  const cssLinks = toArray(cssBundle)
+    .map((href) => `<link rel="stylesheet" href="${escapeAttr(href)}" />`)
+    .join('\n    ');
 
-  return html;
+  const scripts = toArray(jsBundle)
+    .map((src) => `<script type="module" src="${escapeAttr(src)}"${nonceAttr}></script>`)
+    .join('\n    ');
+
+  const headParts: string[] = [
+    '<meta charset="utf-8" />',
+    '<meta name="viewport" content="width=device-width, initial-scale=1" />',
+    `<title>${escapeHtml(title)}</title>`,
+  ];
+
+  if (basePath !== undefined) {
+    headParts.push(`<base href="${escapeAttr(basePath)}" />`);
+  }
+  if (cssLinks) {
+    headParts.push(cssLinks);
+  }
+  if (extraHead) {
+    headParts.push(extraHead);
+  }
+
+  return {
+    head: headParts.join('\n    '),
+    scripts,
+    htmlAttrStr: renderAttrs({ lang, ...htmlAttrs }),
+    bodyAttrStr: renderAttrs(bodyAttrs),
+    safeRootTag: resolveSafeRootTag(rootTag),
+  };
 }
 
 /**
- * Escape HTML special characters in text content
+ * Create an HTML5-standard inert JSON `<script type="application/json">` element
+ * carrying the XSS-escaped hydration payload.
+ */
+export function createHydrationScript<
+  TContext extends Record<string, unknown> = Record<string, unknown>,
+  TData = Record<string, unknown>,
+>(
+  payload: HydrationPayload<TContext, TData>,
+  scriptId = DEFAULT_SCRIPT_ID
+): string {
+  const payloadJson = stringifyPayload(payload);
+  return `<script id="${escapeAttr(scriptId)}" type="application/json">${payloadJson}</script>`;
+}
+
+/**
+ * Split an HTML5 document into streaming `preamble` (flushed immediately before SSR)
+ * and `postamble` (flushed after SSR body + hydration script).
+ */
+export function createDocumentShell<
+  TContext extends Record<string, unknown> = Record<string, unknown>,
+  TData = Record<string, unknown>,
+>(options: DocumentOptions<TContext, TData> = {}): DocumentShell {
+  const { head, scripts, htmlAttrStr, bodyAttrStr, safeRootTag } =
+    buildHeadAndScripts(options);
+
+  const openRoot = safeRootTag ? `<${safeRootTag}>` : '';
+  const closeRoot = safeRootTag ? `</${safeRootTag}>` : '';
+
+  const preamble = `<!DOCTYPE html>
+<html${htmlAttrStr}>
+  <head>
+    ${head}
+  </head>
+  <body${bodyAttrStr}>
+    ${openRoot}`;
+
+  const postamble = `${closeRoot}${scripts ? `\n    ${scripts}` : ''}
+  </body>
+</html>`;
+
+  return { preamble, postamble };
+}
+
+/**
+ * Assemble a complete buffered HTML5 document from server-rendered markup
+ * and an XSS-escaped JSON hydration payload.
+ */
+export function createHtmlDocument<
+  TContext extends Record<string, unknown> = Record<string, unknown>,
+  TData = Record<string, unknown>,
+>(
+  bodyContent: string,
+  payload: HydrationPayload<TContext, TData>,
+  options: DocumentOptions<TContext, TData> = {}
+): string {
+  const { scriptId = DEFAULT_SCRIPT_ID, template } = options;
+  const { head, scripts, htmlAttrStr, bodyAttrStr, safeRootTag } =
+    buildHeadAndScripts(options);
+
+  const hydrationScript = createHydrationScript(payload, scriptId);
+  const body = safeRootTag
+    ? `<${safeRootTag}>${bodyContent}</${safeRootTag}>`
+    : bodyContent;
+
+  const templateCtx: DocumentTemplateContext<TContext, TData> = {
+    body,
+    head,
+    hydrationScript,
+    scripts,
+    payload,
+    options,
+  };
+
+  if (typeof template === 'function') {
+    return template(templateCtx);
+  }
+
+  if (typeof template === 'string') {
+    return template
+      .replace('<!--app-head-->', head)
+      .replace('<!--app-hydration-->', hydrationScript)
+      .replace('<!--app-html-->', body)
+      .replace('<!--app-scripts-->', scripts);
+  }
+
+  return `<!DOCTYPE html>
+<html${htmlAttrStr}>
+  <head>
+    ${head}
+  </head>
+  <body${bodyAttrStr}>
+    ${body}
+    ${hydrationScript}${scripts ? `\n    ${scripts}` : ''}
+  </body>
+</html>`;
+}
+
+/**
+ * Escape HTML special characters in text content.
  */
 export function escapeHtml(text: string): string {
   const map: Record<string, string> = {
@@ -91,7 +208,7 @@ export function escapeHtml(text: string): string {
 }
 
 /**
- * Escape HTML special characters in attribute values
+ * Escape HTML special characters in attribute values.
  */
 export function escapeAttr(text: string): string {
   const map: Record<string, string> = {
@@ -103,106 +220,13 @@ export function escapeAttr(text: string): string {
 }
 
 /**
- * Create minimal HTML shell for SPA fallback
- */
-export function createFallbackHtml(title = 'Loading'): string {
-  return `<!DOCTYPE html>
-<html lang="en" class="h-full">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>${escapeHtml(title)}</title>
-    <base href="/" />
-  </head>
-  <body class="h-full">
-    <app-root></app-root>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
-</html>`;
-}
-
-/**
- * Create error page HTML
- */
-export function createErrorHtml(
-  statusCode: number,
-  message: string,
-  details?: string
-): string {
-  return `<!DOCTYPE html>
-<html lang="en" class="h-full">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Error ${statusCode}</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: #f5f5f5;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-      }
-      .error-container {
-        background: white;
-        padding: 2rem;
-        border-radius: 8px;
-        max-width: 500px;
-        text-align: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      }
-      h1 {
-        font-size: 3rem;
-        color: #333;
-        margin-bottom: 0.5rem;
-      }
-      .message {
-        font-size: 1.2rem;
-        color: #666;
-        margin-bottom: 1rem;
-      }
-      .details {
-        font-size: 0.9rem;
-        color: #999;
-        background: #f9f9f9;
-        padding: 1rem;
-        border-radius: 4px;
-        margin-bottom: 2rem;
-        font-family: monospace;
-        overflow-x: auto;
-      }
-      a {
-        color: #0066cc;
-        text-decoration: none;
-      }
-      a:hover {
-        text-decoration: underline;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="error-container">
-      <h1>${escapeHtml(String(statusCode))}</h1>
-      <div class="message">${escapeHtml(message)}</div>
-      ${details ? `<div class="details">${escapeHtml(details)}</div>` : ''}
-      <a href="/">← Go back home</a>
-    </div>
-  </body>
-</html>`;
-}
-
-/**
- * Validate HTML structure
+ * Validate minimal HTML5 document structure.
  */
 export function validateHtmlStructure(html: string): boolean {
-  const hasDoctype = html.includes('<!DOCTYPE html>');
-  const hasHtmlTag = html.includes('<html');
-  const hasHead = html.includes('<head');
-  const hasBody = html.includes('<body');
-  const hasScript = html.includes('<script');
-  const hasBase = html.includes('<base');
-
-  return hasDoctype && hasHtmlTag && hasHead && hasBody && hasScript && hasBase;
+  return (
+    html.includes('<!DOCTYPE html>') &&
+    html.includes('<html') &&
+    html.includes('<head') &&
+    html.includes('<body')
+  );
 }

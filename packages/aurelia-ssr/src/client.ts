@@ -1,8 +1,5 @@
 /**
- * @aureliajs/ssr Client Entrypoint
- * 
- * Ultra-lightweight client-side hydration exports for the browser.
- * Zero JSDOM dependency.
+ * @aureliajs/ssr Client Entrypoint (zero server / JSDOM dependencies)
  */
 
 export {
@@ -10,18 +7,17 @@ export {
   isHydrationAvailable,
   peekHydrationPayload,
   clearHydration,
-  HydrationCache,
-  hydrationCache,
   createClientHydrator,
 } from './hydrate.js';
-export { IRequestContext } from './tokens.js';
+export { IRequestContext, resolveRequestContext } from './tokens.js';
+export { DEFAULT_SCRIPT_ID } from './html.js';
 export type {
+  AureliaComponent,
+  ComponentProps,
   RenderContext,
-  User,
-  Workspace,
   HydrationPayload,
-  HydrationOptions,
   HydrationResult,
+  HydrateFromServerOptions,
   ClientHydratorOptions,
   IRequestContext as IRequestContextType,
 } from './types.js';

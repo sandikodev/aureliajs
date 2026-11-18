@@ -1,222 +1,88 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
+import { JSDOM } from 'jsdom';
 import {
+  DEFAULT_SCRIPT_ID,
+  createDocumentShell,
   createHtmlDocument,
-  createFallbackHtml,
-  createErrorHtml,
-  escapeHtml,
+  createHydrationScript,
   escapeAttr,
+  escapeHtml,
   validateHtmlStructure,
 } from '../src/html.js';
 import { serializeState } from '../src/serialize.js';
-import type { RenderContext } from '../src/types.js';
 
-describe('createHtmlDocument()', () => {
-  const mockContext: RenderContext = {
-    user: {
-      id: 'user_123',
-      email: 'test@example.com',
-      name: 'Test User',
-    },
-    workspace: {
-      id: 'ws_456',
-      name: 'Test Workspace',
-    },
-    role: 'owner',
-  };
+describe('HTML5 Document Builder', () => {
+  it('embeds state via HTML5 standard <script type="application/json"> with zero window pollution', async () => {
+    const payload = await serializeState({ theme: 'dark', locale: 'id' }, { count: 7 }, 'home-page');
+    const html = createHtmlDocument('<main>Hi</main>', payload, { title: 'Home' });
 
-  it('should create a valid HTML document', async () => {
-    const payload = await serializeState(mockContext);
-    const html = createHtmlDocument('<div>Test</div>', payload);
+    expect(validateHtmlStructure(html)).toBe(true);
+    expect(html).toContain(`<script id="${DEFAULT_SCRIPT_ID}" type="application/json">`);
+    expect(html).not.toContain('window.__HYDRATION__');
+    expect(html).not.toContain('class="h-full"');
 
-    expect(html).toContain('<!DOCTYPE html>');
-    expect(html).toContain('<html');
-    expect(html).toContain('<head');
-    expect(html).toContain('<body');
-    expect(html).toContain('<script');
+    const dom = new JSDOM(html);
+    const scriptEl = dom.window.document.getElementById(DEFAULT_SCRIPT_ID);
+    expect(scriptEl).not.toBeNull();
+    expect(scriptEl?.getAttribute('type')).toBe('application/json');
+
+    const parsed = JSON.parse(scriptEl?.textContent ?? '{}');
+    expect(parsed.component).toBe('home-page');
+    expect(parsed.context).toEqual({ theme: 'dark', locale: 'id' });
+    expect(parsed.initialData).toEqual({ count: 7 });
+    dom.window.close();
   });
 
-  it('should include hydration payload with valid executable JavaScript', async () => {
-    const payload = await serializeState(mockContext);
-    const html = createHtmlDocument('<div>Test</div>', payload);
-
-    expect(html).toContain('window.__HYDRATION__ = ');
-    expect(html).toContain('window.__HYDRATION_TIME__');
-    
-    // Extract script content and verify it doesn't have syntax errors
-    const scriptMatch = html.match(/<script>([\s\S]*?)<\/script>/);
-    expect(scriptMatch).not.toBeNull();
-    const scriptContent = scriptMatch![1];
-    expect(scriptContent).not.toContain('\\u0022');
-    
-    // Evaluating the script must succeed without SyntaxError
-    const testScope: any = {};
-    const execute = new Function('window', scriptContent!);
-    expect(() => execute(testScope)).not.toThrow();
-    expect(testScope.__HYDRATION__).toBeDefined();
-    expect(testScope.__HYDRATION__.context.isAuthenticated).toBe(true);
-  });
-
-  it('should include body content', async () => {
-    const payload = await serializeState(mockContext);
-    const bodyContent = '<div class="dashboard">Content</div>';
-    const html = createHtmlDocument(bodyContent, payload);
-
-    expect(html).toContain('Content');
-  });
-
-  it('should use custom title', async () => {
-    const payload = await serializeState(mockContext);
-    const html = createHtmlDocument('<div>Test</div>', payload, {
-      title: 'Dashboard',
+  it('splits preamble and postamble cleanly for true streaming SSR', async () => {
+    const shell = createDocumentShell({
+      title: 'Streamed Page',
+      cssBundle: '/app.css',
+      jsBundle: '/client.js',
+      rootTag: 'my-app',
     });
 
-    expect(html).toContain('<title>Dashboard</title>');
+    expect(shell.preamble).toContain('<!DOCTYPE html>');
+    expect(shell.preamble).toContain('<link rel="stylesheet" href="/app.css" />');
+    expect(shell.preamble).toContain('<my-app>');
+    expect(shell.postamble).toContain('</my-app>');
+    expect(shell.postamble).toContain('<script type="module" src="/client.js"></script>');
+    expect(shell.postamble).toContain('</html>');
+
+    const payload = await serializeState({ ok: true }, {}, 'my-app');
+    const full = `${shell.preamble}<div>Body</div>${createHydrationScript(payload)}${shell.postamble}`;
+    expect(validateHtmlStructure(full)).toBe(true);
   });
 
-  it('should support CSP nonce attribute on inline script and module bundle', async () => {
-    const payload = await serializeState(mockContext);
-    const html = createHtmlDocument('<div>Test</div>', payload, { nonce: 'abc123nonce==' });
-
-    expect(html).toContain('<script nonce="abc123nonce==">');
-    expect(html).toContain('<script type="module" src="/src/main.ts" nonce="abc123nonce=="></script>');
-  });
-
-  it('should use custom language', async () => {
-    const payload = await serializeState(mockContext);
-    const html = createHtmlDocument('<div>Test</div>', payload, {
+  it('supports CSP nonce on external module scripts, custom rootTag, and template overrides', async () => {
+    const payload = await serializeState({ mode: 'strict' }, {}, 'app');
+    const html = createHtmlDocument('<p>Content</p>', payload, {
       lang: 'id',
+      basePath: '/sub/',
+      rootTag: false,
+      nonce: 'n123==',
+      cssBundle: ['/a.css', '/b.css'],
+      jsBundle: '/entry.js',
+      htmlAttrs: { 'data-env': 'prod' },
+      bodyAttrs: { class: 'root' },
     });
 
-    expect(html).toContain('lang="id"');
-  });
+    expect(html).toContain('<html lang="id" data-env="prod">');
+    expect(html).toContain('<body class="root">');
+    expect(html).toContain('<base href="/sub/" />');
+    expect(html).toContain('<script type="module" src="/entry.js" nonce="n123=="></script>');
+    expect(html).not.toContain('<app-root>');
 
-  it('should use custom CSS bundle path', async () => {
-    const payload = await serializeState(mockContext);
-    const html = createHtmlDocument('<div>Test</div>', payload, {
-      cssBundle: '/dist/styles.css',
+    const custom = createHtmlDocument('<p>Hi</p>', payload, {
+      template: ({ body, hydrationScript }) => `<!DOCTYPE html><html><head></head><body>${body}${hydrationScript}</body></html>`,
     });
-
-    expect(html).toContain('/dist/styles.css');
+    expect(custom).toContain('<app-root><p>Hi</p></app-root>');
+    expect(custom).toContain('type="application/json"');
   });
 
-  it('should use custom JS bundle path', async () => {
-    const payload = await serializeState(mockContext);
-    const html = createHtmlDocument('<div>Test</div>', payload, {
-      jsBundle: '/dist/app.js',
-    });
-
-    expect(html).toContain('/dist/app.js');
-  });
-
-  it('should set base path', async () => {
-    const payload = await serializeState(mockContext);
-    const html = createHtmlDocument('<div>Test</div>', payload, {
-      basePath: '/app/',
-    });
-
-    expect(html).toContain('href="/app/"');
-  });
-
-  it('should pass validation', async () => {
-    const payload = await serializeState(mockContext);
-    const html = createHtmlDocument('<div>Test</div>', payload);
-
-    expect(validateHtmlStructure(html)).toBe(true);
-  });
-});
-
-describe('createFallbackHtml()', () => {
-  it('should create minimal HTML shell', () => {
-    const html = createFallbackHtml();
-
-    expect(html).toContain('<!DOCTYPE html>');
-    expect(html).toContain('<app-root></app-root>');
-    expect(html).toContain('Loading');
-  });
-
-  it('should use custom title', () => {
-    const html = createFallbackHtml('Dashboard');
-
-    expect(html).toContain('<title>Dashboard</title>');
-  });
-});
-
-describe('createErrorHtml()', () => {
-  it('should create error page', () => {
-    const html = createErrorHtml(500, 'Internal Server Error');
-
-    expect(html).toContain('500');
-    expect(html).toContain('Internal Server Error');
-  });
-
-  it('should include details if provided', () => {
-    const html = createErrorHtml(
-      404,
-      'Page Not Found',
-      'The requested page does not exist'
+  it('escapes HTML text and attributes safely', () => {
+    expect(escapeHtml('<script>"a" & \'b\'</script>')).toBe(
+      '&lt;script&gt;&quot;a&quot; &amp; &#39;b&#39;&lt;/script&gt;'
     );
-
-    expect(html).toContain('The requested page does not exist');
-  });
-
-  it('should include home link', () => {
-    const html = createErrorHtml(500, 'Error');
-
-    expect(html).toContain('href="/"');
-  });
-});
-
-describe('escapeHtml()', () => {
-  it('should escape HTML special characters', () => {
-    expect(escapeHtml('<script>alert("xss")</script>')).toBe(
-      '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;'
-    );
-  });
-
-  it('should escape ampersands', () => {
-    expect(escapeHtml('A & B')).toBe('A &amp; B');
-  });
-
-  it('should escape single quotes', () => {
-    expect(escapeHtml("It's safe")).toBe('It&#39;s safe');
-  });
-});
-
-describe('escapeAttr()', () => {
-  it('should escape attribute values', () => {
-    expect(escapeAttr('value"with"quotes')).toBe('value&quot;with&quot;quotes');
-  });
-
-  it('should escape ampersands', () => {
-    expect(escapeAttr('A&B')).toBe('A&amp;B');
-  });
-
-  it('should keep normal text unchanged', () => {
-    expect(escapeAttr('/path/to/resource')).toBe('/path/to/resource');
-  });
-});
-
-describe('validateHtmlStructure()', () => {
-  it('should validate correct HTML', () => {
-    const html = `<!DOCTYPE html>
-      <html>
-        <head><base href="/" /></head>
-        <body><script src="app.js"></script></body>
-      </html>`;
-
-    expect(validateHtmlStructure(html)).toBe(true);
-  });
-
-  it('should fail on missing DOCTYPE', () => {
-    const html = '<html><head><base/></head><body><script></script></body></html>';
-
-    expect(validateHtmlStructure(html)).toBe(false);
-  });
-
-  it('should fail on missing base tag', () => {
-    const html = `<!DOCTYPE html>
-      <html><head></head><body><script></script></body></html>`;
-
-    expect(validateHtmlStructure(html)).toBe(false);
+    expect(escapeAttr('a"b&c\'d')).toBe('a&quot;b&amp;c&#39;d');
   });
 });

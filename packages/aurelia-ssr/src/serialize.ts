@@ -1,232 +1,109 @@
 /**
- * @hono/aurelia State Serialization
- * 
- * Serialize auth context and initial data for hydration with strict whitelist
- * projection to guarantee sensitive fields are never leaked to the client.
- */
-
-import type { RenderContext, HydrationPayload, User, Workspace } from './types.js';
-
-/**
- * Public User DTO whitelist fields safe to send to browser.
- */
-const ALLOWED_USER_FIELDS = new Set([
-  'id',
-  'email',
-  'name',
-  'avatarUrl',
-  'avatar',
-  'role',
-  'createdAt',
-]);
-
-/**
- * Public Workspace DTO whitelist fields safe to send to browser.
- */
-const ALLOWED_WORKSPACE_FIELDS = new Set([
-  'id',
-  'name',
-  'slug',
-  'plan',
-  'role',
-]);
-
-/**
- * Serialize auth context + initial data for client hydration.
+ * @aureliajs/ssr State Serialization
  *
- * Employs a strict whitelist projection for user and workspace contexts
- * to eliminate credential and token leakage vectors.
- * 
- * @param context - Auth context (user, workspace, role)
- * @param initialData - Optional initial data to hydrate
- * @param componentName - Component name for validation
- * @returns Promise<HydrationPayload>
+ * Pure ECMA/Web-Standard serializer for transferring SSR state inside
+ * HTML5 `<script type="application/json">` elements.
+ * Supports optional standard `replacer`, circular reference handling,
+ * and script-context XSS escaping without opinionated key guessing.
  */
-export async function serializeState(
-  context: RenderContext,
-  initialData?: Record<string, unknown>,
-  componentName?: string
-): Promise<HydrationPayload> {
+
+import type { HydrationPayload, SerializeOptions } from './types.js';
+
+/**
+ * Serialize request context and initial loader data into a HydrationPayload.
+ */
+export async function serializeState<
+  TContext extends Record<string, unknown> = Record<string, unknown>,
+  TData = Record<string, unknown>,
+>(
+  context: TContext = {} as TContext,
+  initialData?: TData,
+  componentName?: string,
+  options?: SerializeOptions
+): Promise<HydrationPayload<TContext, TData>> {
+  const replacer = options?.replacer;
+
   try {
-    // Project context through whitelist
-    const cleanedContext = projectContext(context);
+    const cleanedContext = (sanitizeValue('', context, replacer) ?? {}) as TContext;
+    const cleanedData =
+      initialData !== undefined
+        ? (sanitizeValue('', initialData, replacer) as TData | undefined)
+        : undefined;
 
-    // Recursively clean and sanitize initial data
-    const cleanedData = initialData
-      ? (cleanData(initialData) as Record<string, unknown> | undefined)
-      : undefined;
-
-    // Create hydration payload
-    const isAuthenticated = cleanedContext.isAuthenticated !== undefined
-      ? Boolean(cleanedContext.isAuthenticated)
-      : Boolean(cleanedContext.user);
-
-    const payload: HydrationPayload = {
+    return {
       component: componentName || 'unknown',
-      context: {
-        ...cleanedContext,
-        user: (cleanedContext.user as User) ?? null,
-        workspace: (cleanedContext.workspace as Workspace) ?? null,
-        role: (cleanedContext.role as string) ?? null,
-        isAuthenticated,
-      },
+      context: cleanedContext,
       initialData: cleanedData,
       timestamp: Date.now(),
     };
-
-    return payload;
   } catch (error) {
     console.error('[serializeState] ERROR:', error);
-    
-    // Fallback to safe minimal unauthenticated payload
+
     return {
       component: componentName || 'unknown',
-      context: {
-        user: null,
-        workspace: null,
-        role: null,
-        isAuthenticated: false,
-      },
+      context: {} as TContext,
       timestamp: Date.now(),
     };
   }
 }
 
-const SENSITIVE_KEY_PATTERN = /(?:password|token|secret|hash|salt|credential)/i;
-
-/**
- * Projection of render context.
- * Guarantees that sensitive credentials and tokens are redacted while preserving
- * arbitrary custom application context variables and whitelisting user/workspace DTOs.
- */
-function projectContext(context: RenderContext): RenderContext {
-  const result: Record<string, unknown> = {};
-
-  for (const [key, value] of Object.entries(context)) {
-    if (key.startsWith('_') || key.startsWith('$')) {
-      continue;
-    }
-
-    if (key === 'user') {
-      result.user = value ? projectObject<User>(value, ALLOWED_USER_FIELDS) : null;
-    } else if (key === 'workspace') {
-      result.workspace = value ? projectObject<Workspace>(value, ALLOWED_WORKSPACE_FIELDS) : null;
-    } else if (key === 'role') {
-      result.role = typeof value === 'string' ? value : null;
-    } else {
-      if (SENSITIVE_KEY_PATTERN.test(key)) {
-        continue;
-      }
-      const cleaned = cleanData(value);
-      if (cleaned !== undefined) {
-        result[key] = cleaned;
-      }
-    }
-  }
-
-  if (!('user' in result)) result.user = null;
-  if (!('workspace' in result)) result.workspace = null;
-  if (!('role' in result)) result.role = null;
-
-  return result;
-}
-
-/**
- * Project an object by keeping only whitelisted keys and primitive values.
- */
-function projectObject<T extends Record<string, unknown>>(
-  obj: unknown,
-  allowedKeys: Set<string>
-): T | null {
-  if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
-    return null;
-  }
-
-  const result: Record<string, unknown> = {};
-
-  for (const [key, value] of Object.entries(obj)) {
-    if (!allowedKeys.has(key)) {
-      continue;
-    }
-
-    // Only allow serializable primitives or clean nested structures
-    if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-      result[key] = value;
-    } else if (typeof value === 'object') {
-      result[key] = cleanData(value);
-    }
-  }
-
-  return result as T;
-}
-
-/**
- * Recursively clean data, removing circular references, functions, and symbols
- */
-function cleanData(
-  data: unknown,
+function sanitizeValue(
+  key: string,
+  rawValue: unknown,
+  replacer?: (key: string, value: unknown) => unknown,
   seen = new WeakSet<object>()
 ): unknown {
+  const data = replacer ? replacer(key, rawValue) : rawValue;
+
   if (data === null || data === undefined) {
     return data;
   }
 
-  // Primitive types
   if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
     return data;
   }
 
-  // Skip non-serializable types
   if (typeof data === 'function' || typeof data === 'symbol') {
     return undefined;
   }
 
-  // Handle circular references
+  if (data instanceof Date) {
+    return data.toISOString();
+  }
+
   if (typeof data === 'object') {
     if (seen.has(data)) {
       return '[Circular]';
     }
     seen.add(data);
-  }
 
-  // Handle arrays
-  if (Array.isArray(data)) {
-    return data.map((item) => cleanData(item, seen));
-  }
-
-  // Handle objects
-  if (typeof data === 'object') {
-    const result: Record<string, unknown> = {};
-
-    for (const [key, value] of Object.entries(data)) {
-      // Skip private/internal properties
-      if (key.startsWith('_') || key.startsWith('$')) {
-        continue;
-      }
-
-      // Skip non-serializable types
-      if (typeof value === 'function' || typeof value === 'symbol') {
-        continue;
-      }
-
-      // Recursively clean
-      const cleaned = cleanData(value, seen);
-      
-      if (cleaned !== undefined) {
-        result[key] = cleaned;
-      }
+    if (Array.isArray(data)) {
+      return data.map((item, idx) => sanitizeValue(String(idx), item, replacer, seen));
     }
 
+    const result: Record<string, unknown> = {};
+    for (const [propKey, propVal] of Object.entries(data)) {
+      if (typeof propVal === 'function' || typeof propVal === 'symbol') {
+        continue;
+      }
+      const cleaned = sanitizeValue(propKey, propVal, replacer, seen);
+      if (cleaned !== undefined) {
+        result[propKey] = cleaned;
+      }
+    }
     return result;
   }
 
-  return data;
+  return undefined;
 }
 
 /**
- * Verify payload can be serialized to JSON
+ * Verify a hydration payload can be serialized to JSON without throwing.
  */
-export function validatePayload(payload: HydrationPayload): boolean {
+export function validatePayload<
+  TContext extends Record<string, unknown> = Record<string, unknown>,
+  TData = Record<string, unknown>,
+>(payload: HydrationPayload<TContext, TData>): boolean {
   try {
     JSON.stringify(payload);
     return true;
@@ -236,18 +113,14 @@ export function validatePayload(payload: HydrationPayload): boolean {
 }
 
 /**
- * Serialize payload to JSON string with escaping for HTML script context.
- * 
- * Safely escapes characters that could break out of a `<script>` tag (XSS):
- * - `<` to `\u003c` (prevents </script> and <!-- tag breaks)
- * - `>` to `\u003e`
- * - `&` to `\u0026`
- * - `\u2028` and `\u2029` (prevents JS newline issues)
+ * Serialize payload to an XSS-safe JSON string suitable for `<script type="application/json">`.
+ * Escapes `<`, `>`, `&`, `\u2028`, and `\u2029` so untrusted strings cannot break out of `<script>`.
  */
-export function stringifyPayload(payload: HydrationPayload): string {
-  const json = JSON.stringify(payload);
-  
-  return json
+export function stringifyPayload<
+  TContext extends Record<string, unknown> = Record<string, unknown>,
+  TData = Record<string, unknown>,
+>(payload: HydrationPayload<TContext, TData>): string {
+  return JSON.stringify(payload)
     .replace(/&/g, '\\u0026')
     .replace(/</g, '\\u003c')
     .replace(/>/g, '\\u003e')

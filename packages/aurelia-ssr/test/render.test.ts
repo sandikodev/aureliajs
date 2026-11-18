@@ -1,285 +1,241 @@
-import { describe, it, expect, vi } from 'vitest';
-import { renderAurelia } from '../src/render.js';
-import type { RenderContext } from '../src/types.js';
+import { describe, it, expect } from 'bun:test';
+import { CustomElement, resolve } from 'aurelia';
+import { renderAurelia, IRequestContext, resolveRequestContext } from '../src/render.js';
 
 describe('renderAurelia()', () => {
-  const mockContext: RenderContext = {
-    user: {
-      id: 'user_123',
-      email: 'test@example.com',
-      name: 'Test User',
-    },
-    workspace: {
-      id: 'ws_456',
-      name: 'Test Workspace',
-    },
-    role: 'owner',
-  };
+  it('renders canonical Aurelia 2 CustomElement without mutating globalThis', async () => {
+    const SimplePage = CustomElement.define(
+      { name: 'simple-page', template: '<div>Hello ${name}</div>' },
+      class {
+        name = 'World';
+      }
+    );
 
-  it('should render a simple component', async () => {
-    const SimpleComponent = {
-      template: '<div>Hello World</div>',
-    };
+    const prevWindow = (globalThis as Record<string, unknown>).window;
+    const prevDocument = (globalThis as Record<string, unknown>).document;
 
     const html = await renderAurelia({
-      component: SimpleComponent,
-      context: mockContext,
+      component: SimplePage,
+      props: { name: 'Aurelia 2' },
     });
 
-    expect(html).toContain('Hello World');
-    expect(typeof html).toBe('string');
-  });
+    // Real Aurelia 2 ISSRContext preserves <!--au--> hydration markers by default
+    expect(html).toBe('<div>Hello <!--au-->Aurelia 2</div>');
 
-  it('should include context in rendered output', async () => {
-    const ContextComponent = {
-      template: '<div>User: {{_renderContext.user.name}}</div>',
-    };
-
-    const html = await renderAurelia({
-      component: ContextComponent,
-      context: mockContext,
+    // Static / non-hydrated render strips markers when preserveMarkers: false
+    const staticHtml = await renderAurelia({
+      component: SimplePage,
+      props: { name: 'Aurelia 2' },
+      preserveMarkers: false,
     });
+    expect(staticHtml).toBe('<div>Hello Aurelia 2</div>');
 
-    expect(html).toContain('User:');
+    // Must NEVER monkey-patch globalThis
+    expect((globalThis as Record<string, unknown>).window).toBe(prevWindow);
+    expect((globalThis as Record<string, unknown>).document).toBe(prevDocument);
   });
 
-  it('should timeout after specified duration', async () => {
-    const SlowComponent = {
-      async attached() {
-        await new Promise((r) => setTimeout(r, 1000));
+  it('injects strictly typed IRequestContext via Aurelia 2 DI without mutating secret fields', async () => {
+    interface AppContext extends Record<string, unknown> {
+      locale: string;
+      tenant: string;
+    }
+
+    const DiPage = CustomElement.define(
+      {
+        name: 'di-page',
+        template:
+          '<div>${req.data.tenant} (${req.data.locale}) — ${req.url} — ${req.params.id} — server:${req.isServer}</div>',
       },
-      template: '<div>Slow</div>',
-    };
+      class {
+        readonly req = resolveRequestContext<AppContext>();
+        // Verify component does NOT receive unwanted splatted context properties
+        locale = 'component-own-default';
+      }
+    );
 
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const promise = renderAurelia({
-      component: SlowComponent,
-      context: mockContext,
-      timeout: 100,
+    const html = await renderAurelia({
+      component: DiPage,
+      context: { locale: 'id-ID', tenant: 'acme' },
+      url: 'https://example.com/items/42?sort=asc',
+      params: { id: '42' },
+      query: { sort: 'asc' },
+      preserveMarkers: false,
     });
 
-    // Implementation catches timeout and returns error HTML, not reject
-    const result = await promise;
-    spy.mockRestore();
-    expect(result).toContain('ssr-error');
-    expect(result).toContain('timeout');
+    expect(html).toContain('acme (id-ID)');
+    expect(html).toContain('https://example.com/items/42?sort=asc');
+    expect(html).toContain('42');
+    expect(html).toContain('server:true');
   });
 
-  it('should handle missing component gracefully', async () => {
-    const promise = renderAurelia({
-      component: null as any,
-    });
-
-    await expect(promise).rejects.toThrow('component is required');
-  });
-
-  it('should return empty container on render error', async () => {
-    const ErrorComponent = {
-      get template() {
-        throw new Error('Template error');
+  it('preserves real Aurelia 2 hydration markers via native ISSRContext', async () => {
+    const ListPage = CustomElement.define(
+      {
+        name: 'list-page',
+        template: '<ul><li repeat.for="item of items">${item.name}</li></ul>',
       },
-    };
+      class {
+        items = [{ name: 'Alpha' }, { name: 'Beta' }];
+      }
+    );
 
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const html = await renderAurelia({
-      component: ErrorComponent,
-    });
-    spy.mockRestore();
+    const html = await renderAurelia({ component: ListPage });
 
-    expect(html).toContain('ssr-container');
-  });
-
-  it('should call attached() lifecycle method', async () => {
-    let attachedCalled = false;
-
-    const LifecycleComponent = {
-      async attached() {
-        attachedCalled = true;
-      },
-      template: '<div>Lifecycle Test</div>',
-    };
-
-    await renderAurelia({
-      component: LifecycleComponent,
-    });
-
-    expect(attachedCalled).toBe(true);
-  });
-
-  it('should inject props into component', async () => {
-    const PropsComponent = {
-      title: '',
-      template: '<h1>{{title}}</h1>',
-    };
-
-    const html = await renderAurelia({
-      component: PropsComponent,
-      props: { title: 'Dashboard' },
-    });
-
-    expect(html).toContain('Dashboard');
-  });
-
-  it('should render real Aurelia 2 CustomElement with repeat.for and interpolation', async () => {
-    const { CustomElement } = await import('aurelia');
-    const ListComponent = CustomElement.define({
-      name: 'list-comp',
-      template: '<ul><li repeat.for="item of items">${item.name} (${item.role})</li></ul>',
-    }, class {
-      items = [
-        { name: 'Alice', role: 'admin' },
-        { name: 'Bob', role: 'member' },
-      ];
-    });
-
-    const html = await renderAurelia({
-      component: ListComponent,
-    });
-
-    expect(html).toContain('Alice (admin)');
-    expect(html).toContain('Bob (member)');
+    expect(html).toContain('Alpha');
+    expect(html).toContain('Beta');
     expect(html).toContain('<!--au-start-->');
     expect(html).toContain('<!--au-end-->');
   });
 
-  it('should render child components registered via registrations option', async () => {
-    const { CustomElement } = await import('aurelia');
-    const BadgeComp = CustomElement.define({
-      name: 'status-badge',
-      template: '<span class="badge"><au-slot></au-slot></span>',
-    }, class {});
+  it('renders child components registered via registrations and supports if.bind', async () => {
+    const StatusBadge = CustomElement.define(
+      { name: 'status-badge', template: '<span class="badge"><au-slot></au-slot></span>' },
+      class {}
+    );
 
-    const PageComp = CustomElement.define({
-      name: 'page-comp',
-      template: '<div class="page">Status: <status-badge>${status}</status-badge></div>',
-    }, class {
-      status = 'Active';
-    });
+    const HostPage = CustomElement.define(
+      {
+        name: 'host-page',
+        template:
+          '<div><status-badge if.bind="active">${label}</status-badge><span if.bind="!active">Off</span></div>',
+      },
+      class {
+        active = true;
+        label = 'Online';
+      }
+    );
 
     const html = await renderAurelia({
-      component: PageComp,
-      registrations: [BadgeComp],
+      component: HostPage,
+      registrations: [StatusBadge],
     });
 
     expect(html).toContain('<status-badge>');
-    expect(html).toContain('class="badge"');
-    expect(html).toContain('Active');
+    expect(html).toContain('Online');
+    expect(html).not.toContain('Off');
   });
 
-  it('should support if.bind conditionals', async () => {
-    const { CustomElement } = await import('aurelia');
-    const ConditionalComp = CustomElement.define({
-      name: 'conditional-comp',
-      template: '<div><span if.bind="isPremium">PRO USER</span><span if.bind="!isPremium">FREE USER</span></div>',
-    }, class {
-      isPremium = true;
-    });
+  it('invokes component attached() lifecycle hook during SSR', async () => {
+    let attachedCalled = false;
 
-    const html = await renderAurelia({
-      component: ConditionalComp,
-    });
-
-    expect(html).toContain('PRO USER');
-    expect(html).not.toContain('FREE USER');
-  });
-
-  it('should handle concurrent rendering without cross-request state contamination', async () => {
-    const { CustomElement } = await import('aurelia');
-    const UserBadgeComp = CustomElement.define({
-      name: 'user-badge-comp',
-      template: '<div class="user-badge">${title}: ${username} (${role})</div>',
-    }, class {
-      title = '';
-      username = '';
-      role = '';
-    });
-
-    const requests = Array.from({ length: 10 }, (_, i) =>
-      renderAurelia({
-        component: UserBadgeComp,
-        props: {
-          title: `Request-${i}`,
-          username: `User-${i}`,
-          role: i % 2 === 0 ? 'Admin' : 'Member',
-        },
-      })
+    const LifecyclePage = CustomElement.define(
+      { name: 'lifecycle-page', template: '<div>Ready</div>' },
+      class {
+        async attached() {
+          attachedCalled = true;
+        }
+      }
     );
 
-    const outputs = await Promise.all(requests);
+    await renderAurelia({ component: LifecyclePage });
+    expect(attachedCalled).toBe(true);
+  });
 
-    for (let i = 0; i < 10; i++) {
-      expect(outputs[i]).toContain(`Request-${i}: User-${i}`);
-      expect(outputs[i]).toContain(i % 2 === 0 ? '(Admin)' : '(Member)');
+  it('isolates 20 concurrent SSR requests with zero cross-request state contamination', async () => {
+    const RequestView = CustomElement.define(
+      {
+        name: 'request-view',
+        template: '<div>${label}:${req.data.requestId}:${req.params.idx}</div>',
+      },
+      class {
+        readonly req = resolve(IRequestContext);
+        label = '';
+      }
+    );
+
+    const promises: Promise<string>[] = [];
+    for (let idx = 0; idx < 20; idx++) {
+      promises.push(
+        renderAurelia({
+          component: RequestView,
+          props: { label: `Job-${idx}` },
+          context: { requestId: `req-${idx}` },
+          params: { idx: String(idx) },
+          preserveMarkers: false,
+        })
+      );
+    }
+
+    const outputs = await Promise.all(promises);
+    for (let idx = 0; idx < 20; idx++) {
+      expect(outputs[idx]).toContain(`Job-${idx}:req-${idx}:${idx}`);
     }
   });
 
-  it('should safely provide browser shims (localStorage, matchMedia, ResizeObserver)', async () => {
-    const { CustomElement } = await import('aurelia');
-    const BrowserAwareComp = CustomElement.define({
-      name: 'browser-aware-comp',
-      template: '<div>Storage: ${storedVal}, Media: ${isMobile}</div>',
-    }, class {
-      storedVal = '';
-      isMobile = false;
+  it('rejects on missing component, render error, or timeout', async () => {
+    await expect(
+      renderAurelia({ component: null as unknown as object })
+    ).rejects.toThrow('component is required');
 
-      binding() {
-        if (typeof window !== 'undefined' && window.localStorage) {
-          window.localStorage.setItem('theme', 'dark');
-          this.storedVal = window.localStorage.getItem('theme') || '';
-        }
-        if (typeof window !== 'undefined' && window.matchMedia) {
-          const mq = window.matchMedia('(max-width: 600px)');
-          this.isMobile = mq.matches;
+    const SlowPage = CustomElement.define(
+      { name: 'slow-page', template: '<div>Slow</div>' },
+      class {
+        async attached() {
+          await new Promise((r) => setTimeout(r, 1000));
         }
       }
-    });
+    );
 
-    const html = await renderAurelia({
-      component: BrowserAwareComp,
-    });
-
-    expect(html).toContain('Storage: dark');
-    expect(html).toContain('Media: false');
+    await expect(
+      renderAurelia({ component: SlowPage, timeout: 50 })
+    ).rejects.toThrow('renderAurelia timeout after 50ms');
   });
 
-  it('should inject isomorphic IRequestContext into component DI', async () => {
-    const { CustomElement, resolve } = await import('aurelia');
-    const { IRequestContext } = await import('../src/render.js');
+  it('emits lightweight client-only placeholder without booting JSDOM', async () => {
+    const ClientChart = CustomElement.define(
+      { name: 'heavy-chart', template: '<canvas></canvas>' },
+      class {
+        static clientOnly = true;
+      }
+    );
 
-    const DiComp = CustomElement.define({
-      name: 'di-comp',
-      template: '<div>User: ${req.user.name}, URL: ${req.url}, Param: ${req.params.id}</div>',
-    }, class {
-      readonly req = resolve(IRequestContext);
-    });
-
-    const html = await renderAurelia({
-      component: DiComp,
-      context: mockContext,
-      url: 'https://example.com/posts/42',
-      params: { id: '42' },
-      query: { filter: 'recent' },
-    });
-
-    expect(html).toContain('User: Test User');
-    expect(html).toContain('URL: https://example.com/posts/42');
-    expect(html).toContain('Param: 42');
+    const html = await renderAurelia({ component: ClientChart });
+    expect(html).toBe('<div class="au-client-island" data-au-client="heavy-chart"></div>');
   });
 
-  it('should render lightweight island placeholder for clientOnly components', async () => {
-    const { CustomElement } = await import('aurelia');
-    const ClientHeavyChart = CustomElement.define({
-      name: 'heavy-chart',
-      template: '<canvas id="chart"></canvas>',
-    }, class {
-      static clientOnly = true;
+  it('supports LinkeDOM engine for Cloudflare Workers / Edge runtime compatibility', async () => {
+    const EdgeComponent = CustomElement.define(
+      {
+        name: 'edge-card',
+        template: '<section class="edge"><h1>${heading}</h1><p>Count: ${count}</p></section>',
+      },
+      class {
+        heading = 'Edge Ready';
+        count = 1;
+      }
+    );
+
+    // 1. Explicit engine: 'linkedom'
+    const linkedomHtml = await renderAurelia({
+      component: EdgeComponent,
+      props: { heading: 'Hello Cloudflare Workers', count: 42 },
+      engine: 'linkedom',
+      preserveMarkers: false,
     });
 
-    const html = await renderAurelia({
-      component: ClientHeavyChart,
+    expect(linkedomHtml).toContain('Hello Cloudflare Workers');
+    expect(linkedomHtml).toContain('Count: 42');
+    expect(linkedomHtml).toContain('class="edge"');
+
+    // 2. Explicit engine: 'jsdom'
+    const jsdomHtml = await renderAurelia({
+      component: EdgeComponent,
+      props: { heading: 'Hello JSDOM', count: 99 },
+      engine: 'jsdom',
+      preserveMarkers: false,
     });
 
-    expect(html).toContain('class="au-client-island"');
-    expect(html).toContain('data-au-client="heavy-chart"');
+    expect(jsdomHtml).toContain('Hello JSDOM');
+    expect(jsdomHtml).toContain('Count: 99');
+
+    // 3. Engine: 'auto'
+    const autoHtml = await renderAurelia({
+      component: EdgeComponent,
+      props: { heading: 'Hello Auto', count: 100 },
+      engine: 'auto',
+      preserveMarkers: false,
+    });
+    expect(autoHtml).toContain('Hello Auto');
   });
 });

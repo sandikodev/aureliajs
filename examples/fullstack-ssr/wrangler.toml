@@ -1,0 +1,11 @@
+name = "aurelia-hono-ssr"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+[vars]
+WORKER = "true"

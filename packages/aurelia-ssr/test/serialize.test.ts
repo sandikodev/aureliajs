@@ -1,143 +1,62 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { serializeState, validatePayload, stringifyPayload } from '../src/serialize.js';
-import type { RenderContext } from '../src/types.js';
 
 describe('serializeState()', () => {
-  const mockContext: RenderContext = {
-    user: {
-      id: 'user_123',
-      email: 'test@example.com',
-      name: 'Test User',
-    },
-    workspace: {
-      id: 'ws_456',
-      name: 'Test Workspace',
-    },
-    role: 'owner',
-  };
-
-  it('should create a valid hydration payload', async () => {
-    const payload = await serializeState(mockContext);
-
-    expect(payload).toHaveProperty('component');
-    expect(payload).toHaveProperty('context');
-    expect(payload).toHaveProperty('timestamp');
-    expect(payload.context.isAuthenticated).toBe(true);
-  });
-
-  it('should exclude sensitive fields', async () => {
-    const contextWithSecrets = {
-      ...mockContext,
-      user: {
-        ...mockContext.user!,
-        password: 'secret123',
-        refreshToken: 'token_secret',
-        apiKey: 'key_secret',
-      },
+  it('preserves arbitrary application keys without opinionated regex redaction', async () => {
+    // Legitimate domain keys that regex-guessing serializers mistakenly delete
+    const context = {
+      designToken: 'color-brand',
+      txHash: '0xabc123',
+      salt: '1 tsp',
+      tokenCount: 4096,
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
     };
 
-    const payload = await serializeState(contextWithSecrets);
+    const payload = await serializeState(context, { items: [1, 2] }, 'metrics-page');
 
-    expect(payload.context.user).not.toHaveProperty('password');
-    expect(payload.context.user).not.toHaveProperty('refreshToken');
-    expect(payload.context.user).not.toHaveProperty('apiKey');
-    expect(payload.context.user?.email).toBe('test@example.com');
-  });
-
-  it('should handle null user', async () => {
-    const contextNoAuth: RenderContext = {
-      user: null,
-      workspace: mockContext.workspace,
-      role: null,
-    };
-
-    const payload = await serializeState(contextNoAuth);
-
-    expect(payload.context.isAuthenticated).toBe(false);
-    expect(payload.context.user).toBeNull();
-  });
-
-  it('should include initial data', async () => {
-    const initialData = {
-      overview: { stats: { total: 1234 } },
-      activity: [{ id: 1, action: 'created' }],
-    };
-
-    const payload = await serializeState(mockContext, initialData);
-
-    expect(payload.initialData).toEqual(initialData);
-  });
-
-  it('should handle circular references in data', async () => {
-    const circularData: any = {
-      name: 'test',
-    };
-    circularData.self = circularData;
-
-    const payload = await serializeState(mockContext, circularData);
-
-    expect(payload.initialData).toBeDefined();
-    expect(JSON.stringify(payload)).toBeDefined();
-  });
-
-  it('should set component name', async () => {
-    const payload = await serializeState(mockContext, {}, 'dashboard-page');
-
-    expect(payload.component).toBe('dashboard-page');
-  });
-
-  it('should set current timestamp', async () => {
-    const before = Date.now();
-    const payload = await serializeState(mockContext);
-    const after = Date.now();
-
-    expect(payload.timestamp).toBeGreaterThanOrEqual(before);
-    expect(payload.timestamp).toBeLessThanOrEqual(after);
-  });
-});
-
-describe('validatePayload()', () => {
-  it('should validate serializable payload', async () => {
-    const payload = await serializeState({
-      user: null,
-      workspace: null,
-      role: null,
-    });
-
+    expect(payload.component).toBe('metrics-page');
+    expect(payload.context.designToken).toBe('color-brand');
+    expect(payload.context.txHash).toBe('0xabc123');
+    expect(payload.context.salt).toBe('1 tsp');
+    expect(payload.context.tokenCount).toBe(4096);
+    expect(payload.context.createdAt as unknown).toBe('2026-01-01T00:00:00.000Z');
+    expect(payload.initialData).toEqual({ items: [1, 2] });
     expect(validatePayload(payload)).toBe(true);
   });
-});
 
-describe('stringifyPayload()', () => {
-  it('should produce valid JSON string for script tag assignment', async () => {
-    const payload = await serializeState({
-      user: { id: 'u1', email: 'test@example.com', name: 'Test' },
-      workspace: null,
-      role: 'user',
+  it('supports standard JSON replacer option for explicit caller-controlled filtering', async () => {
+    const context: Record<string, unknown> = { email: 'a@b.com', internalSecret: 'do-not-expose' };
+
+    const payload = await serializeState(context, undefined, 'profile', {
+      replacer: (key, value) => (key === 'internalSecret' ? undefined : value),
     });
 
-    const str = stringifyPayload(payload);
-
-    expect(typeof str).toBe('string');
-    // Double quotes must remain valid JSON/JS string delimiters
-    expect(str).toContain('"');
-    expect(str).not.toContain('\\u0022');
-    // Must be directly parseable as JSON and valid in a JS expression
-    expect(JSON.parse(str)).toHaveProperty('context');
+    expect(payload.context).toEqual({ email: 'a@b.com' });
   });
 
-  it('should prevent XSS injection', () => {
-    const maliciousPayload: any = {
-      component: '<script>alert("xss")</script>',
-      context: { user: null, workspace: null, role: null, isAuthenticated: false },
-      timestamp: Date.now(),
+  it('handles circular references and omits non-serializable functions/symbols', async () => {
+    const circular: Record<string, unknown> = {
+      name: 'node',
+      fn: () => 'ignored',
+      sym: Symbol('ignored'),
     };
+    circular.self = circular;
 
-    const str = stringifyPayload(maliciousPayload);
+    const payload = await serializeState({}, circular, 'tree');
+    expect(payload.initialData).toEqual({ name: 'node', self: '[Circular]' });
+    expect(validatePayload(payload)).toBe(true);
+  });
 
-    // < and > must be escaped so browser HTML parser cannot break out of <script>
-    expect(str).toContain('\\u003c');
-    expect(str).toContain('\\u003e');
-    expect(str).not.toContain('<script>');
+  it('escapes HTML script-breaking characters in stringifyPayload()', async () => {
+    const payload = await serializeState(
+      { bio: '</script><script>alert("xss")</script>' },
+      undefined,
+      'profile'
+    );
+
+    const json = stringifyPayload(payload);
+    expect(json).not.toContain('</script>');
+    expect(json).toContain('\\u003c/script\\u003e');
+    expect(JSON.parse(json).context.bio).toBe('</script><script>alert("xss")</script>');
   });
 });

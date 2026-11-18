@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { CustomElement } from 'aurelia';
 import { renderAurelia } from '../src/render.js';
 

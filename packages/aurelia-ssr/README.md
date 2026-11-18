@@ -1,212 +1,219 @@
-# @aureliajs/ssr
+# `@aureliajs/ssr`
 
-> **Framework-Agnostic Server-Side Rendering (SSR) & Direct-DOM Hydration Core Engine for Aurelia 2**  
-> *Engineered by Sandikodev ([@sandikodev](https://github.com/sandikodev))*
+**Pure, Web-Standards Server-Side Rendering & HTML5 Hydration Core Engine for Aurelia 2.**
 
-[![Aurelia 2](https://img.shields.io/badge/Aurelia-v2.0.0--rc.2-ED2B88?logo=aurelia)](https://aurelia.io)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Aurelia 2](https://img.shields.io/badge/Aurelia-v2.0.0--rc.2-ED2B88)](https://aurelia.io)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests: 81 Passed](https://img.shields.io/badge/Tests-81%20Passed-brightgreen)](https://github.com/sandikodev/aureliajs)
+
+> **Community Note:** `@aureliajs/ssr` is an independent community SSR engine built on top of Aurelia 2's real low-level runtime primitives (`@aurelia/runtime-html` and `@aurelia/platform-browser`). Every internal mechanism and current trade-off is documented openly below so contributors can inspect, trust, and improve it together.
 
 ---
 
-## 📌 Executive Summary & Architectural Motivation
+## 1. Scope & Strict Boundaries
 
-Aurelia 2 (`v2.0.0-rc.2`) was engineered with low-level platform abstractions (`@aurelia/platform`, `@aurelia/kernel`, `@aurelia/runtime-html`), but the official team **never released an official `@aurelia/server-side-rendering` package** (NPM returns 404). As a result, the global Aurelia community lacked a first-class, memory-safe SSR and hydration solution comparable to `@vue/server-renderer`, `react-dom/server`, or `svelte/server`.
+### What `@aureliajs/ssr` OWNS
+- Rendering genuine Aurelia 2 Custom Elements to HTML on the server (`renderAurelia`, `renderToString`).
+- Per-request DOM & DI container isolation with deterministic teardown (`app.stop()`, `app.dispose()`, `dom.window.close()`).
+- Real Aurelia 2 hydration marker generation via `@aurelia/runtime-html`'s `ISSRContext`.
+- XSS-safe, circular-reference-safe JSON state serialization (`serializeState`, `stringifyPayload`).
+- HTML5 document & streaming shell generation (`createDocumentShell`, `createHydrationScript`, `createHtmlDocument`).
+- Isomorphic typed DI request context (`IRequestContext`, `resolveRequestContext<TContext>()`).
+- Browser-only client hydration bootstrap (`@aureliajs/ssr/client` — zero `jsdom` or `node:*` imports).
 
-`@aureliajs/ssr` fills this critical void as the **definitive, framework-agnostic Aurelia 2 SSR engine**.
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                            AURELIA 2 APPLICATION                            │
-│                  (@customElement, bindables, <au-slot>)                     │
-└──────────────────────────────────────┬──────────────────────────────────────┘
-                                       │
-                    ┌──────────────────▼──────────────────┐
-                    │          @aureliajs/ssr             │
-                    │   (Core SSR & Hydration Engine)     │
-                    └──────────────────┬──────────────────┘
-                                       │
-        ┌──────────────────────────────┴──────────────────────────────┐
-        ▼                                                             ▼
-┌──────────────────────────────────────────────┐ ┌──────────────────────────────────────────────┐
-│       SERVER-SIDE (@aureliajs/ssr/server)    │ │       CLIENT-SIDE (@aureliajs/ssr/client)    │
-│  - JSDOM headless runtime & NodePlatform     │ │  - hydrateFromServer() state extraction     │
-│  - SsrTemplateElementFactory (fixes AUR0757) │ │  - Re-activates events & observers on DOM   │
-│  - RenderMutex FIFO concurrency lock         │ │  - Zero layout shift (Zero CLS)             │
-│  - Strict DI Container stop() & dispose()    │ │  - Lightweight bundle (Zero JSDOM payload)  │
-│  - Anti-XSS State Serializer with CSP Nonce  │ │  - Client HydrationCache with TTL           │
-└──────────────────────────────────────────────┘ └──────────────────────────────────────────────┘
-                                       │
-                     ┌─────────────────┴─────────────────┐
-                     ▼                                   ▼
-          ┌─────────────────────┐             ┌─────────────────────┐
-          │  @hono/aurelia  │             │ Vite / Express /    │
-          │    (Hono Adapter)   │             │ Nitro / Fastify     │
-          └─────────────────────┘             └─────────────────────┘
-```
+### What `@aureliajs/ssr` Explicitly DOES NOT OWN
+- HTTP framework routing, middlewares, auth guards, or static asset serving (see [`@hono/aurelia`](../hono-aurelia/README.md)).
+- Selective hydration triggers (`visible`, `idle`, `interaction`, `media`) or Zero-JS island loaders (see [`@aureliajs/islands`](../aurelia-islands/README.md)).
+- Foreign framework adapters (see [`@aureliajs/bridge`](../aurelia-bridge/README.md)).
+- Application DTOs, sessionStorage caches, opinionated error HTML templates, or key-guessing secret redaction.
 
 ---
 
-## 🛠️ The 4 Core Engineering Solutions
+## 2. How Aurelia 2 Works Under the Hood (and the Real Web Chaos Solved Here)
 
-### 1. Request-Scoped `SsrTemplateElementFactory` (Fixing `AUR0757`)
-In concurrent Node/Bun environments, Aurelia 2's default global template compiler factory caches template DOM elements across execution boundaries. When different HTTP requests render components in parallel, this results in fatal `AUR0757: Element template compilation failed`.  
-`@aureliajs/ssr` registers a dedicated `SsrTemplateElementFactory` for each render cycle, ensuring clean template cache boundaries.
+Unlike React or Svelte, Aurelia 2 compiles HTML templates directly into live DOM nodes and binds them through an Inversion of Control (IoC) Dependency Injection container. Running that cleanly on a concurrent HTTP server hits four real-world pitfalls that `@aureliajs/ssr` explicitly solves:
 
-### 2. Strict DI Container Disposal (Zero Memory Leaks)
-Aurelia's Inversion of Control (IoC) DI container retains metadata and instance registries. Without explicit teardown, every HTTP request accumulates megabytes of residual closures.  
-Our engine encapsulates component rendering in a strict `try...finally` block that guarantees:
-```typescript
-await app.stop();
-await app.dispose();
+### A. Zero `globalThis` Pollution via Per-Container `BrowserPlatform(win)`
+Many naive SSR wrappers monkey-patch `globalThis.window`, `globalThis.document`, and `globalThis.HTMLElement` with JSDOM globals. Under concurrent HTTP traffic, Request A mutates the globals Request B is reading.
+
+**How `@aureliajs/ssr` solves it ([src/render.ts](./src/render.ts)):**
+Aurelia 2's `@aurelia/runtime-html` resolves DOM APIs through its `IPlatform` DI token — it does **not** need `globalThis.document`. For every render call, `@aureliajs/ssr`:
+1. Instantiates a fresh `new JSDOM(...)`.
+2. Creates an isolated `DI.createContainer()`.
+3. Registers `new BrowserPlatform(dom.window)` against `IPlatform` inside that container only.
+4. Tears down `app.stop()`, `app.dispose()`, and `dom.window.close()` inside `finally`.
+
+Result: **30+ concurrent SSR renders run safely in parallel with zero global mutation.**
+
+### B. Fixing Cross-Document Template Cache Contamination (`AUR0757`)
+Aurelia 2's default `TemplateElementFactory` caches parsed `<template>` DOM elements across renders. In a single browser tab that's great; on a server where each request owns a separate JSDOM `Document`, reusing a `<template>` node created by a previous JSDOM document triggers `AUR0757`.
+
+**How `@aureliajs/ssr` solves it:**
+Each render container registers a request-scoped `SsrTemplateElementFactory` against `ITemplateElementFactory` that always creates `<template>` nodes from the active container's `IPlatform.document`.
+
+### C. Real `ISSRContext` & `<!--au-->` Markers
+Instead of faking SSR with regex `{{prop}}` replacement, `@aureliajs/ssr` registers the real `ISSRContext` token from `@aurelia/runtime-html`:
+- `preserveMarkers: true` (default) preserves Aurelia 2's `<!--au-->` comment markers required for native `app.hydrate({ host, component, ssrScope })`.
+- `preserveMarkers: false` emits clean marker-free HTML (useful for static snapshots, emails, or HTML inspection).
+
+### D. HTML5 Inert `<script type="application/json">` Instead of `window.__HYDRATION__`
+Global script assignments (`window.__HYDRATION__ = ...`) trigger inline-script CSP restrictions and leak into the global namespace. `@aureliajs/ssr` follows HTML5 data-block conventions:
+```html
+<script id="__AURELIA_SSR_DATA__" type="application/json">{"component":"...","context":{...}}</script>
 ```
-
-### 3. FIFO Concurrency Serialization (`RenderMutex`)
-Single-threaded DOM abstractions like JSDOM can experience race conditions when multiple microtasks manipulate shared document nodes simultaneously. The built-in `RenderMutex` serializes the DOM compilation critical section safely without blocking I/O.
-
-### 4. Enterprise-Grade State Projection & Anti-XSS
-Server-rendered context (`user`, `workspace`, initial loaders) is serialized via `serializeState()`, escaping dangerous HTML delimiters (`<` to `\u003c`, `>` to `\u003e`, `&` to `\u0026`) and attaching optional Content Security Policy (CSP) nonces to `<script nonce="...">`.
+- Inert by browser specification (never executed as JS; compatible with strict CSP without `unsafe-inline`).
+- Escapes `<`, `>`, `&`, `\u2028`, `\u2029` so untrusted strings cannot break out of `</script>`.
+- Consumed once on the client and removed from the DOM by `hydrateFromServer()`.
 
 ---
 
-## 📦 Installation
+## 3. Installation
 
 ```bash
-# Using bun
-bun add @aureliajs/ssr
-
-# Using pnpm
-pnpm add @aureliajs/ssr
-
-# Using npm
-npm install @aureliajs/ssr
+bun add @aureliajs/ssr aurelia
 ```
 
-*Peer Dependencies: `aurelia` (`^2.0.0-rc.2`)*
+Peer dependencies: `aurelia` (`^2.0.0-rc.2`). Optional peers: `@aurelia/runtime-html`, `@aurelia/platform-browser` (bundled with `aurelia`).
 
 ---
 
-## 🚀 Usage Guide
+## 4. Usage
 
-### 1. Server-Side Rendering (`@aureliajs/ssr/server`)
+### Server-Side Rendering (`@aureliajs/ssr/server`)
 
-You can render components using either `renderToString()` (canonical across modern frameworks) or `renderAurelia()`.
-
-```typescript
+```ts
 import {
-  renderToString,
+  renderAurelia,
   serializeState,
   createHtmlDocument,
 } from '@aureliajs/ssr/server';
-import { UserProfileComponent } from './components/user-profile.js';
+import { ProfilePage } from './pages/profile-page.js';
 
-// Inside your HTTP route handler (Hono, Express, Fastify, Node http):
-export async function handleRequest(req, res) {
-  const user = { id: 'u_1', name: 'Sandiko', email: 'sandiko@example.com' };
-  const initialData = { followers: 1240, posts: 42 };
+interface AppContext {
+  locale: string;
+}
 
-  // 1. Render Aurelia 2 component to HTML
-  const bodyHtml = await renderToString({
-    component: UserProfileComponent,
-    props: { activeTab: 'overview' },
-    context: { user, role: 'Admin' },
-  });
+const bodyHtml = await renderAurelia<ProfilePage, AppContext>({
+  component: ProfilePage,
+  props: { username: 'sandiko' }, // Type-checked against ComponentProps<ProfilePage>
+  context: { locale: 'en-US' },
+  url: '/users/sandiko',
+  params: { id: 'sandiko' },
+  query: { tab: 'activity' },
+  timeout: 5000,
+});
 
-  // 2. Safely serialize state for client hydration
-  const payload = serializeState(
-    { user, role: 'Admin' },
-    initialData,
-    'user-profile'
-  );
+const payload = await serializeState(
+  { locale: 'en-US' },
+  { username: 'sandiko' },
+  'profile-page',
+  {
+    // Standard JSON replacer for explicit redaction/transforms if desired
+    replacer: (key, value) => (key === 'secret' ? undefined : value),
+  }
+);
 
-  // 3. Generate complete, valid HTML5 document
-  const html = createHtmlDocument(bodyHtml, payload, {
-    title: 'User Profile - Aurelia 2 SSR',
-    cssBundle: '/dist/bundle.css',
-    jsBundle: '/dist/client.js',
-    nonce: 'rAnd0mN0nc3', // Optional CSP nonce
-  });
+const html = createHtmlDocument(bodyHtml, payload, {
+  title: 'Profile — Aurelia 2 SSR',
+  cssBundle: '/assets/app.css',
+  jsBundle: '/assets/client.js',
+  nonce: 'per-request-csp-nonce',
+});
+```
 
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.end(html);
+### Streaming Document Shell
+
+For HTTP streaming (e.g., Web `ReadableStream`), flush `<head>` before awaiting SSR:
+
+```ts
+import {
+  createDocumentShell,
+  createHydrationScript,
+  renderAurelia,
+  serializeState,
+} from '@aureliajs/ssr/server';
+
+const shell = createDocumentShell({
+  title: 'Dashboard',
+  cssBundle: '/public/style.css',
+  jsBundle: '/public/client.js',
+});
+
+// 1. Flush shell.preamble immediately so browser starts fetching CSS/JS
+// 2. Await renderAurelia(...) and flush bodyHtml
+// 3. Flush createHydrationScript(payload) + shell.postamble
+```
+
+### Reading Request Context via Native Aurelia DI (Server + Client)
+
+```ts
+import { resolveRequestContext } from '@aureliajs/ssr/client';
+
+interface AppContext {
+  locale: string;
+}
+
+export class ProfilePage {
+  public username = '';
+  private readonly req = resolveRequestContext<AppContext>();
+
+  get locale(): string {
+    return this.req.data.locale;
+  }
+
+  get renderedOn(): string {
+    return this.req.isServer ? 'server' : 'client';
+  }
 }
 ```
 
-### 2. Client-Side Hydration (`@aureliajs/ssr/client`)
+### Client-Side Hydration (`@aureliajs/ssr/client`)
 
-In your browser bundle, import from `@aureliajs/ssr/client`. This bundle contains zero server dependencies (no JSDOM) and weighs less than 2KB gzipped.
+Zero `jsdom` or Node imports in this entrypoint:
 
-```typescript
-import Aurelia from 'aurelia';
-import { hydrateFromServer } from '@aureliajs/ssr/client';
-import { UserProfileComponent } from './components/user-profile.js';
+```ts
+import { createClientHydrator } from '@aureliajs/ssr/client';
+import { HomePage } from './pages/home.aux';
+import { ProfilePage } from './pages/profile-page.js';
 
-async function bootstrap() {
-  const host = document.querySelector('app-root');
-  if (!host) return;
-
-  // Extract server-injected state and auth context
-  const hydration = hydrateFromServer<{ followers: number; posts: number }>();
-
-  console.log('User:', hydration?.context?.user);
-  console.log('Preloaded Data:', hydration?.initialData);
-
-  // Adopt server DOM and attach reactivity
-  await Aurelia.app({
-    host,
-    component: new UserProfileComponent(hydration?.initialData),
-  }).start();
-}
-
-bootstrap();
+await createClientHydrator({
+  components: [HomePage, ProfilePage],
+  // Optional: target: 'app-root', maxAge: 30_000, registrations: [...], onHydrated, onError
+});
 ```
 
+Lower-level primitives are also exported for custom bootloaders:
+- `hydrateFromServer<TData, TContext>(options?)` — Parses, validates, checks `maxAge`, consumes & removes the `<script>` tag.
+- `isHydrationAvailable(scriptId?)` — Non-destructive presence check.
+- `peekHydrationPayload(scriptId?)` — Non-destructive JSON read.
+- `clearHydration(scriptId?)` — Removes the script tag manually.
+
 ---
 
-## 📚 API Reference
+## 5. Subpath Contract
 
-### Server Module (`@aureliajs/ssr/server`)
-
-| Function | Signature | Description |
+| Subpath | Runtime Target | Key Exports |
 | :--- | :--- | :--- |
-| `renderToString()` | `(options: RenderOptions) => Promise<string>` | Standard SSR method to render component to HTML string. |
-| `renderAurelia()` | `(options: RenderOptions) => Promise<string>` | Direct alias for `renderToString()`. |
-| `serializeState()` | `(context, initialData?, componentName?) => HydrationPayload` | Securely projects auth context and preloaded data with XSS escaping. |
-| `createHtmlDocument()`| `(bodyHtml, payload?, options?: DocumentOptions) => string` | Generates full HTML5 document with DOCTYPE, scripts, and CSP nonce. |
-| `createFallbackHtml()`| `(componentName, options?: DocumentOptions) => string` | Minimal HTML shell for client-side fallback mode. |
-| `createErrorHtml()` | `(statusCode, message, error?, options?) => string` | Standard server error document for graceful failure handling. |
-
-### Client Module (`@aureliajs/ssr/client`)
-
-| Function | Signature | Description |
-| :--- | :--- | :--- |
-| `hydrateFromServer<T>()`| `(options?: HydrationOptions) => HydrationResult<T> \| null` | Extracts and validates the SSR payload from `window`. |
-| `isHydrationAvailable()` | `(payloadKey?: string) => boolean` | Checks if a valid hydration payload is present on the window object. |
-| `peekHydrationPayload()` | `(payloadKey?: string) => HydrationPayload \| undefined` | Reads payload without clearing it from the DOM. |
-| `clearHydration()` | `(payloadKey?: string) => void` | Removes the hydration payload from the global window object. |
-| `HydrationCache` | `class` | In-memory key-value cache with TTL expiration for hydration queries. |
+| `@aureliajs/ssr` | Node / Bun | All server + client + DI tokens + generic types |
+| `@aureliajs/ssr/server` | Server only | `renderAurelia`, `renderToString`, `serializeState`, `stringifyPayload`, `validatePayload`, `createDocumentShell`, `createHydrationScript`, `createHtmlDocument`, `escapeHtml`, `escapeAttr`, `IRequestContext`, `resolveRequestContext` |
+| `@aureliajs/ssr/client` | Browser safe (0 JSDOM) | `createClientHydrator`, `hydrateFromServer`, `isHydrationAvailable`, `peekHydrationPayload`, `clearHydration`, `IRequestContext`, `resolveRequestContext`, `DEFAULT_SCRIPT_ID` |
 
 ---
 
-## 🤝 Relationship with `@hono/aurelia`
+## 6. Known Limitations & Open Areas for Community Improvement
 
-* **`@aureliajs/ssr` (This Package)**: Core rendering and hydration engine. 100% framework-agnostic.
-* **`@hono/aurelia`**: Official Hono web adapter built on top of `@aureliajs/ssr`. Adds high-level route handlers (`aurelia()`), Hono context negotiation (`Accept: text/html` vs `application/json`), auth guards, and loaders.
+We keep these explicit so contributors know where high-impact improvements live:
+
+1. **JSDOM Dependency on Server**: `@aureliajs/ssr/server` currently depends on `jsdom`, which runs cleanly on Node.js and Bun, but is too heavy for pure V8 isolates like Cloudflare Workers without Node compat. Exploring lighter spec-compliant DOM shims (e.g., `linkedom` / `happy-dom` / custom minimal `IPlatform` SSR DOM) behind a pluggable `DOMAdapter` interface is an open research area.
+2. **Full `ssrScope` Manifest Emission**: `createClientHydrator` already calls Aurelia 2's native `app.hydrate({ host, component, ssrScope })` when `payload.ssrScope` is present, and falls back gracefully to adopting/mounting when absent. Capturing and serializing Aurelia 2's full `ISSRScope` tree during `renderAurelia()` (as Aurelia 2's SSR manifest format stabilizes toward 2.0 GA) is a top priority contribution area.
+3. **Async Data / Router Pre-Resolution**: `renderAurelia()` supports a `settle` hook (`microtask` / custom async callback) for components that trigger microtask work during `attaching`, while route loaders stay explicitly outside the render loop (in your HTTP adapter like `@hono/aurelia`).
 
 ---
 
-## 🧪 Quality & Test Verification
-
-All tests run via Vitest and Bun test:
+## 7. Testing
 
 ```bash
-bun test packages/aurelia-ssr
-# 81 pass, 0 fail, 158 assertions
+cd packages/aurelia-ssr
+bun run build
+bun test
 ```
-
----
-
-## 📄 License
-
-MIT © [Sandiko (@sandikodev)](https://github.com/sandikodev)

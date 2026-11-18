@@ -1,479 +1,157 @@
-/**
- * Tests for hydrateFromServer() functionality
- */
-
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { JSDOM } from 'jsdom';
+import { CustomElement, PLATFORM } from 'aurelia';
 import {
+  clearHydration,
+  createClientHydrator,
   hydrateFromServer,
   isHydrationAvailable,
   peekHydrationPayload,
-  clearHydration,
-  HydrationCache,
-  hydrationCache,
-} from '../src/hydrate'
-import type { HydrationPayload } from '../src/types'
-
-describe('hydrateFromServer', () => {
-  beforeEach(() => {
-    // Clear any existing payload
-    clearHydration()
-  })
-
-  it('returns null when no payload exists', () => {
-    const result = hydrateFromServer()
-    expect(result).toBeNull()
-  })
-
-  it('returns null when payload is on different key', () => {
-    const payload = createPayload()
-    ;(globalThis as any).__OTHER_KEY__ = payload
-    
-    const result = hydrateFromServer()
-    expect(result).toBeNull()
-  })
-
-  it('extracts and normalizes context correctly', () => {
-    const payload = createPayload({
-      context: {
-        user: { id: '1', name: 'Alice', email: 'alice@example.com' },
-        workspace: { id: 'acme', name: 'Acme Corp' },
-        role: 'admin',
-        isAuthenticated: true,
-      },
-    })
-    ;(globalThis as any).__HYDRATION__ = payload
-
-    const result = hydrateFromServer()
-    expect(result).not.toBeNull()
-    expect(result?.context.user).toEqual({ id: '1', name: 'Alice', email: 'alice@example.com' })
-    expect(result?.context.workspace).toEqual({ id: 'acme', name: 'Acme Corp' })
-    expect(result?.context.role).toEqual('admin')
-    expect(result?.context.isAuthenticated).toBe(true)
-  })
-
-  it('sets isAuthenticated=false when user is null', () => {
-    const payload = createPayload({
-      context: { user: null, workspace: null, role: null, isAuthenticated: false },
-    })
-    ;(globalThis as any).__HYDRATION__ = payload
-
-    const result = hydrateFromServer()
-    expect(result?.context.isAuthenticated).toBe(false)
-    expect(result?.context.user).toBeUndefined()
-  })
-
-  it('includes initialData when provided', () => {
-    const initialData = { users: [{ id: 1 }], posts: [] }
-    const payload = createPayload({ initialData })
-    ;(globalThis as any).__HYDRATION__ = payload
-
-    const result = hydrateFromServer()
-    expect(result?.initialData).toEqual(initialData)
-  })
-
-  it('clears payload from window after hydrating', () => {
-    const payload = createPayload()
-    ;(globalThis as any).__HYDRATION__ = payload
-
-    hydrateFromServer()
-    expect((globalThis as any).__HYDRATION__).toBeUndefined()
-  })
-
-  it('rejects stale payloads', () => {
-    const payload = createPayload({
-      timestamp: Date.now() - 40_000, // 40 seconds ago
-    })
-    ;(globalThis as any).__HYDRATION__ = payload
-
-    const result = hydrateFromServer({ maxAge: 30_000 })
-    expect(result).toBeNull()
-  })
-
-  it('accepts fresh payloads', () => {
-    const payload = createPayload({
-      timestamp: Date.now() - 5_000, // 5 seconds ago
-    })
-    ;(globalThis as any).__HYDRATION__ = payload
-
-    const result = hydrateFromServer({ maxAge: 30_000 })
-    expect(result).not.toBeNull()
-  })
-
-  it('throws on invalid component type', () => {
-    const payload = createPayload({
-      component: 123 as any, // Invalid
-    })
-    ;(globalThis as any).__HYDRATION__ = payload
-
-    expect(() => hydrateFromServer()).toThrow(TypeError)
-  })
-
-  it('throws on missing context', () => {
-    const payload = createPayload({
-      context: undefined as any,
-    })
-    ;(globalThis as any).__HYDRATION__ = payload
-
-    expect(() => hydrateFromServer()).toThrow(TypeError)
-  })
-
-  it('throws on invalid timestamp', () => {
-    const payload = createPayload({
-      timestamp: -100,
-    })
-    ;(globalThis as any).__HYDRATION__ = payload
-
-    expect(() => hydrateFromServer()).toThrow(TypeError)
-  })
-
-  it('throws on non-object initialData', () => {
-    const payload = createPayload({
-      initialData: 'not an object' as any,
-    })
-    ;(globalThis as any).__HYDRATION__ = payload
-
-    expect(() => hydrateFromServer()).toThrow(TypeError)
-  })
-
-  it('uses custom payloadKey', () => {
-    const payload = createPayload()
-    ;(globalThis as any).__CUSTOM_KEY__ = payload
-
-    const result = hydrateFromServer({ payloadKey: '__CUSTOM_KEY__' })
-    expect(result).not.toBeNull()
-  })
-
-  it('handles missing optional context fields', () => {
-    const payload = createPayload({
-      context: { user: null } as any, // Only user, no workspace/role
-    })
-    ;(globalThis as any).__HYDRATION__ = payload
-
-    const result = hydrateFromServer()
-    expect(result?.context.workspace).toBeUndefined()
-    expect(result?.context.role).toBeUndefined()
-  })
-})
-
-describe('isHydrationAvailable', () => {
-  beforeEach(() => clearHydration())
-
-  it('returns false when no payload exists', () => {
-    expect(isHydrationAvailable()).toBe(false)
-  })
-
-  it('returns true when payload exists', () => {
-    const payload = createPayload()
-    ;(globalThis as any).__HYDRATION__ = payload
-
-    expect(isHydrationAvailable()).toBe(true)
-  })
-
-  it('does not consume the payload', () => {
-    const payload = createPayload()
-    ;(globalThis as any).__HYDRATION__ = payload
-
-    isHydrationAvailable()
-    expect((globalThis as any).__HYDRATION__).toBeDefined()
-  })
-
-  it('uses custom payloadKey', () => {
-    const payload = createPayload()
-    ;(globalThis as any).__CUSTOM_KEY__ = payload
-
-    expect(isHydrationAvailable('__CUSTOM_KEY__')).toBe(true)
-    expect(isHydrationAvailable()).toBe(false)
-  })
-})
-
-describe('peekHydrationPayload', () => {
-  beforeEach(() => clearHydration())
-
-  it('returns undefined when no payload exists', () => {
-    expect(peekHydrationPayload()).toBeUndefined()
-  })
-
-  it('returns payload without consuming it', () => {
-    const payload = createPayload()
-    ;(globalThis as any).__HYDRATION__ = payload
-
-    const peeked = peekHydrationPayload()
-    expect(peeked).toEqual(payload)
-    expect((globalThis as any).__HYDRATION__).toBeDefined()
-  })
-
-  it('uses custom payloadKey', () => {
-    const payload = createPayload()
-    ;(globalThis as any).__CUSTOM_KEY__ = payload
-
-    expect(peekHydrationPayload('__CUSTOM_KEY__')).toEqual(payload)
-  })
-})
-
-describe('clearHydration', () => {
-  it('removes payload from window', () => {
-    const payload = createPayload()
-    ;(globalThis as any).__HYDRATION__ = payload
-
-    clearHydration()
-    expect((globalThis as any).__HYDRATION__).toBeUndefined()
-  })
-
-  it('uses custom payloadKey', () => {
-    const payload = createPayload()
-    ;(globalThis as any).__CUSTOM_KEY__ = payload
-
-    clearHydration('__CUSTOM_KEY__')
-    expect((globalThis as any).__CUSTOM_KEY__).toBeUndefined()
-  })
-})
-
-describe('HydrationCache', () => {
-  let cache: HydrationCache
-
-  beforeEach(() => {
-    cache = new HydrationCache()
-    cache.clear()
-  })
-
-  it('stores and retrieves data', () => {
-    const data = { users: [{ id: 1 }] }
-    cache.set('users', data)
-
-    expect(cache.get('users')).toEqual(data)
-  })
-
-  it('returns null for non-existent keys', () => {
-    expect(cache.get('nonexistent')).toBeNull()
-  })
-
-  it('checks key existence with has()', () => {
-    cache.set('key', { data: 'value' })
-
-    expect(cache.has('key')).toBe(true)
-    expect(cache.has('nonexistent')).toBe(false)
-  })
-
-  it('deletes keys', () => {
-    cache.set('key', { data: 'value' })
-    cache.delete('key')
-
-    expect(cache.get('key')).toBeNull()
-  })
-
-  it('respects custom TTL', () => {
-    const now = Date.now()
-    const spy = vi.spyOn(Date, 'now').mockReturnValue(now)
-
-    cache.set('key', { data: 'value' }, 1000) // 1 second TTL
-
-    // Still fresh at 500ms
-    spy.mockReturnValue(now + 500)
-    expect(cache.get('key')).not.toBeNull()
-
-    // Expired at 1500ms
-    spy.mockReturnValue(now + 1500)
-    expect(cache.get('key')).toBeNull()
-
-    spy.mockRestore()
-  })
-
-  it('defaults to 24 hour TTL', () => {
-    const now = Date.now()
-    const spy = vi.spyOn(Date, 'now').mockReturnValue(now)
-
-    cache.set('key', { data: 'value' })
-
-    // Still fresh at 12 hours
-    spy.mockReturnValue(now + 12 * 60 * 60 * 1000)
-    expect(cache.get('key')).not.toBeNull()
-
-    // Expired at 25 hours
-    spy.mockReturnValue(now + 25 * 60 * 60 * 1000)
-    expect(cache.get('key')).toBeNull()
-
-    spy.mockRestore()
-  })
-
-  it('handles invalid JSON gracefully', () => {
-    // Manually set invalid JSON
-    sessionStorage.setItem('hydration:bad', 'not json')
-
-    expect(cache.get('bad')).toBeNull()
-  })
-
-  it('clears all hydration cache', () => {
-    cache.set('key1', { data: 1 })
-    cache.set('key2', { data: 2 })
-
-    cache.clear()
-
-    expect(cache.get('key1')).toBeNull()
-    expect(cache.get('key2')).toBeNull()
-  })
-
-  it('prefixes cache keys', () => {
-    cache.set('mykey', { data: 'value' })
-
-    // Check that key is prefixed in storage
-    expect(sessionStorage.getItem('hydration:mykey')).toBeDefined()
-    expect(sessionStorage.getItem('mykey')).toBeNull()
-  })
-})
-
-describe('hydrationCache singleton', () => {
-  beforeEach(() => {
-    hydrationCache.clear()
-  })
-
-  it('is reusable across calls', () => {
-    hydrationCache.set('shared', { data: 'value' })
-
-    // Different reference but same cache
-    expect(hydrationCache.get('shared')).not.toBeNull()
-  })
-})
-
-describe('createClientHydrator', () => {
-  it('automatically resolves and mounts registered component', async () => {
-    const { JSDOM } = await import('jsdom');
-    const dom = new JSDOM('<!DOCTYPE html><html><body><app-root></app-root></body></html>', {
-      url: 'http://localhost/',
-    });
-    const domProps = ['window', 'document', 'Node', 'Element', 'HTMLElement', 'CustomEvent', 'Event', 'HTMLTemplateElement'];
-    const origProps: Record<string, any> = {};
-    const { PLATFORM } = await import('aurelia');
-    const p = PLATFORM as unknown as Record<string, unknown>;
-
-    for (const prop of domProps) {
-      origProps[prop] = (globalThis as any)[prop];
-      (globalThis as any)[prop] = (dom.window as any)[prop];
-      if (p && prop in p) {
-        origProps[`p_${prop}`] = p[prop];
-        p[prop] = (dom.window as any)[prop];
-      }
-    }
-
-    try {
-      const { CustomElement } = await import('aurelia');
-      const { createClientHydrator } = await import('../src/hydrate.js');
-      type HydrationPayload = import('../src/types.js').HydrationPayload;
-
-      const host = dom.window.document.querySelector('app-root')!;
-
-      const payload: HydrationPayload = {
-        component: 'CounterWidget',
-        context: { user: { id: 'u1', name: 'Sandiko', email: 's@dev.io' }, workspace: null, role: 'admin' },
-        initialData: { count: 99 },
-        timestamp: Date.now(),
-      };
-      (dom.window as any).__HYDRATION__ = payload;
-      (globalThis as any).__HYDRATION__ = payload;
-
-      let hydratedName = '';
-      const CounterWidget = CustomElement.define({
-        name: 'counter-widget',
-        template: '<div>Count: ${count}</div>',
-      }, class {
-        count = 0;
-        constructor(data?: any) {
-          if (data?.count) this.count = data.count;
-        }
-      });
-
-      await createClientHydrator({
-        components: { CounterWidget },
-        target: host as any,
-        onHydrated: (name) => { hydratedName = name; },
-      });
-
-      expect(hydratedName).toBe('CounterWidget');
-      expect(host.innerHTML).toContain('Count: 99');
-
-      // Test component using resolve(IRequestContext)
-      const { resolve } = await import('aurelia');
-      const { IRequestContext } = await import('../src/tokens.js');
-      const DiWidget = CustomElement.define({
-        name: 'di-widget',
-        template: '<div>User: ${req.user.name} Role: ${req.role}</div>',
-      }, class {
-        readonly req = resolve(IRequestContext);
-      });
-
-      payload.component = 'DiWidget';
-      payload.timestamp = Date.now();
-      payload.context = {
-        user: { id: 'u1', name: 'Bob', email: 'bob@example.com' },
-        workspace: null,
-        role: 'editor',
-        isAuthenticated: true,
-      };
-      (globalThis as any).__HYDRATION__ = payload;
-      (dom.window as any).__HYDRATION__ = payload;
-
-      const diHost = dom.window.document.createElement('div');
-      diHost.id = 'di-host';
-      dom.window.document.body.appendChild(diHost);
-
-      let diHydrated = '';
-      await createClientHydrator({
-        components: { DiWidget },
-        target: diHost as any,
-        onHydrated: (name) => { diHydrated = name; },
-        onError: (err) => { console.error('CLIENT HYDRATOR ERROR:', err); },
-      });
-
-      expect(diHydrated).toBe('DiWidget');
-      expect(diHost.innerHTML).toContain('User: Bob');
-      expect(diHost.innerHTML).toContain('Role: editor');
-
-      // Test array-based components registration and auto-target fallback
-      const arrayHost = dom.window.document.createElement('app-root');
-      dom.window.document.body.appendChild(arrayHost);
-      const arrayPayload = {
-        component: 'DiWidget',
-        context: { user: { name: 'Alice' }, role: 'admin' },
-        initialData: {},
-        timestamp: Date.now(),
-      };
-      (globalThis as any).__HYDRATION__ = arrayPayload;
-      (dom.window as any).__HYDRATION__ = arrayPayload;
-
-      let arrayHydrated = '';
-      await createClientHydrator({
-        components: [DiWidget],
-        target: arrayHost as any,
-        onHydrated: (name) => { arrayHydrated = name; },
-      });
-      expect(arrayHydrated).toBe('DiWidget');
-      expect(arrayHost.innerHTML).toContain('User: Alice');
-    } finally {
-      for (const prop of domProps) {
-        if (origProps[prop] !== undefined) {
-          (globalThis as any)[prop] = origProps[prop];
-        } else {
-          delete (globalThis as any)[prop];
-        }
-        if (origProps[`p_${prop}`] !== undefined) {
-          p[prop] = origProps[`p_${prop}`];
-        }
-      }
-    }
-  });
-})
-
-// ============= Helper Functions =============
+  resolveRequestContext,
+} from '../src/hydrate.js';
+import { DEFAULT_SCRIPT_ID, createHydrationScript } from '../src/html.js';
+import type { HydrationPayload } from '../src/types.js';
 
 function createPayload(overrides?: Partial<HydrationPayload>): HydrationPayload {
   return {
-    component: 'TestPage',
-    context: {
-      user: null,
-      workspace: null,
-      role: null,
-      isAuthenticated: false,
-    },
+    component: 'test-page',
+    context: { theme: 'dark' },
     timestamp: Date.now(),
     ...overrides,
-  }
+  };
 }
+
+describe('HTML5 JSON script client hydration', () => {
+  let dom: JSDOM;
+  const domProps = [
+    'window',
+    'document',
+    'Node',
+    'Element',
+    'HTMLElement',
+    'CustomEvent',
+    'Event',
+    'HTMLTemplateElement',
+  ] as const;
+  const savedGlobals: Record<string, unknown> = {};
+  const savedPlatform: Record<string, unknown> = {};
+
+  beforeEach(() => {
+    dom = new JSDOM('<!DOCTYPE html><html><body><app-root></app-root></body></html>', {
+      url: 'http://localhost/dashboard?tab=overview',
+    });
+    const p = PLATFORM as unknown as Record<string, unknown>;
+    const g = globalThis as Record<string, unknown>;
+    const w = dom.window as unknown as Record<string, unknown>;
+
+    for (const prop of domProps) {
+      savedGlobals[prop] = g[prop];
+      savedPlatform[prop] = p[prop];
+      g[prop] = w[prop];
+      p[prop] = w[prop];
+    }
+  });
+
+  afterEach(() => {
+    const p = PLATFORM as unknown as Record<string, unknown>;
+    const g = globalThis as Record<string, unknown>;
+
+    for (const prop of domProps) {
+      if (savedGlobals[prop] !== undefined) {
+        g[prop] = savedGlobals[prop];
+      } else {
+        delete g[prop];
+      }
+      if (savedPlatform[prop] !== undefined) {
+        p[prop] = savedPlatform[prop];
+      }
+    }
+    dom.window.close();
+  });
+
+  function mountPayloadScript(payload: HydrationPayload, scriptId = DEFAULT_SCRIPT_ID): void {
+    const wrapper = dom.window.document.createElement('div');
+    wrapper.innerHTML = createHydrationScript(payload, scriptId);
+    dom.window.document.body.appendChild(wrapper.firstElementChild!);
+  }
+
+  it('returns null when no JSON hydration script exists in DOM', () => {
+    expect(isHydrationAvailable()).toBe(false);
+    expect(peekHydrationPayload()).toBeUndefined();
+    expect(hydrateFromServer()).toBeNull();
+  });
+
+  it('extracts, validates, and removes the JSON script node on hydrateFromServer()', () => {
+    const payload = createPayload({
+      context: { locale: 'id', tier: 'pro' },
+      initialData: { posts: [{ id: 1 }] },
+    });
+    mountPayloadScript(payload);
+
+    expect(isHydrationAvailable()).toBe(true);
+    expect(peekHydrationPayload()).toEqual(payload);
+
+    const result = hydrateFromServer<{ posts: Array<{ id: number }> }, { locale: string; tier: string }>();
+    expect(result).not.toBeNull();
+    expect(result?.component).toBe('test-page');
+    expect(result?.context).toEqual({ locale: 'id', tier: 'pro' });
+    expect(result?.initialData).toEqual({ posts: [{ id: 1 }] });
+
+    // Script node consumed and removed cleanly from DOM
+    expect(dom.window.document.getElementById(DEFAULT_SCRIPT_ID)).toBeNull();
+    expect(isHydrationAvailable()).toBe(false);
+  });
+
+  it('rejects stale payloads exceeding maxAge', () => {
+    mountPayloadScript(createPayload({ timestamp: Date.now() - 60_000 }));
+    expect(hydrateFromServer({ maxAge: 30_000 })).toBeNull();
+  });
+
+  it('supports custom scriptId and clearHydration()', () => {
+    mountPayloadScript(createPayload(), 'CUSTOM_SSR_DATA');
+    expect(isHydrationAvailable('CUSTOM_SSR_DATA')).toBe(true);
+    clearHydration('CUSTOM_SSR_DATA');
+    expect(isHydrationAvailable('CUSTOM_SSR_DATA')).toBe(false);
+  });
+
+  it('hydrates CustomElement with typed DI IRequestContext and initialData', async () => {
+    interface AppCtx extends Record<string, unknown> {
+      tenant: string;
+    }
+
+    const DashboardWidget = CustomElement.define(
+      {
+        name: 'dashboard-widget',
+        template:
+          '<div>Tenant: ${req.data.tenant} | Tab: ${req.query.tab} | Title: ${title} | Client: ${req.isClient}</div>',
+      },
+      class {
+        readonly req = resolveRequestContext<AppCtx>();
+        title = '';
+      }
+    );
+
+    mountPayloadScript(
+      createPayload({
+        component: 'dashboard-widget',
+        context: { tenant: 'acme' },
+        initialData: { title: 'Live Metrics' },
+      })
+    );
+
+    let hydratedName = '';
+    await createClientHydrator<AppCtx, { title: string }>({
+      components: [DashboardWidget],
+      onHydrated: (name) => {
+        hydratedName = name;
+      },
+    });
+
+    const host = dom.window.document.querySelector('app-root')!;
+    expect(hydratedName).toBe('dashboard-widget');
+    expect(host.innerHTML).toContain('Tenant: acme');
+    expect(host.innerHTML).toContain('Tab: overview');
+    expect(host.innerHTML).toContain('Title: Live Metrics');
+    expect(host.innerHTML).toContain('Client: true');
+  });
+});

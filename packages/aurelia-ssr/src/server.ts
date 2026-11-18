@@ -1,25 +1,29 @@
 /**
  * @aureliajs/ssr Server Entrypoint
- * 
- * Server-only exports for Node.js, Bun, and SSR runtimes.
  */
 
-export { renderAurelia, renderToString } from './render.js';
-export { IRequestContext } from './tokens.js';
+export { renderAurelia, renderToString, detectDefaultSSREngine } from './render.js';
+export { IRequestContext, resolveRequestContext } from './tokens.js';
 export { serializeState, validatePayload, stringifyPayload } from './serialize.js';
 export {
+  DEFAULT_SCRIPT_ID,
+  createDocumentShell,
+  createHydrationScript,
   createHtmlDocument,
-  createFallbackHtml,
-  createErrorHtml,
   escapeHtml,
   escapeAttr,
   validateHtmlStructure,
 } from './html.js';
 export type {
+  AureliaComponent,
+  ComponentProps,
   RenderContext,
-  User,
-  Workspace,
   HydrationPayload,
   RenderOptions,
+  SSREngine,
+  SerializeOptions,
+  DocumentShell,
   DocumentOptions,
+  DocumentTemplateContext,
+  IRequestContext as IRequestContextType,
 } from './types.js';

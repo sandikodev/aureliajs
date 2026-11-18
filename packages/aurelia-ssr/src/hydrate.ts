@@ -1,458 +1,199 @@
 /**
- * Client-side hydration for SSR context and data
- * 
- * Restores server-rendered state on the client without refetching data.
- * Prevents hydration mismatches and duplicate API calls.
+ * @aureliajs/ssr Client Hydration
+ *
+ * Pure HTML5-standard, strictly typed client hydration primitives for Aurelia 2.
+ * Reads state from inert `<script type="application/json" id="__AURELIA_SSR_DATA__">`
+ * elements — zero `window` global pollution and zero server/JSDOM dependencies.
  */
 
-import type { HydrationPayload, HydrationResult, ClientHydratorOptions, IRequestContext } from './types.js';
-import { Aurelia, Registration, CustomElement, type Constructable } from 'aurelia';
-import { IRequestContext as IRequestContextToken } from './tokens.js';
+import { Aurelia, CustomElement, Registration, type Constructable } from 'aurelia';
+import type {
+  ClientHydratorOptions,
+  HydrateFromServerOptions,
+  HydrationPayload,
+  HydrationResult,
+  IRequestContext as IRequestContextData,
+} from './types.js';
+import { IRequestContext, resolveRequestContext } from './tokens.js';
+import { DEFAULT_SCRIPT_ID } from './html.js';
 
-export type { HydrationResult, ClientHydratorOptions };
+export { IRequestContext, resolveRequestContext };
+export type { HydrationResult, ClientHydratorOptions, HydrateFromServerOptions };
 
-/**
- * Ensure a minimal Storage implementation exists when running in SSR/Node environments
- * where `sessionStorage` is not natively provided on `globalThis`.
- */
-function ensureSessionStorage(): Storage {
-  if (typeof globalThis.sessionStorage !== 'undefined') {
-    return globalThis.sessionStorage
-  }
-
-  const store: Record<string, string> = {}
-  const memoryStorage = new Proxy(store, {
-    get(target, prop: string | symbol) {
-      if (prop === 'getItem') {
-        return (key: string) => (Object.prototype.hasOwnProperty.call(target, key) ? target[key] : null)
-      }
-      if (prop === 'setItem') {
-        return (key: string, value: string) => {
-          target[key] = String(value)
-        }
-      }
-      if (prop === 'removeItem') {
-        return (key: string) => {
-          delete target[key]
-        }
-      }
-      if (prop === 'clear') {
-        return () => {
-          for (const k of Object.keys(target)) {
-            delete target[k]
-          }
-        }
-      }
-      if (prop === 'key') {
-        return (index: number) => Object.keys(target)[index] ?? null
-      }
-      if (prop === 'length') {
-        return Object.keys(target).length
-      }
-      return target[prop as string]
-    },
-  }) as unknown as Storage
-
-  Object.defineProperty(globalThis, 'sessionStorage', {
-    value: memoryStorage,
-    configurable: true,
-    writable: true,
-  })
-
-  return memoryStorage
+function findScriptElement(scriptId: string): HTMLScriptElement | null {
+  if (typeof document === 'undefined') return null;
+  const el = document.getElementById(scriptId);
+  if (!el || el.tagName.toUpperCase() !== 'SCRIPT') return null;
+  return el as HTMLScriptElement;
 }
 
-/**
- * Restore hydration payload from server-rendered HTML
- * 
- * Called on client after initial render to:
- * 1. Extract window.__HYDRATION__ payload
- * 2. Validate payload integrity (timestamp freshness)
- * 3. Make data available to components
- * 4. Prevent duplicate API calls
- * 
- * @example
- * ```typescript
- * // In app.ts (Aurelia bootstrapping)
- * import { hydrateFromServer } from '@hono/aurelia'
- * 
- * const hydration = hydrateFromServer()
- * if (hydration) {
- *   // Set auth context in service
- *   authService.setContext(hydration.context)
- *   
- *   // Make data available to page components
- *   store.dispatch('setInitialData', hydration.initialData)
- * }
- * ```
- * 
- * @param options - Configuration options
- * @param options.maxAge - Max age of hydration payload in ms (default: 30000 = 30s)
- * @param options.payloadKey - Window property containing hydration (default: '__HYDRATION__')
- * @returns Hydration result or null if not available
- * @throws Error if hydration payload is invalid or expired
- */
-function getGlobalStorage(): Record<string, unknown> {
-  return globalThis as unknown as Record<string, unknown>;
-}
-
-export function hydrateFromServer<TData = Record<string, unknown>>(options?: {
-  maxAge?: number
-  payloadKey?: string
-}): HydrationResult<TData> | null {
-  const maxAge = options?.maxAge ?? 30_000
-  const payloadKey = options?.payloadKey ?? '__HYDRATION__'
-
-  // Check if payload exists on window
-  const storage = getGlobalStorage()
-  const payload = storage[payloadKey] as HydrationPayload | undefined
-
-  if (!payload) {
-    return null
-  }
-
-  // Validate payload structure
-  validatePayload(payload)
-
-  // Check if payload is fresh (server-side check prevents time skew)
-  const age = Date.now() - payload.timestamp
-  if (age > maxAge) {
-    console.warn(
-      `Hydration payload is stale (age: ${age}ms, max: ${maxAge}ms). ` +
-      `Falling back to API calls.`
-    )
-    return null
-  }
-
-  // Extract and normalize context
-  const context = {
-    user: payload.context.user ?? undefined,
-    workspace: payload.context.workspace ?? undefined,
-    role: payload.context.role ?? undefined,
-    isAuthenticated: !!payload.context.user,
-  }
-
-  // Create hydration result
-  const result: HydrationResult<TData> = {
-    context,
-    initialData: payload.initialData as TData | undefined,
-    timestamp: payload.timestamp,
-  }
-
-  // Clear payload from window to prevent accidental reuse
-  delete storage[payloadKey]
-
-  return result
-}
-
-/**
- * Validate hydration payload structure
- * 
- * Ensures payload has required fields and types are correct.
- * Prevents invalid data from reaching components.
- * 
- * @throws TypeError if payload structure is invalid
- */
 function validatePayload(payload: unknown): asserts payload is HydrationPayload {
   if (!payload || typeof payload !== 'object') {
-    throw new TypeError('Hydration payload must be an object')
+    throw new TypeError('Hydration payload must be a JSON object');
   }
 
-  const obj = payload as Record<string, unknown>
+  const obj = payload as Record<string, unknown>;
 
   if (typeof obj.component !== 'string') {
-    throw new TypeError('Hydration payload.component must be a string')
+    throw new TypeError('Hydration payload.component must be a string');
   }
 
   if (!obj.context || typeof obj.context !== 'object') {
-    throw new TypeError('Hydration payload.context must be an object')
+    throw new TypeError('Hydration payload.context must be an object');
   }
 
   if (typeof obj.timestamp !== 'number' || obj.timestamp <= 0) {
-    throw new TypeError('Hydration payload.timestamp must be a positive number')
+    throw new TypeError('Hydration payload.timestamp must be a positive number');
   }
 
-  // initialData is optional but must be object if present
   if (obj.initialData !== undefined && typeof obj.initialData !== 'object') {
-    throw new TypeError('Hydration payload.initialData must be an object if provided')
+    throw new TypeError('Hydration payload.initialData must be an object if provided');
   }
 }
 
 /**
- * Check if hydration is available without consuming it
- * 
- * Useful for logging, debugging, or conditional logic.
- * Does not remove payload from window.
- * 
- * @param payloadKey - Window property containing hydration (default: '__HYDRATION__')
- * @returns True if hydration payload is available
+ * Check if an HTML5 JSON hydration script element exists without consuming it.
  */
-export function isHydrationAvailable(payloadKey = '__HYDRATION__'): boolean {
-  const payload = getGlobalStorage()[payloadKey]
-  return !!payload
+export function isHydrationAvailable(scriptId = DEFAULT_SCRIPT_ID): boolean {
+  const el = findScriptElement(scriptId);
+  return Boolean(el && el.textContent && el.textContent.trim().length > 0);
 }
 
 /**
- * Get hydration payload without consuming it
- * 
- * For debugging or advanced use cases.
- * Returns raw payload without validation or clearing.
- * 
- * @param payloadKey - Window property containing hydration (default: '__HYDRATION__')
- * @returns Raw hydration payload or undefined
+ * Parse and return the raw hydration payload without removing the `<script>` element.
  */
-export function peekHydrationPayload(
-  payloadKey = '__HYDRATION__'
-): HydrationPayload | undefined {
-  return getGlobalStorage()[payloadKey] as HydrationPayload | undefined
+export function peekHydrationPayload<
+  TContext extends Record<string, unknown> = Record<string, unknown>,
+  TData = Record<string, unknown>,
+>(scriptId = DEFAULT_SCRIPT_ID): HydrationPayload<TContext, TData> | undefined {
+  const el = findScriptElement(scriptId);
+  if (!el || !el.textContent) return undefined;
+  return JSON.parse(el.textContent) as HydrationPayload<TContext, TData>;
 }
 
 /**
- * Clear hydration payload from window
- * 
- * Useful for testing or manual cleanup.
- * hydrateFromServer() already does this automatically.
- * 
- * @param payloadKey - Window property containing hydration (default: '__HYDRATION__')
+ * Remove the JSON hydration `<script>` element from the DOM.
  */
-export function clearHydration(payloadKey = '__HYDRATION__'): void {
-  delete getGlobalStorage()[payloadKey]
+export function clearHydration(scriptId = DEFAULT_SCRIPT_ID): void {
+  findScriptElement(scriptId)?.remove();
 }
 
 /**
- * Cache manager for initial data
- * 
- * Stores hydrated data in sessionStorage to prevent refetch
- * if component unmounts and remounts during same session.
- * 
- * @example
- * ```typescript
- * const cache = new HydrationCache()
- * 
- * // Store hydrated data
- * cache.set('users', users)
- * 
- * // Retrieve later
- * const cached = cache.get('users')
- * if (cached) {
- *   // Use cached data instead of fetching
- *   this.users = cached
- * }
- * ```
+ * Extract, validate, and consume the server-rendered hydration payload
+ * from `<script id="__AURELIA_SSR_DATA__" type="application/json">`.
  */
-export class HydrationCache {
-  private prefix = 'hydration:'
-  private ttl = 24 * 60 * 60 * 1000 // 24 hours
+export function hydrateFromServer<
+  TData = Record<string, unknown>,
+  TContext extends Record<string, unknown> = Record<string, unknown>,
+>(options?: HydrateFromServerOptions): HydrationResult<TData, TContext> | null {
+  const scriptId = options?.scriptId ?? DEFAULT_SCRIPT_ID;
+  const maxAge = options?.maxAge ?? 30_000;
 
-  constructor() {
-    ensureSessionStorage()
+  const el = findScriptElement(scriptId);
+  if (!el || !el.textContent) {
+    return null;
   }
 
-  /**
-   * Store data in cache
-   */
-  set<T = unknown>(key: string, value: T, ttlMs?: number): void {
-    const fullKey = this.prefix + key
-    const entry = {
-      value,
-      expiresAt: Date.now() + (ttlMs ?? this.ttl),
+  const parsed: unknown = JSON.parse(el.textContent);
+  validatePayload(parsed);
+
+  const payload = parsed as HydrationPayload<TContext, TData>;
+  const age = Date.now() - payload.timestamp;
+
+  if (age > maxAge) {
+    console.warn(
+      `Hydration payload is stale (age: ${age}ms, max: ${maxAge}ms). Falling back to client state.`
+    );
+    return null;
+  }
+
+  // Consume once by removing the inert script node from the DOM
+  el.remove();
+
+  return {
+    component: payload.component,
+    context: payload.context,
+    initialData: payload.initialData,
+    ssrScope: payload.ssrScope,
+    timestamp: payload.timestamp,
+  };
+}
+
+function indexComponents(
+  components: readonly Constructable[] | Readonly<Record<string, Constructable>>
+): ReadonlyMap<string, Constructable> {
+  const map = new Map<string, Constructable>();
+
+  if (Array.isArray(components)) {
+    for (const comp of components) {
+      const className = comp.name;
+      const defName = CustomElement.isType(comp)
+        ? CustomElement.getDefinition(comp).name
+        : className;
+      if (defName) map.set(defName, comp);
+      if (className) map.set(className, comp);
     }
-    try {
-      ensureSessionStorage().setItem(fullKey, JSON.stringify(entry))
-    } catch (error) {
-      // sessionStorage might be unavailable in some contexts
-      console.warn('HydrationCache: Unable to store in sessionStorage', error)
-    }
+    return map;
   }
 
-  /**
-   * Retrieve data from cache
-   * 
-   * Returns null if key doesn't exist, expired, or invalid.
-   */
-  get<T = unknown>(key: string): T | null {
-    const fullKey = this.prefix + key
-    try {
-      const item = ensureSessionStorage().getItem(fullKey)
-      if (!item) return null
-
-      const entry = JSON.parse(item) as { value: T; expiresAt: number }
-      
-      // Check if expired
-      if (entry.expiresAt < Date.now()) {
-        this.delete(key)
-        return null
-      }
-
-      return entry.value
-    } catch {
-      // Invalid JSON or sessionStorage error
-      return null
-    }
-  }
-
-  /**
-   * Check if key exists in cache
-   */
-  has(key: string): boolean {
-    return this.get(key) !== null
-  }
-
-  /**
-   * Remove key from cache
-   */
-  delete(key: string): void {
-    const fullKey = this.prefix + key
-    try {
-      ensureSessionStorage().removeItem(fullKey)
-    } catch {
-      // sessionStorage might be unavailable
+  for (const [key, comp] of Object.entries(components)) {
+    map.set(key, comp);
+    if (CustomElement.isType(comp)) {
+      map.set(CustomElement.getDefinition(comp).name, comp);
     }
   }
+  return map;
+}
 
-  /**
-   * Clear all hydration cache
-   */
-  clear(): void {
-    try {
-      const storage = ensureSessionStorage()
-      const keys = Object.keys(storage)
-      for (const key of keys) {
-        if (key.startsWith(this.prefix)) {
-          storage.removeItem(key)
-        }
-      }
-    } catch {
-      // sessionStorage might be unavailable
-    }
+function resolveHostElement(target?: string | HTMLElement): HTMLElement | null {
+  if (typeof document === 'undefined') return null;
+  if (target && typeof target !== 'string') return target;
+  if (typeof target === 'string') {
+    return document.querySelector<HTMLElement>(target);
   }
+  return (
+    document.querySelector<HTMLElement>('app-root') ??
+    document.getElementById('ssr-root') ??
+    document.body
+  );
 }
 
 /**
- * Shared cache instance
+ * Strictly typed client-side hydration bootstrapper for Aurelia 2 SSR.
+ *
+ * Reads the HTML5 JSON hydration payload, registers `IRequestContext<TContext>`
+ * in Aurelia's DI container, resolves the matching Custom Element class, injects
+ * `initialData` props, and hydrates (or boots) on the target host element.
  */
-export const hydrationCache = new HydrationCache()
-
-/**
- * Automated Client-Side Hydration Bootstrapper
- * 
- * Inspects hydration payload, dynamically maps the component name against
- * registered components, registers IRequestContext into DI, and starts Aurelia.
- * 
- * Supports full options object, an array of components, or an imported module namespace.
- * 
- * @example
- * ```typescript
- * // Array of page components
- * createClientHydrator([HomePage, PostDetailPage, DashboardPage]);
- * 
- * // Module dictionary (import * as pages from './pages')
- * createClientHydrator(pages);
- * ```
- */
-export async function createClientHydrator(
-  optionsOrComponents: ClientHydratorOptions | unknown[] | Record<string, unknown>
-): Promise<unknown> {
-  if (typeof window === 'undefined') return null;
-
-  let options: ClientHydratorOptions;
-
-  if (Array.isArray(optionsOrComponents)) {
-    const compMap: Record<string, unknown> = {};
-    for (const comp of optionsOrComponents) {
-      if (!comp) continue;
-      let name: string | undefined;
-      if (typeof comp === 'function' && CustomElement.isType(comp)) {
-        name = CustomElement.getDefinition(comp).name;
-      } else if (typeof comp === 'function') {
-        name = comp.name;
-      } else if (typeof comp === 'object' && comp !== null) {
-        name = (comp as { name?: string }).name;
-      }
-      if (name) {
-        compMap[name] = comp;
-        const pascal = name.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('');
-        compMap[pascal] = comp;
-      }
-    }
-    options = { components: compMap };
-  } else if (optionsOrComponents && typeof optionsOrComponents === 'object') {
-    if ('components' in optionsOrComponents) {
-      options = { ...(optionsOrComponents as ClientHydratorOptions) };
-      if (Array.isArray(options.components)) {
-        const compList = options.components as unknown[];
-        const compMap: Record<string, unknown> = {};
-        for (const comp of compList) {
-          if (!comp) continue;
-          let name: string | undefined;
-          if (typeof comp === 'function' && CustomElement.isType(comp)) {
-            name = CustomElement.getDefinition(comp).name;
-          } else if (typeof comp === 'function') {
-            name = comp.name;
-          } else if (typeof comp === 'object' && comp !== null) {
-            name = (comp as { name?: string }).name;
-          }
-          if (name) {
-            compMap[name] = comp;
-            const pascal = name.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('');
-            compMap[pascal] = comp;
-          }
-        }
-        options.components = compMap;
-      }
-    } else {
-      // It is an imported module namespace: import * as pages from './pages'
-      options = { components: optionsOrComponents as Record<string, unknown> };
-    }
-  } else {
-    throw new Error('[createClientHydrator] Expected component array, module record, or ClientHydratorOptions.');
+export async function createClientHydrator<
+  TContext extends Record<string, unknown> = Record<string, unknown>,
+  TData = Record<string, unknown>,
+>(options: ClientHydratorOptions<TContext, TData>): Promise<object | null> {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return null;
   }
 
-  // Peek component name before hydrateFromServer consumes and deletes it
-  const rawPayload = peekHydrationPayload(options.payloadKey);
-  const componentName = rawPayload?.component;
+  const hydration = hydrateFromServer<TData, TContext>({
+    scriptId: options.scriptId,
+    maxAge: options.maxAge,
+  });
 
-  const hydration = hydrateFromServer({ payloadKey: options.payloadKey });
-
-  let host: HTMLElement | null = null;
-  if (typeof options.target === 'object' && options.target !== null && 'nodeType' in (options.target as Node)) {
-    host = options.target as HTMLElement;
-  } else if (typeof options.target === 'string') {
-    host = document.querySelector<HTMLElement>(options.target) || document.getElementById(options.target.replace(/^#/, ''));
-  } else {
-    // Default smart fallback sequence: app-root -> #ssr-root -> [data-au-ssr] -> body
-    host = document.querySelector<HTMLElement>('app-root')
-      || document.querySelector<HTMLElement>('#ssr-root')
-      || document.querySelector<HTMLElement>('[data-au-ssr]')
-      || document.body;
-  }
-
+  const host = resolveHostElement(options.target);
   if (!host) {
-    const error = new Error(`[createClientHydrator] Target element "${options.target || 'app-root'}" not found in DOM.`);
+    const error = new Error(
+      `[createClientHydrator] Target host element "${typeof options.target === 'string' ? options.target : 'app-root'}" not found.`
+    );
     options.onError?.(error);
     return null;
   }
 
-  const compDict = options.components as Record<string, unknown>;
-  let ComponentClass: unknown = componentName ? compDict[componentName] : undefined;
-  if (!ComponentClass && componentName) {
-    // Try normalized match (kebab-case vs PascalCase)
-    const normalizedTarget = componentName.replace(/[-_]/g, '').toLowerCase();
-    for (const [key, comp] of Object.entries(compDict)) {
-      if (key.replace(/[-_]/g, '').toLowerCase() === normalizedTarget) {
-        ComponentClass = comp;
-        break;
-      }
-    }
-  }
-
-  if (!ComponentClass) {
-    ComponentClass = options.fallback;
-  }
+  const registry = indexComponents(options.components);
+  const componentName = hydration?.component ?? '';
+  const ComponentClass = (componentName ? registry.get(componentName) : undefined) ?? options.fallback;
 
   if (!ComponentClass) {
     const error = new Error(
-      `[createClientHydrator] No matching component registered for "${componentName}". Available: ${Object.keys(options.components).join(', ')}`
+      `[createClientHydrator] No component registered for "${componentName}". Available: ${Array.from(registry.keys()).join(', ')}`
     );
     options.onError?.(error);
     return null;
@@ -461,45 +202,47 @@ export async function createClientHydrator(
   try {
     const app = new Aurelia();
 
-    // Register isomorphic request context into client container
-    const clientReqContext: IRequestContext = {
-      user: hydration?.context?.user ?? null,
-      workspace: hydration?.context?.workspace ?? null,
-      role: hydration?.context?.role ?? null,
-      url: typeof window !== 'undefined' && window.location ? window.location.href : 'http://localhost/',
+    const requestContext: IRequestContextData<TContext> = {
+      data: (hydration?.context ?? {}) as TContext,
+      url: window.location?.href ?? 'http://localhost/',
       params: {},
-      query: typeof window !== 'undefined' && window.location ? Object.fromEntries(new URLSearchParams(window.location.search)) : {},
+      query: window.location
+        ? Object.fromEntries(new URLSearchParams(window.location.search))
+        : {},
       isServer: false,
       isClient: true,
     };
-    app.register(Registration.instance(IRequestContextToken, clientReqContext));
 
-    if (options.registrations && Array.isArray(options.registrations)) {
+    app.register(Registration.instance(IRequestContext, requestContext));
+
+    if (options.registrations && options.registrations.length > 0) {
       app.register(...options.registrations);
     }
 
-    let rootInstance: object;
-    if (typeof ComponentClass === 'function') {
-      rootInstance = app.container.get(ComponentClass as Constructable) as object;
-    } else {
-      rootInstance = { ...(ComponentClass as object) };
+    if (hydration?.ssrScope) {
+      const root = await app.hydrate({
+        host,
+        component: ComponentClass,
+        ssrScope: hydration.ssrScope,
+      });
+      const instance = root.controller.viewModel as object;
+      if (hydration.initialData && typeof hydration.initialData === 'object') {
+        Object.assign(instance, hydration.initialData);
+      }
+      options.onHydrated?.(componentName || ComponentClass.name, instance, hydration);
+      return instance;
     }
 
-    const inst = rootInstance as Record<string, unknown>;
-    // Auto-inject server loader initialData directly onto component instance
-    if (hydration?.initialData) {
-      Object.assign(inst, hydration.initialData);
+    const rootInstance = app.container.get(ComponentClass) as object;
+    if (hydration?.initialData && typeof hydration.initialData === 'object') {
+      Object.assign(rootInstance, hydration.initialData);
     }
-    // Auto-inject server auth & request context directly onto component instance
-    if (hydration?.context) {
-      if (inst.user === undefined && hydration.context.user !== undefined) inst.user = hydration.context.user;
-      if (inst.role === undefined && hydration.context.role !== undefined) inst.role = hydration.context.role;
-      if (inst.workspace === undefined && hydration.context.workspace !== undefined) inst.workspace = hydration.context.workspace;
-      inst._renderContext = hydration.context;
-    }
+
+    // Cleanly replace static SSR HTML nodes in the host container to prevent duplicate rendering
+    host.replaceChildren();
 
     await app.app({ host, component: rootInstance }).start();
-    options.onHydrated?.(componentName || 'App', rootInstance);
+    options.onHydrated?.(componentName || ComponentClass.name, rootInstance, hydration);
     return rootInstance;
   } catch (err) {
     options.onError?.(err);

@@ -94,6 +94,7 @@ export class BridgeShowcaseApp {
 
   public selectedTab: BridgeTab = 'all';
   public selectedInspectorFw = 'react';
+  public currentInspectorRecord?: FrameworkRecord;
   public currentLiveDomHtml = '';
   public currentLiveDomHighlighted = '';
   public isConsoleOpen = false;
@@ -105,6 +106,7 @@ export class BridgeShowcaseApp {
       if (el?.textContent) {
         try {
           this.manifest = JSON.parse(el.textContent) as BridgeManifestData;
+          this.updateInspectorRecord();
         } catch {
           // ignore error
         }
@@ -113,19 +115,28 @@ export class BridgeShowcaseApp {
   }
 
   public attached(): void {
+    this.updateInspectorRecord();
     setTimeout(() => this.refreshLiveDomHtml(), 150);
   }
 
   public setTab(tab: BridgeTab): void {
     this.selectedTab = tab;
     if (tab === 'diffs') {
+      this.updateInspectorRecord();
       setTimeout(() => this.refreshLiveDomHtml(), 50);
     }
   }
 
   public selectInspector(fwId: string): void {
     this.selectedInspectorFw = fwId;
+    this.updateInspectorRecord();
     this.refreshLiveDomHtml();
+    setTimeout(() => this.refreshLiveDomHtml(), 60);
+  }
+
+  private updateInspectorRecord(): void {
+    const list = this.manifest?.frameworks ?? [];
+    this.currentInspectorRecord = list.find((f) => f.id === this.selectedInspectorFw) ?? list[0];
   }
 
   public refreshLiveDomHtml(): void {
@@ -185,11 +196,6 @@ export class BridgeShowcaseApp {
     this.events = [];
   }
 
-  public get currentInspectorRecord(): FrameworkRecord | undefined {
-    const list = this.manifest?.frameworks ?? [];
-    return list.find((f) => f.id === this.selectedInspectorFw) ?? list[0];
-  }
-
   public formatKb(bytes?: number): string {
     if (typeof bytes !== 'number' || isNaN(bytes)) return '0.00 KB';
     return (bytes / 1024).toFixed(2) + ' KB';
@@ -245,6 +251,7 @@ export class BridgeShowcaseApp {
 }
 
 async function bootstrapBridgeShowcase(): Promise<void> {
+  if (typeof document === 'undefined') return;
   const host = document.getElementById('bridge-app-root');
   if (!host) return;
 

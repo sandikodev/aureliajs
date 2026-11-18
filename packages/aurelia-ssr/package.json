@@ -45,12 +45,25 @@
   "author": "Sandiko (sandikodev) <androxoss@hotmail.com>",
   "license": "MIT",
   "peerDependencies": {
-    "aurelia": "^2.0.0-rc.2"
+    "aurelia": "^2.0.0-rc.2",
+    "@aurelia/platform-browser": "^2.0.0-rc.2",
+    "@aurelia/runtime-html": "^2.0.0-rc.2"
+  },
+  "peerDependenciesMeta": {
+    "@aurelia/platform-browser": {
+      "optional": true
+    },
+    "@aurelia/runtime-html": {
+      "optional": true
+    }
   },
   "dependencies": {
-    "jsdom": "^23.0.0"
+    "jsdom": "^23.0.0",
+    "linkedom": "^0.18.15"
   },
   "devDependencies": {
+    "@aurelia/platform-browser": "^2.0.0-rc.2",
+    "@aurelia/runtime-html": "^2.0.0-rc.2",
     "@types/jsdom": "^21.1.6",
     "@types/node": "24.10.1",
     "aurelia": "^2.0.0-rc.2",
