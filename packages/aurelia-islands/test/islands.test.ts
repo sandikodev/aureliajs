@@ -197,8 +197,9 @@ describe('@aureliajs/islands Comprehensive Suite (by Sandikodev)', () => {
     expect(mockVue.createApp).toHaveBeenCalled();
     expect(mountSpy).toHaveBeenCalledWith(container);
 
-    const renderedProps = mockVue.h.mock.calls[0][1];
-    renderedProps.onCounterChange(51);
+    const renderedProps = mockVue.h.mock.calls[0]?.[1];
+    expect(renderedProps).toBeDefined();
+    renderedProps!.onCounterChange(51);
     expect(onUpdateSpy).toHaveBeenCalledWith('change', 51);
 
     instance.update({ value: 100 });
@@ -229,8 +230,9 @@ describe('@aureliajs/islands Comprehensive Suite (by Sandikodev)', () => {
     });
 
     expect(mockSvelte.mount).toHaveBeenCalled();
-    const passedProps = mockSvelte.mount.mock.calls[0][1].props;
-    passedProps.onCounterChange(8);
+    const passedProps = mockSvelte.mount.mock.calls[0]?.[1]?.props;
+    expect(passedProps).toBeDefined();
+    passedProps!.onCounterChange(8);
     expect(onUpdateSpy).toHaveBeenCalledWith('change', 8);
 
     instance.update({ value: 9 });
@@ -299,8 +301,9 @@ describe('@aureliajs/islands Comprehensive Suite (by Sandikodev)', () => {
     });
 
     expect(mockPreact.render).toHaveBeenCalled();
-    const hProps = mockPreact.h.mock.calls[0][1];
-    hProps.onCounterChange(13);
+    const hProps = mockPreact.h.mock.calls[0]?.[1];
+    expect(hProps).toBeDefined();
+    hProps!.onCounterChange(13);
     expect(onUpdateSpy).toHaveBeenCalledWith('change', 13);
 
     instance.update({ value: 15 });

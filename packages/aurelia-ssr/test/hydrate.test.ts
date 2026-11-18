@@ -357,10 +357,11 @@ describe('createClientHydrator', () => {
     try {
       const { CustomElement } = await import('aurelia');
       const { createClientHydrator } = await import('../src/hydrate.js');
+      type HydrationPayload = import('../src/types.js').HydrationPayload;
 
       const host = dom.window.document.querySelector('app-root')!;
 
-      const payload = {
+      const payload: HydrationPayload = {
         component: 'CounterWidget',
         context: { user: { id: 'u1', name: 'Sandiko', email: 's@dev.io' }, workspace: null, role: 'admin' },
         initialData: { count: 99 },
