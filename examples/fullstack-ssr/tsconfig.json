@@ -17,7 +17,7 @@
     "noEmit": true,
     "declaration": false,
     "sourceMap": true,
-    "types": ["node"],
+    "types": ["bun-types", "node"],
     "paths": {
       "@/*": ["./src/*"],
       "@components/*": ["./src/components/*"],

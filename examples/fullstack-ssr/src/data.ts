@@ -47,7 +47,7 @@ export const initialPosts: Post[] = [
     content: `Server-Side Rendering (SSR) in Aurelia 2 delivers pre-rendered HTML straight from the server, eliminating First Contentful Paint (FCP) latency and guaranteeing full SEO indexing.
 
 Unlike Virtual-DOM frameworks that serialize virtual node fiber trees, Aurelia 2 works directly with standard DOM elements and light-DOM slot projections (<au-slot>). When combined with Hono's ultra-lightweight HTTP router, we achieve single-digit millisecond TTFB and instant progressive hydration.`,
-    author: 'Sandiko Dev',
+    author: 'Sandikodev',
     date: 'Nov 14, 2026',
     readTime: '4 min read',
     claps: 128,
@@ -65,7 +65,7 @@ Unlike Virtual-DOM frameworks that serialize virtual node fiber trees, Aurelia 2
     content: `A common pitfall in single-page applications is FOUC (Flash of Unstyled Content) during initial layout rendering.
 
 In Aurelia 2 SSR, the HTML document is assembled on the server with complete stylesheets, embedded layout markup, and critical template interpolations (\${expr}). The browser paints the real rendered HTML immediately before client JavaScript finishes executing.`,
-    author: 'Sandiko Dev',
+    author: 'Sandikodev',
     date: 'Nov 13, 2026',
     readTime: '3 min read',
     claps: 94,
@@ -82,7 +82,7 @@ In Aurelia 2 SSR, the HTML document is assembled on the server with complete sty
     content: `When a page renders on the server, data loaders resolve databases and cache entries. 
 
 If the client application blindly refetches the same REST or GraphQL endpoints upon mounting, server resources are wasted. In @hono/aurelia, loaders serialize their payload into a secure JSON script block, which hydrateFromServer() recovers instantly.`,
-    author: 'Sandiko Dev',
+    author: 'Sandikodev',
     date: 'Nov 12, 2026',
     readTime: '5 min read',
     claps: 156,
