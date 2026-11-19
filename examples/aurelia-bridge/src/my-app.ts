@@ -12,7 +12,7 @@ import template from './my-app.html';
 
 @customElement({
   name: 'my-app',
-  template: template as unknown as string,
+  template,
   dependencies: [
     OrderItemCard,
     FormatNumberValueConverter

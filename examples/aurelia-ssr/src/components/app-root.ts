@@ -5,7 +5,7 @@ import { UserProfile, type UserData } from './user-profile.js';
 
 @customElement({
   name: 'app-root',
-  template: template as unknown as string,
+  template,
   dependencies: [CounterWidget, UserProfile],
 })
 export class AppRoot {

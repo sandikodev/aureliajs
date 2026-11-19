@@ -1,7 +1,7 @@
 import { customElement, bindable } from 'aurelia';
 import template from './counter-widget.html';
 
-@customElement({ name: 'counter-widget', template: template as unknown as string })
+@customElement({ name: 'counter-widget', template })
 export class CounterWidget {
   @bindable public count = 0;
   @bindable public step = 1;

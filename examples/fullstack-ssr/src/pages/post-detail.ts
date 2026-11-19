@@ -2,7 +2,7 @@ import { customElement, type ICustomElementViewModel } from 'aurelia';
 import template from './post-detail.html';
 import { initialPosts, type Post } from '../data.js';
 
-@customElement({ name: 'post-detail-page', template: template as unknown as string })
+@customElement({ name: 'post-detail-page', template })
 export class PostDetailPage implements ICustomElementViewModel {
   public static readonly title = ({ post }: any) =>
     post ? `${post.title} — Aurelia 2 SSR` : 'Article Not Found';

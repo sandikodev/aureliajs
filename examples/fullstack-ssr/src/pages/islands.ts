@@ -1,7 +1,7 @@
 import { customElement, type ICustomElementViewModel } from 'aurelia';
 import template from './islands.html';
 
-@customElement({ name: 'islands-page', template: template as unknown as string })
+@customElement({ name: 'islands-page', template })
 export class IslandsPage implements ICustomElementViewModel {
   public static readonly title = 'Zero-JS Aurelia Islands';
 

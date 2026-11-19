@@ -5,6 +5,13 @@ declare module '*.html' {
   export default content;
 }
 
+// Seamless interop between Bun.HTMLBundle and Aurelia 2 template definition
+declare module '@aurelia/template-compiler' {
+  interface PartialCustomElementDefinition {
+    template?: string | Node | null | unknown;
+  }
+}
+
 declare module '*.vue' {
   import type { Component } from 'vue';
   const component: Component;

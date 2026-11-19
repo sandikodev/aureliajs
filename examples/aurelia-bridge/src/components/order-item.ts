@@ -5,7 +5,7 @@ import template from './order-item.html';
 
 @customElement({
   name: 'order-item-card',
-  template: template as unknown as string,
+  template,
   dependencies: [FormatNumberValueConverter]
 })
 export class OrderItemCard {

@@ -2,7 +2,7 @@ import { customElement, type ICustomElementViewModel } from 'aurelia';
 import template from './dashboard.html';
 import { dashboardStats, activityStream, type DashboardStats, type ActivityItem } from '../data.js';
 
-@customElement({ name: 'dashboard-page', template: template as unknown as string })
+@customElement({ name: 'dashboard-page', template })
 export class DashboardPage implements ICustomElementViewModel {
   public static readonly title = 'Telemetry Dashboard - Aurelia 2 SSR';
 

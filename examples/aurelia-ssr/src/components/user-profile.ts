@@ -8,7 +8,7 @@ export interface UserData {
   avatarUrl: string;
 }
 
-@customElement({ name: 'user-profile', template: template as unknown as string })
+@customElement({ name: 'user-profile', template })
 export class UserProfile {
   @bindable public user: UserData = {
     id: 'u-1',

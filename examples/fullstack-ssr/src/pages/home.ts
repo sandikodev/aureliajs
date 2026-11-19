@@ -2,7 +2,7 @@ import { customElement, type ICustomElementViewModel } from 'aurelia';
 import template from './home.html';
 import { initialPosts, type Post } from '../data.js';
 
-@customElement({ name: 'home-page', template: template as unknown as string })
+@customElement({ name: 'home-page', template })
 export class HomePage implements ICustomElementViewModel {
   public static readonly title = 'Hono + Aurelia 2 SSR - Engineering Blog';
 
