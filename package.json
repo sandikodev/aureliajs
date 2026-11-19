@@ -14,7 +14,7 @@
     "dev:example": "bun run --filter aurelia-ssr-example dev",
     "build": "bun run --workspaces --if-present build",
     "typecheck": "bun run --workspaces --if-present typecheck",
-    "test": "bun test",
+    "test": "bun test && bun test packages/hono-aurelia",
     "test:e2e": "bunx playwright test",
     "emulate": "bun scripts/emulate-devtools.ts",
     "lint": "bunx oxlint .",

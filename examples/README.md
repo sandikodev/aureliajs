@@ -17,6 +17,7 @@ production codebase in `apps/`.
 | `aurelia-ssr/` | Pure Aurelia 2 SSR Engine — framework-agnostic SSR without Hono or Express | Aurelia 2, @aureliajs/ssr, native Bun.serve / Node | ✅ Canonical Reference |
 | `aurelia-bridge/` | Aurelia 2 Polyglot Bridge — zero glue code multi-framework interop | Aurelia 2, @aureliajs/bridge, React 19, Vue 3, Svelte 5, Solid | ✅ Canonical Reference |
 | `aurelia-aux/` | Aurelia 2 Single-File Components (.aux) — script setup, scoped CSS, zero-boilerplate SFCs | Aurelia 2, @aureliajs/vite-plugin-aux, Vite 8, Bun | ✅ Canonical Reference |
+| `aurelia-islands/` | Aurelia 2 Zero-JS Islands Architecture — selective progressive hydration | Aurelia 2, @aureliajs/islands, IntersectionObserver | ✅ Canonical Reference |
 
 *(Note: Comparative benchmarks such as React SSR are housed under [`benchmarks/reference-react-ssr/`](../benchmarks/reference-react-ssr/) to keep `examples/` strictly Aurelia 2 native).*
 
@@ -143,10 +144,9 @@ examples/fullstack-ssr/
 ```json
 {
   "dependencies": {
-    "@aureliajs/islands": "workspace:*",
     "@aureliajs/ssr": "workspace:*",
-    "@aureliajs/vite-plugin-aux": "workspace:*",
     "@hono/aurelia": "workspace:*",
+    "@hono/node-server": "^1.12.0",
     "aurelia": "^2.0.0-rc.2",
     "hono": "^4.0.0"
   },
@@ -161,13 +161,12 @@ examples/fullstack-ssr/
 
 This example teaches:
 
-1. **SSR flow**: Server renders HTML → embeds `<script id="__AURELIA_SSR_DATA__" type="application/json">` → client hydrates
-2. **Zero-JS Selective Hydration**: `/islands` route ships only `~1.3 KB gz` `@aureliajs/islands/loader` until `<pricing-island>` scrolls into view
-2. **Content negotiation**: `Accept: application/json` → JSON response; `text/html` → HTML
-3. **Auth guard**: Middleware checks token, sets `c.get('user')` for component context
-4. **Hydration payload**: Server data available immediately, no duplicate API call
-5. **Hono patterns**: Route handlers, middleware, `c.json()`, `c.html()`, `c.req.header()`
-6. **Docker production build**: Multi-stage, minimal image, `PORT` env var
+1. **SSR Flow**: Server renders pure Aurelia 2 components (`HomePage`, `PostDetailPage`, `DashboardPage`) → embeds `<script id="__AURELIA_SSR_DATA__" type="application/json">` → client hydrates with zero flash.
+2. **Streaming SSR**: Real Web Streams incremental rendering via `@hono/aurelia` with `streaming: true`.
+3. **Content Negotiation**: `Accept: application/json` returns pure JSON DTOs; `text/html` renders SSR HTML.
+4. **Co-located Static Actions**: Form mutations handled via `aureliaAction()` directly on the component.
+5. **Auth Guards**: Middleware authenticates requests and provides user context cleanly via Aurelia DI.
+6. **Zero-Copy Static Asset Serving**: Native Bun kernel file streaming and Cloudflare Workers ASSETS binding compatibility.
 
 ### 🔄 When to Use This Pattern
 
