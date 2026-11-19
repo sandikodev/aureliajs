@@ -1,8 +1,8 @@
 import { describe, it, expect, afterAll } from 'bun:test';
 import { DI } from 'aurelia';
 import { BridgeConfiguration, IBridgeRegistry } from '@aureliajs/bridge';
-import { IEnterpriseOrderService } from '../src/services/enterprise-order.service.js';
-import { MyApp } from '../src/my-app.js';
+import { IEnterpriseOrderService } from '../src/services/enterprise-order.service';
+import { MyApp } from '../src/my-app';
 
 // Restore native Bun Error.prepareStackTrace if Babel's stackTraceRewriter was installed during JSX transpilation
 if (typeof Error.prepareStackTrace === 'function' && Error.prepareStackTrace.name === 'stackTraceRewriter') {

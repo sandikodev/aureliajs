@@ -210,10 +210,10 @@ If it imports `@aureliajs/*` from the workspace, it's better placed under `apps/
 
 ## ⚠️ Known Quirks
 
-- **Port 3000** is hardcoded in `src/index.ts` — change `PORT` env var if you need another port.
-- **Auth is simplified** — `token === 'demo-token'` is the only valid token. No DB, no JWT, no refresh tokens.
-- **Hydration payload is inline** in HTML strings. Real projects would serialize via `packages/hono-aurelia`.
-- **No database** — all data is in-memory (arrays). Add Drizzle + Postgres if you need persistence.
+- **Port 3000** is default in `src/index.ts` — configurable via `PORT` environment variable.
+- **Auth is simplified** — `token === 'demo-token'` serves as the demo token for telemetry routes.
+- **Automated Hydration**: Production-grade client hydration payloads are serialized directly by `@hono/aurelia` and `@aureliajs/ssr` with full XSS security escaping.
+- **In-memory data store** — articles and telemetry metrics are kept in memory for zero-dependency standalone execution.
 
 ---
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { renderIslandApp, server } from '../src/server.js';
+import { renderIslandApp, server } from '../src/server';
 
 describe('examples/aurelia-islands integration tests', () => {
   it('pre-renders Zero-JS Islands page with selective hydration boundary', async () => {

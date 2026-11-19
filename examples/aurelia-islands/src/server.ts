@@ -11,8 +11,8 @@
 
 import { renderAurelia } from '@aureliajs/ssr';
 import { renderIsland } from '@aureliajs/islands/server';
-import { IslandsPage } from './pages/islands.js';
-import { PricingIsland } from './components/pricing-island.js';
+import { IslandsPage } from './pages/islands';
+import { PricingIsland } from './components/pricing-island';
 
 export interface IslandServerRenderResult {
   html: string;

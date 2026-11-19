@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'bun:test';
 import { renderAurelia } from '@aureliajs/ssr';
-import { AppRoot } from '../src/components/app-root.js';
-import { renderAppPage, server } from '../src/server.js';
+import { AppRoot } from '../src/components/app-root';
+import { renderAppPage, server } from '../src/server';
 
 describe('examples/aurelia-ssr pure integration tests', () => {
   it('renders AppRoot directly via renderAurelia() without any HTTP framework', async () => {

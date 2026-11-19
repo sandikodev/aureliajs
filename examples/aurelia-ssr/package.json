@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun scripts/build.ts && bun --watch src/server.ts",
-    "build": "bun scripts/build.ts && tsc --noEmit",
+    "dev": "bun run build:client && bun --watch src/server.ts",
+    "build:client": "bun build src/client.ts --outdir public --loader .html:text --minify",
+    "build": "bun run build:client && tsc --noEmit",
     "start": "bun src/server.ts",
     "test": "bun test",
     "typecheck": "tsc --noEmit"

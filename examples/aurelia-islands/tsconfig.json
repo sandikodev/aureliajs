@@ -11,7 +11,7 @@
     "noEmit": true,
     "types": ["bun-types", "node"]
   },
-  "include": ["src/**/*", "test/**/*", "scripts/**/*", "preload.ts", "html.d.ts"],
+  "include": ["src/**/*", "test/**/*", "preload.ts", "html.d.ts"],
   "exclude": [
     "node_modules",
     "dist",

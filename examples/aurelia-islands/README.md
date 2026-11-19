@@ -54,8 +54,6 @@ examples/aurelia-islands/
 │   ├── islands/
 │   │   └── pricing.js              # Compiled island bundle (lazy-loaded on viewport entry)
 │   └── style.css                   # Minimal styling
-├── scripts/
-│   └── build.ts                    # Bun.build bundler script
 ├── test/
 │   └── aurelia-islands.test.ts     # Automated integration test suite
 ├── package.json
@@ -90,7 +88,7 @@ export class PricingIsland {
 ```typescript
 // src/pages/islands.ts
 import { renderIsland } from '@aureliajs/islands/server';
-import { PricingIsland } from '../components/pricing-island.js';
+import { PricingIsland } from '../components/pricing-island';
 
 const pricingIslandHtml = await renderIsland({
   component: PricingIsland,

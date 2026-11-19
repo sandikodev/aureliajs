@@ -7,7 +7,7 @@ export class IslandsPage implements ICustomElementViewModel {
 
   public static async loader() {
     const { renderIsland } = await import('@aureliajs/islands/server');
-    const { PricingIsland } = await import('../components/pricing-island.js');
+    const { PricingIsland } = await import('../components/pricing-island');
 
     const pricingIslandHtml = await renderIsland({
       component: PricingIsland,

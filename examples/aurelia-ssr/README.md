@@ -14,7 +14,7 @@ Aurelia 2 SSR memegang prinsip pemisahan tanggung jawab yang tegas:
 ```typescript
 // Render langsung di server backend apapun:
 import { renderAurelia, createHtmlDocument, serializeState } from '@aureliajs/ssr';
-import { AppRoot } from './components/app-root.js';
+import { AppRoot } from './components/app-root';
 
 const appHtml = await renderAurelia({
   component: AppRoot,

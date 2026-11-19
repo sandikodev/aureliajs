@@ -9,7 +9,7 @@
  */
 
 import { renderAurelia, createHtmlDocument, type HydrationPayload } from '@aureliajs/ssr';
-import { AppRoot } from './components/app-root.js';
+import { AppRoot } from './components/app-root';
 
 export interface ServerRenderResult {
   html: string;

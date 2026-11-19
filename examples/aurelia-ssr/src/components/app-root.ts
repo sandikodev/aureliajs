@@ -1,7 +1,7 @@
 import { customElement, bindable } from 'aurelia';
 import template from './app-root.html';
-import { CounterWidget } from './counter-widget.js';
-import { UserProfile, type UserData } from './user-profile.js';
+import { CounterWidget } from './counter-widget';
+import { UserProfile, type UserData } from './user-profile';
 
 @customElement({
   name: 'app-root',
