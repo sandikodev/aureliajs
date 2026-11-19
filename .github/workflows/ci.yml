@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   pull_request:
 
 concurrency:
@@ -26,32 +26,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
         with:
-          version: 11.1.1
+          submodules: true
 
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 22
-          cache: pnpm
+          bun-version: latest
 
-      - run: pnpm install --frozen-lockfile
+      - run: bun install
 
       - name: Lint
-        run: pnpm lint
+        run: bun run lint
 
       - name: Format check
-        run: pnpm exec prettier --check .
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Unit tests
-        run: pnpm test
+        run: bunx prettier --check .
 
       - name: Build
-        run: pnpm build
+        run: bun run build
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Unit & Integration Tests
+        run: bun run test
 
   e2e:
     name: End-to-end (Playwright)
@@ -73,31 +70,28 @@ jobs:
           --health-retries 10
     steps:
       - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
         with:
-          version: 11.1.1
+          submodules: true
 
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 22
-          cache: pnpm
+          bun-version: latest
 
-      - run: pnpm install --frozen-lockfile
+      - run: bun install
 
       - name: Build shared package
-        run: pnpm --filter @aureliajs/shared build
+        run: bun run --filter @aurelia-ops/shared build
 
       - name: Migrate and seed
         run: |
-          pnpm db:migrate
-          pnpm db:seed
+          bun run db:migrate
+          bun run db:seed
 
       - name: Install Chromium
-        run: pnpm exec playwright install --with-deps chromium
+        run: bunx playwright install --with-deps chromium
 
       - name: Run Playwright
-        run: pnpm test:e2e
+        run: bun run test:e2e
 
       - uses: actions/upload-artifact@v4
         if: failure()

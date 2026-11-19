@@ -1,7 +1,50 @@
 import { parseAttrs } from './parser.js';
 import { injectScopeToTemplate, scopeCss } from './scope.js';
 import { transformScriptSetup } from './setup.js';
-import type { AuxDescriptor, AuxPluginOptions } from './types.js';
+import type {
+  AuxDescriptor,
+  AuxIslandMetadata,
+  AuxIslandTrigger,
+  AuxPluginOptions,
+} from './types.js';
+
+const VALID_ISLAND_TRIGGERS: ReadonlySet<string> = new Set<AuxIslandTrigger>([
+  'load',
+  'idle',
+  'visible',
+  'media',
+  'interaction',
+]);
+
+function extractIslandMetadata(
+  attrs?: Record<string, string | boolean>,
+): AuxIslandMetadata | null {
+  if (!attrs || !('island' in attrs) || attrs['island'] === false) {
+    return null;
+  }
+  const raw = attrs['island'];
+  const normalized = typeof raw === 'string' ? raw.trim().toLowerCase() : '';
+  const trigger: AuxIslandTrigger =
+    normalized && VALID_ISLAND_TRIGGERS.has(normalized)
+      ? (normalized as AuxIslandTrigger)
+      : 'load';
+
+  const media =
+    typeof attrs['media'] === 'string' && attrs['media'].trim()
+      ? attrs['media'].trim()
+      : undefined;
+  const rootMarginRaw = attrs['root-margin'] ?? attrs['rootMargin'];
+  const rootMargin =
+    typeof rootMarginRaw === 'string' && rootMarginRaw.trim()
+      ? rootMarginRaw.trim()
+      : undefined;
+
+  return {
+    trigger,
+    ...(media ? { media } : {}),
+    ...(rootMargin ? { rootMargin } : {}),
+  };
+}
 
 /**
  * Convert PascalCase or camelCase to kebab-case.
@@ -241,6 +284,7 @@ export function compileAux(
   const serverScript = descriptor.serverScript;
   const isClientOnly = Boolean(template?.attrs['client-only'] || template?.attrs['clientOnly']);
   const isServerOnly = Boolean(template?.attrs['server-only'] || template?.attrs['serverOnly']);
+  const islandMeta = extractIslandMetadata(template?.attrs);
 
   const transformedSetup = setupScript ? transformScriptSetup(setupScript.content) : null;
   if (transformedSetup) {
@@ -432,6 +476,9 @@ ${namedExportLine}${defaultExportLine}
   }
   if (isServerOnly) {
     bodyCode += `\n${className}.serverOnly = true;\n`;
+  }
+  if (islandMeta) {
+    bodyCode += `\n${className}.island = ${JSON.stringify(islandMeta)};\n`;
   }
 
   // Co-located server script block (attached for SSR, stripped for client)

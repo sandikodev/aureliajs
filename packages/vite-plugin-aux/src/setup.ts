@@ -8,6 +8,59 @@ export interface TransformedSetup {
   inferredBindables: Record<string, TemplateMetaBindable>;
 }
 
+function prefixClassFieldReferences(
+  body: string,
+  fieldNames: Set<string>,
+  params: string,
+): string {
+  if (fieldNames.size === 0) return body;
+
+  const paramNames = new Set<string>();
+  params.split(',').forEach((p) => {
+    const m = /([a-zA-Z0-9_$]+)/.exec(p.trim());
+    if (m && m[1]) paramNames.add(m[1]);
+  });
+
+  // Mask string literals and comments so identifiers within them are never rewritten
+  const stringTokens: string[] = [];
+  let maskedBody = body.replace(
+    /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`|\/\*[\s\S]*?\*\/|\/\/[^\n]*)/g,
+    (str) => {
+      stringTokens.push(str);
+      return `__AU_STR_TOKEN_${stringTokens.length - 1}__`;
+    },
+  );
+
+  for (const field of fieldNames) {
+    if (paramNames.has(field)) continue;
+
+    // Match field when not preceded by dot, declaration keyword, or followed by colon in object literal
+    const regex = new RegExp(`(?<![.\\w$])(${field})(?![$\\w])`, 'g');
+    maskedBody = maskedBody.replace(regex, (match, _p1, offset, fullStr) => {
+      const before = fullStr.slice(Math.max(0, offset - 25), offset);
+      if (/\b(?:let|const|var|function|class|type|interface|as|catch\s*\(?)\s+$/.test(before)) {
+        return match;
+      }
+      const after = fullStr.slice(offset + match.length, offset + match.length + 20);
+      if (/^\s*\??:(?!:)/.test(after)) {
+        return match; // Object property key or interface/type property (e.g. { stats: ... } or { stats?: ... })
+      }
+      if (/[,{]\s*$/.test(before) && /^\s*[,}]/.test(after)) {
+        return `${match}: this.${match}`; // Object shorthand expansion
+      }
+      return `this.${match}`;
+    });
+  }
+
+  // Restore string literals and comments
+  const restoredBody = maskedBody.replace(
+    /__AU_STR_TOKEN_(\d+)__/g,
+    (_, idx) => stringTokens[Number(idx)] ?? '',
+  );
+
+  return restoredBody;
+}
+
 /**
  * Transforms an ergonomic <script setup> block into canonical Aurelia 2 class members
  * and automatically infers bindables without needing boilerplate <template bindable="...">.
@@ -18,6 +71,11 @@ export function transformScriptSetup(setupCode: string): TransformedSetup {
   const classFields: string[] = [];
   const classMethods: string[] = [];
   const inferredBindables: Record<string, TemplateMetaBindable> = {};
+  const declaredFieldNames = new Set<string>();
+
+  const rawMethods: Array<{ isAsync: boolean; funcName: string; params: string; body: string }> = [];
+  const rawGetters: Array<{ propName: string; returnType: string; body: string }> = [];
+  const rawSetters: Array<{ propName: string; params: string; body: string }> = [];
 
   // Strip block comments and single-line comments for clean statement parsing
   // while preserving string literals
@@ -73,10 +131,16 @@ export function transformScriptSetup(setupCode: string): TransformedSetup {
     const propsString = definePropsGenericMatch[1];
     const propLines = propsString.split(/[;,]/);
     for (const pl of propLines) {
-      const propName = pl.split(/[:?]/)[0]?.trim();
-      if (propName && /^[a-zA-Z0-9_$]+$/.test(propName)) {
+      const trimmed = pl.trim();
+      if (!trimmed) continue;
+      const propMatch = /^([a-zA-Z0-9_$]+)(\??)\s*:\s*(.+)$/.exec(trimmed);
+      if (propMatch && propMatch[1] && propMatch[3]) {
+        const propName = propMatch[1];
+        const modifier = propMatch[2] === '?' ? '?' : '!';
+        const propType = propMatch[3].trim();
         inferredBindables[propName] = { name: propName };
-        classFields.push(`public ${propName}: any;`);
+        declaredFieldNames.add(propName);
+        classFields.push(`public ${propName}${modifier}: ${propType};`);
       }
     }
   }
@@ -88,7 +152,8 @@ export function transformScriptSetup(setupCode: string): TransformedSetup {
       const propName = rawName.replace(/['"\s]/g, '').trim();
       if (propName && /^[a-zA-Z0-9_$]+$/.test(propName)) {
         inferredBindables[propName] = { name: propName };
-        classFields.push(`public ${propName}: any;`);
+        declaredFieldNames.add(propName);
+        classFields.push(`public ${propName}: unknown;`);
       }
     }
   }
@@ -192,8 +257,7 @@ export function transformScriptSetup(setupCode: string): TransformedSetup {
       }
 
       const body = rawCode.slice(pos + headerLength, bodyEnd - 1).trim();
-      const methodDef = `  get ${propName}()${returnType} {\n    ${body}\n  }`;
-      classMethods.push(methodDef);
+      rawGetters.push({ propName, returnType, body });
 
       pos = bodyEnd;
       continue;
@@ -216,8 +280,7 @@ export function transformScriptSetup(setupCode: string): TransformedSetup {
       }
 
       const body = rawCode.slice(pos + headerLength, bodyEnd - 1).trim();
-      const methodDef = `  set ${propName}(${params}) {\n    ${body}\n  }`;
-      classMethods.push(methodDef);
+      rawSetters.push({ propName, params, body });
 
       pos = bodyEnd;
       continue;
@@ -244,8 +307,7 @@ export function transformScriptSetup(setupCode: string): TransformedSetup {
       }
 
       const body = rawCode.slice(pos + headerLength, bodyEnd - 1).trim();
-      const methodDef = `  ${isAsync ? 'async ' : ''}${funcName}(${params}) {\n    ${body}\n  }`;
-      classMethods.push(methodDef);
+      rawMethods.push({ isAsync, funcName, params, body });
 
       pos = bodyEnd;
       continue;
@@ -255,6 +317,7 @@ export function transformScriptSetup(setupCode: string): TransformedSetup {
     const letHeaderMatch = /^(?:export\s+)?(?:let|var)\s+([a-zA-Z0-9_$]+)/.exec(rawCode.slice(pos));
     if (letHeaderMatch) {
       const varName = letHeaderMatch[1]!;
+      declaredFieldNames.add(varName);
       let cur = pos + letHeaderMatch[0].length;
       let pDepth = 0;
       let bDepth = 0;
@@ -358,6 +421,21 @@ export function transformScriptSetup(setupCode: string): TransformedSetup {
       advanceTo = nextNl + 1;
     }
     pos = advanceTo;
+  }
+
+  for (const getter of rawGetters) {
+    const transformedBody = prefixClassFieldReferences(getter.body, declaredFieldNames, '');
+    classMethods.push(`  get ${getter.propName}()${getter.returnType} {\n    ${transformedBody}\n  }`);
+  }
+
+  for (const setter of rawSetters) {
+    const transformedBody = prefixClassFieldReferences(setter.body, declaredFieldNames, setter.params);
+    classMethods.push(`  set ${setter.propName}(${setter.params}) {\n    ${transformedBody}\n  }`);
+  }
+
+  for (const method of rawMethods) {
+    const transformedBody = prefixClassFieldReferences(method.body, declaredFieldNames, method.params);
+    classMethods.push(`  ${method.isAsync ? 'async ' : ''}${method.funcName}(${method.params}) {\n    ${transformedBody}\n  }`);
   }
 
   return {

@@ -1,5 +1,5 @@
 <template containerless as-custom-element="ui-avatar">
-  <span class.bind="classes" aria-hidden="true">\${initials}</span>
+  <span class.bind="classes" aria-hidden="true">${initials}</span>
 </template>
 
 <script setup lang="ts">
@@ -9,7 +9,7 @@ let name = '';
 let size: 'sm' | 'default' | 'lg' = 'default';
 
 get initials(): string {
-  return getInitials(this.name);
+  return getInitials(this.name ?? '');
 }
 
 get classes(): string {

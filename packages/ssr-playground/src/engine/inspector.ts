@@ -22,7 +22,7 @@ export async function inspectAureliaSsr(
     component,
     componentName = (component as { name?: string })?.name || 'AureliaComponent',
     props = {},
-    context = { user: null, workspace: null, role: null },
+    context = {},
     initialData,
     registrations = [],
     timeout = 5000,
@@ -35,11 +35,12 @@ export async function inspectAureliaSsr(
   const t0Render = performance.now();
 
   const htmlOutput = await renderAurelia({
-    component,
+    component: component as object,
     context,
     props,
     timeout,
     registrations,
+    preserveMarkers: false,
     url,
   });
 

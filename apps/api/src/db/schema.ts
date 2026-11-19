@@ -11,7 +11,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import type { WorkspaceSettings } from '@aureliajs/shared';
+import type { WorkspaceSettings } from '@aurelia-ops/shared';
 
 export const roleEnum = pgEnum('role', ['owner', 'admin', 'member']);
 export const projectStatusEnum = pgEnum('project_status', ['planning', 'active', 'paused', 'done']);

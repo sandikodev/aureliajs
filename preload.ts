@@ -55,6 +55,9 @@ plugin({
     builder.onLoad({ filter: /(solid-.*|\.solid)\.tsx$/ }, async (args) => {
       const source = await Bun.file(args.path).text();
       const babel = await import('@babel/core');
+      if (typeof Error.prepareStackTrace === 'function' && Error.prepareStackTrace.name === 'stackTraceRewriter') {
+        delete (Error as { prepareStackTrace?: unknown }).prepareStackTrace;
+      }
       const transformed = babel.transformSync(source, {
         filename: args.path,
         presets: [

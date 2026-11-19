@@ -5,7 +5,6 @@ import { pathToFileURL } from 'node:url';
 import { createFilter } from '@rollup/pluginutils';
 import type { Options as SwcOptions, ParserConfig } from '@swc/wasm';
 import type { Plugin, Rollup } from 'vite';
-import { transformWithOxc } from 'vite';
 import { compileAux } from './compiler.js';
 import { parseAux } from './parser.js';
 import type { AuxDescriptor, AuxPluginOptions } from './types.js';
@@ -50,6 +49,27 @@ async function loadSwc(): Promise<typeof import('@swc/wasm')> {
     swcModulePromise = import(pathToFileURL(swcEntry).href) as Promise<typeof import('@swc/wasm')>;
   }
   return await swcModulePromise;
+}
+
+let transformWithOxcPromise: Promise<typeof import('vite').transformWithOxc> | undefined;
+
+async function loadTransformWithOxc(): Promise<typeof import('vite').transformWithOxc> {
+  if (!transformWithOxcPromise) {
+    const origCapture = Error.captureStackTrace;
+    Error.captureStackTrace = (target: object, ctor?: Function) => {
+      try {
+        origCapture?.(target, ctor);
+      } catch {
+        // Suppress prototype Error checks in follow-redirects when running under Bun with Babel loaded
+      }
+    };
+    transformWithOxcPromise = import('vite')
+      .then((m) => m.transformWithOxc)
+      .finally(() => {
+        Error.captureStackTrace = origCapture;
+      });
+  }
+  return await transformWithOxcPromise;
 }
 
 /**
@@ -162,6 +182,7 @@ export function auxPlugin(options: AuxPluginOptions = {}): Plugin {
       }
 
       // Strip TypeScript types and emit ES2022 via Vite 8's native Oxc compiler
+      const transformWithOxc = await loadTransformWithOxc();
       const transformed = await transformWithOxc(codeToTransform, virtualFilename, {
         lang: isTs ? 'ts' : 'js',
         target: 'es2022',

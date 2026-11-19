@@ -209,7 +209,9 @@ export const ID: Record<keyof typeof EN, string> = {
   'billing.plansDescription': 'Berpindah paket membuka Stripe Checkout',
   'billing.choose': 'Pilih',
   'billing.upgrade': 'Tingkatkan',
+  'billing.downgrade': 'Turunkan',
   'billing.current': 'Saat ini',
+  'billing.limitReached': 'Batas tercapai',
   'billing.paymentMethod': 'Metode pembayaran',
   'billing.paymentMethodDescription': 'Dikelola di dalam portal Stripe',
   'billing.cardOnFile': 'Kartu tersimpan',
@@ -220,6 +222,19 @@ export const ID: Record<keyof typeof EN, string> = {
   'billing.wiringTitle': 'Cara sistem ini tersambung',
   'billing.wiringDescription':
     'Checkout berjalan di halaman Stripe, jadi data kartu tidak pernah sampai ke server kami. Setiap perubahan paket datang sebagai webhook bertanda tangan, dicatat sekali di ledger idempoten, dan baru THEN paket ruang kerja berubah.',
+  'billing.trustTitle': 'Keamanan Standar Bank',
+  'billing.trustDescription':
+    'Semua pembayaran diproses dan dienkripsi secara aman oleh Stripe. Data kartu tidak pernah menyentuh server kami.',
+  'billing.onlyAdminCanManage':
+    'Hanya pemilik dan admin ruang kerja yang dapat mengelola penagihan dan mengubah paket langganan.',
+  'billing.monthly': 'Bulanan',
+  'billing.yearly': 'Tahunan (Hemat 20%)',
+  'billing.billedYearlyNote': 'ditagih tahunan',
+  'billing.bannerCancelled':
+    'Checkout dibatalkan. Tidak ada biaya yang dikenakan. Anda dapat meningkatkan paket kapan saja.',
+  'billing.bannerSuccess':
+    'Langganan berhasil diperbarui! Fitur dan batas paket baru Anda kini aktif.',
+  'billing.freePlanBlurb': 'Paket Gratis — tingkatkan kapan saja untuk membuka kapasitas lebih besar',
   'billing.checkoutSuccess': 'Pembayaran diterima — paket Anda sedang diaktifkan.',
   'billing.checkoutCancelled': 'Checkout dibatalkan. Tidak ada biaya yang dikenakan.',
   'billing.checkoutUnavailable': 'Tingkat ini belum tersedia.',
@@ -233,7 +248,9 @@ export const ID: Record<keyof typeof EN, string> = {
   'billing.featureSeats': '{count} kursi',
   'billing.priceFree': '$0',
   'billing.pricePro': '$49/bln',
+  'billing.priceProYearly': '$39/bln',
   'billing.priceScale': '$499/bln',
+  'billing.priceScaleYearly': '$399/bln',
 
   /* Settings */
   'settings.title': 'Pengaturan',

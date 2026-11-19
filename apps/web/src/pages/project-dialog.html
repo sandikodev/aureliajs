@@ -9,6 +9,17 @@
       <p class="mt-0.5 text-xs text-muted-foreground">${copy['projects.dialogHint']}</p>
     </div>
 
+    <div if.bind="formError" class="mx-5 mt-4">
+      <ui-alert tone="destructive">
+        <div class="flex items-center justify-between gap-3 w-full min-w-0">
+          <span class="truncate text-xs font-medium" title.bind="formError">${formError}</span>
+          <a if.bind="isPlanLimit" load="billing" click.trigger="close()" class="shrink-0 inline-flex items-center gap-1 text-xs font-semibold underline underline-offset-2 hover:opacity-80">
+            ${copy['nav.billing']} &rarr;
+          </a>
+        </div>
+      </ui-alert>
+    </div>
+
     <div class="space-y-4 px-5 py-4">
       <div class="space-y-1.5">
         <ui-label for="project-name">${copy['projects.fieldName']}</ui-label>

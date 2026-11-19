@@ -20,7 +20,7 @@ export type Toast = {
   tone: ToastTone;
 };
 
-let _nextId = 1;
+let nextToastId = 1;
 const MAX_TOASTS = 4;
 const DEDUP_WINDOW_MS = 1_500;
 
@@ -30,6 +30,20 @@ export class ToastService {
 
   private timers = new Map<number, ReturnType<typeof setTimeout>>();
   private lastAdded = new Map<string, number>();
+  private listeners: (() => void)[] = [];
+
+  onChange(listener: () => void): () => void {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this.listeners.filter((l) => l !== listener);
+    };
+  }
+
+  private notify(): void {
+    for (const listener of this.listeners) {
+      listener();
+    }
+  }
 
   success(message: string, duration = 4_000): void {
     this.add(message, 'success', duration);
@@ -51,6 +65,7 @@ export class ToastService {
     clearTimeout(this.timers.get(id));
     this.timers.delete(id);
     this.toasts = this.toasts.filter((t) => t.id !== id);
+    this.notify();
   }
 
   private add(message: string, tone: ToastTone, duration: number): void {
@@ -76,9 +91,10 @@ export class ToastService {
       }
     }
 
-    const id = _nextId++;
+    const id = nextToastId++;
     this.toasts = [...this.toasts, { id, message, tone }];
     const timer = setTimeout(() => this.dismiss(id), duration);
     this.timers.set(id, timer);
+    this.notify();
   }
 }

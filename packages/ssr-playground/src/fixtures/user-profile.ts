@@ -5,7 +5,7 @@
 
 import { CustomElement } from 'aurelia';
 
-export const UserProfile: unknown = CustomElement.define(
+export const UserProfile = CustomElement.define(
   {
     name: 'user-profile',
     template: `

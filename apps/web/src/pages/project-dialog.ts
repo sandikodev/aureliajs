@@ -1,5 +1,5 @@
-import { createProjectSchema, type Project } from '@aureliajs/shared/schemas';
-import type { ProjectStatus } from '@aureliajs/shared/utils';
+import { createProjectSchema, type Project } from '@aurelia-ops/shared/schemas';
+import type { ProjectStatus } from '@aurelia-ops/shared/utils';
 import { customElement, INode, resolve } from 'aurelia';
 import template from './project-dialog.html';
 import { api, ApiError } from '@/services/api';
@@ -44,11 +44,20 @@ export class ProjectDialog {
   editingId: string | null = null;
   form: ProjectFormState = emptyForm();
   fieldErrors: Record<string, string> = {};
+  formError = '';
   saving = false;
 
   get copy() {
     this.i18n.track();
     return this.i18n.strings;
+  }
+
+  get isPlanLimit(): boolean {
+    return (
+      this.formError.toLowerCase().includes('plan') ||
+      this.formError.toLowerCase().includes('limit') ||
+      this.formError.toLowerCase().includes('seat')
+    );
   }
 
   get isEditing(): boolean {
@@ -72,6 +81,7 @@ export class ProjectDialog {
     this.editingId = null;
     this.form = emptyForm();
     this.fieldErrors = {};
+    this.formError = '';
     this.dialogEl.showModal();
   }
 
@@ -85,6 +95,7 @@ export class ProjectDialog {
       dueDate: project.dueDate ?? '',
     };
     this.fieldErrors = {};
+    this.formError = '';
     this.dialogEl.showModal();
   }
 
@@ -94,6 +105,7 @@ export class ProjectDialog {
 
   async save(): Promise<void> {
     this.fieldErrors = {};
+    this.formError = '';
     const budgetNumber = Number(this.form.budget === '' ? 0 : this.form.budget);
 
     const parsed = createProjectSchema.safeParse({
@@ -125,7 +137,7 @@ export class ProjectDialog {
       this.dialogEl.close();
     } catch (error) {
       if (error instanceof ApiError) {
-        this.toast.error(error.message);
+        this.formError = error.message;
         if (error.issues.length > 0) {
           this.fieldErrors = Object.fromEntries(error.issues.map((i) => [i.path, i.message]));
         }

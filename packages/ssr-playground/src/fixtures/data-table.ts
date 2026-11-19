@@ -5,7 +5,7 @@
 
 import { CustomElement } from 'aurelia';
 
-export const DataTable: unknown = CustomElement.define(
+export const DataTable = CustomElement.define(
   {
     name: 'data-table',
     template: `

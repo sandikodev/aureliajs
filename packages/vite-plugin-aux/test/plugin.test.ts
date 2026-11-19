@@ -1,5 +1,5 @@
 import { Buffer } from 'node:buffer';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { CustomElement } from 'aurelia';
 import { auxPlugin } from '../src/index';
 

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { auxEsbuildPlugin } from '../src/esbuild.js';
 
 describe('auxEsbuildPlugin esbuild plugin', () => {
@@ -18,10 +18,12 @@ describe('auxEsbuildPlugin esbuild plugin', () => {
     const loadFilters: RegExp[] = [];
 
     const mockBuild = {
-      onResolve: (opts: { filter: RegExp }, _cb: any) => {
+      onResolve: (opts: { filter: RegExp }, callback: (args: unknown) => unknown) => {
+        expect(callback).toBeDefined();
         resolveFilters.push(opts.filter);
       },
-      onLoad: (opts: { filter: RegExp }, _cb: any) => {
+      onLoad: (opts: { filter: RegExp }, callback: (args: unknown) => unknown) => {
+        expect(callback).toBeDefined();
         loadFilters.push(opts.filter);
       },
     };

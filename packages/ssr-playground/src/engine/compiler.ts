@@ -5,6 +5,7 @@
 
 import zlib from 'node:zlib';
 import ts from 'typescript';
+import { CustomElement } from 'aurelia';
 import { inspectAureliaSsr } from './inspector.js';
 import { parseAux, compileAux } from '@aureliajs/vite-plugin-aux';
 import { lintAureliaFiles, type LintDiagnostic } from './linter.js';
@@ -247,10 +248,14 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
     whitelistAudit = true,
   } = req;
 
-  try {
-    const resolvedFiles = files && Object.keys(files).length > 0
+  const resolvedFiles =
+    files && Object.keys(files).length > 0
       ? files
-      : (exampleId ? (loadAllExamples()[exampleId]?.files ?? {}) : {});
+      : exampleId
+        ? (loadAllExamples()[exampleId]?.files ?? {})
+        : {};
+
+  try {
     const fileKeys = Object.keys(resolvedFiles);
     const auxFile = fileKeys.find((f) => f.endsWith('.aux'));
     const htmlFile = fileKeys.find((f) => f.endsWith('.html'));
@@ -396,12 +401,15 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
       }
     }
 
-    const dynamicComponent: Record<string, unknown> = {
-      template: templateString,
-      ...parsedTs.methods,
-    };
+    const safeTag = `pg-${componentName.replace(/[^a-z0-9-]/gi, '-').toLowerCase() || 'view'}`;
 
-    // Attach evaluated getters to dynamicComponent and mergedProps
+    class PlaygroundComponent {
+      constructor() {
+        Object.assign(this, parsedTs.methods);
+      }
+    }
+
+    // Attach evaluated getters to component prototype and mergedProps
     for (const [gName, gBody] of Object.entries(parsedTs.getters)) {
       try {
         const bodyContent = gBody.trim().replace(/^\{|\}$/g, '');
@@ -413,12 +421,7 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
             return '';
           }
         };
-        Object.defineProperty(dynamicComponent, gName, {
-          get: safeGetter,
-          enumerable: true,
-          configurable: true,
-        });
-        Object.defineProperty(mergedProps, gName, {
+        Object.defineProperty(PlaygroundComponent.prototype, gName, {
           get: safeGetter,
           enumerable: true,
           configurable: true,
@@ -427,6 +430,11 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
         // Ignore getter definition errors
       }
     }
+
+    const dynamicComponent = CustomElement.define(
+      { name: safeTag, template: templateString },
+      PlaygroundComponent
+    );
 
     // ----------------------------------------------------
     // SSR Rendering & Metrics Inspection
@@ -695,7 +703,7 @@ export async function compilePlaygroundExample(req: CompileRequest): Promise<Com
         secretStatus: 'ERROR',
         xssStatus: 'ERROR',
       },
-      diagnostics: [],
+      diagnostics: lintAureliaFiles(resolvedFiles),
     };
   }
 }

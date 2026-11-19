@@ -1,7 +1,18 @@
-import { serve } from '@hono/node-server';
 import { app } from './app.js';
 import { env } from './env.js';
 
-serve({ fetch: app.fetch, port: env.PORT }, (info) => {
-  console.log(`[api] listening on http://localhost:${info.port} (${env.NODE_ENV})`);
-});
+const isBun = 'bun' in process.versions;
+
+if (!isBun) {
+  const { serve } = await import('@hono/node-server');
+  serve({ fetch: app.fetch, port: env.PORT }, (info) => {
+    console.log(`[api] listening on http://localhost:${info.port} (${env.NODE_ENV})`);
+  });
+} else {
+  console.log(`[api] listening on http://localhost:${env.PORT} (${env.NODE_ENV}) via Bun`);
+}
+
+export default {
+  port: env.PORT,
+  fetch: app.fetch,
+};

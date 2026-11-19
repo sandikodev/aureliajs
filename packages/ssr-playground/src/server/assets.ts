@@ -103,8 +103,9 @@ export function getClientHydrationScript(): string {
   console.log('[Aurelia 2 SSR Playground] Client hydration bundle initialized.');
 
   function onReady() {
-    const payload = window.__HYDRATION__;
-    console.log('[Aurelia 2 SSR Playground] Hydration payload on window:', payload);
+    const dataEl = document.getElementById('__AURELIA_SSR_DATA__');
+    const payload = dataEl && dataEl.textContent ? JSON.parse(dataEl.textContent) : null;
+    console.log('[Aurelia 2 SSR Playground] Hydration payload:', payload);
 
     // 1. Counter Card Reactivity (matches data-action, data-testid, or Count text)
     const counterButtons = document.querySelectorAll(

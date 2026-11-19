@@ -21,8 +21,9 @@ describe('Aurelia 2 SSR Hydration & Reactivity Verification', () => {
     };
 
     const html = await renderAurelia({
-      component: CounterCard,
+      component: CounterCard as object,
       context,
+      preserveMarkers: false,
     });
 
     expect(html).toContain('Count: 42');
@@ -39,8 +40,9 @@ describe('Aurelia 2 SSR Hydration & Reactivity Verification', () => {
     };
 
     const html = await renderAurelia({
-      component: CounterCard,
+      component: CounterCard as object,
       context,
+      preserveMarkers: false,
     });
 
     const payload = await serializeState(context, {}, 'counter-card');
@@ -100,8 +102,9 @@ describe('Aurelia 2 SSR Hydration & Reactivity Verification', () => {
     };
 
     const html = await renderAurelia({
-      component: CounterCard,
+      component: CounterCard as object,
       context,
+      preserveMarkers: false,
     });
 
     const payload = await serializeState(context, {}, 'counter-card');

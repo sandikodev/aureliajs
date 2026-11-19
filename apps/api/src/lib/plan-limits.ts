@@ -1,4 +1,4 @@
-import { PLAN_LIMITS, type Plan } from '@aureliajs/shared';
+import { PLAN_LIMITS, type Plan } from '@aurelia-ops/shared';
 
 /**
  * Single source of truth for what each plan is allowed to do.

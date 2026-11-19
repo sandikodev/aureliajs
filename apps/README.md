@@ -15,32 +15,32 @@ Together they form a **fullstack SaaS dashboard** — single-container Docker se
 
 ### `apps/api/`
 - **Entry**: `src/index.ts` — Hono app listening on `:4601`
-- **Build**: `pnpm build` → `dist/server.js`
-- **Run**: `pnpm dev` or `pnpm start`
+- **Build**: `bun run build` → `dist/server.js`
+- **Run**: `bun run dev` or `bun run start`
 - **API Docs**: `/api` routes (type-safe via Zod)
 - **Database**: Drizzle ORM + Postgres (migrations in `drizzle/`)
 - **Auth**: Session cookies (HttpOnly, Argon2id hashed)
 - **Billing**: Stripe Checkout + webhooks (signature verified)
 - **Key scripts**:
-  - `pnpm dev` — watch + start
-  - `pnpm build` — compile to dist
-  - `pnpm typecheck` — strict TS
-  - `pnpm test` — Vitest unit tests
-  - `pnpm db:migrate` / `pnpm db:seed` — Postgres setup
+  - `bun run dev` — watch + start
+  - `bun run build` — compile to dist
+  - `bun run typecheck` — strict TS
+  - `bun run test` — Bun native tests (`bun test`)
+  - `bun run db:migrate` / `bun run db:seed` — Postgres setup
 
 ### `apps/web/`
 - **Entry**: `src/app.html` + `src/main.ts` — Aurelia 2 SPA
-- **Build**: `pnpm build` → `dist/` (static assets)
-- **Run**: `pnpm dev` — Vite dev server on `:4600`
+- **Build**: `bun run build` → `dist/` (static assets)
+- **Run**: `bun run dev` — Vite dev server on `:4600`
 - **Pages**: `/overview`, `/projects`, `/members`, `/billing`, `/settings`
 - **UI**: Components in `apps/web/src/ui/` (button, card, input, select, etc.)
 - **i18n**: English + Indonesian (250+ keys, persisted in localStorage)
 - **Key scripts**:
-  - `pnpm dev` — Vite dev server
-  - `pnpm build` — Rollup build
-  - `pnpm typecheck` — TS strict check
-  - `pnpm format` — Prettier
-  - `pnpm lint` — oxlint
+  - `bun run dev` — Vite dev server
+  - `bun run build` — Rollup build
+  - `bun run typecheck` — TS strict check
+  - `bun run format` — Prettier
+  - `bun run lint` — oxlint
 
 ---
 
@@ -50,11 +50,11 @@ Together they form a **fullstack SaaS dashboard** — single-container Docker se
 ```bash
 cd /home/dev/project/aureliajs
 cp .env.example .env          # copy, edit as needed
-pnpm install                  # installs root deps + workspace
-pnpm db:up                     # start Postgres (Docker)
-pnpm db:migrate                # run migrations
-pnpm db:seed                   # seed 1 workspace, 4 members, 1k projects
-pnpm dev                       # web :4600, api :4601
+bun install                  # installs root deps + workspace
+bun run db:up                     # start Postgres (Docker)
+bun run db:migrate                # run migrations
+bun run db:seed                   # seed 1 workspace, 4 members, 1k projects
+bun run dev                       # web :4600, api :4601
 ```
 
 Then open <http://localhost:4600>. The API health check is at <http://localhost:4601/health>.
@@ -62,11 +62,11 @@ Then open <http://localhost:4600>. The API health check is at <http://localhost:
 ### 2. API Only
 ```bash
 cd /home/dev/project/aureliajs
-pnpm install
-pnpm db:up                     # or point DATABASE_URL at existing Postgres
-pnpm db:migrate
-pnpm db:seed
-pnpm --filter @aureliajs/api dev   # :4601 only
+bun install
+bun run db:up                     # or point DATABASE_URL at existing Postgres
+bun run db:migrate
+bun run db:seed
+bun run --filter @aureliajs/api dev   # :4601 only
 ```
 
 ### 3. Web Only (without API)
@@ -74,13 +74,13 @@ The UI falls back to deterministic sample data and shows a **Demo data** banner.
 
 ```bash
 cd /home/dev/project/aureliajs
-pnpm install
-pnpm --filter @aureliajs/web dev   # :4600 only (mock mode)
+bun install
+bun run --filter @aureliajs/web dev   # :4600 only (mock mode)
 ```
 
 ---
 
-## 🗂️ Monorepo Structure (pnpm workspace)
+## 🗂️ Monorepo Structure (Bun workspace)
 
 ```
 aureliajs/
@@ -103,7 +103,7 @@ aureliajs/
 - `packages/shared` — **Contract** between API and Web (types, schemas). Import via `@aureliajs/shared`.
 - `apps/api/src/env.ts` — Env vars (`STRIPE_*`, `DATABASE_URL`, etc.). Never hardcode.
 - `apps/web/src/app.html` — Shell controls `loadingAuth` → `showShell` → layout.
-- `pnpm -r` — Run scripts across all workspace packages (e.g., `pnpm -r typecheck`).
+- `bun run --workspaces` — Run scripts across all workspace packages (e.g., `bun run typecheck`).
 
 ---
 
@@ -111,19 +111,19 @@ aureliajs/
 
 | Goal | Command |
 |------|---------|
-| Install all | `pnpm install` |
-| Typecheck all | `pnpm -r typecheck` |
-| Lint all | `pnpm lint` |
-| Format all | `pnpm format` |
-| Build all | `pnpm build` |
-| Run e2e tests | `pnpm test:e2e` |
-| API dev only | `pnpm --filter @aureliajs/api dev` |
-| Web dev only | `pnpm --filter @aureliajs/web dev` |
-| DB up (Docker) | `pnpm db:up` |
-| DB migrate | `pnpm --filter @aureliajs/api db:migrate` |
-| DB seed | `pnpm --filter @aureliajs/api db:seed` |
+| Install all | `bun install` |
+| Typecheck all | `bun run typecheck` |
+| Lint all | `bun run lint` |
+| Format all | `bun run format` |
+| Build all | `bun run build` |
+| Run e2e tests | `bun run test:e2e` |
+| API dev only | `bun run --filter @aureliajs/api dev` |
+| Web dev only | `bun run --filter @aureliajs/web dev` |
+| DB up (Docker) | `bun run db:up` |
+| DB migrate | `bun run --filter @aureliajs/api db:migrate` |
+| DB seed | `bun run --filter @aureliajs/api db:seed` |
 
-> **Note**: `pnpm test:e2e` runs Playwright tests. On some systems you may need `LD_LIBRARY_PATH` set for Chromium accessibility libraries. See the project's CI config for details.
+> **Note**: `bun run test:e2e` runs Playwright tests. On some systems you may need `LD_LIBRARY_PATH` set for Chromium accessibility libraries. See the project's CI config for details.
 
 ---
 
@@ -131,13 +131,13 @@ aureliajs/
 
 1. **Fork / clone** the repo
 2. `cp .env.example .env` — fill in your values (never commit secrets)
-3. `pnpm install`
-4. `pnpm db:up` — starts Postgres via Docker
-5. `pnpm db:migrate && pnpm db:seed`
-6. `pnpm dev` — opens both web (:4600) and api (:4601)
+3. `bun install`
+4. `bun run db:up` — starts Postgres via Docker
+5. `bun run db:migrate && bun run db:seed`
+6. `bun run dev` — opens both web (:4600) and api (:4601)
 7. Log in with: `demo@aureliajs.dev` / `demo-password-123`
 8. Read `packages/shared/src/index.ts` (lines 72–77) — the `PLAN_LIMITS` contract
-9. Run `pnpm typecheck` to verify your changes don't break types
+9. Run `bun run typecheck` to verify your changes don't break types
 10. If adding a new route: edit `apps/api/src/routes/`, then `apps/web/src/pages/`, then update `config/routes.ts`
 
 **Never hardcode** IP, email, token, port, or username. Use `.env` file for local development.
@@ -150,7 +150,7 @@ aureliajs/
 
 ```bash
 # Build + run (from repo root)
-pnpm build              # compiles both apps
+bun run build              # compiles both apps
 docker compose -f docker-compose.prod.yml up -d
 ```
 
@@ -172,8 +172,8 @@ See `Dockerfile` and `docker-compose.prod.yml` for the multi-stage build.
 ## 🆘 Getting Help
 
 - Check `docs/screenshots/` for UI references
-- Run `pnpm typecheck` — if it passes, your types are good
-- Run `pnpm lint` — oxlint warnings are usually safe to ignore initially
+- Run `bun run typecheck` — if it passes, your types are good
+- Run `bun run lint` — oxlint warnings are usually safe to ignore initially
 - The `demo@aureliajs.dev` / `demo-password-123` account has a **Pro** workspace with seeded data
 - Browse `git log --oneline -5` for recent context
 

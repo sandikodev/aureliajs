@@ -1,4 +1,4 @@
-import type { Plan, Role } from '@aureliajs/shared';
+import type { Plan, Role } from '@aurelia-ops/shared';
 import type { Context, MiddlewareHandler } from 'hono';
 import { getCookie } from 'hono/cookie';
 import { HttpError, forbidden, unauthorized, unavailable } from '../lib/errors.js';
@@ -35,7 +35,7 @@ export const tenant = (): MiddlewareHandler => async (c, next) => {
   } catch (error) {
     console.error('[api] session lookup failed', error);
     throw unavailable(
-      'Database is not reachable. Run `pnpm db:up && pnpm db:migrate && pnpm db:seed`.',
+      'Database is not reachable. Run `bun run db:up && bun run db:migrate && bun run db:seed`.',
     );
   }
 

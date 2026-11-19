@@ -1,7 +1,7 @@
 import { customElement, resolve } from 'aurelia';
 import template from './login-page.html';
 import { IRouter } from '@aurelia/router';
-import { loginSchema } from '@aureliajs/shared/schemas';
+import { loginSchema } from '@aurelia-ops/shared/schemas';
 import { ApiError } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { I18nService } from '@/services/i18n';
@@ -70,7 +70,7 @@ export class LoginPage {
           cause.status === 401
             ? this.i18n.t('login.failed')
             : cause.status === 0
-              ? 'Cannot reach the API. Is `pnpm dev:api` running?'
+              ? 'Cannot reach the API. Is `bun run dev:api` running?'
               : cause.message;
       } else {
         this.error = this.i18n.t('common.error');

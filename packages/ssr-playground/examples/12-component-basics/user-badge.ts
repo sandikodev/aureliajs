@@ -13,7 +13,7 @@ export class UserBadge {
   get fullName(): string {
     const f = this.firstName || '';
     const l = this.lastName || '';
-    return (f + ' ' + l).trim() || 'Sandiko Dev';
+    return (f + ' ' + l).trim() || 'Sandikodev';
   }
 
   get initials(): string {

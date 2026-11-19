@@ -9,7 +9,7 @@ import type { ClientHydrationSimulation, HydrationPayload } from '../types.js';
 
 export async function simulateClientHydration(
   fullDocumentHtml: string,
-  _expectedPayload: HydrationPayload
+  expectedPayload: HydrationPayload
 ): Promise<ClientHydrationSimulation> {
   const t0 = performance.now();
   const dom = new JSDOM(fullDocumentHtml, {
@@ -27,12 +27,19 @@ export async function simulateClientHydration(
   let reactivitySuccess = false;
 
   try {
-    // 1. Verify that window.__HYDRATION__ exists and can be extracted cleanly
-    const payload = (win as Record<string, unknown>)['__HYDRATION__'] as HydrationPayload | undefined;
+    // 1. Verify that HTML5 <script id="__AURELIA_SSR_DATA__" type="application/json"> exists and parses cleanly
+    const dataScript = win.document.getElementById('__AURELIA_SSR_DATA__');
+    let payload: HydrationPayload | undefined;
+    if (dataScript?.textContent) {
+      payload = JSON.parse(dataScript.textContent) as HydrationPayload;
+    }
     if (!payload) {
-      discrepancies.push('Failed to find __HYDRATION__ payload on window');
+      discrepancies.push('Failed to find __AURELIA_SSR_DATA__ JSON payload script in document');
     } else {
       reconciledSuccessfully = true;
+      if (expectedPayload.component && payload.component !== expectedPayload.component) {
+        discrepancies.push(`Payload component mismatch: expected ${expectedPayload.component}, got ${payload.component}`);
+      }
     }
 
     // 2. Inspect root app element in client DOM

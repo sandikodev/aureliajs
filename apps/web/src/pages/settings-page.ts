@@ -6,7 +6,7 @@ import { I18nService, LOCALES } from '@/services/i18n';
 import { api, ApiError, type CurrentWorkspace } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { ToastService } from '@/services/toast';
-import type { Locale } from '@aureliajs/shared';
+import type { Locale } from '@aurelia-ops/shared';
 
 @customElement({ name: 'settings-page', template })
 export class SettingsPage {

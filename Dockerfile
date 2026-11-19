@@ -1,49 +1,42 @@
 # syntax=docker/dockerfile:1
 
 # ---------------------------------------------------------------- build
-FROM node:22-alpine AS build
-
-RUN corepack enable
+FROM oven/bun:1-alpine AS build
 
 WORKDIR /app
 
-# Copy the manifests first so the dependency layer is cached until they change.
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json ./
 COPY apps/api/package.json apps/api/
 COPY apps/web/package.json apps/web/
-COPY packages/shared/package.json packages/shared/
+COPY apps/shared/package.json apps/shared/
+COPY packages/vite-plugin-aux/package.json packages/vite-plugin-aux/
 
-RUN pnpm install --frozen-lockfile
+RUN bun install
 
 COPY . .
 
-# The shared package has to be built before the API and the web app.
-RUN pnpm --filter @aureliajs/shared build \
- && pnpm --filter @aureliajs/api build \
- && pnpm --filter @aureliajs/web build
+# Build workspace dependencies before API and web apps
+RUN bun run --filter @aurelia-ops/shared build \
+ && bun run --filter @aureliajs/vite-plugin-aux build \
+ && bun run --filter @aureliajs/api build \
+ && bun run --filter @aureliajs/web build
 
 # ---------------------------------------------------------------- runtime
-FROM node:22-alpine AS runtime
+FROM oven/bun:1-alpine AS runtime
 
-RUN corepack enable \
- && addgroup -S aurelia && adduser -S aurelia -G aurelia
+RUN addgroup -S aurelia && adduser -S aurelia -G aurelia
 
 WORKDIR /app
 
 ENV NODE_ENV=production \
-    PORT=4601 \
-    NODE_OPTIONS=--enable-source-maps
+    PORT=4601
 
 COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/apps/api/node_modules ./apps/api/node_modules
-# pnpm links each workspace package's dependencies into its own
-# node_modules; the shared package needs zod at runtime.
-COPY --from=build /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=build /app/apps/api/package.json ./apps/api/package.json
 COPY --from=build /app/apps/api/drizzle ./apps/api/drizzle
-COPY --from=build /app/packages/shared/package.json ./packages/shared/package.json
-COPY --from=build /app/packages/shared/dist ./packages/shared/dist
+COPY --from=build /app/apps/shared/package.json ./apps/shared/package.json
+COPY --from=build /app/apps/shared/dist ./apps/shared/dist
 
 # The built web bundle is served by the API process, so the whole app is
 # one container and one origin — no CORS, no second deployment.
@@ -53,9 +46,7 @@ USER aurelia
 
 EXPOSE 4601
 
-# The readiness probe checks the database, the liveness probe only checks
-# that the process is up.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||4601)+'/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+  CMD bun -e "fetch('http://127.0.0.1:'+(process.env.PORT||4601)+'/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
-CMD ["node", "apps/api/dist/server.js"]
+CMD ["bun", "apps/api/dist/server.js"]

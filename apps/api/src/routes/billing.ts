@@ -1,4 +1,4 @@
-import { checkoutRequestSchema, type BillingOverview } from '@aureliajs/shared';
+import { checkoutRequestSchema, type BillingOverview } from '@aurelia-ops/shared';
 import { count, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import Stripe from 'stripe';
@@ -8,7 +8,7 @@ import { getDb, schema } from '../db/client.js';
 import { badRequest, HttpError, notFound } from '../lib/errors.js';
 import { limitsFor, planFromSubscription } from '../lib/plan-limits.js';
 import { getStripe, getWebhookSecret } from '../lib/stripe.js';
-import { tenantOf } from '../middleware/tenant.js';
+import { requireRole, tenantOf } from '../middleware/tenant.js';
 
 export const billingRoutes = new Hono();
 
@@ -186,6 +186,7 @@ billingRoutes.post(
   }),
   async (c) => {
     const tenant = tenantOf(c);
+    requireRole(tenant, 'owner', 'admin');
     const { plan, interval } = c.req.valid('json');
     const priceId = resolvePriceId(plan, interval);
 
@@ -249,6 +250,7 @@ billingRoutes.post(
  */
 billingRoutes.post('/billing/portal', async (c) => {
   const tenant = tenantOf(c);
+  requireRole(tenant, 'owner', 'admin');
   const workspace = await loadWorkspace(tenant.workspaceId);
 
   if (!workspace.stripeCustomerId) {

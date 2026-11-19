@@ -5,7 +5,7 @@
 
 import { CustomElement } from 'aurelia';
 
-export const CounterCard: unknown = CustomElement.define(
+export const CounterCard = CustomElement.define(
   {
     name: 'counter-card',
     template: `

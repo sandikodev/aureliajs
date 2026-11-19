@@ -1,4 +1,4 @@
-import { authSessionSchema, loginSchema, type AuthSession } from '@aureliajs/shared';
+import { authSessionSchema, loginSchema, type AuthSession } from '@aurelia-ops/shared';
 import { verify } from '@node-rs/argon2';
 import { and, eq, lt } from 'drizzle-orm';
 import { Hono } from 'hono';

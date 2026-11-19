@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { parseAux } from '../src/parser';
 import { compileAux, deriveTagName, extractTemplateMeta, toKebabCase, toPascalCase } from '../src/compiler';
 

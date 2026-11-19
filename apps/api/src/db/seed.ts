@@ -123,20 +123,30 @@ const count = await db.$count(schema.projects);
 
 if (count < 100) {
   const now = Date.now();
-  const rows = Array.from({ length: 1000 }, (_, i) => {
-    const name = `${pick(projectNames, i)} ${Math.floor(i / projectNames.length) + 1}`;
-    const status = pick(statusWeights, i + 3);
-    const dueOffsetDays = (i % 90) - 20;
-    return {
+  const rows: Array<{
+    workspaceId: string;
+    name: string;
+    status: (typeof statusWeights)[number];
+    budgetCents: number;
+    dueDate: string;
+    ownerName: string;
+    createdBy: string;
+  }> = [];
+
+  for (let index = 0; index < 1000; index++) {
+    const name = `${pick(projectNames, index)} ${Math.floor(index / projectNames.length) + 1}`;
+    const status = pick(statusWeights, index + 3);
+    const dueOffsetDays = (index % 90) - 20;
+    rows.push({
       workspaceId,
       name,
       status,
-      budgetCents: (2500 + ((i * 137) % 48000)) * 100,
+      budgetCents: (2500 + ((index * 137) % 48000)) * 100,
       dueDate: new Date(now + dueOffsetDays * 86_400_000).toISOString().slice(0, 10),
-      ownerName: pick(owners, i * 3 + 1),
+      ownerName: pick(owners, index * 3 + 1),
       createdBy: userId,
-    };
-  });
+    });
+  }
 
   for (let i = 0; i < rows.length; i += 200) {
     await db.insert(schema.projects).values(rows.slice(i, i + 200));

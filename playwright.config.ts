@@ -15,6 +15,7 @@ if (existsSync(rootEnv)) {
  */
 export default defineConfig({
   testDir: './e2e',
+  testMatch: '**/*.e2e.ts',
   timeout: 30_000,
   expect: { timeout: 7_000 },
   fullyParallel: false,
@@ -28,7 +29,7 @@ export default defineConfig({
   webServer: process.env.E2E_BASE_URL
     ? undefined
     : {
-        command: 'pnpm dev',
+        command: 'bun run dev',
         url: 'http://localhost:4600',
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,

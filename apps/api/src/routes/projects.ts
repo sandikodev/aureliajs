@@ -4,7 +4,7 @@ import {
   paginationQuerySchema,
   projectSchema,
   updateProjectSchema,
-} from '@aureliajs/shared';
+} from '@aurelia-ops/shared';
 import { and, count, desc, eq, ilike, or } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod';

@@ -1,4 +1,4 @@
-import type { Locale } from '@aureliajs/shared';
+import type { Locale } from '@aurelia-ops/shared';
 import { observable } from 'aurelia';
 import { EN } from '../locales/en';
 import { ID } from '../locales/id';

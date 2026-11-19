@@ -263,24 +263,35 @@ describe('Headless Reversing & Diagnostics Suite', () => {
   // --------------------------------------------------------------------------
   describe('4. High-Concurrency Stress Test & Container Memory Isolation', () => {
     it('executes 30 concurrent renderAurelia calls without AUR0757 or state pollution', async () => {
+      const { CustomElement } = await import('aurelia');
+      const UserCard = CustomElement.define(
+        {
+          name: 'au-stress-card',
+          template: '<div class="au-card"><span class="user">${user.name}</span></div>',
+        },
+        class {
+          user = { name: '' };
+        }
+      );
+
       const initialMem = process.memoryUsage().heapUsed;
 
-      const tasks = Array.from({ length: 30 }).map(async (_, idx) => {
-        const user = { id: `user_${idx}`, name: `Dev ${idx}`, email: `dev${idx}@example.com` };
-        const html = await renderAurelia({
-          component: {
-            template: '<div class="au-card"><span class="user">${user.name}</span></div>',
-          },
-          context: {
-            user,
-            workspace: { id: `ws_${idx}`, name: `Workspace ${idx}` },
-            role: 'engineer',
-          },
-        });
+      const tasks: Promise<string>[] = [];
+      for (let idx = 0; idx < 30; idx++) {
+        tasks.push(
+          (async (taskIndex: number) => {
+            const user = { id: `user_${taskIndex}`, name: `Dev ${taskIndex}`, email: `dev${taskIndex}@example.com` };
+            const html = await renderAurelia({
+              component: UserCard,
+              props: { user },
+              preserveMarkers: false,
+            });
 
-        expect(html).toContain(`Dev ${idx}`);
-        return html;
-      });
+            expect(html).toContain(`Dev ${taskIndex}`);
+            return html;
+          })(idx)
+        );
+      }
 
       const results = await Promise.all(tasks);
       expect(results.length).toBe(30);
@@ -316,17 +327,19 @@ describe('Headless Reversing & Diagnostics Suite', () => {
       const payload = await serializeState(maliciousContext, {}, 'test-comp');
       const html = createHtmlDocument('<div class="app">Safe</div>', payload, {
         nonce: 'strictNonce99==',
+        jsBundle: '/assets/client.js',
       });
 
       // Must be safely escaped to Unicode \\u003c and \\u003e
       expect(html).not.toContain('</script><script>alert("PWNED")</script>');
       expect(html).toContain('\\u003c/script\\u003e');
+      expect(html).toContain('type="application/json"');
       expect(html).toContain('nonce="strictNonce99=="');
 
       // Verify that DOM parser treats it as pure string without executing rogue script tag
       const dom = new JSDOM(html);
       const scripts = dom.window.document.querySelectorAll('script');
-      // Should only have the hydration script and module script, no injected 3rd script
+      // Should only have the JSON data script and external module script, no injected 3rd script
       expect(scripts.length).toBe(2);
       dom.window.close();
     });

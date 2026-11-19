@@ -40,30 +40,40 @@ This monorepo serves as the definitive reference and innovation lab:
 
 ## 📦 Monorepo Packages & Architecture
 
+For a deep open-source breakdown of every package's scope, Aurelia 2 internals, trade-offs, and how to combine them, see **[`packages/README.md`](packages/README.md)**.
+
 ```
 aureliajs/
 ├── packages/
-│   ├── hono-aurelia/     # Official Hono SSR & Client Hydration Engine
-│   ├── vite-plugin-aux/      # Vite compiler for .aux Single-File Components
+│   ├── aurelia-ssr/          # Pure Aurelia 2 SSR & HTML5 JSON Hydration Engine (@aureliajs/ssr)
+│   ├── hono-aurelia/         # Thin Web-Standards Hono SSR & Actions Adapter (@hono/aurelia)
+│   ├── aurelia-islands/      # Zero-JS Selective Hydration & Native `island` Template Controller
+│   ├── aurelia-bridge/       # Polyglot Foreign Framework Interop (<au-bridge> + au-htmx)
+│   ├── vite-plugin-aux/      # .aux Single-File Component Compiler (Vite, Bun, esbuild)
 │   ├── vscode-aux/           # VS Code Language Extension for .aux SFCs
-│   ├── ssr-playground/       # Interactive Web GUI & TUI SSR Inspector
-│   └── shared/               # Shared Zod schemas, DTOs & plan entitlements
+│   └── ssr-playground/       # Interactive Web GUI & Headless SSR Inspector (port 4700)
 ├── apps/
+│   ├── shared/               # SaaS Domain Zod schemas, DTOs & entitlements (@aurelia-ops/shared)
 │   ├── web/                  # Multi-Tenant Client SPA (Aurelia 2 + Tailwind 4)
-│   └── api/                  # High-performance REST Backend (Hono + Drizzle)
+│   └── api/                  # Multi-Tenant REST Backend (Hono + Drizzle + Stripe)
+├── examples/
+│   └── fullstack-ssr/        # Live Reference App (Hono + Aurelia 2 SSR + Zero-JS /islands route)
 ├── docs/                     # Architectural Manifestos & System Specifications
 └── e2e/                      # Playwright E2E Test Suite (Accessibility & Workflows)
 ```
 
-| Package / App | Path | Description | Tech Stack | Test Status |
+| Package / App | Path | Responsibility | Tech Stack | Guide |
 |---|---|---|---|---|
-| **`@hono/aurelia`** | [`packages/hono-aurelia`](packages/hono-aurelia) | Subpath-isolated SSR engine for Hono with context extraction, XSS sanitization, and state hydration | Hono, Aurelia 2, JSDOM | ✅ **133 / 133 Passing** |
-| **`@aureliajs/vite-plugin-aux`** | [`packages/vite-plugin-aux`](packages/vite-plugin-aux) | Vite transformation plugin compiling `.aux` SFCs into canonical Aurelia 2 `@customElement` classes | Vite 8, TypeScript | ✅ Verified |
-| **`@aureliajs/vscode-aux`** | [`packages/vscode-aux`](packages/vscode-aux) | Official IDE extension providing syntax highlighting, template completion, and Stage 3 decorator support | VS Code API, TextMate | ✅ Packaged |
-| **`@aureliajs/ssr-playground`** | [`packages/ssr-playground`](packages/ssr-playground) | Interactive Web GUI & TUI Playground with live AST/SSR inspection and 16 official canonical examples | Bun, Hono, PrismJS | ✅ **24 / 24 Passing** |
-| **`Aurelia Ops Web`** | [`apps/web`](apps/web) | Enterprise multi-tenant admin dashboard with ported shadcn/ui primitives and theme tokens | Aurelia 2, Tailwind 4 | ✅ M0–M5 Complete |
-| **`Aurelia Ops API`** | [`apps/api`](apps/api) | Multi-tenant REST API with Argon2id sessions, tenancy middleware, Drizzle ORM, and Stripe billing | Hono, Drizzle, Stripe | ✅ Production-Grade |
-| **`@aureliajs/shared`** | [`packages/shared`](packages/shared) | Strict Zod schemas and entitlement matrices shared across web, API, and tests | Zod, TypeScript | ✅ Typechecked |
+| **`@aureliajs/ssr`** | [`packages/aurelia-ssr`](packages/aurelia-ssr) | Pure SSR renderer (`BrowserPlatform` per container, real `ISSRContext`, `SsrTemplateElementFactory`) & zero-JSDOM `./client` hydrator | Aurelia 2, JSDOM, TypeScript | [README](packages/aurelia-ssr/README.md) |
+| **`@hono/aurelia`** | [`packages/hono-aurelia`](packages/hono-aurelia) | Thin Web-Standards Hono adapter (`aurelia`, `aureliaAction`, `aureliaDefaults` via `WeakMap<Request>`, real `ReadableStream` SSR) | Hono 4, Web Streams | [README](packages/hono-aurelia/README.md) |
+| **`@aureliajs/islands`** | [`packages/aurelia-islands`](packages/aurelia-islands) | Zero-JS Selective Hydration (`./server` + ~1.33 KB gz `./loader`) & native Aurelia 2 `island` Template Controller | Web APIs, Aurelia 2 | [README](packages/aurelia-islands/README.md) |
+| **`@aureliajs/bridge`** | [`packages/aurelia-bridge`](packages/aurelia-bridge) | Polyglot `<au-bridge>` (React, Vue, Svelte, Solid, Preact, Qwik) + `au-htmx` with container-scoped `IBridgeRegistry` DI | Aurelia 2 DI, TypeScript | [README](packages/aurelia-bridge/README.md) |
+| **`@aureliajs/vite-plugin-aux`** | [`packages/vite-plugin-aux`](packages/vite-plugin-aux) | `.aux` SFC compiler (`<script setup>`, `defineProps<T>()`, `<script server>`, `<template island="...">`, TC39 Stage 3 decorators) | Vite 8 Oxc, SWC, Bun, esbuild | [README](packages/vite-plugin-aux/README.md) |
+| **`@aureliajs/vscode-aux`** | [`packages/vscode-aux`](packages/vscode-aux) | VS Code extension providing `.aux` TextMate highlighting and AST template completions | VS Code API | [Folder](packages/vscode-aux) |
+| **`ssr-playground`** | [`packages/ssr-playground`](packages/ssr-playground) | Interactive Web GUI & headless reversing/diagnostics inspector with 16 canonical Aurelia 2 examples | Bun, Hono, Aurelia 2 | [Folder](packages/ssr-playground) |
+| **`@aurelia-ops/shared`** | [`apps/shared`](apps/shared) | SaaS domain Zod schemas, DTOs, and plan entitlements isolated from framework packages | Zod, TypeScript | [Folder](apps/shared) |
+| **`Aurelia Ops Web`** | [`apps/web`](apps/web) | Multi-tenant admin dashboard with ported shadcn/ui `.aux` primitives | Aurelia 2, Tailwind 4 | [Folder](apps/web) |
+| **`Aurelia Ops API`** | [`apps/api`](apps/api) | Multi-tenant REST API with Argon2id sessions, Drizzle ORM, and Stripe billing | Hono, Drizzle, Stripe | [Folder](apps/api) |
 
 ---
 
@@ -191,8 +201,7 @@ This monorepo documents in-depth philosophical and technical research exploring 
 ## 🚀 Quick Start
 
 ### Prerequisites
-* **Node.js**: `≥ 22.12.0` or **Bun**: `≥ 1.2.0`
-* **Package Manager**: `pnpm ≥ 11`
+* **Bun**: `≥ 1.2.0` (package manager, runtime, bundler & native test runner)
 * **Docker**: (for PostgreSQL container)
 
 ### 1. Multi-Tenant SaaS Setup
@@ -205,15 +214,15 @@ cd aureliajs
 cp .env.example .env
 
 # Install dependencies
-pnpm install
+bun install
 
 # Start Postgres and run migrations
-pnpm db:up
-pnpm db:migrate
-pnpm db:seed       # Seeds Northwind Studio with 4 members and 1 000 projects
+bun run db:up
+bun run db:migrate
+bun run db:seed       # Seeds Northwind Studio with 4 members and 1 000 projects
 
 # Run Web & API concurrently
-pnpm dev           # Web on :4600, API on :4601
+bun run dev           # Web on :4600, API on :4601
 ```
 
 * **Web Application**: [`http://localhost:4600`](http://localhost:4600)
@@ -236,20 +245,20 @@ open http://localhost:4700
 Every component and adapter in this monorepo is backed by automated tests:
 
 ```bash
-# 1. Typecheck the entire monorepo
-pnpm typecheck
+# 1. Build & typecheck every workspace package and app
+bun run build && bun run typecheck
 
 # 2. Run lightning-fast linting with Oxlint (0 warnings / 0 errors)
-pnpm lint
+bun run lint
 
-# 3. Test @hono/aurelia unit suite (133 tests)
-bun test packages/hono-aurelia
+# 3. Run the entire test suite (aurelia-ssr, hono-aurelia, aurelia-islands, aurelia-bridge, vite-plugin-aux, ssr-playground, examples)
+bun run test
 
-# 4. Test SSR Playground compiler & hydration suite (24 tests)
-bun test packages/ssr-playground
+# 4. Run live JSDOM + Aurelia 2 DevTools verification emulator
+bun run emulate
 
 # 5. Execute Playwright E2E suite
-pnpm exec playwright test
+bun run test:e2e
 ```
 
 ---

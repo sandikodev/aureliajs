@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { auxPlugin } from '../../packages/vite-plugin-aux/dist/index.js';
+import { auxPlugin } from '@aureliajs/vite-plugin-aux';
 import aurelia from '@aurelia/vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
@@ -32,9 +32,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      '@aureliajs/shared/utils': fileURLToPath(new URL('../../packages/shared/src/utils.ts', import.meta.url)),
-      '@aureliajs/shared/schemas': fileURLToPath(new URL('../../packages/shared/src/schemas.ts', import.meta.url)),
-      '@aureliajs/shared': fileURLToPath(new URL('../../packages/shared/src/index.ts', import.meta.url)),
     },
   },
   build: {

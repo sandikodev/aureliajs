@@ -1,8 +1,13 @@
-import { describe, it, expect } from 'bun:test';
-import { DI, IContainer } from 'aurelia';
-import { BridgeConfiguration, IBridgeRegistry, AuBridge, AureliaIsland } from '@aureliajs/bridge';
-import { EnterpriseOrderService, IEnterpriseOrderService } from '../src/services/enterprise-order.service.js';
+import { describe, it, expect, afterAll } from 'bun:test';
+import { DI } from 'aurelia';
+import { BridgeConfiguration, IBridgeRegistry } from '@aureliajs/bridge';
+import { IEnterpriseOrderService } from '../src/services/enterprise-order.service.js';
 import { MyApp } from '../src/my-app.js';
+
+// Restore native Bun Error.prepareStackTrace if Babel's stackTraceRewriter was installed during JSX transpilation
+if (typeof Error.prepareStackTrace === 'function' && Error.prepareStackTrace.name === 'stackTraceRewriter') {
+  delete (Error as { prepareStackTrace?: unknown }).prepareStackTrace;
+}
 
 describe('examples/aurelia-bridge integration tests', () => {
   it('registers BridgeConfiguration, AuBridge, and AureliaIsland in Aurelia DI container', () => {
@@ -54,5 +59,11 @@ describe('examples/aurelia-bridge integration tests', () => {
     // Verify counter sync update handler
     app.handleCounterUpdate(99);
     expect(app.sharedCounter).toBe(99);
+  });
+
+  afterAll(() => {
+    if (typeof Error.prepareStackTrace === 'function' && Error.prepareStackTrace.name === 'stackTraceRewriter') {
+      delete (Error as { prepareStackTrace?: unknown }).prepareStackTrace;
+    }
   });
 });

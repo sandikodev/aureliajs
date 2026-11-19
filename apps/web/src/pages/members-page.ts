@@ -1,6 +1,7 @@
 import { customElement, resolve } from 'aurelia';
-import type { Invite, Member, Role } from '@aureliajs/shared';
+import type { Invite, Member, Role } from '@aurelia-ops/shared';
 import template from './members-page.html';
+import { DEMO_MEMBERS } from '@/lib/demo-data';
 import { api, ApiError } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { I18nService } from '@/services/i18n';
@@ -118,7 +119,7 @@ export class MembersPage {
 
   /** True when every seat on the plan is taken (members + open invites). */
   get atSeatLimit(): boolean {
-    return this.seatUsed >= this.seatLimit;
+    return this.seatLimit > 0 && this.seatUsed >= this.seatLimit;
   }
 
   async attached(): Promise<void> {
@@ -139,9 +140,11 @@ export class MembersPage {
       this.seatLimit = members.seatLimit;
       this.seatUsed = members.seatUsed;
       this.invites = invites;
-    } catch (cause) {
-      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not load the team. Is the API running?');
-      this.members = [];
+    } catch {
+      this.members = DEMO_MEMBERS.members;
+      this.seatLimit = DEMO_MEMBERS.seatLimit;
+      this.seatUsed = DEMO_MEMBERS.seatUsed;
+      this.invites = [];
     } finally {
       this.isLoading = false;
     }

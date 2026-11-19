@@ -4,13 +4,13 @@ import {
   workspaceSettingsSchema,
   type WorkspaceSettings,
   type WorkspaceSummary,
-} from '@aureliajs/shared';
+} from '@aurelia-ops/shared';
 import { and, eq, ne } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { getDb, schema } from '../db/client.js';
 import { badRequest, conflict, forbidden, notFound } from '../lib/errors.js';
-import { slugify } from '@aureliajs/shared';
+import { slugify } from '@aurelia-ops/shared';
 import { tenantOf } from '../middleware/tenant.js';
 
 export const workspaceRoutes = new Hono();

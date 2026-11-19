@@ -2,19 +2,19 @@ import { Buffer } from 'node:buffer';
 import fs from 'node:fs';
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
-import { JSDOM } from '../node_modules/.pnpm/jsdom@23.2.0/node_modules/jsdom/lib/api.js';
-import { BrowserPlatform } from '../node_modules/.pnpm/@aurelia+platform-browser@2.0.0-rc.2/node_modules/@aurelia/platform-browser/dist/esm/index.mjs';
-import { DI, Registration } from '../apps/web/node_modules/@aurelia/kernel/dist/esm/index.mjs';
-import { runTasks } from '../node_modules/.pnpm/@aurelia+runtime@2.0.0-rc.2/node_modules/@aurelia/runtime/dist/esm/index.mjs';
+import { JSDOM } from 'jsdom';
+import { BrowserPlatform } from '@aurelia/platform-browser';
+import { DI, Registration } from '@aurelia/kernel';
+import { runTasks } from '@aurelia/runtime';
 import {
   Aurelia,
   BindingMode,
   CustomElement,
   IPlatform,
   StandardConfiguration,
-} from '../apps/web/node_modules/@aurelia/runtime-html/dist/esm/index.mjs';
-import { createServer } from '../apps/web/node_modules/vite/dist/node/index.js';
-import { auxPlugin } from '../packages/vite-plugin-aux/dist/index.js';
+} from '@aurelia/runtime-html';
+import { createServer } from 'vite';
+import { auxPlugin } from '@aureliajs/vite-plugin-aux';
 
 interface ModuleRow {
   url: string;
@@ -143,8 +143,8 @@ async function runEmulation(): Promise<void> {
   const helperPath = resolveId.call({}, '@swc/helpers/_/_apply_decs_2311')!;
   const aureliaUrl = path.resolve(webRoot, 'node_modules/aurelia/dist/esm/index.mjs');
   const cvaUrl = path.resolve(
-    import.meta.dirname,
-    '../node_modules/.pnpm/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/index.mjs',
+    webRoot,
+    'node_modules/class-variance-authority/dist/index.mjs',
   );
   const utilsUrl = path.resolve(webRoot, 'src/lib/utils.ts');
   const iconsUrl = path.resolve(webRoot, 'src/lib/icons.ts');
@@ -232,7 +232,7 @@ async function runEmulation(): Promise<void> {
           <ui-card-content>
             <ui-alert tone.bind="alertTone">\${alertMessage}</ui-alert>
             <ui-badge variant="success">Live</ui-badge>
-            <ui-avatar name="Sandiko Dev" size="sm"></ui-avatar>
+            <ui-avatar name="Sandikodev" size="sm"></ui-avatar>
             <ui-icon name="sparkles" size="18"></ui-icon>
             <ui-label for="proj-input">Project Name</ui-label>
             <ui-input id="proj-input" value.bind="projectName" placeholder="Enter name"></ui-input>

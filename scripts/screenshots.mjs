@@ -1,7 +1,7 @@
 /**
  * Portfolio screenshots. Run against the dev server:
  *
- *   pnpm dev                         # terminal 1
+ *   bun run dev                      # terminal 1
  *   node scripts/screenshots.mjs     # terminal 2
  *
  * They land in docs/screenshots and are committed so the README/case study

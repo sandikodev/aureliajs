@@ -7,7 +7,7 @@ import { AuthService } from '@/services/auth';
 import { I18nService, LOCALES } from '@/services/i18n';
 import { ToastService } from '@/services/toast';
 import { relativeTime } from '@/lib/utils';
-import type { Locale, WorkspaceSummary } from '@aureliajs/shared';
+import type { Locale, WorkspaceSummary } from '@aurelia-ops/shared';
 import { getRouterConfig, PUBLIC_ROUTE_PATHS } from '@/config/routes';
 import { ThemeService } from '@/services/theme';
 
@@ -56,11 +56,24 @@ export class App {
 
   readonly localeOptions = LOCALES;
 
+  private readonly handleDocumentClick = (event: MouseEvent): void => {
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
+    if (!target.closest('details')) {
+      const openMenus = document.querySelectorAll('details[open]');
+      for (const menu of openMenus) {
+        menu.removeAttribute('open');
+      }
+    }
+  };
+
   async changeLocale(locale: Locale): Promise<void> {
+    const openMenus = document.querySelectorAll('details[open]');
+    for (const menu of openMenus) {
+      menu.removeAttribute('open');
+    }
     if (locale === this.i18n.locale) return;
     this.i18n.setLocale(locale);
-    const menu = (document.activeElement as HTMLElement | null)?.closest('details');
-    menu?.removeAttribute('open');
     try {
       await api.updateWorkspace({ settings: { locale } });
     } catch {
@@ -123,6 +136,7 @@ export class App {
    * 4. Load background data
    */
   async attached(): Promise<void> {
+    document.addEventListener('click', this.handleDocumentClick);
     setUnauthorizedHandler(() => {
       this.auth.clear();
       if (!this.isPublicPath(window.location.pathname)) {
@@ -249,6 +263,7 @@ export class App {
   }
 
   detaching(): void {
+    document.removeEventListener('click', this.handleDocumentClick);
     this.subscription?.dispose();
     setUnauthorizedHandler(null);
   }

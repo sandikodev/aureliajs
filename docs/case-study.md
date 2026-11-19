@@ -30,7 +30,7 @@ This project answers those questions in runnable code, not in a blog post.
 | Aurelia is `2.0.0-rc.2`                      | Exact version pins; decorator config must match stage-3 semantics.        |
 | No official shadcn/ui for Aurelia            | Port the tokens and the component anatomy; write the primitives natively. |
 | Must be demoable without a backend           | Deterministic sample data + an explicit "Demo data" banner.               |
-| Must be readable by a reviewer in 10 minutes | One `pnpm dev`, one README, one architecture doc.                         |
+| Must be readable by a reviewer in 10 minutes | One `bun run dev`, one README, one architecture doc.                    |
 | Realistic data volume                        | Seed 1 000 projects so pagination/filtering are proven, not imagined.     |
 | Payments must not create PCI scope           | Stripe-hosted Checkout; card data never reaches the server.               |
 

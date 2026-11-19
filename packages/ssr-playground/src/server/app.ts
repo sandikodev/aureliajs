@@ -4,7 +4,7 @@
  */
 
 import { Hono } from 'hono';
-import { FIXTURES } from '../fixtures/index.js';
+import { FIXTURES, CounterCard } from '../fixtures/index.js';
 import { inspectAureliaSsr } from '../engine/inspector.js';
 import { compilePlaygroundExample, type CompileRequest } from '../engine/compiler.js';
 import { renderAurelia, serializeState, createHtmlDocument, type RenderContext } from '@aureliajs/ssr';
@@ -114,7 +114,7 @@ export function createPlaygroundApp(): Hono {
       }>();
 
       const fixtureId = body.fixture || 'counter-card';
-      const component = FIXTURES[fixtureId] || FIXTURES['counter-card'];
+      const component = FIXTURES[fixtureId] ?? CounterCard;
 
       const context: RenderContext = {
         user: body.context?.user ?? { id: 'u_1', name: 'Sandikodev', email: 'sandiko@example.com' },
@@ -173,7 +173,7 @@ export function createPlaygroundApp(): Hono {
       }
     }
 
-    const component = FIXTURES[fixtureId] || FIXTURES['counter-card'];
+    const component = FIXTURES[fixtureId] ?? CounterCard;
 
     const context = {
       user: { id: 'u_1', name: 'Sandikodev', email: 'sandiko@example.com' },

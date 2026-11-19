@@ -1,7 +1,7 @@
 import { customElement, resolve } from 'aurelia';
 import { IRouter } from '@aurelia/router';
 import template from './overview-page.html';
-import { formatCents } from '@aureliajs/shared/utils';
+import { formatCents } from '@aurelia-ops/shared/utils';
 import { DEMO_OVERVIEW } from '@/lib/demo-data';
 import { statusMeta } from '@/lib/status';
 import { relativeTime } from '@/lib/utils';

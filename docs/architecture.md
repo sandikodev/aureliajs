@@ -1,6 +1,6 @@
 # Architecture
 
-A working SaaS admin dashboard in a pnpm monorepo. The point is not the feature list — it is
+A working SaaS admin dashboard in a Bun workspace monorepo. The point is not the feature list — it is
 that every layer is a _seam_ you can replace without rewriting the rest.
 
 ```
@@ -231,10 +231,10 @@ there is no flash.
 
 ```bash
 cp .env.example .env          # dev values only
-pnpm install
-pnpm db:up                    # Postgres on 127.0.0.1:5544
-pnpm db:generate && pnpm db:migrate && pnpm db:seed
-pnpm dev                      # web :4600, api :4601
+bun install
+bun run db:up                    # Postgres on 127.0.0.1:5544
+bun run db:generate && bun run db:migrate && bun run db:seed
+bun run dev                      # web :4600, api :4601
 ```
 
 For Stripe, see the setup section in the README.

@@ -1,4 +1,4 @@
-import type { AuthSession, Role } from '@aureliajs/shared';
+import type { AuthSession, Role } from '@aurelia-ops/shared';
 import { eq } from 'drizzle-orm';
 import { getDb, schema } from '../db/client.js';
 

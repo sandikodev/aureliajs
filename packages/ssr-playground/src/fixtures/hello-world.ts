@@ -5,7 +5,7 @@
 
 import { CustomElement } from 'aurelia';
 
-export const HelloWorld: unknown = CustomElement.define(
+export const HelloWorld = CustomElement.define(
   {
     name: 'hello-world',
     template: `

@@ -1,4 +1,4 @@
-import type { ProjectStatus } from '@aureliajs/shared';
+import type { ProjectStatus } from '@aurelia-ops/shared';
 
 type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning';
 

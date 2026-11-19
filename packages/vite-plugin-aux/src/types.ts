@@ -1,5 +1,13 @@
 import type { FilterPattern } from '@rollup/pluginutils';
 
+export type AuxIslandTrigger = 'load' | 'idle' | 'visible' | 'media' | 'interaction';
+
+export interface AuxIslandMetadata {
+  readonly trigger: AuxIslandTrigger;
+  readonly media?: string;
+  readonly rootMargin?: string;
+}
+
 export interface AuxBlock {
   type: 'template' | 'script' | 'style';
   content: string;

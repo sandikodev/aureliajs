@@ -13,7 +13,7 @@ import type {
   UpdateProjectInput,
   UpdateWorkspaceInput,
   WorkspaceSummary,
-} from '@aureliajs/shared';
+} from '@aurelia-ops/shared';
 
 export type OverviewStats = {
   total: number;

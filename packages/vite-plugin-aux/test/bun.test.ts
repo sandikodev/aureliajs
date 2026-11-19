@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { auxBunPlugin } from '../src/bun.js';
 
 describe('auxBunPlugin Bun plugin', () => {
@@ -17,7 +17,8 @@ describe('auxBunPlugin Bun plugin', () => {
     const loadFilters: RegExp[] = [];
 
     const mockBuilder = {
-      onLoad: (opts: { filter: RegExp }, _cb: any) => {
+      onLoad: (opts: { filter: RegExp }, callback: (args: unknown) => unknown) => {
+        expect(callback).toBeDefined();
         loadFilters.push(opts.filter);
       },
     };

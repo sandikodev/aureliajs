@@ -1,5 +1,5 @@
-import type { Project } from '@aureliajs/shared/schemas';
-import { formatCents, type ProjectStatus } from '@aureliajs/shared/utils';
+import type { Project } from '@aurelia-ops/shared/schemas';
+import { formatCents, type ProjectStatus } from '@aurelia-ops/shared/utils';
 import { customElement, resolve } from 'aurelia';
 import type { IRouteViewModel, Params } from '@aurelia/router';
 import template from './projects-page.html';

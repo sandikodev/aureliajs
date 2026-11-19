@@ -208,7 +208,9 @@ export const EN = {
   'billing.plansDescription': 'Switching opens Stripe Checkout',
   'billing.choose': 'Choose',
   'billing.upgrade': 'Upgrade',
+  'billing.downgrade': 'Downgrade',
   'billing.current': 'Current',
+  'billing.limitReached': 'Limit reached',
   'billing.paymentMethod': 'Payment method',
   'billing.paymentMethodDescription': 'Managed inside the Stripe portal',
   'billing.cardOnFile': 'Card on file',
@@ -219,6 +221,19 @@ export const EN = {
   'billing.wiringTitle': 'How this is wired',
   'billing.wiringDescription':
     'Checkout runs on Stripe’s hosted page, so no card data reaches this server. Every plan change arrives as a signed webhook, is recorded once in an idempotency ledger, and only then flips the workspace plan.',
+  'billing.trustTitle': 'Bank-Grade Security',
+  'billing.trustDescription':
+    'All payments are securely processed and encrypted by Stripe. Card numbers never touch our servers.',
+  'billing.onlyAdminCanManage':
+    'Only workspace owners and admins can manage billing and change subscription plans.',
+  'billing.monthly': 'Monthly',
+  'billing.yearly': 'Yearly (Save 20%)',
+  'billing.billedYearlyNote': 'billed annually',
+  'billing.bannerCancelled':
+    'Checkout was cancelled. No charges were made. You can upgrade whenever you are ready.',
+  'billing.bannerSuccess':
+    'Subscription updated successfully! Your new plan features and limits are now active.',
+  'billing.freePlanBlurb': 'Free plan — upgrade anytime to unlock more capacity',
   'billing.checkoutSuccess': 'Payment received — your plan is being activated.',
   'billing.checkoutCancelled': 'Checkout cancelled. Nothing was charged.',
   'billing.checkoutUnavailable': 'This tier is not available yet.',
@@ -232,7 +247,9 @@ export const EN = {
   'billing.featureSeats': '{count} seats',
   'billing.priceFree': '$0',
   'billing.pricePro': '$49/mo',
+  'billing.priceProYearly': '$39/mo',
   'billing.priceScale': '$499/mo',
+  'billing.priceScaleYearly': '$399/mo',
 
   /* Settings */
   'settings.title': 'Settings',

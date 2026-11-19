@@ -1,4 +1,4 @@
-import type { Project, ProjectStatus } from '@aureliajs/shared';
+import type { BillingOverview, MembersResponse, Project, ProjectStatus } from '@aurelia-ops/shared';
 import type { ActivityItem, Overview, OverviewStats } from '@/services/api';
 
 /**
@@ -35,9 +35,10 @@ const STATUSES: ProjectStatus[] = ['active', 'active', 'planning', 'active', 'pa
 const now = Date.now();
 const iso = (offsetDays: number) => new Date(now + offsetDays * 86_400_000).toISOString();
 
-export const DEMO_PROJECTS: Project[] = Array.from({ length: 48 }, (_, i) => {
+const demoProjectList: Project[] = [];
+for (let i = 0; i < 48; i++) {
   const status = STATUSES[i % STATUSES.length] as ProjectStatus;
-  return {
+  demoProjectList.push({
     id: `demo-${i + 1}`,
     workspaceId: 'demo-workspace',
     name: `${NAMES[i % NAMES.length]} ${Math.floor(i / NAMES.length) + 1}`,
@@ -47,8 +48,9 @@ export const DEMO_PROJECTS: Project[] = Array.from({ length: 48 }, (_, i) => {
     ownerName: OWNERS[i % OWNERS.length] as string,
     createdAt: iso(-(i + 4)),
     updatedAt: iso(-(i % 14)),
-  };
-});
+  });
+}
+export const DEMO_PROJECTS: Project[] = demoProjectList;
 
 export const DEMO_ACTIVITY: ActivityItem[] = [
   {
@@ -120,4 +122,81 @@ export const DEMO_OVERVIEW: Overview = {
   stats: DEMO_STATS,
   trend: DEMO_TREND,
   activity: DEMO_ACTIVITY,
+};
+
+export const DEMO_MEMBERS: MembersResponse = {
+  members: [
+    {
+      id: 'demo-u1',
+      name: 'Demo Operator',
+      email: 'demo@northwind.test',
+      avatarUrl: null,
+      role: 'owner',
+      status: 'active',
+      joinedAt: iso(-60),
+    },
+    {
+      id: 'demo-u2',
+      name: 'Ayu Prameswari',
+      email: 'ayu@northwind.test',
+      avatarUrl: null,
+      role: 'admin',
+      status: 'active',
+      joinedAt: iso(-45),
+    },
+    {
+      id: 'demo-u3',
+      name: 'Daniel Okafor',
+      email: 'daniel@northwind.test',
+      avatarUrl: null,
+      role: 'member',
+      status: 'active',
+      joinedAt: iso(-30),
+    },
+    {
+      id: 'demo-u4',
+      name: 'Mira Sørensen',
+      email: 'mira@northwind.test',
+      avatarUrl: null,
+      role: 'member',
+      status: 'active',
+      joinedAt: iso(-15),
+    },
+  ],
+  seatLimit: 10,
+  seatUsed: 4,
+  memberCount: 4,
+  pendingInvites: 0,
+};
+
+export const DEMO_BILLING: BillingOverview = {
+  plan: 'pro',
+  limits: { projects: 5000, seats: 10 },
+  usage: { projects: 48, seats: 4 },
+  subscription: {
+    status: 'active',
+    currentPeriodEnd: iso(24),
+    cancelAtPeriodEnd: false,
+  },
+  availablePrices: {
+    monthly: true,
+    yearly: true,
+    scale: true,
+  },
+  invoices: [
+    {
+      id: 'inv_demo_001',
+      date: iso(-6),
+      amountCents: 2900,
+      status: 'paid',
+      invoiceUrl: null,
+    },
+    {
+      id: 'inv_demo_002',
+      date: iso(-36),
+      amountCents: 2900,
+      status: 'paid',
+      invoiceUrl: null,
+    },
+  ],
 };

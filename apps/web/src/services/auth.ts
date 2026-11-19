@@ -1,4 +1,4 @@
-import type { AuthSession, Role, User, Workspace } from '@aureliajs/shared';
+import type { AuthSession, Role, User, Workspace } from '@aurelia-ops/shared';
 import { api } from './api';
 
 const empty: AuthSession = { user: null, workspace: null, role: null };

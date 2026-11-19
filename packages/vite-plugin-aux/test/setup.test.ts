@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { parseAux } from '../src/parser.js';
 import { compileAux } from '../src/compiler.js';
 
@@ -74,8 +74,18 @@ function read() {
 
     expect(result.code).toContain('"headline":{"name":"headline"}');
     expect(result.code).toContain('"author":{"name":"author"}');
-    expect(result.code).toContain('public headline: any;');
-    expect(result.code).toContain('public author: any;');
+    expect(result.code).toContain('public headline: unknown;');
+    expect(result.code).toContain('public author: unknown;');
+
+    const typedAux = `
+<template><h1>\${title}</h1></template>
+<script setup lang="ts">
+defineProps<{ title: string; count?: number }>();
+</script>
+`;
+    const typedResult = compileAux(parseAux(typedAux, '/src/TypedCard.aux'));
+    expect(typedResult.code).toContain('public title!: string;');
+    expect(typedResult.code).toContain('public count?: number;');
   });
 
   it('compiles execution boundaries: <template client-only> and <template server-only>', () => {
@@ -205,5 +215,67 @@ export class CanonicalGreeting {
     expect(result.code).toContain('message = \'Hello Canonical\';');
     expect(result.code).toContain('__au_CE.define({');
     expect(result.code).toContain('name: "canonical-greeting"');
+  });
+
+  it('compiles selective hydration metadata from <template island="...">', () => {
+    const shorthandDesc = parseAux(
+      `<template island><div>Instant Island</div></template>`,
+      '/src/InstantIsland.aux',
+    );
+    expect(compileAux(shorthandDesc).code).toContain(
+      'InstantIsland.island = {"trigger":"load"};',
+    );
+
+    const visibleDesc = parseAux(
+      `<template island="visible" root-margin="200px"><div>\${seats}</div></template>
+<script setup lang="ts">
+defineProps<{ seats: number }>();
+</script>`,
+      '/src/PricingCalc.aux',
+    );
+    const visibleCode = compileAux(visibleDesc).code;
+    expect(visibleCode).toContain(
+      'PricingCalc.island = {"trigger":"visible","rootMargin":"200px"};',
+    );
+    expect(visibleCode).toContain('public seats!: number;');
+
+    const mediaDesc = parseAux(
+      `<template island="media" media="(max-width: 768px)"><nav>Mobile</nav></template>`,
+      '/src/MobileNav.aux',
+    );
+    expect(compileAux(mediaDesc).code).toContain(
+      'MobileNav.island = {"trigger":"media","media":"(max-width: 768px)"};',
+    );
+
+    const interactionDesc = parseAux(
+      `<template island="interaction"><button>Buy</button></template>`,
+      '/src/BuyButton.aux',
+    );
+    expect(compileAux(interactionDesc).code).toContain(
+      'BuyButton.island = {"trigger":"interaction"};',
+    );
+  });
+
+  it('automatically prefixes bare class field references with this. in methods and getters/setters', () => {
+    const auxCode = `
+<template><div>\${count}</div></template>
+<script setup lang="ts">
+let count = 0;
+let loading = false;
+defineProps<{ label?: string }>();
+
+function increment() {
+  count += 1;
+  loading = true;
+  const payload = { count, label };
+}
+</script>
+`;
+    const desc = parseAux(auxCode, '/src/Counter.aux');
+    const result = compileAux(desc);
+    expect(result.code).toContain('this.count += 1');
+    expect(result.code).toContain('this.loading = true');
+    expect(result.code).toContain('count: this.count');
+    expect(result.code).toContain('label: this.label');
   });
 });
