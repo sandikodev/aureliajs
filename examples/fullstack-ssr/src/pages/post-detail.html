@@ -3,7 +3,7 @@
     <div class="nav-container">
       <div class="brand">
         <a href="/" class="brand-link">
-          <svg class="brand-logo" width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg class="brand-logo" width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="50" cy="50" r="46" stroke="#ed2578" stroke-width="8"/>
             <circle cx="50" cy="50" r="24" fill="#ed2578"/>
           </svg>
@@ -11,6 +11,10 @@
           <span class="brand-divider">/</span>
           <span class="brand-sub">Hono SSR</span>
         </a>
+        <div class="status-capsule">
+          <span class="status-dot"></span>
+          <span>Edge SSR (LinkeDOM)</span>
+        </div>
       </div>
       <div class="nav-links">
         <a href="/" class="nav-item">Overview</a>
@@ -20,27 +24,34 @@
     </div>
   </nav>
 
-  <main class="page-container" style="max-width: 820px;">
-    <div if.bind="!post" class="card" style="text-align: center; padding: 3rem;">
-      <h2>Article Not Found</h2>
-      <p style="color: var(--text-muted); margin: 1rem 0;">The requested article does not exist.</p>
-      <a href="/" class="btn btn-primary">Back to Overview</a>
+  <main class="page-container" style="max-width: 860px;">
+    <div if.bind="!post" class="card" style="text-align: center; padding: 4rem 2rem;">
+      <h2 style="font-size: 1.85rem; margin-bottom: 0.75rem;">Article Not Found</h2>
+      <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 1.05rem;">
+        The requested technical publication does not exist or has been relocated.
+      </p>
+      <a href="/" class="btn btn-primary">Back to Publications Overview</a>
     </div>
 
     <div if.bind="post">
       <header class="article-header">
         <nav class="breadcrumb" aria-label="Breadcrumb">
-          <a href="/">Overview</a>
+          <a href="/">← Overview</a>
           <span class="breadcrumb-sep">/</span>
-          <span>${post.category}</span>
+          <span class="category-chip ${post.category === 'Architecture' ? 'is-arch' : (post.category === 'Frontend Engineering' ? 'is-fe' : 'is-data')}">
+            ${post.category}
+          </span>
         </nav>
         <h1 class="article-title">${post.title}</h1>
         <div class="article-meta">
-          <span>By <strong>${post.author}</strong></span>
-          <span>·</span>
-          <span>${post.date}</span>
-          <span>·</span>
-          <span>${post.readTime}</span>
+          <div class="author-chip">
+            <span class="avatar-initials">${post.author.slice(0, 2).toUpperCase()}</span>
+            <span>By <strong>${post.author}</strong></span>
+          </div>
+          <span>&middot;</span>
+          <span>📅 ${post.date}</span>
+          <span>&middot;</span>
+          <span>⏱️ ${post.readTime}</span>
         </div>
       </header>
 
@@ -51,7 +62,12 @@
       <!-- Interactive Claps Bar -->
       <div class="interaction-bar">
         <div>
-          <span style="font-size: 0.95rem; color: var(--text-muted);">Enjoyed this engineering write-up?</span>
+          <div style="font-weight: 650; font-size: 1.05rem; color: #ffffff; margin-bottom: 0.2rem;">
+            Enjoyed this architectural write-up?
+          </div>
+          <div style="font-size: 0.88rem; color: var(--text-muted);">
+            Your feedback triggers a real-time server mutation on Hono.
+          </div>
         </div>
         <button click.trigger="clap()" class="btn btn-clap" disabled.bind="clapping">
           👏 ${post.claps} ${post.claps === 1 ? 'Clap' : 'Claps'}
@@ -60,15 +76,23 @@
 
       <!-- Comments Section -->
       <section class="comments-section">
-        <h3 class="comments-title">Discussion (${post.comments.length})</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h3 class="comments-title" style="margin-bottom: 0;">Discussion</h3>
+          <span class="section-badge">${post.comments.length} Responses</span>
+        </div>
 
-        <div if.bind="post.comments.length === 0" style="color: var(--text-muted); font-size: 0.92rem; padding: 1rem 0;">
-          No comments yet. Be the first to share your perspective!
+        <div if.bind="post.comments.length === 0" style="color: var(--text-muted); font-size: 0.95rem; padding: 2rem 0; text-align: center;">
+          💬 No responses yet. Be the first engineer to share your thoughts!
         </div>
 
         <div repeat.for="comment of post.comments" class="comment-item">
           <div class="comment-author">
-            <span>${comment.author}</span>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="avatar-initials" style="width: 22px; height: 22px; font-size: 0.65rem;">
+                ${comment.author.slice(0, 2).toUpperCase()}
+              </span>
+              <span>${comment.author}</span>
+            </div>
             <span class="comment-date">${comment.date}</span>
           </div>
           <p class="comment-text">${comment.text}</p>
@@ -76,32 +100,56 @@
 
         <!-- Add Comment Form -->
         <form submit.trigger="addComment($event)" class="comment-form">
-          <input 
-            type="text" 
-            id="comment-author"
-            name="author"
-            value.bind="newAuthor" 
-            placeholder="Your name or handle" 
-            class="form-input" 
-            autocomplete="name"
-            required 
-          />
-          <textarea 
-            id="comment-text"
-            name="comment"
-            value.bind="newComment" 
-            placeholder="Write a constructive comment..." 
-            rows="3" 
-            class="form-textarea" 
-            required
-          ></textarea>
-          <div style="display: flex; justify-content: flex-end;">
+          <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+            <label for="comment-author" style="font-size: 0.84rem; font-weight: 600; color: var(--text-muted);">
+              Engineer Name or Handle:
+            </label>
+            <input 
+              type="text" 
+              id="comment-author"
+              name="author"
+              value.bind="newAuthor" 
+              placeholder="e.g. Linus Torvalds (@linus)" 
+              class="form-input" 
+              autocomplete="name"
+              required 
+            />
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+            <label for="comment-text" style="font-size: 0.84rem; font-weight: 600; color: var(--text-muted);">
+              Comment Perspective:
+            </label>
+            <textarea 
+              id="comment-text"
+              name="comment"
+              value.bind="newComment" 
+              placeholder="Share constructive insights on SSR hydration, DOM memory benchmarks, or DI patterns..." 
+              rows="3" 
+              class="form-textarea" 
+              required
+            ></textarea>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem;">
+            <span style="font-size: 0.82rem; color: var(--text-dim);">Dispatched via Hono typed action</span>
             <button type="submit" class="btn btn-primary" disabled.bind="submitting || !newComment">
-              ${submitting ? 'Posting...' : 'Post Comment'}
+              ${submitting ? 'Posting Comment...' : 'Post Perspective 💬'}
             </button>
           </div>
         </form>
       </section>
     </div>
   </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <strong>Aurelia 2</strong> / Hono Fullstack Reference Architecture &middot; Enterprise Monorepo
+      </div>
+      <div class="footer-tech">
+        <span>Bun 1.4+</span> &middot; <span>workerd</span> &middot; <span>LinkeDOM</span> &middot; <span>Zero Glue Code</span>
+      </div>
+    </div>
+  </footer>
 </div>
