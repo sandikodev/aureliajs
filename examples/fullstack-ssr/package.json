@@ -4,16 +4,16 @@
   "description": "Production-ready Canonical Hono + Aurelia 2 SSR Community Scaffold Example",
   "type": "module",
   "scripts": {
-    "dev": "bun scripts/build.ts && bun --watch src/index.ts",
-    "build:client": "bun scripts/build.ts",
-    "build": "bun scripts/build.ts && tsc --noEmit",
-    "build:worker": "bun scripts/build-worker.ts",
+    "dev": "hono-aurelia build && bun --watch src/index.ts",
+    "build:client": "hono-aurelia build",
+    "build": "hono-aurelia build && tsc --noEmit",
+    "build:worker": "hono-aurelia build:worker",
     "deploy:worker": "wrangler deploy",
     "preview:worker": "wrangler dev",
     "start": "bun src/index.ts",
     "typecheck": "tsc --noEmit --strict",
     "test": "bun test",
-    "lint": "echo 'No linter configured yet'"
+    "lint": "bunx oxlint src"
   },
   "dependencies": {
     "@aureliajs/ssr": "workspace:*",

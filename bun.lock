@@ -254,12 +254,16 @@
     "packages/hono-aurelia": {
       "name": "@hono/aurelia",
       "version": "1.0.0-alpha.1",
+      "bin": {
+        "hono-aurelia": "./dist/cli.js",
+      },
       "dependencies": {
         "@aureliajs/ssr": "^0.1.0",
       },
       "devDependencies": {
         "@types/node": "^20.10.0",
         "aurelia": "^2.0.0-rc.2",
+        "bun-types": "^1.4.4",
         "hono": "^4.0.0",
         "typescript": "^5.3.2",
       },
