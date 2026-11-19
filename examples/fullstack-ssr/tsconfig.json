@@ -17,6 +17,7 @@
     "noEmit": true,
     "declaration": false,
     "sourceMap": true,
+    "jsx": "react-jsx",
     "types": ["bun-types", "node"],
     "paths": {
       "@/*": ["./src/*"],
@@ -29,6 +30,7 @@
   "exclude": [
     "node_modules",
     "dist",
-    "src/bridge/frameworks/*.tsx"
+    "src/bridge/frameworks/*.tsx",
+    "src/components/frontend/*.tsx"
   ]
 }

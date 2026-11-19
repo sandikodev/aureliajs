@@ -1,0 +1,208 @@
+<div class="container">
+  <!-- Header -->
+  <header class="header">
+    <div class="badge-tag">AURELIA 2 • ENTERPRISE + AGNOSTIC ARCHITECTURE</div>
+    <h1>Aurelia 2 + Vite + Bun</h1>
+    <p class="subtitle">
+      Arsitektur Enterprise sekelas <strong>Java Spring / C# .NET / NestJS</strong> di frontend, 
+      dipadukan dengan kemampuan <strong>Agnostic Host (Proto-Astro)</strong> menampung 
+      <strong>React, Vue, Svelte, Solid, Preact, & Qwik</strong> secara serentak.
+    </p>
+  </header>
+
+  <!-- Architecture Comparison Banner -->
+  <div class="card callout-enterprise">
+    <div class="callout-icon">🏛️</div>
+    <div>
+      <h3>Enterprise Pedigree: Dari mana datangnya arsitektur ini?</h3>
+      <p>
+        Diciptakan oleh <strong>Rob Eisenberg</strong> (yang sempat menjadi arsitek awal Angular 2 sebelum keluar karena friksi desain dengan Google), 
+        Aurelia membawa filosofi <em>Convention over Configuration</em>, Class-based ViewModels murni, dan <strong>IoC Container</strong> tingkat tinggi 
+        yang sangat familiar bagi insinyur backend <strong>Spring Boot, ASP.NET Core, dan NestJS</strong>.
+      </p>
+    </div>
+  </div>
+
+  <!-- Main Layout Grid -->
+  <div class="grid">
+    <!-- Left: Enterprise Order Management (DI + Two-way Binding) -->
+    <div class="card">
+      <h2>1. Enterprise Order Management (IoC & DI)</h2>
+      <p class="desc">
+        Menggunakan <code>@resolve(IEnterpriseOrderService)</code>. Service dikelola sebagai singleton di dalam IoC Container.
+      </p>
+
+      <form submit.trigger="addOrder($event)" class="order-form">
+        <div class="form-group">
+          <label>Judul Inisiatif / Order:</label>
+          <input type="text" value.bind="newTitle" placeholder="Misal: Azure DevOps Enterprise Integration">
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label>Departemen:</label>
+            <input type="text" value.bind="newDept" placeholder="DevOps / Infrastructure">
+          </div>
+          <div class="form-group flex-1">
+            <label>Budget (USD):</label>
+            <input type="number" value.bind="newBudget" placeholder="10000">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">+ Ajukan Anggaran</button>
+      </form>
+
+      <!-- Budget Summary -->
+      <div class="budget-summary">
+        <div>
+          <span class="label">Total Anggaran Terbuka (Approved):</span>
+          <span class="value">$ ${totalApprovedBudget | formatNumber}</span>
+        </div>
+        <div>
+          <span class="label">Total Orders:</span>
+          <span class="value">${orders.length}</span>
+        </div>
+      </div>
+
+      <!-- Order List using Aurelia repeat.for -->
+      <div class="order-list">
+        <order-item-card 
+          repeat.for="order of orders"
+          item.bind="order"
+          on-toggle.bind="() => toggleOrder(order.id)"
+          on-remove.bind="() => removeOrder(order.id)">
+        </order-item-card>
+      </div>
+    </div>
+
+    <!-- Right: The Agnostic "Proto-Astro" Capability & Universal Islands -->
+    <div class="card">
+      <h2>2. Kemampuan Agnostik: Menampung 6 Framework Frontend di Aurelia</h2>
+      <p class="desc">
+        Aurelia sejak awal bisa menampung komponen library apapun secara agnostik di dalam Custom Element-nya (mirip konsep <strong>Islands Architecture Astro</strong>).
+        Kini disederhanakan dengan <strong>Universal Convention Island (<code>&lt;aurelia-island&gt;</code>)</strong> tanpa glue code manual!
+      </p>
+
+      <!-- Aurelia-Islands Shared State Display -->
+      <div class="state-bridge-box">
+        <div class="bridge-row">
+          <span class="bridge-label">Nilai Shared State di Aurelia ViewModel:</span>
+          <span class="bridge-val">${sharedCounter}</span>
+        </div>
+        <p class="bridge-note">
+          State di atas dibagikan via <code>value.bind="sharedCounter"</code> ke 6 framework berbeda di bawah ini.
+          Setiap tombol di dalam React, Vue, Svelte, Solid, Preact, atau Qwik akan memperbarui ViewModel Aurelia secara dua arah dan sinkron!
+        </p>
+      </div>
+
+      <!-- Multi-Framework Agnostic Islands (Universal Convention Adapter) -->
+      <div class="islands-container">
+        <!-- 1. React 19 Island -->
+        <aurelia-island 
+          type="react" 
+          component.bind="ReactCounter" 
+          value.bind="sharedCounter" 
+          on-change.bind="handleCounterUpdate">
+        </aurelia-island>
+
+        <!-- 2. Vue 3 Island -->
+        <aurelia-island 
+          type="vue" 
+          component.bind="VueCounter" 
+          value.bind="sharedCounter" 
+          on-change.bind="handleCounterUpdate">
+        </aurelia-island>
+
+        <!-- 3. Svelte 5 Island -->
+        <aurelia-island 
+          type="svelte" 
+          component.bind="SvelteCounter" 
+          value.bind="sharedCounter" 
+          on-change.bind="handleCounterUpdate">
+        </aurelia-island>
+
+        <!-- 4. SolidJS Island -->
+        <aurelia-island 
+          type="solid" 
+          component.bind="SolidCounter" 
+          value.bind="sharedCounter" 
+          on-change.bind="handleCounterUpdate">
+        </aurelia-island>
+
+        <!-- 5. Preact Island -->
+        <aurelia-island 
+          type="preact" 
+          component.bind="PreactCounter" 
+          value.bind="sharedCounter" 
+          on-change.bind="handleCounterUpdate">
+        </aurelia-island>
+
+        <!-- 6. Qwik Island -->
+        <aurelia-island 
+          type="qwik" 
+          component.bind="QwikCounter" 
+          value.bind="sharedCounter" 
+          on-change.bind="handleCounterUpdate">
+        </aurelia-island>
+      </div>
+
+      <!-- Architectural Critique Callout -->
+      <div class="critique-box">
+        <h4>⚖️ Kritik Arsitektural: Aurelia vs Astro (Mengapa Astro Menang?):</h4>
+        <ul>
+          <li>
+            <strong>Astro</strong> mendisiplinkan konsep ini menjadi <em>Islands Architecture</em> resmi 
+            (<code>@astrojs/react</code>, <code>@astrojs/vue</code>, <code>@astrojs/svelte</code>, <code>@astrojs/solid-js</code>, <code>@astrojs/preact</code>, dll) 
+            dengan lazy partial hydration (<code>client:visible</code>, <code>client:load</code>) yang bersih tanpa glue code manual bagi pengguna.
+          </li>
+          <li>
+            <strong>Aurelia</strong> sudah punya fondasi agnostik sejak dulu, namun dokumentasi resminya membiarkan developer 
+            menulis <em>bloated glue code</em> manual. Lewat paket <strong><code>@aureliajs/bridge</code></strong> karya Sandikodev, 
+            kita membuktikan Aurelia mampu mengeksekusi arsitektur kepulauan ini secara bersih berbasis konvensi!
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Side-by-Side Mental Model Comparison -->
+  <div class="card comparison-table-card">
+    <h2>3. Matriks Perbandingan Arsitektur: Enterprise vs Mainstream</h2>
+    <div class="table-responsive">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>AngularJS / AureliaJS</th>
+            <th>React-like (React, Solid, Qwik)</th>
+            <th>Vue / Svelte</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Paradigma Utama</strong></td>
+            <td>Enterprise OOP, MVVM, IoC Container, Dependency Injection</td>
+            <td>Functional UI Runtime, JSX, Immutability, Unidirectional Data</td>
+            <td>HTML-First, Single-File Components, Progressive Enhancement</td>
+          </tr>
+          <tr>
+            <td><strong>Analogi Backend</strong></td>
+            <td>Java Spring, C# .NET, NestJS (Class + Decorator + DI)</td>
+            <td>Pure Functions, Pipelines, State Machines</td>
+            <td>Express / Standard Web (Pragmatis, Minim Seremoni)</td>
+          </tr>
+          <tr>
+            <td><strong>Komparasi Apple-to-Apple</strong></td>
+            <td>Sebanding antara sesama Enterprise Framework (Angular & Aurelia)</td>
+            <td>Solid, Preact, Qwik (React-like family)</td>
+            <td>Vue paling sebanding dengan Svelte (Native HTML feeling)</td>
+          </tr>
+          <tr>
+            <td><strong>Agnostic Hosting (Islands)</strong></td>
+            <td>Aurelia bisa menampung React/Vue melalui Universal Island</td>
+            <td>Biasanya menjadi library yang di-mount, bukan container utama</td>
+            <td>Astro menyempurnakan konsep ini dengan sangat disiplin & ergonomis</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

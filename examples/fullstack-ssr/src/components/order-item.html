@@ -1,0 +1,18 @@
+<div class="order-card ${item.approved ? 'is-approved' : ''}">
+  <div class="order-meta">
+    <span class="order-id">${item.id}</span>
+    <h4 class="order-title">${item.title}</h4>
+    <div class="order-sub">
+      <span class="dept-badge">${item.department}</span>
+      <span class="budget-tag">$ ${item.budget | formatNumber}</span>
+    </div>
+  </div>
+  <div class="order-actions">
+    <button 
+      class="btn btn-sm ${item.approved ? 'btn-success' : 'btn-outline'}" 
+      click.trigger="onToggle()">
+      ${item.approved ? '✓ Approved' : '⏳ Pending'}
+    </button>
+    <button class="btn btn-sm btn-danger" click.trigger="onRemove()">✕</button>
+  </div>
+</div>

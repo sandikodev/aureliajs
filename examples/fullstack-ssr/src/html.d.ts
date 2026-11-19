@@ -43,3 +43,26 @@ declare module 'prismjs/*' {
   const content: any;
   export default content;
 }
+
+declare namespace React {
+  export type FC<P = Record<string, any>> = (props: P) => any;
+  export type ComponentType<P = any> = any;
+  export const createElement: any;
+}
+
+declare module 'react' {
+  const ReactDefault: any;
+  export default ReactDefault;
+  export = React;
+}
+
+declare module 'react/jsx-runtime' {
+  export const jsx: any;
+  export const jsxs: any;
+  export const jsxDEV: any;
+  export namespace JSX {
+    interface IntrinsicElements {
+      [elemName: string]: any;
+    }
+  }
+}

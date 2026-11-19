@@ -118,6 +118,20 @@ describe('examples/fullstack-ssr integration tests', () => {
     expect(fragment).toContain('HTMX Server Swap #');
   });
 
+  it('renders MyApp parity proof route /belajar with 6 multi-framework convention islands', async () => {
+    const res = await app.request('http://localhost:3000/belajar', {
+      headers: { Accept: 'text/html' },
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain('Aurelia 2 + Vite + Bun');
+    expect(html).toContain('Enterprise Order Management');
+    expect(html).toContain('Kubernetes Cluster Provisioning');
+    expect(html).toContain('<aurelia-island');
+    expect(html).toContain('Nilai Shared State di Aurelia ViewModel');
+    expect(html).toContain('42');
+  });
+
   it('serves static assets under /public/ and rewrites cleanly for Cloudflare ASSETS binding', async () => {
     // 1. Local Bun static asset serving
     const res = await app.request('http://localhost:3000/public/style.css');

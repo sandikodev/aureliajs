@@ -13,6 +13,7 @@
 import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { aurelia, aureliaAction, aureliaDefaults } from '@hono/aurelia';
+import { BridgeConfiguration } from '@aureliajs/bridge';
 import { initialPosts, dashboardStats, activityStream } from './data.js';
 
 // Clean Aurelia 2 Page Components
@@ -40,18 +41,49 @@ app.get('/favicon.ico', (c) => {
 });
 
 // Universal static asset streaming (Cloudflare Workers ASSETS binding or Bun zero-copy I/O)
-app.use('/public/*', async (c, next) => {
+app.use('*', async (c, next) => {
   const env = c.env as { ASSETS?: { fetch: typeof fetch } } | undefined;
   if (env?.ASSETS) {
-    return env.ASSETS.fetch(c.req.raw);
+    const url = new URL(c.req.url);
+    // 1. If path has '/public/' prefix, rewrite to root of ASSETS bundle (./public)
+    if (url.pathname.startsWith('/public/')) {
+      url.pathname = url.pathname.replace(/^\/public/, '');
+      const assetRes = await env.ASSETS.fetch(new Request(url.toString(), {
+        method: c.req.method,
+        headers: c.req.raw.headers,
+      }));
+      if (assetRes.status !== 404) {
+        return assetRes;
+      }
+    }
+    // 2. Direct static extension lookup (/style.css, /client.js, /bridge/manifest.json, etc.)
+    if (/\.(css|js|map|json|ico|svg|woff2?|png|jpg)$/i.test(url.pathname)) {
+      const assetRes = await env.ASSETS.fetch(c.req.raw);
+      if (assetRes.status !== 404) {
+        return assetRes;
+      }
+    }
   }
+
+  // 3. Local Bun native zero-copy static asset serving
   if (typeof Bun !== 'undefined') {
-    const { serveStatic } = await import('hono/bun');
-    return serveStatic({
-      root: './',
-      rewriteRequestPath: (path) => path.replace(/^\/public/, 'public'),
-    })(c, next);
+    const url = new URL(c.req.url);
+    const isPublic = url.pathname.startsWith('/public/');
+    const isStaticExt = /\.(css|js|map|json|ico|svg|woff2?|png|jpg)$/i.test(url.pathname);
+    if (isPublic || isStaticExt) {
+      const subpath = isPublic ? url.pathname.slice('/public/'.length) : url.pathname.slice(1);
+      const file = Bun.file(new URL(`../public/${subpath}`, import.meta.url));
+      if (await file.exists()) {
+        return new Response(file, {
+          headers: {
+            'Content-Type': file.type || 'application/octet-stream',
+            'Cache-Control': 'public, max-age=3600',
+          },
+        });
+      }
+    }
   }
+
   return next();
 });
 
@@ -60,9 +92,10 @@ app.use(
   '*',
   aureliaDefaults<AppEnv>({
     document: {
-      cssBundle: '/public/style.css',
-      jsBundle: '/public/client.js',
+      cssBundle: '/style.css',
+      jsBundle: '/client.js',
     },
+    registrations: [BridgeConfiguration],
     streaming: true,
     dataEndpoint: true,
   })

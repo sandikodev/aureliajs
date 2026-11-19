@@ -2,6 +2,7 @@ import type { Hono } from 'hono';
 import { aurelia } from '@hono/aurelia';
 import { IslandsPage } from '../pages/islands.aux';
 import { BridgePage } from '../pages/bridge.aux';
+import { MyApp } from '../my-app.js';
 
 let htmxPulseCount = 0;
 
@@ -35,6 +36,21 @@ export function registerShowcaseRoutes(app: Hono<any>): void {
     aurelia(BridgePage, {
       document: {
         title: 'Aurelia 2 Polyglot Bridge + Islands Showcase',
+        jsBundle: '/bridge/app.js',
+        head: `
+          <script>window.qwikevents = ['click', 'input', 'change'];</script>
+          <script src="/bridge/qwikloader.js"></script>
+        `,
+      },
+    })
+  );
+
+  // Clean Aurelia 2 Agnostic Host Showcase (belajar/aureliajs parity proof)
+  app.get(
+    '/belajar',
+    aurelia(MyApp, {
+      document: {
+        title: 'Aurelia 2 Enterprise + Agnostic Bridge',
         jsBundle: '/bridge/app.js',
         head: `
           <script>window.qwikevents = ['click', 'input', 'change'];</script>
