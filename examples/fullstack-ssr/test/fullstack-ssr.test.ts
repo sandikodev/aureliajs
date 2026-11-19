@@ -86,14 +86,14 @@ describe('examples/fullstack-ssr integration tests', () => {
     expect(res.status).toBe(200);
     const html = await res.text();
     expect(html).toContain('Zero-JS HTML-First Architecture');
-    expect(html).not.toContain('/public/client.js');
+    expect(html).not.toContain('/client.js');
     expect(html).toContain('<pricing-island ');
     expect(html).toContain('data-au-island="visible"');
     expect(html).toContain('data-au-root-margin="200px"');
-    expect(html).toContain('data-au-src="/public/islands/pricing.js"');
+    expect(html).toContain('data-au-src="/islands/pricing.js"');
     expect(html).toContain('Pro Plan');
     expect(html).toContain('Total: $75/mo');
-    expect(html).toContain('<script type="application/json" data-au-island-data>');
+    expect(html).toMatch(/<script\s+type="application\/json"\s+data-au-island-data/);
   });
 
   it('serves /bridge polyglot showcase with compiler manifest and HTMX pulse endpoint', async () => {
@@ -103,7 +103,7 @@ describe('examples/fullstack-ssr integration tests', () => {
     expect(res.status).toBe(200);
     const html = await res.text();
     expect(html).toContain('Aurelia 2 Polyglot Bridge + Orthogonal Islands');
-    expect(html).toContain('/public/bridge/app.js');
+    expect(html).toContain('/bridge/app.js');
     expect(html).toContain('ReactWidget.tsx');
     expect(html).toContain('VueWidget.vue');
     expect(html).toContain('SvelteWidget.svelte');
@@ -116,5 +116,40 @@ describe('examples/fullstack-ssr integration tests', () => {
     expect(htmxRes.status).toBe(200);
     const fragment = await htmxRes.text();
     expect(fragment).toContain('HTMX Server Swap #');
+  });
+
+  it('serves static assets under /public/ and rewrites cleanly for Cloudflare ASSETS binding', async () => {
+    // 1. Local Bun static asset serving
+    const res = await app.request('http://localhost:3000/public/style.css');
+    expect(res.status).toBe(200);
+    const css = await res.text();
+    expect(css).toContain('--primary');
+
+    // 2. Direct static asset lookup
+    const directRes = await app.request('http://localhost:3000/style.css');
+    expect(directRes.status).toBe(200);
+
+    // 3. Simulated Cloudflare ASSETS binding
+    let requestedAssetPath = '';
+    const mockAssets = {
+      fetch: async (req: Request) => {
+        const url = new URL(req.url);
+        requestedAssetPath = url.pathname;
+        return new Response('/* worker-mock-css */', {
+          status: 200,
+          headers: { 'Content-Type': 'text/css' },
+        });
+      },
+    };
+
+    const workerRes = await app.request(
+      'http://localhost:3000/public/style.css',
+      {},
+      { ASSETS: mockAssets }
+    );
+    expect(workerRes.status).toBe(200);
+    expect(requestedAssetPath).toBe('/style.css'); // Stripped '/public' prefix so Cloudflare finds ./public/style.css!
+    const workerText = await workerRes.text();
+    expect(workerText).toBe('/* worker-mock-css */');
   });
 });

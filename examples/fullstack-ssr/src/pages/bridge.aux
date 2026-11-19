@@ -1,0 +1,59 @@
+<script setup lang="ts">
+let manifestJson = '';
+</script>
+
+<script server lang="ts">
+export const title = 'Aurelia 2 Polyglot Bridge + Islands Showcase';
+
+export async function loader() {
+  const { readBridgeManifest } = await import('../bridge/manifest.js');
+  const manifest = readBridgeManifest();
+  return {
+    manifest,
+    manifestJson: JSON.stringify(manifest).replace(/</g, '\\u003c'),
+  };
+}
+</script>
+
+<template as-custom-element="bridge-page">
+  <import from="@aureliajs/bridge"></import>
+  <import from="../bridge/bridge-app.js"></import>
+
+  <div class="bridge-view">
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="brand">
+          <a href="/" class="brand-link">
+            <svg class="brand-logo" width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="46" stroke="#ed2578" stroke-width="8"/>
+              <circle cx="50" cy="50" r="24" fill="#ed2578"/>
+            </svg>
+            <span class="brand-title">Aurelia <span class="brand-accent">2</span></span>
+            <span class="brand-divider">/</span>
+            <span class="brand-sub">Hono SSR</span>
+          </a>
+        </div>
+        <div class="nav-links">
+          <a href="/" class="nav-item">Overview</a>
+          <a href="/islands" class="nav-item">Zero-JS Islands</a>
+          <a href="/bridge" class="nav-item is-active">Polyglot Bridge</a>
+          <a href="/dashboard?token=demo-token" class="nav-item">Telemetry</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="bridge-shell">
+      <header class="page-intro">
+        <h1 class="page-title">Aurelia 2 Polyglot Bridge + Orthogonal Islands</h1>
+        <p class="page-subtitle">
+          Real-time reactive state synchronization across 9 independent frontend runtimes with orthogonal hydration scheduling.
+        </p>
+      </header>
+
+      <div id="bridge-app-root">
+        <bridge-showcase-app></bridge-showcase-app>
+      </div>
+      <script id="bridge-manifest-data" type="application/json">${manifestJson}</script>
+    </main>
+  </div>
+</template>

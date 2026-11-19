@@ -19,6 +19,8 @@ declare module '*.aux' {
   export const HomePage: any;
   export const PostDetailPage: any;
   export const DashboardPage: any;
+  export const IslandsPage: any;
+  export const BridgePage: any;
   export const PricingIsland: any;
   export const SsrBadge: any;
   export const loader: any;
