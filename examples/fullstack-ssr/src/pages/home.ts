@@ -17,6 +17,12 @@ export class HomePage implements ICustomElementViewModel {
   public loading = false;
   public error = '';
 
+  public getCategoryClass(category?: string): string {
+    if (category === 'Architecture') return 'is-arch';
+    if (category === 'Frontend Engineering') return 'is-fe';
+    return 'is-data';
+  }
+
   public async refresh(): Promise<void> {
     this.loading = true;
     this.error = '';

@@ -85,7 +85,7 @@
     <div class="cards-grid">
       <article repeat.for="post of posts" class="card">
         <div class="card-top">
-          <span class="category-chip ${post.category === 'Architecture' ? 'is-arch' : (post.category === 'Frontend Engineering' ? 'is-fe' : 'is-data')}">
+          <span class="category-chip ${getCategoryClass(post.category)}">
             ${post.category}
           </span>
           <span class="card-read-time">⏱️ ${post.readTime}</span>

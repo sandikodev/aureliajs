@@ -50,6 +50,12 @@ export class PostDetailPage implements ICustomElementViewModel {
   public newAuthor = '';
   public newComment = '';
 
+  public getCategoryClass(category?: string): string {
+    if (category === 'Architecture') return 'is-arch';
+    if (category === 'Frontend Engineering') return 'is-fe';
+    return 'is-data';
+  }
+
   public async clap(): Promise<void> {
     if (!this.post || this.clapping) return;
     this.clapping = true;
