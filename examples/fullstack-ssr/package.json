@@ -4,10 +4,9 @@
   "description": "Production-ready Canonical Hono + Aurelia 2 SSR Community Scaffold Example",
   "type": "module",
   "scripts": {
-    "dev": "hono-aurelia build && bun --watch src/index.ts",
-    "build:client": "hono-aurelia build",
-    "build": "hono-aurelia build && tsc --noEmit",
-    "build:worker": "hono-aurelia build:worker",
+    "dev": "bun run build:client && bun --watch src/index.ts",
+    "build:client": "bun build src/client.ts --outdir public --loader .html:text --minify",
+    "build": "bun run build:client && tsc --noEmit",
     "deploy:worker": "wrangler deploy",
     "preview:worker": "wrangler dev",
     "start": "bun src/index.ts",

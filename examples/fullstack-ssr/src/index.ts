@@ -12,7 +12,7 @@
 
 import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
-import { aurelia, aureliaAction, aureliaDefaults } from '@hono/aurelia';
+import { aurelia, aureliaAction, aureliaRenderer } from '@hono/aurelia';
 import { staticAssets } from './static';
 import { initialPosts, dashboardStats, activityStream } from './data';
 
@@ -42,10 +42,10 @@ app.get('/favicon.ico', (c) => {
 // Universal zero-copy static asset streaming (Cloudflare Workers ASSETS binding or Bun zero-copy I/O)
 app.use('*', staticAssets());
 
-// Scoped Aurelia SSR Defaults: Streaming + opt-in JSON data endpoint + document bundles
+// Aurelia SSR Renderer Middleware (matching @hono/react-renderer mental model)
 app.use(
   '*',
-  aureliaDefaults<AppEnv>({
+  aureliaRenderer<AppEnv>({
     document: {
       cssBundle: '/style.css',
       jsBundle: '/client.js',
