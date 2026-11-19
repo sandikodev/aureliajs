@@ -1,47 +1,49 @@
-import { customElement, type ICustomElementViewModel } from 'aurelia';
+import { customElement, resolve, type ICustomElementViewModel } from 'aurelia';
+import type { Context } from 'hono';
 import template from './post-detail.html';
-import { initialPosts, type Post } from '../data.js';
+import { PostService } from '../services/post-service';
+import type { Post, Comment } from '../data';
 
 @customElement({ name: 'post-detail-page', template })
 export class PostDetailPage implements ICustomElementViewModel {
-  public static readonly title = ({ post }: any) =>
+  public static readonly title = ({ post }: { post?: Post | null }) =>
     post ? `${post.title} — Aurelia 2 SSR` : 'Article Not Found';
 
-  public static readonly status = ({ post }: any) => (post ? 200 : 404);
+  public static readonly status = ({ post }: { post?: Post | null }) => (post ? 200 : 404);
 
-  public static async loader(c: any) {
-    const slug = c.req.param('slug');
-    const found = initialPosts.find((p) => p.slug === slug);
-    return { post: found ?? null };
+  public static async loader(c: Context) {
+    const postService = new PostService();
+    const slug = c.req.param('slug') ?? '';
+    return { post: await postService.getBySlug(slug) };
   }
 
   public static readonly actions = {
-    like: async (c: any) => {
-      const slug = c.req.param('slug');
-      const target = initialPosts.find((p) => p.slug === slug);
-      if (!target) return c.json({ error: 'Post not found' }, 404);
-      target.claps += 1;
-      return { success: true, claps: target.claps };
+    like: async (c: Context) => {
+      const postService = new PostService();
+      const slug = c.req.param('slug') ?? '';
+      const updated = await postService.clap(slug);
+      if (!updated) return c.json({ error: 'Post not found' }, 404);
+      return { success: true, claps: updated.claps };
     },
-    comment: async (c: any) => {
-      const slug = c.req.param('slug');
-      const target = initialPosts.find((p) => p.slug === slug);
-      if (!target) return c.json({ error: 'Post not found' }, 404);
-
+    comment: async (c: Context) => {
+      const postService = new PostService();
+      const slug = c.req.param('slug') ?? '';
       const body = await c.req.json().catch(() => ({}));
+      const text = typeof body.text === 'string' ? body.text.trim() : '';
+      if (!text) return c.json({ error: 'Comment text is required' }, 400);
+
       const author =
         typeof body.author === 'string' && body.author.trim()
           ? body.author.trim()
           : 'Anonymous Engineer';
-      const text = typeof body.text === 'string' ? body.text.trim() : '';
-      if (!text) return c.json({ error: 'Comment text is required' }, 400);
 
-      const comment = { id: Date.now(), author, text, date: 'Just now' };
-      target.comments.push(comment);
+      const comment = await postService.addComment(slug, author, text);
+      if (!comment) return c.json({ error: 'Post not found' }, 404);
       return { success: true, comment };
     },
   };
 
+  private readonly postService = resolve(PostService);
   public post: Post | null = null;
   public clapping = false;
   public submitting = false;
@@ -51,17 +53,10 @@ export class PostDetailPage implements ICustomElementViewModel {
   public async clap(): Promise<void> {
     if (!this.post || this.clapping) return;
     this.clapping = true;
-    this.post.claps += 1;
     try {
-      const res = await fetch(`${window.location.pathname}?_action=like`, {
-        method: 'POST',
-        headers: { Accept: 'application/json' },
-      });
-      if (res.ok) {
-        const result = (await res.json()) as { claps?: number };
-        if (typeof result.claps === 'number') {
-          this.post.claps = result.claps;
-        }
+      const claps = await this.postService.clapRemote(this.post.slug);
+      if (claps !== null) {
+        this.post.claps = claps;
       }
     } catch (err) {
       console.error('Failed to register clap:', err);
@@ -75,37 +70,21 @@ export class PostDetailPage implements ICustomElementViewModel {
     if (!this.post || this.submitting || !this.newComment.trim()) return;
 
     this.submitting = true;
-    const payload = {
-      author: this.newAuthor.trim() || 'Anonymous Engineer',
-      text: this.newComment.trim(),
-    };
+    const author = this.newAuthor.trim() || 'Anonymous Engineer';
+    const text = this.newComment.trim();
 
     try {
-      const res = await fetch(`${window.location.pathname}?_action=comment`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        const data = (await res.json()) as { comment?: any };
-        if (data.comment) {
-          this.post.comments.push(data.comment);
-        } else {
-          this.post.comments.push({
-            id: Date.now(),
-            author: payload.author,
-            text: payload.text,
-            date: 'Just now',
-          });
-        }
+      const comment: Comment | null = await this.postService.addCommentRemote(
+        this.post.slug,
+        author,
+        text
+      );
+      if (comment) {
+        this.post.comments.push(comment);
         this.newComment = '';
       }
     } catch (err) {
-      console.error('Failed to post comment:', err);
+      console.error('Failed to add comment:', err);
     } finally {
       this.submitting = false;
     }

@@ -1,12 +1,14 @@
-import { customElement, type ICustomElementViewModel } from 'aurelia';
+import { customElement, resolve, type ICustomElementViewModel } from 'aurelia';
+import type { Context } from 'hono';
 import template from './dashboard.html';
-import { dashboardStats, activityStream, type DashboardStats, type ActivityItem } from '../data.js';
+import { DashboardService } from '../services/dashboard-service';
+import { dashboardStats, activityStream, type DashboardStats, type ActivityItem } from '../data';
 
 @customElement({ name: 'dashboard-page', template })
 export class DashboardPage implements ICustomElementViewModel {
   public static readonly title = 'Telemetry Dashboard - Aurelia 2 SSR';
 
-  public static async loader(c: any) {
+  public static async loader(c: Context) {
     return {
       stats: dashboardStats,
       activity: activityStream,
@@ -15,6 +17,7 @@ export class DashboardPage implements ICustomElementViewModel {
     };
   }
 
+  private readonly dashboardService = resolve(DashboardService);
   public stats: DashboardStats = {
     title: 'Production Metrics',
     views: 0,
@@ -28,15 +31,10 @@ export class DashboardPage implements ICustomElementViewModel {
   public error = '';
 
   public async refresh(): Promise<void> {
-    if (typeof fetch === 'undefined') return;
     this.loading = true;
     this.error = '';
     try {
-      const res = await fetch('/api/dashboard/stats', {
-        headers: { Accept: 'application/json' },
-      });
-      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-      const data = (await res.json()) as { stats?: DashboardStats; activity?: ActivityItem[] };
+      const data = await this.dashboardService.getMetrics();
       if (data.stats) this.stats = data.stats;
       if (data.activity) this.activity = data.activity;
     } catch (err) {

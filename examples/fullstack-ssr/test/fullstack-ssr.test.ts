@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { app } from '../src/index.js';
+import { app } from '../src/index';
 
 describe('examples/fullstack-ssr integration tests', () => {
   it('renders home page SSR with pre-rendered posts', async () => {

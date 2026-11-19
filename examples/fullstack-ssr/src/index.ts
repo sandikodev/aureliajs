@@ -2,9 +2,9 @@
  * Hono + Aurelia 2 SSR Reference Implementation
  *
  * Demonstrates idiomatic, zero-boilerplate meta-framework composition:
- * - Real Aurelia 2 Single-File Component (.aux) server-side rendering
+ * - Real Aurelia 2 component server-side rendering
  * - Thin @hono/aurelia route & action adapters (aurelia + aureliaAction)
- * - Native Bun static asset streaming via hono/bun (zero-copy kernel I/O)
+ * - Clean static asset streaming via universal staticAssets middleware
  * - Composable Hono auth middleware (requireAuth)
  * - Scoped aureliaDefaults middleware with streaming & opt-in dataEndpoint
  * - Automated client-side hydration via createClientHydrator
@@ -13,14 +13,15 @@
 import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { aurelia, aureliaAction, aureliaDefaults } from '@hono/aurelia';
-import { initialPosts, dashboardStats, activityStream } from './data.js';
+import { staticAssets } from './static';
+import { initialPosts, dashboardStats, activityStream } from './data';
 
 // Clean Canonical Aurelia 2 Page Components
-import { HomePage } from './pages/home.js';
-import { PostDetailPage } from './pages/post-detail.js';
-import { DashboardPage } from './pages/dashboard.js';
+import { HomePage } from './pages/home';
+import { PostDetailPage } from './pages/post-detail';
+import { DashboardPage } from './pages/dashboard';
 
-type AppEnv = {
+export type AppEnv = {
   Variables: {
     user: { id: string; email: string; name: string } | null;
     role: string | null;
@@ -38,52 +39,8 @@ app.get('/favicon.ico', (c) => {
   });
 });
 
-// Universal static asset streaming (Cloudflare Workers ASSETS binding or Bun zero-copy I/O)
-app.use('*', async (c, next) => {
-  const env = c.env as { ASSETS?: { fetch: typeof fetch } } | undefined;
-  if (env?.ASSETS) {
-    const url = new URL(c.req.url);
-    // 1. If path has '/public/' prefix, rewrite to root of ASSETS bundle (./public)
-    if (url.pathname.startsWith('/public/')) {
-      url.pathname = url.pathname.replace(/^\/public/, '');
-      const assetRes = await env.ASSETS.fetch(new Request(url.toString(), {
-        method: c.req.method,
-        headers: c.req.raw.headers,
-      }));
-      if (assetRes.status !== 404) {
-        return assetRes;
-      }
-    }
-    // 2. Direct static extension lookup (/style.css, /client.js, /bridge/manifest.json, etc.)
-    if (/\.(css|js|map|json|ico|svg|woff2?|png|jpg)$/i.test(url.pathname)) {
-      const assetRes = await env.ASSETS.fetch(c.req.raw);
-      if (assetRes.status !== 404) {
-        return assetRes;
-      }
-    }
-  }
-
-  // 3. Local Bun native zero-copy static asset serving
-  if (typeof Bun !== 'undefined') {
-    const url = new URL(c.req.url);
-    const isPublic = url.pathname.startsWith('/public/');
-    const isStaticExt = /\.(css|js|map|json|ico|svg|woff2?|png|jpg)$/i.test(url.pathname);
-    if (isPublic || isStaticExt) {
-      const subpath = isPublic ? url.pathname.slice('/public/'.length) : url.pathname.slice(1);
-      const file = Bun.file(new URL(`../public/${subpath}`, import.meta.url));
-      if (await file.exists()) {
-        return new Response(file, {
-          headers: {
-            'Content-Type': file.type || 'application/octet-stream',
-            'Cache-Control': 'public, max-age=3600',
-          },
-        });
-      }
-    }
-  }
-
-  return next();
-});
+// Universal zero-copy static asset streaming (Cloudflare Workers ASSETS binding or Bun zero-copy I/O)
+app.use('*', staticAssets());
 
 // Scoped Aurelia SSR Defaults: Streaming + opt-in JSON data endpoint + document bundles
 app.use(
@@ -118,7 +75,7 @@ const requireAuth = createMiddleware<AppEnv>(async (c, next) => {
   return;
 });
 
-// --- Clean Aurelia 2 SSR & Action Routes ---
+// --- Clean Declarative Aurelia 2 SSR & Action Routes ---
 app.get('/', aurelia(HomePage));
 app.get('/posts/:slug', aurelia(PostDetailPage));
 app.post('/posts/:slug', aureliaAction(PostDetailPage));
