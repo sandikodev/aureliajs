@@ -1,7 +1,7 @@
 # Aurelia Ops — Examples & Reference Projects
 
 This directory contains reference implementations and R&D projects.
-Each example is **standalone** (independent `package.json`, `pnpm install` from its own folder)
+Each example is **standalone** (independent `package.json`, `bun install` from its own folder)
 but follows the same conventions as the main monorepo.
 
 Use these to learn patterns, experiment, or prototype new features without affecting the
@@ -13,8 +13,10 @@ production codebase in `apps/`.
 
 | Name | Description | Tech | Status |
 |------|-------------|------|--------|
-| `fullstack-ssr/` | Hono + Aurelia 2 SSR — server-rendered pages + client hydration | Hono, Aurelia 2, JSDOM, Web Streams | ✅ Active Reference |
-| `hono-react-ssr-shadcn-ui/` | Comparative SSR Benchmark — React 18 + Cloudflare D1 / Drizzle / shadcn-ui | Hono, React 18, Tailwind, Drizzle | 📦 Reference Benchmark |
+| `fullstack-ssr/` | Hono + Aurelia 2 SSR — server-rendered pages + Zero-JS client hydration | Hono, Aurelia 2, LinkeDOM/JSDOM, Web Streams | ✅ Canonical Reference |
+| `aurelia-bridge/` | Aurelia 2 Polyglot Bridge — zero glue code multi-framework interop | Aurelia 2, @aureliajs/bridge, React 19, Vue 3, Svelte 5, Solid | ✅ Canonical Reference |
+
+*(Note: Comparative benchmarks such as React SSR are housed under [`benchmarks/reference-react-ssr/`](../benchmarks/reference-react-ssr/) to keep `examples/` strictly Aurelia 2 native).*
 
 ---
 
@@ -30,8 +32,8 @@ setting, so the main `apps/` monorepo stays focused on the production SPA + API 
 
 ```bash
 cd examples/fullstack-ssr
-pnpm install          # install deps (standalone, not workspace)
-pnpm dev              # starts Hono server on http://localhost:3000
+bun install          # install deps (standalone, not workspace)
+bun run dev              # starts Hono server on http://localhost:3000
 ```
 
 Then open <http://localhost:3000> in your browser.
@@ -67,16 +69,16 @@ app.use(async (c, next) => {
 
 ```bash
 # Watch mode (auto-reload on changes)
-pnpm dev
+bun run dev
 
 # TypeScript check
-pnpm typecheck
+bun run typecheck
 
 # Production build
-pnpm build
+bun run build
 
 # Production start
-pnpm start
+bun run start
 ```
 
 ### 🐳 Docker (Production)
@@ -131,7 +133,7 @@ examples/fullstack-ssr/
 ├── docker-compose.yml    # Optional: local dev orchestration
 ├── .env.example          # Environment template
 ├── README.md             # Detailed example docs
-└── test/                 # Vitest unit tests (optional)
+└── test/                 # Bun native tests (`bun test`) (optional)
 ```
 
 ### 📦 Package Dependencies (package.json)
@@ -139,13 +141,16 @@ examples/fullstack-ssr/
 ```json
 {
   "dependencies": {
-    "hono": "^4.0.0",          // Web framework (lightweight)
-    "@hono/node-server": "^1.12.0"  // Server adapter (fetch + listen)
+    "@aureliajs/islands": "workspace:*",
+    "@aureliajs/ssr": "workspace:*",
+    "@aureliajs/vite-plugin-aux": "workspace:*",
+    "@hono/aurelia": "workspace:*",
+    "aurelia": "^2.0.0-rc.2",
+    "hono": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "typescript": "^5.4.0",
-    "tsx": "^4.0.0"           // Runtime for dev / build / start
+    "typescript": "^5.4.0"
   }
 }
 ```
@@ -154,7 +159,8 @@ examples/fullstack-ssr/
 
 This example teaches:
 
-1. **SSR flow**: Server renders HTML → includes `window.__HYDRATION__` → client hydrates
+1. **SSR flow**: Server renders HTML → embeds `<script id="__AURELIA_SSR_DATA__" type="application/json">` → client hydrates
+2. **Zero-JS Selective Hydration**: `/islands` route ships only `~1.3 KB gz` `@aureliajs/islands/loader` until `<pricing-island>` scrolls into view
 2. **Content negotiation**: `Accept: application/json` → JSON response; `text/html` → HTML
 3. **Auth guard**: Middleware checks token, sets `c.get('user')` for component context
 4. **Hydration payload**: Server data available immediately, no duplicate API call
@@ -191,12 +197,12 @@ This example teaches:
    cp -R fullstack-ssr my-feature
    cd my-feature
    # Edit package.json, tsconfig.json, src/index.ts to suit your need
-   pnpm install
-   pnpm dev
+   bun install
+   bun run dev
    ```
 4. When done, `rm -rf my-feature` or keep it as a permanent reference.
 
-**Convention**: Each example must be runnable standalone (`pnpm install` + `pnpm dev` from its own folder).
+**Convention**: Each example must be runnable standalone (`bun install` + `bun run dev` from its own folder).
 If it imports `@aureliajs/*` from the workspace, it's better placed under `apps/` or `packages/`.
 
 ---
@@ -212,10 +218,10 @@ If it imports `@aureliajs/*` from the workspace, it's better placed under `apps/
 
 ## ✅ Verified Working
 
-- Node.js 22+, pnpm 11+
-- `pnpm dev` starts server, browser opens automatically (or visit `http://localhost:3000`)
-- `pnpm typecheck` passes with strict TS
-- `pnpm build` produces `dist/index.js` + `dist/html.d.mts`
+- Bun 1.2+
+- `bun run dev` starts server, browser opens automatically (or visit `http://localhost:3000`)
+- `bun run typecheck` passes with strict TS
+- `bun run build` produces `dist/index.js` + `dist/html.d.mts`
 - Docker build works on Linux (alpine + arm64 tested)
 
 ---

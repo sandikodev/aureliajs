@@ -17,20 +17,15 @@
     "noEmit": true,
     "declaration": false,
     "sourceMap": true,
-    "jsx": "react-jsx",
     "types": ["bun-types", "node"],
     "paths": {
       "@/*": ["./src/*"],
-      "@components/*": ["./src/components/*"],
-      "@bridge/*": ["./src/pages/bridge/*"],
-      "@frameworks/*": ["./src/pages/bridge/frameworks/*"]
+      "@components/*": ["./src/components/*"]
     }
   },
   "include": ["src/**/*"],
   "exclude": [
     "node_modules",
-    "dist",
-    "src/pages/bridge/frameworks/*.tsx",
-    "src/components/frontend/*.tsx"
+    "dist"
   ]
 }

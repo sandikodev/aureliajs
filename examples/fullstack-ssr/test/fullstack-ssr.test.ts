@@ -96,41 +96,6 @@ describe('examples/fullstack-ssr integration tests', () => {
     expect(html).toMatch(/<script\s+type="application\/json"\s+data-au-island-data/);
   });
 
-  it('serves /bridge polyglot showcase with compiler manifest and HTMX pulse endpoint', async () => {
-    const res = await app.request('http://localhost:3000/bridge', {
-      headers: { Accept: 'text/html' },
-    });
-    expect(res.status).toBe(200);
-    const html = await res.text();
-    expect(html).toContain('Aurelia 2 Polyglot Bridge + Orthogonal Islands');
-    expect(html).toContain('/bridge/app.js');
-    expect(html).toContain('ReactWidget.tsx');
-    expect(html).toContain('VueWidget.vue');
-    expect(html).toContain('SvelteWidget.svelte');
-    expect(html).toContain('Widget.solid.tsx');
-    expect(html).toContain('Widget.preact.tsx');
-    expect(html).toContain('Widget.qwik.tsx');
-    expect(html).toContain('Widget.lit.ts');
-
-    const htmxRes = await app.request('http://localhost:3000/api/htmx/pulse');
-    expect(htmxRes.status).toBe(200);
-    const fragment = await htmxRes.text();
-    expect(fragment).toContain('HTMX Server Swap #');
-  });
-
-  it('renders MyApp parity proof route /belajar with 6 multi-framework convention islands', async () => {
-    const res = await app.request('http://localhost:3000/belajar', {
-      headers: { Accept: 'text/html' },
-    });
-    expect(res.status).toBe(200);
-    const html = await res.text();
-    expect(html).toContain('Aurelia 2 + Vite + Bun');
-    expect(html).toContain('Enterprise Order Management');
-    expect(html).toContain('Kubernetes Cluster Provisioning');
-    expect(html).toContain('<aurelia-island');
-    expect(html).toContain('Nilai Shared State di Aurelia ViewModel');
-    expect(html).toContain('42');
-  });
 
   it('serves static assets under /public/ and rewrites cleanly for Cloudflare ASSETS binding', async () => {
     // 1. Local Bun static asset serving
