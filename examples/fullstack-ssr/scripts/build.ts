@@ -8,20 +8,19 @@
  * - 100% typed with `bun-types` (zero `declare const Bun` or `(Bun as any)` hacks)
  */
 
-import { resolve } from 'node:path';
-import { mkdir, rm } from 'node:fs/promises';
+import { $ } from 'bun';
 import type { BunPlugin } from 'bun';
 import { compile as compileSvelte } from 'svelte/compiler';
 import { parse as parseVueSfc, compileScript as compileVueScript } from '@vue/compiler-sfc';
 import * as babel from '@babel/core';
 import { auxBunPlugin, compileAux, parseAux } from '@aureliajs/vite-plugin-aux';
-import { highlightCode } from '../src/bridge/highlighter.ts';
+import { highlightCode } from '../src/pages/bridge/highlighter.ts';
 
-const ROOT = resolve(import.meta.dir, '..');
-const PUBLIC_DIR = resolve(ROOT, 'public');
-const ISLANDS_DIR = resolve(PUBLIC_DIR, 'islands');
-const BRIDGE_DIR = resolve(PUBLIC_DIR, 'bridge');
-const BRIDGE_CHUNKS_DIR = resolve(BRIDGE_DIR, 'chunks');
+const ROOT = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
+const PUBLIC_DIR = `${ROOT}/public`;
+const ISLANDS_DIR = `${PUBLIC_DIR}/islands`;
+const BRIDGE_DIR = `${PUBLIC_DIR}/bridge`;
+const BRIDGE_CHUNKS_DIR = `${BRIDGE_DIR}/chunks`;
 
 export interface FrameworkArtifactRecord {
   id: string;
@@ -131,7 +130,7 @@ function qwikBunPlugin(optimizer: {
       builder.onLoad({ filter: /\.qwik\.tsx$/ }, async (args) => {
         const source = await Bun.file(args.path).text();
         const res = optimizer.transformModulesSync({
-          srcDir: resolve(ROOT, 'src/bridge/frameworks'),
+          srcDir: `${ROOT}/src/pages/bridge/frameworks`,
           rootDir: ROOT,
           mode: 'prod',
           entryStrategy: { type: 'inline' },
@@ -306,17 +305,12 @@ async function main() {
   console.log('⚡ Running modern parallel Bun build for Aurelia 2 SSR + Polyglot Bridge...');
   const startTime = performance.now();
 
-  // 1. Prepare target directories asynchronously
-  await Promise.all([
-    mkdir(PUBLIC_DIR, { recursive: true }),
-    mkdir(ISLANDS_DIR, { recursive: true }),
-    mkdir(BRIDGE_DIR, { recursive: true }),
-    mkdir(BRIDGE_CHUNKS_DIR, { recursive: true }),
-  ]);
+  // 1. Prepare target directories asynchronously via Bun shell
+  await $`mkdir -p ${PUBLIC_DIR} ${ISLANDS_DIR} ${BRIDGE_DIR} ${BRIDGE_CHUNKS_DIR}`.quiet();
 
   // 2. Zero-copy kernel copy of Qwikloader runtime for micro-event delegation
-  const qwikLoaderSource = resolve(ROOT, 'node_modules/@builder.io/qwik/dist/qwikloader.js');
-  const qwikLoaderTarget = resolve(BRIDGE_DIR, 'qwikloader.js');
+  const qwikLoaderSource = `${ROOT}/node_modules/@builder.io/qwik/dist/qwikloader.js`;
+  const qwikLoaderTarget = `${BRIDGE_DIR}/qwikloader.js`;
   await Bun.write(qwikLoaderTarget, Bun.file(qwikLoaderSource));
 
   // 3. Initialize Qwik optimizer for QRL compilation
@@ -329,7 +323,7 @@ async function main() {
       id: 'react',
       name: 'React 19.3',
       trigger: 'load (eager)',
-      sourceFile: 'src/bridge/frameworks/ReactWidget.tsx',
+      sourceFile: 'src/pages/bridge/frameworks/ReactWidget.tsx',
       chunkFile: 'react-widget.js',
       compiler: 'Bun TSX Compiler (jsxImportSource: react)',
     },
@@ -337,7 +331,7 @@ async function main() {
       id: 'vue',
       name: 'Vue 3.5 SFC',
       trigger: 'load (eager)',
-      sourceFile: 'src/bridge/frameworks/VueWidget.vue',
+      sourceFile: 'src/pages/bridge/frameworks/VueWidget.vue',
       chunkFile: 'vue-widget.js',
       compiler: '@vue/compiler-sfc@3.5.45 (parse + compileScript inlineTemplate)',
       plugins: [vueSfcBunPlugin()],
@@ -346,7 +340,7 @@ async function main() {
       id: 'svelte',
       name: 'Svelte 5.57 Runes',
       trigger: 'island="idle"',
-      sourceFile: 'src/bridge/frameworks/SvelteWidget.svelte',
+      sourceFile: 'src/pages/bridge/frameworks/SvelteWidget.svelte',
       chunkFile: 'svelte-widget.js',
       compiler: 'svelte/compiler@5.57.3 (generate: client, runes: true)',
       plugins: [svelte5BunPlugin()],
@@ -355,7 +349,7 @@ async function main() {
       id: 'preact',
       name: 'Preact 11.2',
       trigger: 'island="interaction"',
-      sourceFile: 'src/bridge/frameworks/Widget.preact.tsx',
+      sourceFile: 'src/pages/bridge/frameworks/Widget.preact.tsx',
       chunkFile: 'preact-widget.js',
       compiler: 'Bun TSX Compiler (jsxImportSource: preact)',
     },
@@ -363,7 +357,7 @@ async function main() {
       id: 'solid',
       name: 'SolidJS 1.9',
       trigger: 'island="visible"',
-      sourceFile: 'src/bridge/frameworks/Widget.solid.tsx',
+      sourceFile: 'src/pages/bridge/frameworks/Widget.solid.tsx',
       chunkFile: 'solid-widget.js',
       compiler: '@babel/core + babel-preset-solid@1.9.19 + @babel/preset-typescript',
       plugins: [solidJsBunPlugin()],
@@ -372,7 +366,7 @@ async function main() {
       id: 'qwik',
       name: 'Qwik 1.20',
       trigger: 'island="visible"',
-      sourceFile: 'src/bridge/frameworks/Widget.qwik.tsx',
+      sourceFile: 'src/pages/bridge/frameworks/Widget.qwik.tsx',
       chunkFile: 'qwik-widget.js',
       compiler: '@builder.io/qwik/optimizer@1.20.4 (transformModulesSync inline QRL)',
       plugins: [qwikBunPlugin(qwikOptimizer)],
@@ -381,7 +375,7 @@ async function main() {
       id: 'lit',
       name: 'Lit 3 Web Component',
       trigger: 'island="visible"',
-      sourceFile: 'src/bridge/frameworks/Widget.lit.ts',
+      sourceFile: 'src/pages/bridge/frameworks/Widget.lit.ts',
       chunkFile: 'lit-widget.js',
       compiler: 'Bun TS Compiler + Native W3C CustomElement Shadow DOM (createLitAdapter)',
     },
@@ -389,7 +383,7 @@ async function main() {
       id: 'htmx',
       name: 'HTMX 2 Hypermedia',
       trigger: 'au-htmx attribute',
-      sourceFile: 'src/bridge/frameworks/htmx.html',
+      sourceFile: 'src/pages/bridge/frameworks/htmx.html',
       chunkFile: 'htmx-runtime.js',
       compiler: 'Zero-JS Compiler (Native HTML Hypermedia Engine)',
     },
@@ -398,13 +392,13 @@ async function main() {
   // 5. Build in-memory virtual entries map
   const virtualModules = new Map<string, string>();
   for (const spec of frameworkSpecs) {
-    const srcPath = resolve(ROOT, spec.sourceFile);
+    const srcPath = `${ROOT}/${spec.sourceFile}`;
     virtualModules.set(spec.id, getVirtualEntrySource(spec.id, srcPath));
   }
   const virtualEntryPlugin = createVirtualEntryPlugin(virtualModules);
 
   // 6. Preload .aux SFC for pricing island
-  const pricingAuxPath = resolve(ROOT, 'src/components/pricing-island.aux');
+  const pricingAuxPath = `${ROOT}/src/components/pricing-island.aux`;
   const pricingAuxSource = await Bun.file(pricingAuxPath).text();
   const pricingAuxCompiled = compileAux(parseAux(pricingAuxSource, pricingAuxPath), {
     isServer: false,
@@ -420,7 +414,7 @@ async function main() {
   ] = await Promise.all([
     // Core fullstack SSR client
     buildChunk({
-      entrypoint: resolve(ROOT, 'src/client.ts'),
+      entrypoint: `${ROOT}/src/client.ts`,
       outdir: PUBLIC_DIR,
       naming: 'client.js',
       plugins: [auxBunPlugin({ isServer: false })],
@@ -428,14 +422,14 @@ async function main() {
     }),
     // Zero-JS selective hydration loader
     buildChunk({
-      entrypoint: resolve(ROOT, 'src/island-loader.ts'),
+      entrypoint: `${ROOT}/src/island-loader.ts`,
       outdir: PUBLIC_DIR,
       naming: 'island-loader.js',
       minify: true,
     }),
     // Aurelia .aux pricing island chunk
     buildChunk({
-      entrypoint: resolve(ROOT, 'src/islands/pricing.ts'),
+      entrypoint: `${ROOT}/src/islands/pricing.ts`,
       outdir: ISLANDS_DIR,
       naming: 'pricing.js',
       plugins: [auxBunPlugin({ isServer: false })],
@@ -443,7 +437,7 @@ async function main() {
     }),
     // Aurelia 2 Bridge Host Shell
     buildChunk({
-      entrypoint: resolve(ROOT, 'src/bridge/bridge-app.ts'),
+      entrypoint: `${ROOT}/src/pages/bridge/bridge-app.ts`,
       outdir: BRIDGE_DIR,
       naming: 'app.js',
       plugins: [auxBunPlugin({ isServer: false })],
@@ -478,7 +472,7 @@ async function main() {
   const artifacts: FrameworkArtifactRecord[] = await Promise.all(
     frameworkSpecs.map(async (spec, i) => {
       const stats = foreignStats[i];
-      const sourceCode = await Bun.file(resolve(ROOT, spec.sourceFile)).text();
+      const sourceCode = await Bun.file(`${ROOT}/${spec.sourceFile}`).text();
 
       let compiledPreview = compiledSnapshots.get(spec.id) ?? '';
       if (!compiledPreview && spec.id === 'htmx') {
@@ -501,7 +495,7 @@ async function main() {
         trigger: spec.trigger,
         sourceFile: spec.sourceFile,
         compiler: spec.compiler,
-        chunkUrl: `/public/bridge/chunks/${spec.chunkFile}`,
+        chunkUrl: `/bridge/chunks/${spec.chunkFile}`,
         rawBytes: stats.rawBytes,
         gzipBytes: stats.gzipBytes,
         sourceCode,
@@ -519,7 +513,7 @@ async function main() {
     trigger: 'island="visible" (Mode 1 & Mode 2)',
     sourceFile: 'src/components/pricing-island.aux',
     compiler: '@aureliajs/vite-plugin-aux (auxBunPlugin -> CustomElement.define)',
-    chunkUrl: '/public/islands/pricing.js',
+    chunkUrl: '/islands/pricing.js',
     rawBytes: pricingStats.rawBytes,
     gzipBytes: pricingStats.gzipBytes,
     sourceCode: pricingAuxSource,
@@ -532,25 +526,25 @@ async function main() {
   const manifest = {
     generatedAt: new Date().toISOString(),
     islandLoader: {
-      chunkUrl: '/public/island-loader.js',
+      chunkUrl: '/island-loader.js',
       rawBytes: loaderStats.rawBytes,
       gzipBytes: loaderStats.gzipBytes,
     },
     bridgeHost: {
-      chunkUrl: '/public/bridge/app.js',
+      chunkUrl: '/bridge/app.js',
       rawBytes: bridgeHostStats.rawBytes,
       gzipBytes: bridgeHostStats.gzipBytes,
     },
     frameworks: artifacts,
   };
 
-  const manifestPath = resolve(BRIDGE_DIR, 'manifest.json');
+  const manifestPath = `${BRIDGE_DIR}/manifest.json`;
   await Bun.write(manifestPath, JSON.stringify(manifest, null, 2));
 
   // 10. Purge legacy disk cache directory if it exists
-  const legacyCacheDir = resolve(ROOT, 'node_modules/.cache/bridge-build');
+  const legacyCacheDir = `${ROOT}/node_modules/.cache/bridge-build`;
   try {
-    await rm(legacyCacheDir, { recursive: true, force: true });
+    await $`rm -rf ${legacyCacheDir}`.quiet();
   } catch {}
 
   const durationMs = (performance.now() - startTime).toFixed(1);

@@ -6,7 +6,7 @@ let manifestJson = '';
 export const title = 'Aurelia 2 Polyglot Bridge + Islands Showcase';
 
 export async function loader() {
-  const { readBridgeManifest } = await import('../bridge/manifest.js');
+  const { readBridgeManifest } = await import('./manifest.js');
   const manifest = readBridgeManifest();
   return {
     manifest,
@@ -17,7 +17,7 @@ export async function loader() {
 
 <template as-custom-element="bridge-page">
   <import from="@aureliajs/bridge"></import>
-  <import from="../bridge/bridge-app.js"></import>
+  <import from="./bridge-app.js"></import>
 
   <div class="bridge-view">
     <nav class="navbar">

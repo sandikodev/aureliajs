@@ -22,15 +22,15 @@
     "paths": {
       "@/*": ["./src/*"],
       "@components/*": ["./src/components/*"],
-      "@bridge/*": ["./src/bridge/*"],
-      "@frameworks/*": ["./src/bridge/frameworks/*"]
+      "@bridge/*": ["./src/pages/bridge/*"],
+      "@frameworks/*": ["./src/pages/bridge/frameworks/*"]
     }
   },
   "include": ["src/**/*"],
   "exclude": [
     "node_modules",
     "dist",
-    "src/bridge/frameworks/*.tsx",
+    "src/pages/bridge/frameworks/*.tsx",
     "src/components/frontend/*.tsx"
   ]
 }

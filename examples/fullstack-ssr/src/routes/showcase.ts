@@ -1,7 +1,7 @@
 import type { Hono } from 'hono';
 import { aurelia } from '@hono/aurelia';
 import { IslandsPage } from '../pages/islands.aux';
-import { BridgePage } from '../pages/bridge.aux';
+import { BridgePage } from '../pages/bridge/index.aux';
 import { MyApp } from '../my-app.js';
 
 let htmxPulseCount = 0;

@@ -81,13 +81,13 @@ export class BridgeShowcaseApp {
   };
 
   // Idiomatic zero-glue lazy loaders: () => import(...) resolved natively by AuBridge
-  public loadReact = () => importChunk('/public/bridge/chunks/react-widget.js');
-  public loadVue = () => importChunk('/public/bridge/chunks/vue-widget.js');
-  public loadSvelte = () => importChunk('/public/bridge/chunks/svelte-widget.js');
-  public loadPreact = () => importChunk('/public/bridge/chunks/preact-widget.js');
-  public loadSolid = () => importChunk('/public/bridge/chunks/solid-widget.js');
-  public loadQwik = () => importChunk('/public/bridge/chunks/qwik-widget.js');
-  public loadLit = () => importChunk('/public/bridge/chunks/lit-widget.js');
+  public loadReact = () => importChunk('/bridge/chunks/react-widget.js');
+  public loadVue = () => importChunk('/bridge/chunks/vue-widget.js');
+  public loadSvelte = () => importChunk('/bridge/chunks/svelte-widget.js');
+  public loadPreact = () => importChunk('/bridge/chunks/preact-widget.js');
+  public loadSolid = () => importChunk('/bridge/chunks/solid-widget.js');
+  public loadQwik = () => importChunk('/bridge/chunks/qwik-widget.js');
+  public loadLit = () => importChunk('/bridge/chunks/lit-widget.js');
 
   public events: BridgeEventLogEntry[] = [];
   private nextEventId = 1;
@@ -256,7 +256,7 @@ async function bootstrapBridgeShowcase(): Promise<void> {
   if (!host) return;
 
   // Lazy-load HTMX 2 runtime from its chunk for au-htmx DI injection
-  const htmxUrl = '/public/bridge/chunks/htmx-runtime.js';
+  const htmxUrl = '/bridge/chunks/htmx-runtime.js';
   const htmxMod = (await import(/* @vite-ignore */ htmxUrl)) as { default: HtmxLike };
 
   const au = new Aurelia();
