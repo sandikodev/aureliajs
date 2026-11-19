@@ -1,6 +1,6 @@
 import type { Hono } from 'hono';
 import { aurelia } from '@hono/aurelia';
-import { IslandsPage } from '../pages/islands.aux';
+import { IslandsPage } from '../pages/islands.js';
 
 /**
  * Register showcase routes for Zero-JS Selective Hydration Islands.

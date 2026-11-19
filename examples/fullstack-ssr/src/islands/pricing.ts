@@ -1,6 +1,6 @@
 import { Aurelia } from 'aurelia';
 import type { IslandHydrateContext } from '@aureliajs/islands/loader';
-import { PricingIsland } from '../components/pricing-island.aux';
+import { PricingIsland } from '../components/pricing-island.js';
 
 export async function hydrate(ctx: IslandHydrateContext): Promise<void> {
   const instance = new PricingIsland();

@@ -1,15 +1,14 @@
 /**
  * Build Script for Aurelia 2 Fullstack SSR + Zero-JS Islands
  *
- * Compiles client bundles and island hydration chunks with Bun.build:
+ * Compiles canonical client bundles and island hydration chunks with Bun.build:
  * - `client.js`       : Aurelia 2 full hydration runtime
  * - `island-loader.js`: Zero-JS selective hydration loader (3 KB)
- * - `islands/pricing.js`: Aurelia .aux pricing island chunk
+ * - `islands/pricing.js`: Aurelia pricing island chunk
  */
 
 import { $ } from 'bun';
 import type { BunPlugin } from 'bun';
-import { auxBunPlugin } from '@aureliajs/vite-plugin-aux';
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
 const PUBLIC_DIR = `${ROOT}/public`;
@@ -75,14 +74,13 @@ async function main() {
   // 2. Remove legacy bridge directory if present
   await $`rm -rf ${PUBLIC_DIR}/bridge`.quiet();
 
-  // 3. Build core bundles simultaneously in parallel across CPU cores
+  // 3. Build core canonical bundles simultaneously in parallel across CPU cores
   const [clientStats, loaderStats, pricingStats] = await Promise.all([
     // Core fullstack SSR client
     buildChunk({
       entrypoint: `${ROOT}/src/client.ts`,
       outdir: PUBLIC_DIR,
       naming: 'client.js',
-      plugins: [auxBunPlugin({ isServer: false })],
       minify: process.env.NODE_ENV === 'production',
     }),
     // Zero-JS selective hydration loader
@@ -92,12 +90,11 @@ async function main() {
       naming: 'island-loader.js',
       minify: true,
     }),
-    // Aurelia .aux pricing island chunk
+    // Canonical Aurelia pricing island chunk
     buildChunk({
       entrypoint: `${ROOT}/src/islands/pricing.ts`,
       outdir: ISLANDS_DIR,
       naming: 'pricing.js',
-      plugins: [auxBunPlugin({ isServer: false })],
       minify: true,
     }),
   ]);

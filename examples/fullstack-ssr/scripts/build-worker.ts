@@ -1,13 +1,12 @@
 /**
- * Cloudflare Worker Bundle Compiler for Aurelia 2 SSR + Hono
+ * Cloudflare Worker Bundle Compiler for Canonical Aurelia 2 SSR + Hono
  *
- * Compiles the server application with `@aureliajs/vite-plugin-aux` in server mode,
+ * Compiles the server application with pure canonical components,
  * externalizing Cloudflare Workers bindings and Node built-ins while targeting LinkeDOM
  * for edge DOM rendering without Node `vm`.
  */
 
 import type { BunPlugin } from 'bun';
-import { auxBunPlugin } from '@aureliajs/vite-plugin-aux';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 
@@ -45,7 +44,6 @@ const result = await Bun.build({
   loader: { '.html': 'text' },
   plugins: [
     stubJsdomPlugin(),
-    auxBunPlugin({ isServer: true }),
   ],
   external: ['cloudflare:*', 'node:*', 'hono/bun'],
   define: {

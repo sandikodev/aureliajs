@@ -13,8 +13,9 @@ production codebase in `apps/`.
 
 | Name | Description | Tech | Status |
 |------|-------------|------|--------|
-| `fullstack-ssr/` | Hono + Aurelia 2 SSR — server-rendered pages + Zero-JS client hydration | Hono, Aurelia 2, LinkeDOM/JSDOM, Web Streams | ✅ Canonical Reference |
+| `fullstack-ssr/` | Hono + Aurelia 2 SSR — canonical server-rendered pages + Zero-JS client hydration | Hono, Aurelia 2, LinkeDOM/JSDOM, Web Streams | ✅ Canonical Reference |
 | `aurelia-bridge/` | Aurelia 2 Polyglot Bridge — zero glue code multi-framework interop | Aurelia 2, @aureliajs/bridge, React 19, Vue 3, Svelte 5, Solid | ✅ Canonical Reference |
+| `aurelia-aux/` | Aurelia 2 Single-File Components (.aux) — script setup, scoped CSS, zero-boilerplate SFCs | Aurelia 2, @aureliajs/vite-plugin-aux, Vite 8, Bun | ✅ Canonical Reference |
 
 *(Note: Comparative benchmarks such as React SSR are housed under [`benchmarks/reference-react-ssr/`](../benchmarks/reference-react-ssr/) to keep `examples/` strictly Aurelia 2 native).*
 

@@ -1,0 +1,22 @@
+import { customElement, type ICustomElementViewModel } from 'aurelia';
+import template from './islands.html';
+
+@customElement({ name: 'islands-page', template: template as unknown as string })
+export class IslandsPage implements ICustomElementViewModel {
+  public static readonly title = 'Zero-JS Aurelia Islands';
+
+  public static async loader() {
+    const { renderIsland } = await import('@aureliajs/islands/server');
+    const { PricingIsland } = await import('../components/pricing-island.js');
+
+    const pricingIslandHtml = await renderIsland({
+      component: PricingIsland,
+      src: '/islands/pricing.js',
+      props: { plan: 'Pro', seats: 5 },
+      preserveMarkers: false,
+    });
+    return { pricingIslandHtml };
+  }
+
+  public pricingIslandHtml: string = '';
+}

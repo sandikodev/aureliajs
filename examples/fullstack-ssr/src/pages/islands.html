@@ -1,0 +1,40 @@
+<div class="islands-view">
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <a href="/" class="brand-link">
+          <svg class="brand-logo" width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="46" stroke="#ed2578" stroke-width="8"/>
+            <circle cx="50" cy="50" r="24" fill="#ed2578"/>
+          </svg>
+          <span class="brand-title">Aurelia <span class="brand-accent">2</span></span>
+          <span class="brand-divider">/</span>
+          <span class="brand-sub">Hono SSR</span>
+        </a>
+      </div>
+      <div class="nav-links">
+        <a href="/" class="nav-item">Overview</a>
+        <a href="/islands" class="nav-item is-active">Zero-JS Islands</a>
+        <a href="/dashboard?token=demo-token" class="nav-item">Telemetry</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="islands-shell">
+    <article class="card" style="padding: 1.75rem;">
+      <h1>Zero-JS HTML-First Architecture</h1>
+      <p class="muted" style="margin-top: 0.5rem;">
+        Static copy ships 0 KB of client JavaScript. Only the ~1.28 KB gzipped
+        <code>/island-loader.js</code> runs on page load — <code>/islands/pricing.js</code>
+        is downloaded and hydrated ONLY when you scroll to the interactive island below.
+      </p>
+    </article>
+
+    <section class="viewport-divider" data-testid="islands-scroll-divider">
+      <h2>Scroll Down to Trigger <code>data-au-island="visible"</code></h2>
+      <p class="muted">Open DevTools Network Tab before scrolling to verify 0 KB Aurelia downloaded above the fold.</p>
+    </section>
+
+    <div innerhtml.bind="pricingIslandHtml"></div>
+  </main>
+</div>

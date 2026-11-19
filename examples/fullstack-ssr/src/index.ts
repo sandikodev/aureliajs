@@ -13,13 +13,12 @@
 import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { aurelia, aureliaAction, aureliaDefaults } from '@hono/aurelia';
-import { BridgeConfiguration } from '@aureliajs/bridge';
 import { initialPosts, dashboardStats, activityStream } from './data.js';
 
-// Clean Aurelia 2 Page Components
-import { HomePage } from './pages/home.aux';
-import { PostDetailPage } from './pages/post-detail.aux';
-import { DashboardPage } from './pages/dashboard.aux';
+// Clean Canonical Aurelia 2 Page Components
+import { HomePage } from './pages/home.js';
+import { PostDetailPage } from './pages/post-detail.js';
+import { DashboardPage } from './pages/dashboard.js';
 import { registerShowcaseRoutes } from './routes/showcase.js';
 
 type AppEnv = {
@@ -95,7 +94,6 @@ app.use(
       cssBundle: '/style.css',
       jsBundle: '/client.js',
     },
-    registrations: [BridgeConfiguration],
     streaming: true,
     dataEndpoint: true,
   })

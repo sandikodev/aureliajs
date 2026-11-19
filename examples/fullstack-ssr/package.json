@@ -1,7 +1,7 @@
 {
   "name": "aurelia-ssr-example",
   "version": "0.1.0",
-  "description": "Production-ready Hono + Aurelia 2 SSR and Zero-JS Islands example",
+  "description": "Production-ready Canonical Hono + Aurelia 2 SSR and Zero-JS Islands example",
   "type": "module",
   "scripts": {
     "dev": "bun scripts/build.ts && bun --watch src/index.ts",
@@ -18,7 +18,6 @@
   "dependencies": {
     "@aureliajs/islands": "workspace:*",
     "@aureliajs/ssr": "workspace:*",
-    "@aureliajs/vite-plugin-aux": "workspace:*",
     "@hono/aurelia": "workspace:*",
     "@hono/node-server": "^1.12.0",
     "aurelia": "^2.0.0-rc.2",

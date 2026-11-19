@@ -1,0 +1,24 @@
+{
+  "name": "aurelia-aux-example",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aureliajs/vite-plugin-aux": "workspace:*",
+    "aurelia": "^2.0.0-rc.2"
+  },
+  "devDependencies": {
+    "@aurelia/vite-plugin": "^2.0.0-rc.2",
+    "@types/node": "^22.0.0",
+    "bun-types": "^1.4.4",
+    "typescript": "^5.4.0",
+    "vite": "^8.3.8"
+  }
+}
