@@ -19,7 +19,6 @@ import { initialPosts, dashboardStats, activityStream } from './data.js';
 import { HomePage } from './pages/home.js';
 import { PostDetailPage } from './pages/post-detail.js';
 import { DashboardPage } from './pages/dashboard.js';
-import { registerShowcaseRoutes } from './routes/showcase.js';
 
 type AppEnv = {
   Variables: {
@@ -124,9 +123,6 @@ app.get('/', aurelia(HomePage));
 app.get('/posts/:slug', aurelia(PostDetailPage));
 app.post('/posts/:slug', aureliaAction(PostDetailPage));
 app.get('/dashboard', requireAuth, aurelia(DashboardPage));
-
-// Register showcase routes (Zero-JS Selective Hydration & Polyglot Bridge)
-registerShowcaseRoutes(app);
 
 // Standard JSON API Endpoints
 app.get('/api/posts', (c) => c.json(initialPosts));

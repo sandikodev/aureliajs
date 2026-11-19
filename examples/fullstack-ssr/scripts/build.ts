@@ -1,10 +1,8 @@
 /**
- * Build Script for Aurelia 2 Fullstack SSR + Zero-JS Islands
+ * Build Script for Canonical Aurelia 2 Fullstack SSR
  *
- * Compiles canonical client bundles and island hydration chunks with Bun.build:
- * - `client.js`       : Aurelia 2 full hydration runtime
- * - `island-loader.js`: Zero-JS selective hydration loader (3 KB)
- * - `islands/pricing.js`: Aurelia pricing island chunk
+ * Compiles canonical client bundle with Bun.build:
+ * - `client.js`: Aurelia 2 full hydration runtime
  */
 
 import { $ } from 'bun';
@@ -12,7 +10,6 @@ import type { BunPlugin } from 'bun';
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
 const PUBLIC_DIR = `${ROOT}/public`;
-const ISLANDS_DIR = `${PUBLIC_DIR}/islands`;
 
 interface ChunkResult {
   rawBytes: number;
@@ -65,45 +62,23 @@ async function buildChunk(options: {
 }
 
 async function main() {
-  console.log('⚡ Running modern parallel Bun build for Aurelia 2 SSR + Islands...');
+  console.log('⚡ Running modern parallel Bun build for Aurelia 2 Fullstack SSR...');
   const startTime = performance.now();
 
-  // 1. Prepare target directories asynchronously via Bun shell
-  await $`mkdir -p ${PUBLIC_DIR} ${ISLANDS_DIR}`.quiet();
+  // 1. Prepare target directory
+  await $`mkdir -p ${PUBLIC_DIR}`.quiet();
 
-  // 2. Remove legacy bridge directory if present
-  await $`rm -rf ${PUBLIC_DIR}/bridge`.quiet();
-
-  // 3. Build core canonical bundles simultaneously in parallel across CPU cores
-  const [clientStats, loaderStats, pricingStats] = await Promise.all([
-    // Core fullstack SSR client
-    buildChunk({
-      entrypoint: `${ROOT}/src/client.ts`,
-      outdir: PUBLIC_DIR,
-      naming: 'client.js',
-      minify: process.env.NODE_ENV === 'production',
-    }),
-    // Zero-JS selective hydration loader
-    buildChunk({
-      entrypoint: `${ROOT}/src/island-loader.ts`,
-      outdir: PUBLIC_DIR,
-      naming: 'island-loader.js',
-      minify: true,
-    }),
-    // Canonical Aurelia pricing island chunk
-    buildChunk({
-      entrypoint: `${ROOT}/src/islands/pricing.ts`,
-      outdir: ISLANDS_DIR,
-      naming: 'pricing.js',
-      minify: true,
-    }),
-  ]);
+  // 2. Build core canonical client bundle
+  const clientStats = await buildChunk({
+    entrypoint: `${ROOT}/src/client.ts`,
+    outdir: PUBLIC_DIR,
+    naming: 'client.js',
+    minify: process.env.NODE_ENV === 'production',
+  });
 
   const durationMs = (performance.now() - startTime).toFixed(1);
   console.log(`\n🚀 Modern Bun Build Complete in ${durationMs}ms:`);
-  console.log(`   • client.js        : ${(clientStats.rawBytes / 1024).toFixed(2)} KB raw (${(clientStats.gzipBytes / 1024).toFixed(2)} KB gz)`);
-  console.log(`   • island-loader.js : ${(loaderStats.rawBytes / 1024).toFixed(2)} KB raw (${(loaderStats.gzipBytes / 1024).toFixed(2)} KB gz)`);
-  console.log(`   • pricing island   : ${(pricingStats.rawBytes / 1024).toFixed(2)} KB raw (${(pricingStats.gzipBytes / 1024).toFixed(2)} KB gz)`);
+  console.log(`   • client.js : ${(clientStats.rawBytes / 1024).toFixed(2)} KB raw (${(clientStats.gzipBytes / 1024).toFixed(2)} KB gz)`);
 }
 
 main().catch((err) => {

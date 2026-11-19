@@ -78,25 +78,6 @@ describe('examples/fullstack-ssr integration tests', () => {
     expect(html).toContain('Production Metrics');
   });
 
-  it('renders Zero-JS selective hydration island route from <template island="visible">', async () => {
-    const res = await app.request('http://localhost:3000/islands', {
-      headers: { Accept: 'text/html' },
-    });
-
-    expect(res.status).toBe(200);
-    const html = await res.text();
-    expect(html).toContain('Zero-JS HTML-First Architecture');
-    expect(html).not.toContain('/client.js');
-    expect(html).toContain('<pricing-island ');
-    expect(html).toContain('data-au-island="visible"');
-    expect(html).toContain('data-au-root-margin="200px"');
-    expect(html).toContain('data-au-src="/islands/pricing.js"');
-    expect(html).toContain('Pro Plan');
-    expect(html).toContain('Total: $75/mo');
-    expect(html).toMatch(/<script\s+type="application\/json"\s+data-au-island-data/);
-  });
-
-
   it('serves static assets under /public/ and rewrites cleanly for Cloudflare ASSETS binding', async () => {
     // 1. Local Bun static asset serving
     const res = await app.request('http://localhost:3000/public/style.css');

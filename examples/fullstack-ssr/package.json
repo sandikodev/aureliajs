@@ -1,7 +1,7 @@
 {
   "name": "aurelia-ssr-example",
   "version": "0.1.0",
-  "description": "Production-ready Canonical Hono + Aurelia 2 SSR and Zero-JS Islands example",
+  "description": "Production-ready Canonical Hono + Aurelia 2 SSR Community Scaffold Example",
   "type": "module",
   "scripts": {
     "dev": "bun scripts/build.ts && bun --watch src/index.ts",
@@ -16,7 +16,6 @@
     "lint": "echo 'No linter configured yet'"
   },
   "dependencies": {
-    "@aureliajs/islands": "workspace:*",
     "@aureliajs/ssr": "workspace:*",
     "@hono/aurelia": "workspace:*",
     "@hono/node-server": "^1.12.0",
