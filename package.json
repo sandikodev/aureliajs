@@ -3,42 +3,53 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "packageManager": "pnpm@11.1.1",
+  "packageManager": "bun@1.4.4",
   "engines": {
-    "node": ">=22.12.0"
+    "bun": ">=1.2.0"
   },
   "scripts": {
-    "dev": "pnpm --filter @aureliajs/shared --filter @aureliajs/vite-plugin-aux build && pnpm --filter '@aureliajs/web' --filter '@aureliajs/api' --parallel --stream dev",
-    "dev:web": "pnpm --filter @aureliajs/web dev",
-    "dev:api": "pnpm --filter @aureliajs/api dev",
-    "build": "pnpm -r build",
-    "typecheck": "pnpm -r typecheck",
+    "dev": "bun run --filter @aurelia-ops/shared build && bun run --filter @aureliajs/vite-plugin-aux build && bun run --parallel --filter @aureliajs/web --filter @aureliajs/api dev",
+    "dev:web": "bun run --filter @aureliajs/web dev",
+    "dev:api": "bun run --filter @aureliajs/api dev",
+    "dev:example": "bun run --filter aurelia-ssr-example dev",
+    "build": "bun run --workspaces --if-present build",
+    "typecheck": "bun run --workspaces --if-present typecheck",
     "test": "bun test packages/ apps/ examples/",
-    "test:e2e": "playwright test",
+    "test:e2e": "bunx playwright test",
     "emulate": "bun scripts/emulate-devtools.ts",
-    "lint": "oxlint .",
-    "format": "prettier --write .",
+    "lint": "bunx oxlint .",
+    "format": "bunx prettier --write .",
     "db:up": "docker compose up -d db",
     "db:down": "docker compose down",
-    "db:generate": "pnpm --filter @aureliajs/api db:generate",
-    "db:migrate": "pnpm --filter @aureliajs/api db:migrate",
-    "db:seed": "pnpm --filter @aureliajs/api db:seed"
+    "db:generate": "bun run --filter @aureliajs/api db:generate",
+    "db:migrate": "bun run --filter @aureliajs/api db:migrate",
+    "db:seed": "bun run --filter @aureliajs/api db:seed"
   },
   "devDependencies": {
+    "@aurelia/kernel": "2.0.0-rc.2",
+    "@aurelia/platform-browser": "2.0.0-rc.2",
+    "@aurelia/runtime": "2.0.0-rc.2",
+    "@aurelia/runtime-html": "2.0.0-rc.2",
+    "@aureliajs/vite-plugin-aux": "workspace:*",
     "@axe-core/playwright": "4.14.0",
+    "@babel/core": "7.29.13",
+    "@babel/preset-typescript": "7.29.7",
     "@playwright/test": "1.65.0",
     "@types/node": "24.10.1",
+    "@vue/compiler-sfc": "3.5.45",
+    "babel-preset-solid": "1.9.19",
+    "bun-types": "^1.4.4",
+    "jsdom": "^23.0.0",
     "oxlint": "1.93.0",
     "postgres": "4.1.1",
     "prettier": "3.6.2",
-    "typescript": "5.9.3"
+    "svelte": "5.57.3",
+    "typescript": "5.9.3",
+    "vite": "8.3.8"
   },
   "workspaces": [
     "apps/*",
-    "packages/shared",
-    "packages/ssr-playground",
-    "packages/vite-plugin-aux",
-    "packages/vscode-aux",
-    "packages/aurelia-ssr"
+    "packages/*",
+    "examples/*"
   ]
 }
