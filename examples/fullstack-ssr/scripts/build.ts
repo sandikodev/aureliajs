@@ -2,9 +2,11 @@
  * Build Script for Canonical Aurelia 2 Fullstack SSR
  *
  * Compiles canonical client bundle with Bun.build:
- * - `client.js`: Aurelia 2 full hydration runtime
+ * - Supports zero-config auto-discovery of all pages in `src/pages/`
+ * - Supports opt-in explicit customization via `src/client.ts`
  */
 
+import { existsSync } from 'node:fs';
 import { $ } from 'bun';
 import type { BunPlugin } from 'bun';
 
@@ -15,6 +17,44 @@ interface ChunkResult {
   rawBytes: number;
   gzipBytes: number;
   code: string;
+}
+
+/**
+ * Auto-discovery Virtual Client Hydration Plugin
+ * Automatically discovers all Aurelia 2 page components under src/pages,
+ * synthesizing the client hydration bootstrap in memory with zero manual glue code.
+ */
+function createVirtualClientPlugin(root: string): BunPlugin {
+  return {
+    name: 'aurelia-virtual-client',
+    setup(b) {
+      b.onResolve({ filter: /^virtual:aurelia-client$/ }, () => ({
+        path: `${root}/.virtual-client-entry.ts`,
+      }));
+      b.onLoad({ filter: /\.virtual-client-entry\.ts$/ }, async () => {
+        const glob = new Bun.Glob('src/pages/**/*.{ts,aux}');
+        const files = (await Array.fromAsync(glob.scan({ cwd: root })))
+          .filter((f) => !f.endsWith('.d.ts'))
+          .sort();
+        const imports = files
+          .map((f, i) => `import * as _P${i} from '${root}/${f}';`)
+          .join('\n');
+        const arrays = files.map((_, i) => `...Object.values(_P${i})`).join(', ');
+
+        const contents = `/**
+ * Auto-generated Aurelia 2 Client Hydration Virtual Entrypoint
+ */
+import { createClientHydrator } from '@aureliajs/ssr/client';
+${imports}
+
+const components = [${arrays}].filter((c) => typeof c === 'function');
+
+createClientHydrator({ components });
+`;
+        return { contents, loader: 'ts' };
+      });
+    },
+  };
 }
 
 /**
@@ -68,11 +108,22 @@ async function main() {
   // 1. Prepare target directory
   await $`mkdir -p ${PUBLIC_DIR}`.quiet();
 
-  // 2. Build core canonical client bundle
+  // 2. Resolve client hydration entrypoint (Explicit custom client.ts vs Auto-discovered Virtual entry)
+  const hasCustomClient = existsSync(`${ROOT}/src/client.ts`);
+  const entrypoint = hasCustomClient ? `${ROOT}/src/client.ts` : 'virtual:aurelia-client';
+  const plugins = hasCustomClient ? [] : [createVirtualClientPlugin(ROOT)];
+
+  if (hasCustomClient) {
+    console.log('📦 Using explicit custom client hydration entrypoint (src/client.ts)');
+  } else {
+    console.log('✨ Auto-discovering pages convention for zero-config client hydration');
+  }
+
   const clientStats = await buildChunk({
-    entrypoint: `${ROOT}/src/client.ts`,
+    entrypoint,
     outdir: PUBLIC_DIR,
     naming: 'client.js',
+    plugins,
     minify: process.env.NODE_ENV === 'production',
   });
 
