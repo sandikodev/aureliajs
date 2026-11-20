@@ -2,15 +2,12 @@
 import { component$, useSignal, $, type PropFunction } from '@builder.io/qwik';
 
 export interface QwikCounterProps {
-  value?: number;
+  value?: number | (() => number);
   onChange$?: PropFunction<(val: number) => void>;
   onCounterChange$?: PropFunction<(val: number) => void>;
   onChange?: (val: number) => void;
   onCounterChange?: (val: number) => void;
 }
-
-let savedStep = 1;
-let savedClicks = 0;
 
 /**
  * Idiomatic Qwik Component (Official Community Best Practice)
@@ -19,39 +16,39 @@ let savedClicks = 0;
  * 1. Resumable Component: Standard `component$` function boundary.
  * 2. Fine-grained Reactivity: `useSignal()` for localized isolated state (`localStep`, `localClicks`).
  * 3. Lazy Event Listeners: Idiomatic `$(() => ...)` QRL closures passed to `onClick$`.
- * 4. Resumable Meter: Pure signal-driven style reactivity with zero manual DOM querying.
- * 5. Bounded Context: Bi-directional sync with Aurelia host via typed `onChange$` / `onChange`.
+ * 4. Natural Value Accessor: Supports both static number values and reactive getter functions:
+ *    `const currentVal = () => (typeof props.value === 'function' ? props.value() : (props.value ?? 0));`
+ * 5. Resumable Meter: Pure signal-driven style reactivity with zero manual DOM querying.
+ * 6. Bounded Context: Bi-directional sync with Aurelia host via typed `onChange$` / `onChange`.
  */
 export const QwikCounter = component$<QwikCounterProps>((props) => {
-  // 1. ISOLATED LOCAL STATE (Qwik Signals)
-  const localStep = useSignal(savedStep);
-  const localClicks = useSignal(savedClicks);
+  // 1. ISOLATED LOCAL STATE (Component-Scoped Qwik Signals)
+  const localStep = useSignal(1);
+  const localClicks = useSignal(0);
 
-  const val = props.value ?? 0;
+  // 2. NATURAL VALUE ACCESSOR (Supports raw number and getter functions)
+  const currentVal = () => (typeof props.value === 'function' ? props.value() : (props.value ?? 0));
+  const val = currentVal();
   const percentage = Math.min(Math.max(val * 2, 5), 100);
 
   const handleIncrement = $(() => {
     localClicks.value++;
-    savedClicks = localClicks.value;
-    const next = (props.value ?? 0) + localStep.value;
+    const next = currentVal() + localStep.value;
     (props.onChange$ ?? props.onChange ?? props.onCounterChange)?.(next);
   });
 
   const handleDecrement = $(() => {
     localClicks.value++;
-    savedClicks = localClicks.value;
-    const next = (props.value ?? 0) - localStep.value;
+    const next = currentVal() - localStep.value;
     (props.onChange$ ?? props.onChange ?? props.onCounterChange)?.(next);
   });
 
   const handleStepToggle = $(() => {
     localStep.value = localStep.value === 1 ? 5 : localStep.value === 5 ? 10 : 1;
-    savedStep = localStep.value;
   });
 
   const handleReset = $(() => {
     localClicks.value++;
-    savedClicks = localClicks.value;
     (props.onChange$ ?? props.onChange ?? props.onCounterChange)?.(0);
   });
 
@@ -67,7 +64,7 @@ export const QwikCounter = component$<QwikCounterProps>((props) => {
 
       {/* Scope Breakdown Badges */}
       <div class="scope-pills">
-        <span class="pill pill-shared">Shared: {val}</span>
+        <span class="pill pill-shared">Shared: {currentVal()}</span>
         <span class="pill pill-isolated">Isolated Clicks: {localClicks.value}</span>
         <span class="pill pill-step">Step: &plusmn;{localStep.value}</span>
       </div>
