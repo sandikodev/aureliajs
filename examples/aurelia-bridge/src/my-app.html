@@ -264,20 +264,20 @@
 
       <div class="dock-right">
         <!-- Quick Action Buttons -->
-        <button type="button" class="btn btn-xs btn-dock-action" click.trigger="broadcastSurge(10); $event.stopPropagation();" title="Broadcast +10 to all frameworks">
+        <button type="button" class="btn btn-xs btn-dock-action" click.trigger="broadcastSurge(10, $event)" title="Broadcast +10 to all frameworks">
           ⚡ Surge (+10)
         </button>
-        <button type="button" class="btn btn-xs btn-dock-action" click.trigger="triggerHostPulse(); $event.stopPropagation();" title="Trigger Host DOM Pulse animation">
+        <button type="button" class="btn btn-xs btn-dock-action" click.trigger="triggerHostPulse($event)" title="Trigger Host DOM Pulse animation">
           💫 Pulse
         </button>
-        <button type="button" class="btn btn-xs btn-dock-action" click.trigger="broadcastReset(); $event.stopPropagation();" title="Reset shared metric across all frameworks">
+        <button type="button" class="btn btn-xs btn-dock-action" click.trigger="broadcastReset($event)" title="Reset shared metric across all frameworks">
           🔄 Reset (0)
         </button>
-        <button type="button" class="btn btn-xs btn-dock-clear" click.trigger="clearAuditTrail(); $event.stopPropagation();" title="Clear Audit Logs">
+        <button type="button" class="btn btn-xs btn-dock-clear" click.trigger="clearAuditTrail($event)" title="Clear Audit Logs">
           🧹 Clear
         </button>
         <!-- Toggle Chevron Button -->
-        <button type="button" class="dock-toggle-btn" aria-label="Toggle Console">
+        <button type="button" class="dock-toggle-btn" click.trigger="toggleConsole($event)" aria-label="Toggle Console">
           <span if.bind="isConsoleExpanded">▼ Minimize</span>
           <span if.bind="!isConsoleExpanded">▲ Expand</span>
         </button>
@@ -294,7 +294,7 @@
       <div class="audit-list">
         <div class="audit-item" repeat.for="entry of auditTrail">
           <div class="audit-item-left">
-            <span class="audit-source ${entry.source.toLowerCase().replace(/[^a-z0-9]/g, '-')}">${entry.source}</span>
+            <span class="audit-source ${entry.badgeClass}">${entry.source}</span>
             <span class="audit-vals">${entry.previousValue} &rarr; <strong>${entry.newValue}</strong></span>
           </div>
           <span class="audit-time">${entry.timestamp}</span>

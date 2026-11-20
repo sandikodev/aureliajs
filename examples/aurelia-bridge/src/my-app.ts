@@ -33,6 +33,7 @@ import { HtmxCard } from './components/frontend/htmx';
 export interface AuditLogEntry {
   id: string;
   source: string;
+  badgeClass?: string;
   previousValue: number;
   newValue: number;
   timestamp: string;
@@ -99,11 +100,13 @@ export class MyApp {
   /** Controls floating bottom telemetry & audit console dock expansion */
   public isConsoleExpanded: boolean = false;
 
-  public toggleConsole(): void {
+  public toggleConsole(event?: Event): void {
+    event?.stopPropagation();
     this.isConsoleExpanded = !this.isConsoleExpanded;
   }
 
-  public clearAuditTrail(): void {
+  public clearAuditTrail(event?: Event): void {
+    event?.stopPropagation();
     this.auditTrail = [];
   }
 
@@ -174,7 +177,8 @@ export class MyApp {
    * Aurelia directly manipulates host-level DOM elements (e.g. triggering an attention pulse
    * on the host container) without interfering with the internal DOM of foreign subtrees.
    */
-  public triggerHostPulse(): void {
+  public triggerHostPulse(event?: Event): void {
+    event?.stopPropagation();
     if (this.polyglotGridRef) {
       this.polyglotGridRef.classList.remove('host-highlight-pulse');
       // Trigger browser reflow to restart CSS animation
@@ -184,7 +188,8 @@ export class MyApp {
   }
 
   /** Aurelia host broadcasts an increment surge to all 7 frameworks simultaneously */
-  public broadcastSurge(delta: number): void {
+  public broadcastSurge(delta: number, event?: Event): void {
+    event?.stopPropagation();
     const prev = this.sharedCounter;
     this.sharedCounter += delta;
     this.logAudit(`Aurelia Host Broadcast (+${delta})`, prev, this.sharedCounter);
@@ -192,7 +197,8 @@ export class MyApp {
   }
 
   /** Aurelia host resets shared metric across all frameworks */
-  public broadcastReset(): void {
+  public broadcastReset(event?: Event): void {
+    event?.stopPropagation();
     const prev = this.sharedCounter;
     this.sharedCounter = 0;
     this.logAudit('Aurelia Host Broadcast (Reset)', prev, 0);
@@ -201,9 +207,11 @@ export class MyApp {
 
   private logAudit(source: string, prev: number, next: number): void {
     const time = new Date().toLocaleTimeString();
+    const badgeClass = source.toLowerCase().replace(/[^a-z0-9]/g, '-');
     const entry: AuditLogEntry = {
       id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       source,
+      badgeClass,
       previousValue: prev,
       newValue: next,
       timestamp: time,
