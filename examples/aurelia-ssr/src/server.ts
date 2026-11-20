@@ -87,5 +87,6 @@ export const server = {
 
 if (import.meta.main) {
   console.log(`⚡ Pure Aurelia 2 SSR Server listening on http://localhost:${server.port}`);
-  Bun.serve(server);
 }
+
+export default server;

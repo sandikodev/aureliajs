@@ -90,7 +90,6 @@ export const server = {
 
 if (import.meta.main) {
   console.log(`\n🏝️  Native Bun Aurelia 2 Islands Server running on http://localhost:${server.port}`);
-  Bun.serve(server);
 }
 
 export default server;
