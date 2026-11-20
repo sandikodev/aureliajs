@@ -19,7 +19,7 @@
       <div>
         <strong class="vue-title">Vue 3 SFC Component</strong>
         <p class="framework-sub">
-          Pure Single File Component (.vue SFC) di Aurelia
+          Pure Single File Component (.vue SFC) in Aurelia 2
         </p>
       </div>
     </div>

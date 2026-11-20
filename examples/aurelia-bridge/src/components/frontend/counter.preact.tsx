@@ -16,7 +16,7 @@ export const PreactCounter: FunctionalComponent<PreactCounterProps> = ({
         <span class="framework-logo">🟣</span>
         <div>
           <strong class="preact-title">Preact Component</strong>
-          <p class="framework-sub">Pure Preact 3kB Functional Component di Aurelia</p>
+          <p class="framework-sub">Pure Preact 3kB Functional Component in Aurelia 2</p>
         </div>
       </div>
       <div class="framework-controls">

@@ -16,12 +16,22 @@ import { PreactCounter } from './components/frontend/counter.preact';
 import { SolidCounter } from './components/frontend/counter.solid';
 import { QwikCounter } from './components/frontend/counter.qwik';
 
+// hypermedia
+import htmxTemplate from './components/frontend/htmx.html';
+
+@customElement({
+  name: 'htmx-card',
+  template: htmxTemplate
+})
+export class HtmxCard {}
+
 @customElement({
   name: 'my-app',
   template,
   dependencies: [
     OrderItemCard,
-    FormatNumberValueConverter
+    FormatNumberValueConverter,
+    HtmxCard
   ]
 })
 export class MyApp {
@@ -33,7 +43,7 @@ export class MyApp {
   public PreactCounter = PreactCounter;
   public QwikCounter = QwikCounter;
 
-  // Dependency Injection via Aurelia 2 resolve API (mirip @Injectable / @Autowired)
+  // Dependency Injection via Aurelia 2 resolve API (similar to @Injectable / @Autowired)
   private orderService = resolve(IEnterpriseOrderService);
 
   public orders: OrderItem[] = [];

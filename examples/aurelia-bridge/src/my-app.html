@@ -4,9 +4,9 @@
     <div class="badge-tag">AURELIA 2 • ENTERPRISE + AGNOSTIC ARCHITECTURE</div>
     <h1>Aurelia 2 + Vite + Bun</h1>
     <p class="subtitle">
-      Arsitektur Enterprise sekelas <strong>Java Spring / C# .NET / NestJS</strong> di frontend, 
-      dipadukan dengan kemampuan <strong>Agnostic Host (Proto-Astro)</strong> menampung 
-      <strong>React, Vue, Svelte, Solid, Preact, & Qwik</strong> secara serentak.
+      Enterprise architecture on par with <strong>Java Spring / C# .NET / NestJS</strong> on the frontend, 
+      combined with an <strong>Agnostic Host</strong> capable of orchestrating 
+      <strong>React, Vue, Svelte, Solid, Preact, Qwik, & HTMX</strong> simultaneously.
     </p>
   </header>
 
@@ -14,11 +14,11 @@
   <div class="card callout-enterprise">
     <div class="callout-icon">🏛️</div>
     <div>
-      <h3>Enterprise Pedigree: Dari mana datangnya arsitektur ini?</h3>
+      <h3>Enterprise Pedigree: Architectural Origins</h3>
       <p>
-        Diciptakan oleh <strong>Rob Eisenberg</strong> (yang sempat menjadi arsitek awal Angular 2 sebelum keluar karena friksi desain dengan Google), 
-        Aurelia membawa filosofi <em>Convention over Configuration</em>, Class-based ViewModels murni, dan <strong>IoC Container</strong> tingkat tinggi 
-        yang sangat familiar bagi insinyur backend <strong>Spring Boot, ASP.NET Core, dan NestJS</strong>.
+        Architected by <strong>Rob Eisenberg</strong> (an early architect of Angular 2 before departing over design friction with Google), 
+        Aurelia delivers pure <em>Convention over Configuration</em>, Class-based ViewModels, and an advanced <strong>IoC Container</strong> 
+        familiar to enterprise backend engineers using <strong>Spring Boot, ASP.NET Core, and NestJS</strong>.
       </p>
     </div>
   </div>
@@ -29,17 +29,17 @@
     <div class="card">
       <h2>1. Enterprise Order Management (IoC & DI)</h2>
       <p class="desc">
-        Menggunakan <code>@resolve(IEnterpriseOrderService)</code>. Service dikelola sebagai singleton di dalam IoC Container.
+        Powered by <code>@resolve(IEnterpriseOrderService)</code>. Services are managed as singletons inside the Aurelia IoC Container.
       </p>
 
       <form submit.trigger="addOrder($event)" class="order-form">
         <div class="form-group">
-          <label>Judul Inisiatif / Order:</label>
-          <input type="text" value.bind="newTitle" placeholder="Misal: Azure DevOps Enterprise Integration">
+          <label>Initiative / Order Title:</label>
+          <input type="text" value.bind="newTitle" placeholder="e.g. Azure DevOps Enterprise Integration">
         </div>
         <div class="form-row">
           <div class="form-group flex-1">
-            <label>Departemen:</label>
+            <label>Department:</label>
             <input type="text" value.bind="newDept" placeholder="DevOps / Infrastructure">
           </div>
           <div class="form-group flex-1">
@@ -47,13 +47,13 @@
             <input type="number" value.bind="newBudget" placeholder="10000">
           </div>
         </div>
-        <button type="submit" class="btn btn-primary">+ Ajukan Anggaran</button>
+        <button type="submit" class="btn btn-primary">+ Submit Budget Request</button>
       </form>
 
       <!-- Budget Summary -->
       <div class="budget-summary">
         <div>
-          <span class="label">Total Anggaran Terbuka (Approved):</span>
+          <span class="label">Total Approved Budget:</span>
           <span class="value">$ ${totalApprovedBudget | formatNumber}</span>
         </div>
         <div>
@@ -75,21 +75,21 @@
 
     <!-- Right: The Universal Polyglot Bridge Capability (<au-bridge>) -->
     <div class="card">
-      <h2>2. Universal Polyglot Bridge: Orkestrasi 6 Framework Frontend di Aurelia</h2>
+      <h2>2. Universal Polyglot Bridge: Orchestrating 7 Frontend Frameworks</h2>
       <p class="desc">
-        Aurelia 2 dapat menampung dan mengorkestrasi komponen library manapun secara native di dalam pohon komponen Aurelia.
-        Melalui elemen deklaratif <strong><code>&lt;au-bridge using="..."&gt;</code></strong>, semua framework di-mount secara otomatis dengan reactive two-way binding tanpa boilerplate wrapper manual!
+        Aurelia 2 can host and orchestrate components from any frontend ecosystem directly in its component tree.
+        Via <strong><code>&lt;au-bridge using="..."&gt;</code></strong> and <strong><code>au-htmx</code></strong>, all frameworks mount cleanly with reactive two-way binding and zero wrapper boilerplate!
       </p>
 
       <!-- Shared State Display -->
       <div class="state-bridge-box">
         <div class="bridge-row">
-          <span class="bridge-label">Nilai Shared State di Aurelia ViewModel:</span>
+          <span class="bridge-label">Shared State in Aurelia ViewModel:</span>
           <span class="bridge-val">${sharedCounter}</span>
         </div>
         <p class="bridge-note">
-          State di atas dibagikan via <code>value.bind="sharedCounter"</code> ke 6 framework berbeda di bawah ini.
-          Setiap tombol di dalam React, Vue, Svelte, Solid, Preact, atau Qwik akan memperbarui ViewModel Aurelia secara dua arah dan sinkron!
+          State above is shared via <code>value.bind="sharedCounter"</code> across all reactive frameworks and hypermedia below.
+          Every button click updates the host Aurelia ViewModel synchronously and bidirectionally!
         </p>
       </div>
 
@@ -142,19 +142,22 @@
           value.bind="sharedCounter" 
           on-change.bind="handleCounterUpdate">
         </au-bridge>
+
+        <!-- 7. HTMX 2.0 Component (Pure Hypermedia Component) -->
+        <htmx-card></htmx-card>
       </div>
 
       <!-- Architectural Bounded Context Callout -->
       <div class="critique-box">
-        <h4>⚖️ Disiplin Arsitektural: Pure Polyglot Bridge vs Islands Architecture</h4>
+        <h4>⚖️ Architectural Discipline: Pure Polyglot Bridge vs. Islands Architecture</h4>
         <ul>
           <li>
             <strong>Polyglot Bridge (<code>@aureliajs/bridge</code>)</strong>:
-            Berfokus pada <em>interoperabilitas komponen murni</em>. Memungkinkan migrasi bertahap dan penggunaan design system lintas framework (React, Vue, Svelte, Solid, Preact, Qwik) di dalam satu aplikasi Aurelia 2 dengan live two-way reactive state.
+            Focuses on <em>pure component interoperability</em>. Enables incremental migration and shared design systems across frameworks (React, Vue, Svelte, Solid, Preact, Qwik) within a single Aurelia 2 application with live two-way reactive state.
           </li>
           <li>
             <strong>Islands Architecture (<code>@aureliajs/islands</code>)</strong>:
-            Berfokus pada <em>Zero-JS selective hydration</em> dan performa edge SSR (<code>client:visible</code>, <code>client:idle</code>, <code>client:media</code>). Keduanya adalah bounded context independen yang terpisah secara tegas!
+            Focuses on <em>Zero-JS selective hydration</em> and edge SSR performance (<code>client:visible</code>, <code>client:idle</code>, <code>client:media</code>). Both are strictly separated, independent bounded contexts.
           </li>
         </ul>
       </div>
@@ -165,31 +168,31 @@
   <div class="grid">
     <!-- Left: HTMX Native Integration -->
     <div class="card htmx-card">
-      <h2>3. Hypermedia Native: Integrasi HTMX 2.0 via <code>au-htmx</code></h2>
+      <h2>3. Native Hypermedia: HTMX 2.0 via <code>au-htmx</code></h2>
       <p class="desc">
-        Aurelia 2 dapat mengorkestrasi hypermedia modern langsung dari server HTML tanpa wrapper component.
-        Cukup sematkan custom attribute <strong><code>au-htmx</code></strong> pada elemen DOM manapun:
+        Aurelia 2 can orchestrate modern hypermedia directly from server-rendered HTML without component wrappers.
+        Attach the custom attribute <strong><code>au-htmx</code></strong> to any DOM element:
       </p>
 
       <div class="htmx-container" au-htmx>
         <button class="btn btn-primary btn-htmx" hx-get="/api/htmx-demo" hx-target="#htmx-result" hx-swap="innerHTML">
-          ⚡ Muat Live Hypermedia Fragment (hx-get)
+          ⚡ Fetch Live Hypermedia Fragment (hx-get)
         </button>
         <div id="htmx-result" class="htmx-result-box">
-          <p class="htmx-placeholder">Klik tombol di atas untuk menarik fragment server-rendered via HTMX dan di-swap langsung ke dalam DOM Aurelia.</p>
+          <p class="htmx-placeholder">Click the button above to fetch a server-rendered fragment via HTMX and swap it directly into the Aurelia DOM.</p>
         </div>
       </div>
     </div>
 
     <!-- Right: Orthogonal Composition with @aureliajs/islands -->
     <div class="card islands-comp-card">
-      <h2>4. Komposisi Ortogonal: <code>&lt;au-bridge island="..."&gt;</code></h2>
+      <h2>4. Orthogonal Composition: <code>&lt;au-bridge island="..."&gt;</code></h2>
       <p class="desc">
-        Saat dikombinasikan dengan <strong><code>@aureliajs/islands</code></strong>, runtime foreign (seperti React 19) tidak akan diunduh maupun di-mount sebelum pemicu (trigger) aktif:
+        When combined with <strong><code>@aureliajs/islands</code></strong>, foreign runtimes (such as React 19) are neither downloaded nor mounted until triggered:
       </p>
       
       <div class="syntax-preview">
-        <pre><code>&lt;!-- Zero Foreign Runtime Sampai Elemen Terlihat di Viewport --&gt;
+        <pre><code>&lt;!-- Zero Foreign Runtime Until Element Enters Viewport --&gt;
 &lt;au-bridge 
   island="visible" 
   using="react" 
@@ -198,19 +201,19 @@
 &lt;/au-bridge&gt;</code></pre>
       </div>
       <p class="bridge-note">
-        Fitur ini membuktikan arsitektur monorepo yang bersih: <code>@aureliajs/bridge</code> fokus pada interop komponen, sementara <code>@aureliajs/islands</code> menyediakan template controller <code>island</code> untuk scheduling lazy partial hydration.
+        This clean monorepo architecture ensures <code>@aureliajs/bridge</code> handles component interop while <code>@aureliajs/islands</code> provides the <code>island</code> template controller for scheduling lazy partial hydration.
       </p>
     </div>
   </div>
 
   <!-- Side-by-Side Mental Model Comparison -->
   <div class="card comparison-table-card">
-    <h2>5. Matriks Perbandingan Arsitektur: Enterprise vs Mainstream</h2>
+    <h2>5. Architectural Comparison Matrix: Enterprise vs Mainstream</h2>
     <div class="table-responsive">
       <table class="comparison-table">
         <thead>
           <tr>
-            <th>Aspek</th>
+            <th>Aspect</th>
             <th>AngularJS / AureliaJS</th>
             <th>React-like (React, Solid, Qwik)</th>
             <th>Vue / Svelte</th>
@@ -218,28 +221,28 @@
         </thead>
         <tbody>
           <tr>
-            <td><strong>Paradigma Utama</strong></td>
+            <td><strong>Core Paradigm</strong></td>
             <td>Enterprise OOP, MVVM, IoC Container, Dependency Injection</td>
             <td>Functional UI Runtime, JSX, Immutability, Unidirectional Data</td>
             <td>HTML-First, Single-File Components, Progressive Enhancement</td>
           </tr>
           <tr>
-            <td><strong>Analogi Backend</strong></td>
+            <td><strong>Backend Analogy</strong></td>
             <td>Java Spring, C# .NET, NestJS (Class + Decorator + DI)</td>
             <td>Pure Functions, Pipelines, State Machines</td>
-            <td>Express / Standard Web (Pragmatis, Minim Seremoni)</td>
+            <td>Express / Standard Web (Pragmatic, Minimal Ceremony)</td>
           </tr>
           <tr>
-            <td><strong>Komparasi Apple-to-Apple</strong></td>
-            <td>Sebanding antara sesama Enterprise Framework (Angular & Aurelia)</td>
+            <td><strong>Direct Peer</strong></td>
+            <td>Comparable among Enterprise Frameworks (Angular & Aurelia)</td>
             <td>Solid, Preact, Qwik (React-like family)</td>
-            <td>Vue paling sebanding dengan Svelte (Native HTML feeling)</td>
+            <td>Vue compares directly to Svelte (Native HTML ergonomics)</td>
           </tr>
           <tr>
             <td><strong>Polyglot Interoperability</strong></td>
-            <td>Aurelia mengorkestrasi React/Vue/Svelte via <code>&lt;au-bridge&gt;</code></td>
-            <td>Biasanya menjadi library yang di-mount, bukan container utama</td>
-            <td>Memerlukan wrapper custom jika di-host di luar ekosistemnya</td>
+            <td>Aurelia orchestrates React/Vue/Svelte via <code>&lt;au-bridge&gt;</code></td>
+            <td>Typically mounted as a leaf library rather than host container</td>
+            <td>Requires custom wrapper if hosted outside its ecosystem</td>
           </tr>
         </tbody>
       </table>

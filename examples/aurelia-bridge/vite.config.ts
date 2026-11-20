@@ -60,8 +60,8 @@ function polyglotBridgePlugin(): Plugin {
         res.end(`
           <div class="htmx-live-banner">
             <span class="htmx-badge">⚡ HTMX 2.0 Live Hypermedia</span>
-            <p>Konten ini disajikan dari server via <strong>hx-get="/api/htmx-demo"</strong> dan di-swap langsung oleh Custom Attribute <strong>au-htmx</strong> ke dalam DOM Aurelia 2 tanpa wrapper component.</p>
-            <div class="htmx-meta">Waktu Server: <code>${new Date().toLocaleTimeString()}</code> • Status: <strong>200 OK</strong></div>
+            <p>Delivered dynamically from the server via <strong>hx-get="/api/htmx-demo"</strong> and swapped into the Aurelia 2 DOM by the <strong>au-htmx</strong> Custom Attribute without any wrapper boilerplate.</p>
+            <div class="htmx-meta">Server Time: <code>${new Date().toLocaleTimeString()}</code> • Status: <strong>200 OK</strong></div>
           </div>
         `);
       });

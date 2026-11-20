@@ -20,7 +20,7 @@ export const SolidCounter: Component<SolidCounterProps> = (props) => {
         <span class="framework-logo">🔵</span>
         <div>
           <strong class="solid-title">SolidJS Component</strong>
-          <p class="framework-sub">Pure Solid Component (JSX & Fine-grained Signals) di Aurelia</p>
+          <p class="framework-sub">Pure Solid Component (JSX & Fine-grained Signals) in Aurelia 2</p>
         </div>
       </div>
       <div class="framework-controls">

@@ -1,0 +1,22 @@
+<div class="framework-card htmx-card" au-htmx>
+  <div class="framework-header">
+    <span class="framework-logo">⚡</span>
+    <div>
+      <strong class="htmx-title">HTMX 2.0 Component</strong>
+      <p class="framework-sub">Pure HTML &amp; Hypermedia Controls via au-htmx in Aurelia 2</p>
+    </div>
+  </div>
+  <div class="framework-controls htmx-controls">
+    <button 
+      type="button"
+      class="btn-framework btn-htmx" 
+      hx-get="/api/htmx-demo" 
+      hx-target="#htmx-card-response" 
+      hx-swap="innerHTML">
+      ⚡ Fetch Server Fragment (hx-get)
+    </button>
+    <div id="htmx-card-response" class="htmx-card-response">
+      <span class="framework-sub">Ready to load server-rendered hypermedia</span>
+    </div>
+  </div>
+</div>

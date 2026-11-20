@@ -40,7 +40,7 @@
     <span class="framework-logo">🟠</span>
     <div>
       <strong class="svelte-title">Svelte 5 Runes Component</strong>
-      <p class="framework-sub">Pure Svelte Runes ($state, $effect) & Native Reactive Bridge di Aurelia</p>
+      <p class="framework-sub">Pure Svelte Runes ($state, $effect) & Native Reactive Bridge in Aurelia 2</p>
     </div>
   </div>
   <div class="framework-controls">

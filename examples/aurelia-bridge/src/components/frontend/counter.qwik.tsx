@@ -13,7 +13,7 @@ export const QwikCounter = componentQrl<QwikCounterProps>(
           <span class="framework-logo">⚡</span>
           <div>
             <strong class="qwik-title">Qwik Component</strong>
-            <p class="framework-sub">Pure Qwik Component (.tsx JSX & Resumable) di Aurelia</p>
+            <p class="framework-sub">Pure Qwik Component (.tsx JSX & Resumable) in Aurelia 2</p>
           </div>
         </div>
         <div class="framework-controls">

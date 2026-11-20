@@ -10,15 +10,15 @@
 
 ---
 
-## Pernyataan Komunitas & Etika Transparansi (Transparency Notice)
+## Community Notice & Transparency Standards
 
 > [!IMPORTANT]
-> **Pernyataan Terbuka & Penghormatan untuk Komunitas Resmi:**  
-> Proyek format `.aux` dan plugin ini adalah **inisiatif penelitian independen dari komunitas** yang digagas oleh Sandiko (`sandikodev`). Proyek ini **bukan rilis resmi** dari tim inti Aurelia maupun Aurelia Foundation.
+> **Open Community Disclosure & Upstream Alignment:**  
+> The `.aux` file specification and this compiler plugin are an **independent community research initiative** authored by Sandiko (`@sandikodev`). This project is **not an official release** from the Aurelia Core Team or the Aurelia Foundation.
 >
-> Seluruh kebenaran kanonikal, arsitektur inti, standar filosofis, dan kepemimpinan ekosistem Aurelia sepenuhnya berada di bawah otoritas resmi **Rob Eisenberg, Aurelia Core Team, dan maintainer resmi** di [aurelia.io](https://aurelia.io), [github.com/aurelia](https://github.com/aurelia), dan [discourse.aurelia.io](https://discourse.aurelia.io).
+> Canonical authority, core runtime architecture, design standards, and governance of the Aurelia ecosystem reside with **Rob Eisenberg, the Aurelia Core Team, and official maintainers** at [aurelia.io](https://aurelia.io), [github.com/aurelia](https://github.com/aurelia), and [discourse.aurelia.io](https://discourse.aurelia.io).
 >
-> Eksperimen ini mengeksplorasi Developer Experience (DX) Single-File Component sambil tetap 100% mengompilasi ke `CustomElement.define(...)` standar Aurelia 2 — tanpa menciptakan runtime proprietary.
+> This experiment explores Single-File Component (SFC) Developer Experience (DX) while compiling 100% down to standard Aurelia 2 `CustomElement.define(...)` calls — introducing zero proprietary runtime bloat.
 
 ---
 

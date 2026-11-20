@@ -25,7 +25,7 @@ export const ReactCounter: React.FC<ReactCounterProps> = ({
         <span className="framework-logo">⚛️</span>
         <div>
           <strong className="react-title">React 19 Component</strong>
-          <p className="framework-sub">Pure Component & VDOM Runtime di Aurelia</p>
+          <p className="framework-sub">Pure Component & VDOM Runtime in Aurelia 2</p>
         </div>
       </div>
 

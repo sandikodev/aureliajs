@@ -363,6 +363,7 @@ h2 {
 .solid-title { color: #76c7c0; }
 .preact-title { color: #a78bfa; }
 .qwik-title { color: #ac7ff4; }
+.htmx-title { color: #38bdf8; }
 
 .framework-controls {
   display: flex;
@@ -460,6 +461,21 @@ h2 {
 }
 
 /* HTMX Showcase */
+.htmx-controls {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.htmx-card-response {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
 .btn-htmx {
   background: linear-gradient(135deg, #0284c7, #0369a1);
   margin-bottom: 1rem;
