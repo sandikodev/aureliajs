@@ -3,9 +3,29 @@
     <span class="framework-logo">⚡</span>
     <div>
       <strong class="htmx-title">HTMX 2.0 Component</strong>
-      <p class="framework-sub">Pure HTML &amp; Hypermedia Controls via au-htmx in Aurelia 2</p>
+      <p class="framework-sub">Pure HTML &amp; Server-Driven Hypermedia Swapping via au-htmx</p>
     </div>
   </div>
+
+  <!-- Scope Breakdown Badges -->
+  <div class="scope-pills">
+    <span class="pill pill-shared">Hypermedia Target: #htmx-card-response</span>
+    <span class="pill pill-isolated">Client JS: 0 KB</span>
+    <span class="pill pill-step">Protocol: W3C HTTP/1.1</span>
+  </div>
+
+  <!-- Local DOM Manipulation Indicator (Pure HTML Server-Swapped DOM Fragment) -->
+  <div class="meter-wrapper">
+    <div class="meter-label">
+      <span>HTMX Server-Swapped DOM Fragment:</span>
+      <span>Live HTTP</span>
+    </div>
+    <div id="htmx-card-response" class="htmx-card-response">
+      <span class="framework-sub">Ready to load server-rendered hypermedia fragment...</span>
+    </div>
+  </div>
+
+  <!-- Controls -->
   <div class="framework-controls htmx-controls">
     <button 
       type="button"
@@ -13,10 +33,7 @@
       hx-get="/api/htmx-demo" 
       hx-target="#htmx-card-response" 
       hx-swap="innerHTML">
-      ⚡ Fetch Server Fragment (hx-get)
+      ⚡ Fetch &amp; Swap Server Fragment (hx-get)
     </button>
-    <div id="htmx-card-response" class="htmx-card-response">
-      <span class="framework-sub">Ready to load server-rendered hypermedia</span>
-    </div>
   </div>
 </div>

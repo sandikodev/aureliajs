@@ -57,8 +57,23 @@ describe('examples/aurelia-bridge integration tests', () => {
     expect(app.QwikCounter).toBeDefined();
 
     // Verify counter sync update handler
-    app.handleCounterUpdate(99);
+    app.handleCounterUpdate(99, 'React 19');
     expect(app.sharedCounter).toBe(99);
+    expect(app.auditTrail.length).toBeGreaterThan(0);
+    expect(app.auditTrail[0]?.source).toBe('React 19');
+    expect(app.auditTrail[0]?.newValue).toBe(99);
+
+    // Verify Aurelia host-level broadcast surge & reset
+    app.broadcastSurge(10);
+    expect(app.sharedCounter).toBe(109);
+    expect(app.auditTrail[0]?.newValue).toBe(109);
+
+    app.broadcastReset();
+    expect(app.sharedCounter).toBe(0);
+    expect(app.auditTrail[0]?.newValue).toBe(0);
+
+    // Verify host pulse invocation without error
+    expect(() => app.triggerHostPulse()).not.toThrow();
   });
 
   afterAll(() => {

@@ -5,7 +5,7 @@
     <h1>Aurelia 2 + Vite + Bun</h1>
     <p class="subtitle">
       Enterprise architecture on par with <strong>Java Spring / C# .NET / NestJS</strong> on the frontend, 
-      combined with an <strong>Agnostic Host</strong> capable of orchestrating 
+      combined with an <strong>Agnostic Host</strong> orchestrating 
       <strong>React, Vue, Svelte, Solid, Preact, Qwik, & HTMX</strong> simultaneously.
     </p>
   </header>
@@ -14,11 +14,13 @@
   <div class="card callout-enterprise">
     <div class="callout-icon">🏛️</div>
     <div>
-      <h3>Enterprise Pedigree: Architectural Origins</h3>
+      <h3>Architectural Boundary: Enterprise Host vs. Specialized Leaf Widgets</h3>
       <p>
-        Architected by <strong>Rob Eisenberg</strong> (an early architect of Angular 2 before departing over design friction with Google), 
-        Aurelia delivers pure <em>Convention over Configuration</em>, Class-based ViewModels, and an advanced <strong>IoC Container</strong> 
-        familiar to enterprise backend engineers using <strong>Spring Boot, ASP.NET Core, and NestJS</strong>.
+        <strong>Aurelia 2 (Enterprise Host)</strong> owns the application backbone: IoC container, domain services, 
+        audit trails, and host-level DOM coordination. 
+        <strong>Foreign Frameworks (Leaf Components)</strong> own their isolated internal states and native DOM manipulation 
+        (React refs, Vue template refs, Svelte bindings, Solid signals) while seamlessly synchronizing shared metrics via 
+        <strong><code>&lt;au-bridge&gt;</code></strong>.
       </p>
     </div>
   </div>
@@ -29,7 +31,7 @@
     <div class="card">
       <h2>1. Enterprise Order Management (IoC & DI)</h2>
       <p class="desc">
-        Powered by <code>@resolve(IEnterpriseOrderService)</code>. Services are managed as singletons inside the Aurelia IoC Container.
+        Powered by <code>@resolve(IEnterpriseOrderService)</code>. Service instances are managed as singletons inside Aurelia's IoC Container.
       </p>
 
       <form submit.trigger="addOrder($event)" class="order-form">
@@ -75,32 +77,48 @@
 
     <!-- Right: The Universal Polyglot Bridge Capability (<au-bridge>) -->
     <div class="card">
-      <h2>2. Universal Polyglot Bridge: Orchestrating 7 Frontend Frameworks</h2>
+      <h2>2. Universal Polyglot Bridge: Orchestrating 7 Frontend Paradigms</h2>
       <p class="desc">
-        Aurelia 2 can host and orchestrate components from any frontend ecosystem directly in its component tree.
-        Via <strong><code>&lt;au-bridge using="..."&gt;</code></strong> and <strong><code>au-htmx</code></strong>, all frameworks mount cleanly with reactive two-way binding and zero wrapper boilerplate!
+        Aurelia 2 hosts authentic components from any frontend ecosystem directly in its component tree.
+        Each component maintains <strong>isolated internal state &amp; DOM refs</strong>, while sharing global state bidirectionally!
       </p>
 
-      <!-- Shared State Display -->
+      <!-- Shared State & Host Controls -->
       <div class="state-bridge-box">
         <div class="bridge-row">
-          <span class="bridge-label">Shared State in Aurelia ViewModel:</span>
+          <span class="bridge-label">Aurelia Shared Allocation Metric:</span>
           <span class="bridge-val">${sharedCounter}</span>
         </div>
         <p class="bridge-note">
-          State above is shared via <code>value.bind="sharedCounter"</code> across all reactive frameworks and hypermedia below.
-          Every button click updates the host Aurelia ViewModel synchronously and bidirectionally!
+          Updating <code>sharedCounter</code> below immediately broadcasts to all 7 frameworks.
+          Conversely, any button click in React, Vue, Svelte, Solid, Preact, or Qwik updates Aurelia's ViewModel and all peer frameworks in sync!
         </p>
+
+        <!-- Aurelia Host-Level DOM Manipulation & Broadcast Controls -->
+        <div class="host-actions-bar">
+          <button type="button" class="btn btn-sm btn-host-surge" click.trigger="broadcastSurge(10)">
+            ⚡ Aurelia Surge (+10)
+          </button>
+          <button type="button" class="btn btn-sm btn-host-surge" click.trigger="broadcastSurge(50)">
+            🚀 Aurelia Surge (+50)
+          </button>
+          <button type="button" class="btn btn-sm btn-host-pulse" click.trigger="triggerHostPulse()">
+            💫 Host DOM Pulse
+          </button>
+          <button type="button" class="btn btn-sm btn-outline" click.trigger="broadcastReset()">
+            🔄 Host Reset (0)
+          </button>
+        </div>
       </div>
 
       <!-- Multi-Framework Polyglot Bridge Grid -->
-      <div class="polyglot-grid">
+      <div class="polyglot-grid" ref="polyglotGridRef">
         <!-- 1. React 19 via <au-bridge> -->
         <au-bridge 
           using="react" 
           component.bind="ReactCounter" 
           value.bind="sharedCounter" 
-          on-change.bind="handleCounterUpdate">
+          on-change.bind="(v) => handleCounterUpdate(v, 'React 19')">
         </au-bridge>
 
         <!-- 2. Vue 3 SFC via <au-bridge> -->
@@ -108,7 +126,7 @@
           using="vue" 
           component.bind="VueCounter" 
           value.bind="sharedCounter" 
-          on-change.bind="handleCounterUpdate">
+          on-change.bind="(v) => handleCounterUpdate(v, 'Vue 3 SFC')">
         </au-bridge>
 
         <!-- 3. Svelte 5 Runes via <au-bridge> -->
@@ -116,7 +134,7 @@
           using="svelte" 
           component.bind="SvelteCounter" 
           value.bind="sharedCounter" 
-          on-change.bind="handleCounterUpdate">
+          on-change.bind="(v) => handleCounterUpdate(v, 'Svelte 5 Runes')">
         </au-bridge>
 
         <!-- 4. SolidJS JSX via <au-bridge> -->
@@ -124,7 +142,7 @@
           using="solid" 
           component.bind="SolidCounter" 
           value.bind="sharedCounter" 
-          on-change.bind="handleCounterUpdate">
+          on-change.bind="(v) => handleCounterUpdate(v, 'SolidJS')">
         </au-bridge>
 
         <!-- 5. Preact via <au-bridge> -->
@@ -132,7 +150,7 @@
           using="preact" 
           component.bind="PreactCounter" 
           value.bind="sharedCounter" 
-          on-change.bind="handleCounterUpdate">
+          on-change.bind="(v) => handleCounterUpdate(v, 'Preact 3kB')">
         </au-bridge>
 
         <!-- 6. Qwik via <au-bridge> -->
@@ -140,26 +158,24 @@
           using="qwik" 
           component.bind="QwikCounter" 
           value.bind="sharedCounter" 
-          on-change.bind="handleCounterUpdate">
+          on-change.bind="(v) => handleCounterUpdate(v, 'Qwik Resumable')">
         </au-bridge>
 
         <!-- 7. HTMX 2.0 Component (Pure Hypermedia Component) -->
         <htmx-card></htmx-card>
       </div>
 
-      <!-- Architectural Bounded Context Callout -->
-      <div class="critique-box">
-        <h4>⚖️ Architectural Discipline: Pure Polyglot Bridge vs. Islands Architecture</h4>
-        <ul>
-          <li>
-            <strong>Polyglot Bridge (<code>@aureliajs/bridge</code>)</strong>:
-            Focuses on <em>pure component interoperability</em>. Enables incremental migration and shared design systems across frameworks (React, Vue, Svelte, Solid, Preact, Qwik) within a single Aurelia 2 application with live two-way reactive state.
-          </li>
-          <li>
-            <strong>Islands Architecture (<code>@aureliajs/islands</code>)</strong>:
-            Focuses on <em>Zero-JS selective hydration</em> and edge SSR performance (<code>client:visible</code>, <code>client:idle</code>, <code>client:media</code>). Both are strictly separated, independent bounded contexts.
-          </li>
-        </ul>
+      <!-- Real-Time Cross-Framework Audit Trail -->
+      <div class="audit-card">
+        <h4>📡 Live Cross-Framework Synchronization Audit Trail</h4>
+        <p class="framework-sub">Verifies instantaneous bidirectional state propagation between Aurelia and all foreign runtimes:</p>
+        <div class="audit-list">
+          <div class="audit-item" repeat.for="entry of auditTrail">
+            <span class="audit-source">${entry.source}</span>
+            <span class="audit-vals">${entry.previousValue} &rarr; <strong>${entry.newValue}</strong></span>
+            <span class="audit-time">${entry.timestamp}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -175,7 +191,7 @@
       </p>
 
       <div class="htmx-container" au-htmx>
-        <button class="btn btn-primary btn-htmx" hx-get="/api/htmx-demo" hx-target="#htmx-result" hx-swap="innerHTML">
+        <button type="button" class="btn btn-primary btn-htmx" hx-get="/api/htmx-demo" hx-target="#htmx-result" hx-swap="innerHTML">
           ⚡ Fetch Live Hypermedia Fragment (hx-get)
         </button>
         <div id="htmx-result" class="htmx-result-box">
@@ -208,41 +224,41 @@
 
   <!-- Side-by-Side Mental Model Comparison -->
   <div class="card comparison-table-card">
-    <h2>5. Architectural Comparison Matrix: Enterprise vs Mainstream</h2>
+    <h2>5. Scope Boundary Matrix: Aurelia Host vs. Foreign UI Frameworks</h2>
     <div class="table-responsive">
       <table class="comparison-table">
         <thead>
           <tr>
-            <th>Aspect</th>
-            <th>AngularJS / AureliaJS</th>
-            <th>React-like (React, Solid, Qwik)</th>
-            <th>Vue / Svelte</th>
+            <th>Architectural Dimension</th>
+            <th>Aurelia 2 Enterprise Host</th>
+            <th>Foreign Frameworks (React, Vue, Svelte, Solid, Preact, Qwik)</th>
+            <th>HTMX 2.0 Hypermedia</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>Core Paradigm</strong></td>
-            <td>Enterprise OOP, MVVM, IoC Container, Dependency Injection</td>
-            <td>Functional UI Runtime, JSX, Immutability, Unidirectional Data</td>
-            <td>HTML-First, Single-File Components, Progressive Enhancement</td>
+            <td><strong>Responsibility Scope</strong></td>
+            <td>Enterprise Domain Logic, IoC Container, Single-Source-of-Truth Orchestrator</td>
+            <td>Leaf UI Components, Specialized Visualizations, Design System Widgets</td>
+            <td>Server-Driven HTML Partials, Zero-Client-JS Interactive Fragments</td>
           </tr>
           <tr>
-            <td><strong>Backend Analogy</strong></td>
-            <td>Java Spring, C# .NET, NestJS (Class + Decorator + DI)</td>
-            <td>Pure Functions, Pipelines, State Machines</td>
-            <td>Express / Standard Web (Pragmatic, Minimal Ceremony)</td>
+            <td><strong>State Ownership</strong></td>
+            <td>Shared Session State (<code>sharedCounter</code>, <code>orders</code>, <code>auditTrail</code>)</td>
+            <td><strong>Isolated Local State</strong> (<code>localStep</code>, <code>localClicks</code>) private to each framework</td>
+            <td>Stateless on client; state is maintained on server and delivered as HTML</td>
           </tr>
           <tr>
-            <td><strong>Direct Peer</strong></td>
-            <td>Comparable among Enterprise Frameworks (Angular & Aurelia)</td>
-            <td>Solid, Preact, Qwik (React-like family)</td>
-            <td>Vue compares directly to Svelte (Native HTML ergonomics)</td>
+            <td><strong>DOM Manipulation</strong></td>
+            <td>Host-Level Container Animations (<code>polyglotGridRef</code> pulse, flash alerts)</td>
+            <td><strong>Isolated Local DOM Manipulation</strong> (React <code>useRef</code>, Vue template refs, Svelte bindings)</td>
+            <td>Direct HTML Fragment Swapping (<code>innerHTML</code> swap into DOM target)</td>
           </tr>
           <tr>
-            <td><strong>Polyglot Interoperability</strong></td>
-            <td>Aurelia orchestrates React/Vue/Svelte via <code>&lt;au-bridge&gt;</code></td>
-            <td>Typically mounted as a leaf library rather than host container</td>
-            <td>Requires custom wrapper if hosted outside its ecosystem</td>
+            <td><strong>Inter-Framework Comm</strong></td>
+            <td>Broadcasts changes to all children via <code>value.bind</code> or <code>props.bind</code></td>
+            <td>Calls <code>onChange(val)</code> to notify Aurelia, which broadcasts to all peers</td>
+            <td>Emits standard W3C HTTP requests and DOM events</td>
           </tr>
         </tbody>
       </table>

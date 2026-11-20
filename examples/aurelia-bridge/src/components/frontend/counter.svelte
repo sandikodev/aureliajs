@@ -1,37 +1,37 @@
 <script lang="ts">
   let {
     value = 0,
+    onChange,
     onCounterChange
   }: {
     value?: number;
+    onChange?: (val: number) => void;
     onCounterChange?: (val: number) => void;
   } = $props();
 
-  let count = $state(0);
+  // 1. ISOLATED LOCAL STATE (Svelte 5 Runes)
+  let localStep = $state<number>(1);
+  let localClicks = $state<number>(0);
 
-  // Otomatis sinkron saat props dari host berubah
+  // 2. ISOLATED DOM MANIPULATION (Direct element binding)
+  let meterBarEl: HTMLDivElement | undefined = $state();
+
   $effect(() => {
-    count = value;
+    if (meterBarEl) {
+      const percentage = Math.min(Math.max(value * 2, 5), 100);
+      meterBarEl.style.width = `${percentage}%`;
+      meterBarEl.style.filter = `hue-rotate(${value * 15}deg)`;
+    }
   });
 
-  // Saluran interupsi eksplisit langsung dari instance host
-  export function updateFromHost(val: number) {
-    count = val;
+  function notifyChange(next: number) {
+    localClicks++;
+    onChange?.(next);
+    onCounterChange?.(next);
   }
 
-  function increment() {
-    count++;
-    onCounterChange?.(count);
-  }
-
-  function decrement() {
-    count--;
-    onCounterChange?.(count);
-  }
-
-  function reset() {
-    count = 0;
-    onCounterChange?.(0);
+  function cycleLocalStep() {
+    localStep = localStep === 1 ? 5 : localStep === 5 ? 10 : 1;
   }
 </script>
 
@@ -40,13 +40,43 @@
     <span class="framework-logo">🟠</span>
     <div>
       <strong class="svelte-title">Svelte 5 Runes Component</strong>
-      <p class="framework-sub">Pure Svelte Runes ($state, $effect) & Native Reactive Bridge in Aurelia 2</p>
+      <p class="framework-sub">Idiomatic $state, $effect &amp; Direct DOM Element Binding</p>
     </div>
   </div>
+
+  <!-- Scope Breakdown Badges -->
+  <div class="scope-pills">
+    <span class="pill pill-shared">Shared: {value}</span>
+    <span class="pill pill-isolated">Isolated Clicks: {localClicks}</span>
+    <span class="pill pill-step">Step: &plusmn;{localStep}</span>
+  </div>
+
+  <!-- Local DOM Manipulation Indicator -->
+  <div class="meter-wrapper">
+    <div class="meter-label">
+      <span>Svelte Local DOM Bind Meter:</span>
+      <span>{Math.min(value * 2, 100)}%</span>
+    </div>
+    <div class="meter-track">
+      <div bind:this={meterBarEl} class="meter-bar svelte-meter-bar"></div>
+    </div>
+  </div>
+
+  <!-- Controls -->
   <div class="framework-controls">
-    <span class="framework-value svelte-val">{count}</span>
-    <button class="btn-framework btn-svelte" onclick={increment}>+ Svelte Rune</button>
-    <button class="btn-framework btn-sub" onclick={decrement}>-</button>
-    <button class="btn-framework btn-link-reset" onclick={reset}>Reset</button>
+    <button type="button" class="btn-framework btn-svelte" onclick={() => notifyChange(value + localStep)}>
+      +{localStep} Shared
+    </button>
+    <button type="button" class="btn-framework btn-sub" onclick={() => notifyChange(value - localStep)}>
+      -{localStep}
+    </button>
+    <button 
+      type="button"
+      class="btn-framework btn-isolated" 
+      onclick={cycleLocalStep}
+      title="Toggles local step size exclusively inside Svelte without affecting Aurelia host">
+      Step: &plusmn;{localStep} (Local)
+    </button>
+    <button type="button" class="btn-framework btn-link-reset" onclick={() => notifyChange(0)}>Reset</button>
   </div>
 </div>

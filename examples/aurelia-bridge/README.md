@@ -134,10 +134,22 @@ For hypermedia-driven interfaces, `@aureliajs/bridge` provides the `au-htmx` Cus
 </div>
 ```
 
-### D. Synchronous Two-Way Reactive State Synchronization
+### D. Architectural Scope & Boundary Delineation
+
+To avoid architectural leakage between the enterprise host and foreign UI libraries, the application strictly separates boundaries:
+
+| Scope Dimension | Aurelia 2 Enterprise Host (`MyApp`) | Foreign Leaf Components (React, Vue, Svelte, Solid, Preact, Qwik) | HTMX 2.0 Component (`htmx.html`) |
+| :--- | :--- | :--- | :--- |
+| **Primary Domain** | IoC Dependency Injection, enterprise orders, global data services, audit logging | Dedicated UI widgets, micro-interactions, ecosystem design components | Server-rendered hypermedia fragments |
+| **State Ownership** | **Shared State Coordinator** (`sharedCounter`, `orders`, `auditTrail`) | **Isolated Private State** (`localStep`, `localClicks`) invisible to Aurelia | Stateless on client; state is maintained on server |
+| **DOM Manipulation** | **Host-Level Container DOM** (`polyglotGridRef` glow pulse, host banners) | **Local Framework DOM Manipulation** (React `useRef`, Vue template refs, Svelte bindings, Solid refs) | Native browser HTML swapping via `innerHTML` / `outerHTML` |
+| **Inter-Framework Sync** | Broadcasts changes down to all children via `value.bind` or `props.bind` | Invokes `onChange(nextValue)` to update host and propagate to peer frameworks | Emits standard HTTP requests and DOM events |
+
+### E. Synchronous Two-Way Reactive State Synchronization
 Bidirectional communication functions transparently across framework boundaries:
 - **Aurelia Host → Foreign Subtree**: Binding `value.bind="sharedCounter"` or `props.bind="{ ... }"` synchronizes host state changes into the foreign component via `adapter.update(nextProps)`.
-- **Foreign Subtree → Aurelia Host**: Button clicks inside React, Vue, Svelte, Solid, Preact, or Qwik trigger `onCounterChange`, `onChange`, or emit custom events, immediately updating the Aurelia ViewModel and propagating updates across all peer components in the same render frame.
+- **Foreign Subtree → Aurelia Host**: Button clicks inside React, Vue, Svelte, Solid, Preact, or Qwik trigger `onChange(nextValue)`, immediately updating the Aurelia ViewModel, logging to the real-time audit trail, and propagating updates across all peer components in the same render frame.
+- **Aurelia Host Broadcasts**: Host controls (`broadcastSurge(+10)`, `broadcastReset()`) demonstrate how Aurelia can synchronously update all 7 frameworks simultaneously from the host layer.
 
 ### E. Enterprise Inversion of Control (IoC) & Dependency Injection
 Demonstrates hierarchical Dependency Injection using Aurelia's `@resolve(IEnterpriseOrderService)` API, aligning frontend service architectures with backend standards like Spring Boot (`@Autowired`), ASP.NET Core (`[Inject]`), and NestJS:

@@ -573,3 +573,163 @@ h2 {
 .comparison-table tr:hover {
   background: rgba(255, 255, 255, 0.02);
 }
+
+/* Scope Pills & Badges */
+.scope-pills {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.65rem;
+}
+
+.pill {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.pill-shared {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.pill-isolated {
+  background: rgba(168, 85, 247, 0.12);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.pill-step {
+  background: rgba(234, 179, 8, 0.12);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+/* Direct DOM Manipulation Meter */
+.meter-wrapper {
+  margin-bottom: 0.85rem;
+}
+
+.meter-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.meter-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.meter-bar {
+  height: 100%;
+  width: 10%;
+  border-radius: 3px;
+  transition: width 0.25s ease-out, filter 0.25s ease-out;
+}
+
+.react-meter-bar { background: linear-gradient(90deg, #087ea4, #61dafb); }
+.vue-meter-bar { background: linear-gradient(90deg, #33a06f, #42b883); }
+.svelte-meter-bar { background: linear-gradient(90deg, #e03700, #ff3e00); }
+.solid-meter-bar { background: linear-gradient(90deg, #2c4f7c, #76c7c0); }
+.preact-meter-bar { background: linear-gradient(90deg, #673ab8, #a78bfa); }
+.qwik-meter-bar { background: linear-gradient(90deg, #7c3aed, #ac7ff4); }
+
+.btn-isolated {
+  background: rgba(168, 85, 247, 0.18);
+  color: #e9d5ff;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+.btn-isolated:hover {
+  background: rgba(168, 85, 247, 0.3);
+}
+
+/* Host Controls & Actions */
+.host-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border);
+}
+
+.btn-host-surge {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+}
+.btn-host-surge:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+.btn-host-pulse {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: #fff;
+}
+.btn-host-pulse:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+}
+
+/* Host Highlight Pulse Animation */
+.host-highlight-pulse {
+  animation: hostPulseEffect 0.8s ease;
+}
+
+@keyframes hostPulseEffect {
+  0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.6); border-color: #38bdf8; }
+  50% { box-shadow: 0 0 25px 8px rgba(14, 165, 233, 0.3); border-color: #38bdf8; }
+  100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+}
+
+/* Audit Trail */
+.audit-card {
+  margin-top: 1.5rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.audit-list {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.audit-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.75rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.78rem;
+}
+
+.audit-source {
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.audit-vals {
+  font-family: 'Fira Code', monospace;
+  color: #a1a1aa;
+}
+
+.audit-time {
+  font-size: 0.7rem;
+  color: #71717a;
+}
+
