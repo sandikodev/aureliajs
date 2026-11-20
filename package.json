@@ -36,20 +36,17 @@
     "@babel/preset-typescript": "7.29.7",
     "@playwright/test": "1.65.0",
     "@types/node": "24.10.1",
-    "@vue/compiler-sfc": "3.5.45",
-    "babel-preset-solid": "1.9.19",
+    "aurelia": "^2.0.0-rc.2",
     "bun-types": "^1.4.4",
     "jsdom": "^23.0.0",
+    "linkedom": "^0.18.15",
     "oxlint": "1.93.0",
-    "postgres": "4.1.1",
     "prettier": "3.6.2",
-    "svelte": "5.57.3",
     "typescript": "5.9.3",
     "vite": "8.3.8"
   },
   "workspaces": [
     "apps/*",
-    "packages/*",
-    "examples/*"
+    "packages/*"
   ]
 }
