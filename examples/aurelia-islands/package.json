@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun run build:islands && bun --watch src/server.ts",
-    "build:islands": "bun build src/island-loader.ts src/islands/pricing.ts --outdir public --loader .html:text --minify",
+    "build:islands": "bun build src/island-loader.ts --outdir public --external aurelia --minify && bun build src/components/pricing-island.ts --outdir public/islands --loader .html:text --minify",
     "build": "bun run build:islands && tsc --noEmit",
     "start": "bun src/server.ts",
     "test": "bun test",

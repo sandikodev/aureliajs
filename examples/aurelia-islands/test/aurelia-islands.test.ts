@@ -16,7 +16,7 @@ describe('examples/aurelia-islands integration tests', () => {
     expect(html).toContain('<pricing-island ');
     expect(html).toContain('data-au-island="visible"');
     expect(html).toContain('data-au-root-margin="200px"');
-    expect(html).toContain('data-au-src="/islands/pricing.js"');
+    expect(html).toContain('data-au-src="/islands/pricing-island.js"');
     expect(html).toContain('Pro Plan');
     expect(html).toContain('Total: $75/mo');
 
@@ -35,14 +35,14 @@ describe('examples/aurelia-islands integration tests', () => {
     // 2. Fetch island loader script (~1.28 KB gz)
     const loaderRes = await server.fetch(new Request('http://localhost:3006/island-loader.js'));
     expect(loaderRes.status).toBe(200);
-    expect(loaderRes.headers.get('content-type')).toContain('application/javascript');
+    expect(loaderRes.headers.get('content-type')).toContain('javascript');
     const loaderJs = await loaderRes.text();
     expect(loaderJs).toContain('data-au-island');
 
     // 3. Fetch pricing island component chunk
-    const islandRes = await server.fetch(new Request('http://localhost:3006/islands/pricing.js'));
+    const islandRes = await server.fetch(new Request('http://localhost:3006/islands/pricing-island.js'));
     expect(islandRes.status).toBe(200);
-    expect(islandRes.headers.get('content-type')).toContain('application/javascript');
+    expect(islandRes.headers.get('content-type')).toContain('javascript');
 
     // 4. Health endpoint
     const healthRes = await server.fetch(new Request('http://localhost:3006/health'));

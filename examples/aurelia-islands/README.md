@@ -13,7 +13,7 @@ Designed for the Aurelia community as a simple, reproducible scaffold that can b
 2. **Micro Island Loader (~1.28 KB gzipped)**:
    The browser only downloads `/island-loader.js`, which observes elements matching `[data-au-island]`.
 3. **On-Demand Selective Hydration**:
-   Interactive island chunks (e.g. `/islands/pricing.js`) are fetched and hydrated **ONLY** when their trigger condition fires (e.g. `data-au-island="visible"` via `IntersectionObserver`).
+   Interactive island chunks (e.g. `/islands/pricing-island.js`) are fetched and hydrated **ONLY** when their trigger condition fires (e.g. `data-au-island="visible"` via `IntersectionObserver`).
 
 ---
 
@@ -41,9 +41,7 @@ examples/aurelia-islands/
 ├── src/
 │   ├── components/
 │   │   ├── pricing-island.html     # Island component template
-│   │   └── pricing-island.ts       # Island ViewModel with static trigger metadata
-│   ├── islands/
-│   │   └── pricing.ts              # Client hydration entrypoint for the island
+│   │   └── pricing-island.ts       # Island ViewModel (auto-hydrated on trigger)
 │   ├── pages/
 │   │   ├── islands.html            # Static page shell layout
 │   │   └── islands.ts              # Page component loading the pre-rendered island
@@ -52,7 +50,7 @@ examples/aurelia-islands/
 ├── public/
 │   ├── island-loader.js            # Compiled micro-loader bundle
 │   ├── islands/
-│   │   └── pricing.js              # Compiled island bundle (lazy-loaded on viewport entry)
+│   │   └── pricing-island.js       # Compiled island bundle (lazy-loaded on viewport entry)
 │   └── style.css                   # Minimal styling
 ├── test/
 │   └── aurelia-islands.test.ts     # Automated integration test suite
@@ -82,9 +80,11 @@ export class PricingIsland {
     this.seats++;
   }
 }
+
+export default PricingIsland;
 ```
 
-### 2. Pre-Render Island on Server
+### 2. Pre-Render Island on Server (Convention resolves chunk URL automatically)
 ```typescript
 // src/pages/islands.ts
 import { renderIsland } from '@aureliajs/islands/server';
@@ -92,14 +92,13 @@ import { PricingIsland } from '../components/pricing-island';
 
 const pricingIslandHtml = await renderIsland({
   component: PricingIsland,
-  src: '/islands/pricing.js',
   props: { plan: 'Pro', seats: 5 },
 });
 ```
 
 The resulting HTML looks like:
 ```html
-<pricing-island data-au-island="visible" data-au-root-margin="200px" data-au-src="/islands/pricing.js">
+<pricing-island data-au-island="visible" data-au-root-margin="200px" data-au-src="/islands/pricing-island.js">
   <script type="application/json" data-au-island-data>{"props":{"plan":"Pro","seats":5}}</script>
   <section class="pricing-island">
     <h2>Pro Plan</h2>

@@ -6,7 +6,7 @@
  * - HTML-first SSR via @aureliajs/ssr
  * - Pre-rendered island boundary with lazy hydration metadata via @aureliajs/islands/server
  * - True Zero-JS overhead above the fold: ships only ~1.28 KB island-loader.js
- * - On-demand chunk hydration (/islands/pricing.js) triggered by IntersectionObserver
+ * - On-demand chunk hydration (/islands/pricing-island.js) triggered by IntersectionObserver
  */
 
 import { renderAurelia } from '@aureliajs/ssr';
@@ -20,10 +20,9 @@ export interface IslandServerRenderResult {
 }
 
 export async function renderIslandApp(url: string = 'http://localhost:3000/'): Promise<IslandServerRenderResult> {
-  // 1. Pre-render island component to HTML with selective hydration boundary
+  // 1. Pre-render island component to HTML with selective hydration boundary (convention resolves src automatically)
   const pricingIslandHtml = await renderIsland({
     component: PricingIsland,
-    src: '/islands/pricing.js',
     props: { plan: 'Pro', seats: 5 },
     preserveMarkers: false,
   });
@@ -60,20 +59,12 @@ export const server = {
   async fetch(req: Request): Promise<Response> {
     const url = new URL(req.url);
 
-    // Static asset handlers
-    if (url.pathname === '/island-loader.js') {
-      const file = Bun.file(new URL('../public/island-loader.js', import.meta.url));
-      return new Response(file, { headers: { 'Content-Type': 'application/javascript', 'Cache-Control': 'public, max-age=3600' } });
-    }
-
-    if (url.pathname === '/islands/pricing.js') {
-      const file = Bun.file(new URL('../public/islands/pricing.js', import.meta.url));
-      return new Response(file, { headers: { 'Content-Type': 'application/javascript', 'Cache-Control': 'public, max-age=3600' } });
-    }
-
-    if (url.pathname === '/style.css') {
-      const file = Bun.file(new URL('../public/style.css', import.meta.url));
-      return new Response(file, { headers: { 'Content-Type': 'text/css', 'Cache-Control': 'public, max-age=3600' } });
+    // 1. Universal Zero-Copy Static Asset Serving (Bun handles MIME types & streaming natively)
+    if (url.pathname !== '/') {
+      const file = Bun.file(new URL(`../public${url.pathname}`, import.meta.url));
+      if (await file.exists()) {
+        return new Response(file);
+      }
     }
 
     if (url.pathname === '/favicon.ico') {

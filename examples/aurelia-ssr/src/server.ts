@@ -65,17 +65,11 @@ export const server = {
   async fetch(req: Request): Promise<Response> {
     const url = new URL(req.url);
 
-    // Static asset serving for client bundle and CSS
-    if (url.pathname === '/client.js') {
-      const file = Bun.file(new URL('../public/client.js', import.meta.url));
+    // Universal zero-copy static asset serving for client bundle, CSS, and public assets
+    if (url.pathname !== '/') {
+      const file = Bun.file(new URL(`../public${url.pathname}`, import.meta.url));
       if (await file.exists()) {
-        return new Response(file, { headers: { 'Content-Type': 'application/javascript' } });
-      }
-    }
-    if (url.pathname === '/style.css') {
-      const file = Bun.file(new URL('../public/style.css', import.meta.url));
-      if (await file.exists()) {
-        return new Response(file, { headers: { 'Content-Type': 'text/css' } });
+        return new Response(file);
       }
     }
 

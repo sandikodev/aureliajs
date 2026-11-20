@@ -1,14 +1,20 @@
 import { customElement, resolve } from 'aurelia';
 import { IEnterpriseOrderService, OrderItem } from './services/enterprise-order.service';
 import { OrderItemCard } from './components/order-item';
-import { ReactCounter } from './components/frontend/react-counter';
-import VueCounter from './components/frontend/vue-counter.vue';
-import SvelteCounter from './components/frontend/svelte-counter.svelte';
-import { SolidCounter } from './components/frontend/solid-counter';
-import { PreactCounter } from './components/frontend/preact-counter';
-import { QwikCounter } from './components/frontend/qwik-counter';
+import { ReactCounter } from './components/frontend/counter.react';
 import { FormatNumberValueConverter } from './converters/format-number';
+
+// base
 import template from './my-app.html';
+
+// sfc based
+import VueCounter from './components/frontend/counter.vue';
+import SvelteCounter from './components/frontend/counter.svelte';
+
+// react-like
+import { SolidCounter } from './components/frontend/counter.solid';
+import { PreactCounter } from './components/frontend/counter.preact';
+import { QwikCounter } from './components/frontend/counter.qwik';
 
 @customElement({
   name: 'my-app',

@@ -12,3 +12,5 @@ export class PricingIsland {
     this.seats++;
   }
 }
+
+export default PricingIsland;

@@ -11,7 +11,6 @@ export class IslandsPage implements ICustomElementViewModel {
 
     const pricingIslandHtml = await renderIsland({
       component: PricingIsland,
-      src: '/islands/pricing.js',
       props: { plan: 'Pro', seats: 5 },
       preserveMarkers: false,
     });
