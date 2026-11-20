@@ -4,7 +4,7 @@ import { OrderItemCard } from './components/order-item';
 import { FormatNumberValueConverter } from './converters/format-number';
 
 // Base Template
-import template from './my-app.html';
+import template from './my-app.html?raw';
 
 // ------------------------------------------------------------------------------------------------
 // PURE FRONTEND COMPONENTS (Leaf UI widgets authored in their respective framework conventions)

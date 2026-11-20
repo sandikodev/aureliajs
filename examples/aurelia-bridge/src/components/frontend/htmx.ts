@@ -1,5 +1,5 @@
 import { customElement } from 'aurelia';
-import template from './htmx.html';
+import template from './htmx.html?raw';
 
 /**
  * HTMX 2.0 Pure Hypermedia Component

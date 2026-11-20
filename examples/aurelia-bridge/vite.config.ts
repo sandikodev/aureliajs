@@ -1,18 +1,11 @@
-import { createRequire } from 'node:module';
 import { defineConfig, type Plugin } from 'vite';
 import aurelia from '@aurelia/vite-plugin';
 import { parse, compileScript } from '@vue/compiler-sfc';
 import { compile as compileSvelte } from 'svelte/compiler';
 
-const req = createRequire(import.meta.url);
-const auPluginEntry = req.resolve('@aurelia/vite-plugin');
-const auReq = createRequire(auPluginEntry);
-const { preprocess } = auReq('@aurelia/plugin-conventions');
-const metadataPath = auReq.resolve('@aurelia/metadata');
-
 /**
  * Lightweight polyglot compiler plugin for Vite.
- * Transforms Vue SFC, Svelte 5 runes, Solid JSX, and Aurelia HTML templates on-the-fly.
+ * Transforms Vue SFC, Svelte 5 runes, and Solid JSX on-the-fly.
  */
 function polyglotBridgePlugin(): Plugin {
   return {
@@ -34,7 +27,7 @@ function polyglotBridgePlugin(): Plugin {
         };
       }
 
-      // 3. Svelte 5 Runes
+      // 2. Svelte 5 Runes
       if (id.endsWith('.svelte')) {
         const compiled = compileSvelte(code, { filename: id, generate: 'client', runes: true });
         return {
@@ -43,7 +36,7 @@ function polyglotBridgePlugin(): Plugin {
         };
       }
 
-      // 4. SolidJS JSX Components
+      // 3. SolidJS JSX Components
       if (id.includes('solid') && (id.endsWith('.tsx') || id.endsWith('.jsx'))) {
         const babel = await import('@babel/core');
         const transformed = babel.transformSync(code, {
@@ -56,28 +49,6 @@ function polyglotBridgePlugin(): Plugin {
         return {
           code: transformed?.code ?? '',
           map: transformed?.map,
-        };
-      }
-
-      // 5. Aurelia HTML Templates & HTML Components (Query-safe & HMR-safe transform)
-      const cleanId = id.split('?')[0];
-      if (cleanId.endsWith('.html') && !cleanId.endsWith('index.html')) {
-        // Prevent double transformation if already preprocessed
-        if (code.includes('export const template') || code.includes('export default') || code.includes('@aurelia/runtime-html')) {
-          return null;
-        }
-
-        const result = preprocess(
-          { path: cleanId, contents: code },
-          {
-            hmrModule: false,
-            transformHtmlImportSpecifier: (s) => s,
-            stringModuleWrap: (s) => s,
-          }
-        );
-        return {
-          code: result.code,
-          map: result.map,
         };
       }
 
@@ -105,11 +76,6 @@ export default defineConfig({
     __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(false),
   },
   plugins: [polyglotBridgePlugin(), aurelia({ useDev: false })],
-  resolve: {
-    alias: {
-      '@aurelia/metadata': metadataPath,
-    },
-  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
