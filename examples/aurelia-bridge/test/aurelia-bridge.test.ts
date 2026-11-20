@@ -99,34 +99,35 @@ describe('examples/aurelia-bridge integration tests', () => {
     (globalThis as any).window = win;
     (globalThis as any).document = doc;
     (globalThis as any).CustomEvent = dom.window.CustomEvent;
+    (globalThis as any).qRuntimeQrl = true;
 
     try {
       const qwik = await import('@builder.io/qwik');
-      const { jsx, componentQrl, inlinedQrl, useSignal } = qwik;
+      const { component$, useSignal, $, jsx } = qwik;
       const { createQwikAdapter } = await import('@aureliajs/bridge');
 
       let receivedValue: number | null = null;
       let clickCount = 0;
       const container = doc.getElementById('container')!;
 
-      const TestQwikCounter = componentQrl(inlinedQrl((props: any) => {
+      const TestQwikCounter = component$((props: any) => {
         const localClicks = useSignal(0);
         return jsx('div', {
           class: 'framework-card qwik-card',
           children: [
             jsx('button', {
               class: 'btn-framework btn-qwik qwik-inc-btn',
-              onClick$: inlinedQrl(() => {
+              onClick$: $(() => {
                 localClicks.value++;
                 clickCount = localClicks.value;
                 const next = (props.value ?? 0) + 1;
                 (props.onChange$ ?? props.onChange)?.(next);
-              }, 'qwik_inc'),
+              }),
               children: '+1 Shared'
             })
           ]
         });
-      }, 'TestQwikCounter_component'));
+      });
 
       const adapter = createQwikAdapter(qwik as any);
       const instance = await adapter.mount({
