@@ -75,6 +75,21 @@ export default defineConfig({
     __VUE_PROD_DEVTOOLS__: JSON.stringify(false),
     __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(false),
   },
+  optimizeDeps: {
+    include: [
+      'aurelia',
+      'react',
+      'react-dom/client',
+      'vue',
+      'svelte',
+      'solid-js',
+      'solid-js/web',
+      'preact',
+      'preact/hooks',
+      '@builder.io/qwik',
+      'htmx.org',
+    ],
+  },
   plugins: [polyglotBridgePlugin(), aurelia({ useDev: false })],
   build: {
     outDir: 'dist',
