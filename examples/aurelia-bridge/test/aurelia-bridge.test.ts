@@ -87,6 +87,84 @@ describe('examples/aurelia-bridge integration tests', () => {
     expect(app.auditTrail.length).toBe(0);
   });
 
+  it('dispatches Qwik inlined QRL click events via Qwikloader delegation to update state', async () => {
+    const { JSDOM } = await import('jsdom');
+    const dom = new JSDOM('<!DOCTYPE html><html><body><div id="container"></div></body></html>');
+    const win = dom.window as unknown as typeof globalThis;
+    const doc = dom.window.document;
+
+    const prevWin = globalThis.window;
+    const prevDoc = globalThis.document;
+    const prevCustomEvent = globalThis.CustomEvent;
+    (globalThis as any).window = win;
+    (globalThis as any).document = doc;
+    (globalThis as any).CustomEvent = dom.window.CustomEvent;
+
+    try {
+      const qwik = await import('@builder.io/qwik');
+      const { jsx, componentQrl, inlinedQrl, useSignal } = qwik;
+      const { createQwikAdapter } = await import('@aureliajs/bridge');
+
+      let receivedValue: number | null = null;
+      let clickCount = 0;
+      const container = doc.getElementById('container')!;
+
+      const TestQwikCounter = componentQrl(inlinedQrl((props: any) => {
+        const localClicks = useSignal(0);
+        return jsx('div', {
+          class: 'framework-card qwik-card',
+          children: [
+            jsx('button', {
+              class: 'btn-framework btn-qwik qwik-inc-btn',
+              onClick$: inlinedQrl(() => {
+                localClicks.value++;
+                clickCount = localClicks.value;
+                const next = (props.value ?? 0) + 1;
+                (props.onChange$ ?? props.onChange)?.(next);
+              }, 'qwik_inc'),
+              children: '+1 Shared'
+            })
+          ]
+        });
+      }, 'TestQwikCounter_component'));
+
+      const adapter = createQwikAdapter(qwik as any);
+      const instance = await adapter.mount({
+        container,
+        component: TestQwikCounter,
+        props: {
+          value: 42,
+        },
+        onEvent: (event: string, payload?: unknown) => {
+          if (event === 'change') {
+            receivedValue = payload as number;
+          }
+        },
+      });
+
+      // Find the +1 Shared button
+      const incBtn = container.querySelector('.qwik-inc-btn') as HTMLButtonElement | null;
+      expect(incBtn).not.toBeNull();
+
+      // Dispatch native click event
+      incBtn!.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }));
+
+      // Wait microtasks for Qwik signal & QRL dispatch
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(clickCount).toBe(1);
+      // Value should have incremented from 42 to 43 via onChange
+      expect(receivedValue as unknown as number).toBe(43);
+
+      await instance.destroy();
+    } finally {
+      (globalThis as any).window = prevWin;
+      (globalThis as any).document = prevDoc;
+      (globalThis as any).CustomEvent = prevCustomEvent;
+      dom.window.close();
+    }
+  });
+
   afterAll(() => {
     if (typeof Error.prepareStackTrace === 'function' && Error.prepareStackTrace.name === 'stackTraceRewriter') {
       delete (Error as { prepareStackTrace?: unknown }).prepareStackTrace;

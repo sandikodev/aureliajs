@@ -8,6 +8,9 @@ export interface QwikCounterProps {
   onChange$?: (val: number) => void;
 }
 
+let savedStep = 1;
+let savedClicks = 0;
+
 /**
  * Idiomatic Qwik Component
  *
@@ -19,8 +22,8 @@ export interface QwikCounterProps {
 export const QwikCounter = componentQrl<QwikCounterProps>(
   inlinedQrl((props: QwikCounterProps) => {
     // 1. ISOLATED LOCAL STATE (Qwik Signals)
-    const localStep = useSignal(1);
-    const localClicks = useSignal(0);
+    const localStep = useSignal(savedStep);
+    const localClicks = useSignal(savedClicks);
 
     const val = props.value ?? 0;
     const percentage = Math.min(Math.max(val * 2, 5), 100);
@@ -66,6 +69,7 @@ export const QwikCounter = componentQrl<QwikCounterProps>(
             class="btn-framework btn-qwik qwik-inc-btn"
             onClick$={inlinedQrl(() => {
               localClicks.value++;
+              savedClicks = localClicks.value;
               const next = (props.value ?? 0) + localStep.value;
               (props.onChange$ ?? props.onChange ?? props.onCounterChange)?.(next);
             }, 'qwik_inc')}
@@ -77,6 +81,7 @@ export const QwikCounter = componentQrl<QwikCounterProps>(
             class="btn-framework btn-sub qwik-dec-btn"
             onClick$={inlinedQrl(() => {
               localClicks.value++;
+              savedClicks = localClicks.value;
               const next = (props.value ?? 0) - localStep.value;
               (props.onChange$ ?? props.onChange ?? props.onCounterChange)?.(next);
             }, 'qwik_dec')}
@@ -88,6 +93,7 @@ export const QwikCounter = componentQrl<QwikCounterProps>(
             class="btn-framework btn-isolated"
             onClick$={inlinedQrl(() => {
               localStep.value = localStep.value === 1 ? 5 : localStep.value === 5 ? 10 : 1;
+              savedStep = localStep.value;
             }, 'qwik_step')}
             title="Toggles local step size exclusively inside Qwik without affecting Aurelia host"
           >
@@ -98,6 +104,7 @@ export const QwikCounter = componentQrl<QwikCounterProps>(
             class="btn-framework btn-link-reset qwik-reset-btn"
             onClick$={inlinedQrl(() => {
               localClicks.value++;
+              savedClicks = localClicks.value;
               (props.onChange$ ?? props.onChange ?? props.onCounterChange)?.(0);
             }, 'qwik_reset')}
           >
