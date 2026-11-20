@@ -18,9 +18,45 @@ export const QwikCounter = componentQrl<QwikCounterProps>(
         </div>
         <div class="framework-controls">
           <span class="framework-value qwik-val">{props.value}</span>
-          <button class="btn-framework btn-qwik qwik-inc-btn">+ Qwik Action</button>
-          <button class="btn-framework btn-sub qwik-dec-btn">-</button>
-          <button class="btn-framework btn-link-reset qwik-reset-btn">Reset</button>
+          <button
+            class="btn-framework btn-qwik qwik-inc-btn"
+            onClick$={inlinedQrl(() => {
+              const host = typeof document !== 'undefined' ? document.querySelector('[data-bridge-framework="qwik"]') : null;
+              host?.dispatchEvent(new CustomEvent('bridge-event', {
+                bubbles: true,
+                composed: true,
+                detail: { framework: 'qwik', event: 'change', payload: props.value + 1 },
+              }));
+            }, 'qwik_inc')}
+          >
+            + Qwik Action
+          </button>
+          <button
+            class="btn-framework btn-sub qwik-dec-btn"
+            onClick$={inlinedQrl(() => {
+              const host = typeof document !== 'undefined' ? document.querySelector('[data-bridge-framework="qwik"]') : null;
+              host?.dispatchEvent(new CustomEvent('bridge-event', {
+                bubbles: true,
+                composed: true,
+                detail: { framework: 'qwik', event: 'change', payload: props.value - 1 },
+              }));
+            }, 'qwik_dec')}
+          >
+            -
+          </button>
+          <button
+            class="btn-framework btn-link-reset qwik-reset-btn"
+            onClick$={inlinedQrl(() => {
+              const host = typeof document !== 'undefined' ? document.querySelector('[data-bridge-framework="qwik"]') : null;
+              host?.dispatchEvent(new CustomEvent('bridge-event', {
+                bubbles: true,
+                composed: true,
+                detail: { framework: 'qwik', event: 'change', payload: 0 },
+              }));
+            }, 'qwik_reset')}
+          >
+            Reset
+          </button>
         </div>
       </div>
     );

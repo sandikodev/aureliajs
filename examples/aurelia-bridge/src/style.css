@@ -459,6 +459,74 @@ h2 {
   margin-bottom: 0.5rem;
 }
 
+/* HTMX Showcase */
+.btn-htmx {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  margin-bottom: 1rem;
+}
+
+.btn-htmx:hover {
+  background: linear-gradient(135deg, #0369a1, #075985);
+}
+
+.htmx-result-box {
+  background: var(--bg-primary);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  min-height: 80px;
+}
+
+.htmx-placeholder {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.htmx-live-banner {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.htmx-badge {
+  display: inline-block;
+  background: rgba(14, 165, 233, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.htmx-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+/* Syntax Preview */
+.syntax-preview {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+
+.syntax-preview pre {
+  margin: 0;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.82rem;
+  color: #38bdf8;
+  line-height: 1.5;
+}
+
 /* Comparison Table */
 .comparison-table-card h2 {
   margin-bottom: 1rem;

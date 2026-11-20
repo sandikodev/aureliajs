@@ -54,10 +54,27 @@ function polyglotBridgePlugin(): Plugin {
 
       return null;
     },
+    configureServer(server) {
+      server.middlewares.use('/api/htmx-demo', (req, res) => {
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.end(`
+          <div class="htmx-live-banner">
+            <span class="htmx-badge">⚡ HTMX 2.0 Live Hypermedia</span>
+            <p>Konten ini disajikan dari server via <strong>hx-get="/api/htmx-demo"</strong> dan di-swap langsung oleh Custom Attribute <strong>au-htmx</strong> ke dalam DOM Aurelia 2 tanpa wrapper component.</p>
+            <div class="htmx-meta">Waktu Server: <code>${new Date().toLocaleTimeString()}</code> • Status: <strong>200 OK</strong></div>
+          </div>
+        `);
+      });
+    },
   };
 }
 
 export default defineConfig({
+  define: {
+    __VUE_OPTIONS_API__: JSON.stringify(true),
+    __VUE_PROD_DEVTOOLS__: JSON.stringify(false),
+    __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(false),
+  },
   plugins: [polyglotBridgePlugin(), aurelia({ useDev: false })],
   build: {
     outDir: 'dist',

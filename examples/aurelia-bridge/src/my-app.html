@@ -161,9 +161,51 @@
     </div>
   </div>
 
+  <!-- HTMX & Islands Composition Showcase -->
+  <div class="grid">
+    <!-- Left: HTMX Native Integration -->
+    <div class="card htmx-card">
+      <h2>3. Hypermedia Native: Integrasi HTMX 2.0 via <code>au-htmx</code></h2>
+      <p class="desc">
+        Aurelia 2 dapat mengorkestrasi hypermedia modern langsung dari server HTML tanpa wrapper component.
+        Cukup sematkan custom attribute <strong><code>au-htmx</code></strong> pada elemen DOM manapun:
+      </p>
+
+      <div class="htmx-container" au-htmx>
+        <button class="btn btn-primary btn-htmx" hx-get="/api/htmx-demo" hx-target="#htmx-result" hx-swap="innerHTML">
+          ⚡ Muat Live Hypermedia Fragment (hx-get)
+        </button>
+        <div id="htmx-result" class="htmx-result-box">
+          <p class="htmx-placeholder">Klik tombol di atas untuk menarik fragment server-rendered via HTMX dan di-swap langsung ke dalam DOM Aurelia.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Orthogonal Composition with @aureliajs/islands -->
+    <div class="card islands-comp-card">
+      <h2>4. Komposisi Ortogonal: <code>&lt;au-bridge island="..."&gt;</code></h2>
+      <p class="desc">
+        Saat dikombinasikan dengan <strong><code>@aureliajs/islands</code></strong>, runtime foreign (seperti React 19) tidak akan diunduh maupun di-mount sebelum pemicu (trigger) aktif:
+      </p>
+      
+      <div class="syntax-preview">
+        <pre><code>&lt;!-- Zero Foreign Runtime Sampai Elemen Terlihat di Viewport --&gt;
+&lt;au-bridge 
+  island="visible" 
+  using="react" 
+  component.bind="HeavyChart" 
+  props.bind="chartProps"&gt;
+&lt;/au-bridge&gt;</code></pre>
+      </div>
+      <p class="bridge-note">
+        Fitur ini membuktikan arsitektur monorepo yang bersih: <code>@aureliajs/bridge</code> fokus pada interop komponen, sementara <code>@aureliajs/islands</code> menyediakan template controller <code>island</code> untuk scheduling lazy partial hydration.
+      </p>
+    </div>
+  </div>
+
   <!-- Side-by-Side Mental Model Comparison -->
   <div class="card comparison-table-card">
-    <h2>3. Matriks Perbandingan Arsitektur: Enterprise vs Mainstream</h2>
+    <h2>5. Matriks Perbandingan Arsitektur: Enterprise vs Mainstream</h2>
     <div class="table-responsive">
       <table class="comparison-table">
         <thead>
