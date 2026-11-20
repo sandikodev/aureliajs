@@ -239,8 +239,8 @@ bun run --cwd examples/aurelia-bridge build
 
 ## 5. Troubleshooting & FAQ
 
-### Q: Why do foreign frameworks require `polyglotBridgePlugin` in `vite.config.ts`?
-A: Aurelia uses `@aurelia/vite-plugin` for HTML conventions and standard decorators. To allow Vue SFCs, Svelte Runes, and Solid JSX to compile within the same Vite environment without full multi-framework plugin conflicts, `polyglotBridgePlugin` processes `.vue`, `.svelte`, and `.solid.tsx` files in `enforce: 'pre'` before passing transformed ES modules to Vite's pipeline.
+### Q: How does polyglot compilation work with `@aureliajs/bridge/vite`?
+A: Rather than forcing developers to configure Babel, Vue SFC compilers, and Svelte compilers manually in userland, the official `@aureliajs/bridge/vite` plugin encapsulates all compilation logic. Adding `bridge()` in `vite.config.ts` automatically transforms `.vue` SFCs, `.svelte` runes, and `.solid.tsx` JSX files on-the-fly, injects Vue runtime feature flags, pre-bundles polyglot dependencies, and serves dev mock endpoints.
 
 ### Q: How is Qwik serialized when passing callbacks from Aurelia?
 A: Qwik requires callback boundaries to be serializable QRLs. `@aureliajs/bridge`'s Qwik adapter automatically wraps incoming callbacks with `qwik.inlinedQrl()` when running in a Qwik environment, preventing QRL serialization errors.
