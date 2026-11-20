@@ -1,7 +1,14 @@
+import { createRequire } from 'node:module';
 import { defineConfig, type Plugin } from 'vite';
 import aurelia from '@aurelia/vite-plugin';
 import { parse, compileScript } from '@vue/compiler-sfc';
 import { compile as compileSvelte } from 'svelte/compiler';
+
+const req = createRequire(import.meta.url);
+const auPluginEntry = req.resolve('@aurelia/vite-plugin');
+const auReq = createRequire(auPluginEntry);
+const { preprocess } = auReq('@aurelia/plugin-conventions');
+const metadataPath = auReq.resolve('@aurelia/metadata');
 
 /**
  * Lightweight polyglot compiler plugin for Vite.
@@ -52,6 +59,23 @@ function polyglotBridgePlugin(): Plugin {
         };
       }
 
+      // 5. Aurelia HTML Templates & HTML Components (Query-safe & HMR-safe transform)
+      const cleanId = id.split('?')[0];
+      if (cleanId.endsWith('.html') && !cleanId.endsWith('index.html')) {
+        const result = preprocess(
+          { path: cleanId, contents: code },
+          {
+            hmrModule: false,
+            transformHtmlImportSpecifier: (s) => s,
+            stringModuleWrap: (s) => s,
+          }
+        );
+        return {
+          code: result.code,
+          map: result.map,
+        };
+      }
+
       return null;
     },
     configureServer(server) {
@@ -76,6 +100,11 @@ export default defineConfig({
     __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(false),
   },
   plugins: [polyglotBridgePlugin(), aurelia({ useDev: false })],
+  resolve: {
+    alias: {
+      '@aurelia/metadata': metadataPath,
+    },
+  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,

@@ -28,13 +28,7 @@ import { PreactCounter } from './components/frontend/counter.preact';
 import { QwikCounter } from './components/frontend/counter.qwik';
 
 // 7. HTMX 2.0 Pure Hypermedia Component (Zero Client JS, DOM Fragment Swapping)
-import htmxTemplate from './components/frontend/htmx.html';
-
-@customElement({
-  name: 'htmx-card',
-  template: htmxTemplate,
-})
-export class HtmxCard {}
+import { HtmxCard } from './components/frontend/htmx';
 
 export interface AuditLogEntry {
   id: string;
