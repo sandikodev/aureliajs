@@ -2,7 +2,7 @@
 import { component$, useSignal, $, type PropFunction } from '@builder.io/qwik';
 
 export interface QwikCounterProps {
-  value?: number | (() => number);
+  value?: number;
   onChange$?: PropFunction<(val: number) => void>;
   onCounterChange$?: PropFunction<(val: number) => void>;
   onChange?: (val: number) => void;
@@ -16,8 +16,7 @@ export interface QwikCounterProps {
  * 1. Resumable Component: Standard `component$` function boundary.
  * 2. Fine-grained Reactivity: `useSignal()` for localized isolated state (`localStep`, `localClicks`).
  * 3. Lazy Event Listeners: Idiomatic `$(() => ...)` QRL closures passed to `onClick$`.
- * 4. Natural Value Accessor: Supports both static number values and reactive getter functions:
- *    `const currentVal = () => (typeof props.value === 'function' ? props.value() : (props.value ?? 0));`
+ * 4. Plain Props: `props.value` is a reactive proxy read, tracked by Qwik itself.
  * 5. Resumable Meter: Pure signal-driven style reactivity with zero manual DOM querying.
  * 6. Bounded Context: Bi-directional sync with Aurelia host via typed `onChange$` / `onChange`.
  */
@@ -26,20 +25,18 @@ export const QwikCounter = component$<QwikCounterProps>((props) => {
   const localStep = useSignal(1);
   const localClicks = useSignal(0);
 
-  // 2. NATURAL VALUE ACCESSOR (Supports raw number and getter functions)
-  const currentVal = () => (typeof props.value === 'function' ? props.value() : (props.value ?? 0));
-  const val = currentVal();
+  const val = props.value ?? 0;
   const percentage = Math.min(Math.max(val * 2, 5), 100);
 
   const handleIncrement = $(() => {
     localClicks.value++;
-    const next = currentVal() + localStep.value;
+    const next = (props.value ?? 0) + localStep.value;
     (props.onChange$ ?? props.onChange ?? props.onCounterChange)?.(next);
   });
 
   const handleDecrement = $(() => {
     localClicks.value++;
-    const next = currentVal() - localStep.value;
+    const next = (props.value ?? 0) - localStep.value;
     (props.onChange$ ?? props.onChange ?? props.onCounterChange)?.(next);
   });
 
@@ -64,7 +61,7 @@ export const QwikCounter = component$<QwikCounterProps>((props) => {
 
       {/* Scope Breakdown Badges */}
       <div class="scope-pills">
-        <span class="pill pill-shared">Shared: {currentVal()}</span>
+        <span class="pill pill-shared">Shared: {val}</span>
         <span class="pill pill-isolated">Isolated Clicks: {localClicks.value}</span>
         <span class="pill pill-step">Step: &plusmn;{localStep.value}</span>
       </div>
