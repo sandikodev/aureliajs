@@ -227,6 +227,7 @@ cd examples/fullstack-ssr && bun test
 | **2026-11-20** | **Fase 9** | Cloudflare Workers Parity & Cross-DOM (LinkeDOM) Hardening | Selesai: `wrangler.toml` terintegrasi dengan `@hono/aurelia/build`. LinkeDOM attribute mangling dieliminasi dengan clean `getCategoryClass` helper. Eksekusi worker.js terverifikasi 100% 200 OK. | Sandikodev |
 | **2026-11-20** | **Fase 10** | Convention-over-Configuration Islands & Svelte Language Server Support | Selesai: Penghapusan glue code `pricing.ts`, auto-resolution island `src`, auto-instantiation CustomElement di loader, fix `EADDRINUSE` Bun watch mode, penambahan `svelte.config.js` untuk VSCode/IDE tooling. 14 workspaces typecheck green, 158 tests pass, 0 oxlint error. | Sandikodev |
 | **2026-11-20** | **Fase 11** | Pemurnian Bounded Context Polyglot Bridge vs Islands Architecture | Selesai: Eliminasi total residu istilah "Island" di `examples/aurelia-bridge`. Refaktor 6 komponen foreign ke class `.framework-*`, standarisasi elemen deklaratif `<au-bridge using="...">` di template, dan penegasan batas arsitektural bridge vs islands. 158 tests pass, 14 workspaces typecheck green. | Sandikodev |
+| **2026-11-20** | **Fase 12** | Resolusi Double-Stringified HTML Template di Vite Dev Mode | Selesai: Mengeliminasi pre-transform `.html` berlebih di `polyglotBridgePlugin` yang memicu error `AUR0168 unexpected character "\"addOrder($event)\""`. Template HTML kini ditangani 100% native oleh `@aurelia/vite-plugin`. 158 tests pass, 14 workspaces green. | Sandikodev |
 
 ---
 
