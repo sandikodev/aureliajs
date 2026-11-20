@@ -12,15 +12,7 @@ function polyglotBridgePlugin(): Plugin {
     name: 'vite-plugin-polyglot-bridge',
     enforce: 'pre',
     async transform(code, id) {
-      // 1. Aurelia HTML Templates
-      if (id.endsWith('.html') && !id.endsWith('index.html')) {
-        return {
-          code: `export default ${JSON.stringify(code)};`,
-          map: null,
-        };
-      }
-
-      // 2. Vue 3 SFCs
+      // 1. Vue 3 SFCs
       if (id.endsWith('.vue')) {
         const { descriptor } = parse(code, { filename: id });
         const compiled = compileScript(descriptor, { id: 'vue-sfc', inlineTemplate: true });
