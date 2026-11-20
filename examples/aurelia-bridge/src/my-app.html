@@ -36,17 +36,17 @@
 
       <form submit.trigger="addOrder($event)" class="order-form">
         <div class="form-group">
-          <label>Initiative / Order Title:</label>
-          <input type="text" value.bind="newTitle" placeholder="e.g. Azure DevOps Enterprise Integration">
+          <label for="order-title">Initiative / Order Title:</label>
+          <input id="order-title" name="title" type="text" value.bind="newTitle" placeholder="e.g. Azure DevOps Enterprise Integration">
         </div>
         <div class="form-row">
           <div class="form-group flex-1">
-            <label>Department:</label>
-            <input type="text" value.bind="newDept" placeholder="DevOps / Infrastructure">
+            <label for="order-dept">Department:</label>
+            <input id="order-dept" name="department" type="text" value.bind="newDept" placeholder="DevOps / Infrastructure">
           </div>
           <div class="form-group flex-1">
-            <label>Budget (USD):</label>
-            <input type="number" value.bind="newBudget" placeholder="10000">
+            <label for="order-budget">Budget (USD):</label>
+            <input id="order-budget" name="budget" type="number" value.bind="newBudget" placeholder="10000">
           </div>
         </div>
         <button type="submit" class="btn btn-primary">+ Submit Budget Request</button>
