@@ -11,30 +11,30 @@ export const PreactCounter: FunctionalComponent<PreactCounterProps> = ({
   onCounterChange
 }) => {
   return (
-    <div class="island-card preact-card">
-      <div class="island-header">
-        <span class="island-logo">🟣</span>
+    <div class="framework-card preact-card">
+      <div class="framework-header">
+        <span class="framework-logo">🟣</span>
         <div>
-          <strong class="preact-title">Preact Island Component</strong>
-          <p class="island-sub">Pure Preact 3kB Functional Component di Aurelia</p>
+          <strong class="preact-title">Preact Component</strong>
+          <p class="framework-sub">Pure Preact 3kB Functional Component di Aurelia</p>
         </div>
       </div>
-      <div class="island-controls">
-        <span class="island-value preact-val">{value}</span>
+      <div class="framework-controls">
+        <span class="framework-value preact-val">{value}</span>
         <button
-          class="btn-island btn-preact"
+          class="btn-framework btn-preact"
           onClick={() => onCounterChange?.(value + 1)}
         >
           + Preact State
         </button>
         <button
-          class="btn-island btn-sub"
+          class="btn-framework btn-sub"
           onClick={() => onCounterChange?.(value - 1)}
         >
           -
         </button>
         <button
-          class="btn-island btn-link-reset"
+          class="btn-framework btn-link-reset"
           onClick={() => onCounterChange?.(0)}
         >
           Reset

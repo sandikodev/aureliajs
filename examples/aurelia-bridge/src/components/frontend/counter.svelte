@@ -35,18 +35,18 @@
   }
 </script>
 
-<div class="island-card svelte-card">
-  <div class="island-header">
-    <span class="island-logo">🟠</span>
+<div class="framework-card svelte-card">
+  <div class="framework-header">
+    <span class="framework-logo">🟠</span>
     <div>
-      <strong class="svelte-title">Svelte 5 Island Component</strong>
-      <p class="island-sub">Pure Svelte Runes ($state, $effect) & Native Reactive Bridge di Aurelia</p>
+      <strong class="svelte-title">Svelte 5 Runes Component</strong>
+      <p class="framework-sub">Pure Svelte Runes ($state, $effect) & Native Reactive Bridge di Aurelia</p>
     </div>
   </div>
-  <div class="island-controls">
-    <span class="island-value svelte-val">{count}</span>
-    <button class="btn-island btn-svelte" onclick={increment}>+ Svelte Rune</button>
-    <button class="btn-island btn-sub" onclick={decrement}>-</button>
-    <button class="btn-island btn-link-reset" onclick={reset}>Reset</button>
+  <div class="framework-controls">
+    <span class="framework-value svelte-val">{count}</span>
+    <button class="btn-framework btn-svelte" onclick={increment}>+ Svelte Rune</button>
+    <button class="btn-framework btn-sub" onclick={decrement}>-</button>
+    <button class="btn-framework btn-link-reset" onclick={reset}>Reset</button>
   </div>
 </div>

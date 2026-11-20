@@ -43,12 +43,12 @@ Di dalam contoh ini, **seluruh kerumitan manual di atas dieliminasi 100%**:
 ## 🚀 Fitur Utama
 
 1. **6 Framework Serentak dalam 1 Layar:**
-   - **React 19.3** (`ReactCounter.tsx`)
-   - **Vue 3.5 SFC** (`VueCounter.vue`)
-   - **Svelte 5 Runes** (`SvelteCounter.svelte`)
-   - **SolidJS 1.9** (`SolidCounter.tsx`)
-   - **Preact 11.2** (`PreactCounter.tsx`)
-   - **Qwik 1.20** (`QwikCounter.tsx`)
+   - **React 19.3** (`counter.react.tsx`)
+   - **Vue 3.5 SFC** (`counter.vue`)
+   - **Svelte 5 Runes** (`counter.svelte`)
+   - **SolidJS 1.9** (`counter.solid.tsx`)
+   - **Preact 11.2** (`counter.preact.tsx`)
+   - **Qwik 1.20** (`counter.qwik.tsx`)
 2. **Sinkronisasi Reaktif Dua Arah (Two-Way Reactive State):**
    - Perubahan nilai dari tombol di dalam React, Vue, atau Svelte langsung menyinkronkan property `sharedCounter` pada ViewModel Aurelia `MyApp`, dan secara otomatis memicu pembaruan ke framework lainnya.
 3. **Enterprise Inversion of Control (IoC):**

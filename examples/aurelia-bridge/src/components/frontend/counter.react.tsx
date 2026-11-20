@@ -20,24 +20,24 @@ export const ReactCounter: React.FC<ReactCounterProps> = ({
   const res = () => (onCounterChange ? onCounterChange(0) : onReset?.());
 
   return (
-    <div className="island-card react-card">
-      <div className="island-header">
-        <span className="island-logo">⚛️</span>
+    <div className="framework-card react-card">
+      <div className="framework-header">
+        <span className="framework-logo">⚛️</span>
         <div>
-          <strong className="react-title">React 19 Island Component</strong>
-          <p className="island-sub">Pure Component & VDOM Runtime di Aurelia</p>
+          <strong className="react-title">React 19 Component</strong>
+          <p className="framework-sub">Pure Component & VDOM Runtime di Aurelia</p>
         </div>
       </div>
 
-      <div className="island-controls">
-        <span className="island-value react-val">{value}</span>
-        <button className="btn-island btn-react" onClick={inc}>
+      <div className="framework-controls">
+        <span className="framework-value react-val">{value}</span>
+        <button className="btn-framework btn-react" onClick={inc}>
           + React State
         </button>
-        <button className="btn-island btn-sub" onClick={dec}>
+        <button className="btn-framework btn-sub" onClick={dec}>
           -
         </button>
-        <button className="btn-island btn-link-reset" onClick={res}>
+        <button className="btn-framework btn-link-reset" onClick={res}>
           Reset
         </button>
       </div>

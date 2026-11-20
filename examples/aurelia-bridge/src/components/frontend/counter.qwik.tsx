@@ -8,19 +8,19 @@ export interface QwikCounterProps {
 export const QwikCounter = componentQrl<QwikCounterProps>(
   inlinedQrl((props: QwikCounterProps) => {
     return (
-      <div class="island-card qwik-card">
-        <div class="island-header">
-          <span class="island-logo">⚡</span>
+      <div class="framework-card qwik-card">
+        <div class="framework-header">
+          <span class="framework-logo">⚡</span>
           <div>
-            <strong class="qwik-title">Qwik Island Component</strong>
-            <p class="island-sub">Pure Qwik Component (.tsx JSX & Resumable) di Aurelia</p>
+            <strong class="qwik-title">Qwik Component</strong>
+            <p class="framework-sub">Pure Qwik Component (.tsx JSX & Resumable) di Aurelia</p>
           </div>
         </div>
-        <div class="island-controls">
-          <span class="island-value qwik-val">{props.value}</span>
-          <button class="btn-island btn-qwik qwik-inc-btn">+ Qwik Action</button>
-          <button class="btn-island btn-sub qwik-dec-btn">-</button>
-          <button class="btn-island btn-link-reset qwik-reset-btn">Reset</button>
+        <div class="framework-controls">
+          <span class="framework-value qwik-val">{props.value}</span>
+          <button class="btn-framework btn-qwik qwik-inc-btn">+ Qwik Action</button>
+          <button class="btn-framework btn-sub qwik-dec-btn">-</button>
+          <button class="btn-framework btn-link-reset qwik-reset-btn">Reset</button>
         </div>
       </div>
     );

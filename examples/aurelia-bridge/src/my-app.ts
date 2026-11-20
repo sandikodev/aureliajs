@@ -1,7 +1,6 @@
 import { customElement, resolve } from 'aurelia';
 import { IEnterpriseOrderService, OrderItem } from './services/enterprise-order.service';
 import { OrderItemCard } from './components/order-item';
-import { ReactCounter } from './components/frontend/counter.react';
 import { FormatNumberValueConverter } from './converters/format-number';
 
 // base
@@ -12,8 +11,9 @@ import VueCounter from './components/frontend/counter.vue';
 import SvelteCounter from './components/frontend/counter.svelte';
 
 // react-like
-import { SolidCounter } from './components/frontend/counter.solid';
+import { ReactCounter } from './components/frontend/counter.react';
 import { PreactCounter } from './components/frontend/counter.preact';
+import { SolidCounter } from './components/frontend/counter.solid';
 import { QwikCounter } from './components/frontend/counter.qwik';
 
 @customElement({

@@ -312,8 +312,8 @@ h2 {
   color: var(--text-muted);
 }
 
-/* Framework Islands Container */
-.islands-container {
+/* Multi-Framework Polyglot Grid */
+.polyglot-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
@@ -321,7 +321,7 @@ h2 {
 }
 
 @media (max-width: 600px) {
-  .islands-container {
+  .polyglot-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -341,9 +341,93 @@ h2 {
 
 .framework-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
   margin-bottom: 0.75rem;
+}
+
+.framework-logo {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.framework-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+.react-title { color: #61dafb; }
+.vue-title { color: #42b883; }
+.svelte-title { color: #ff3e00; }
+.solid-title { color: #76c7c0; }
+.preact-title { color: #a78bfa; }
+.qwik-title { color: #ac7ff4; }
+
+.framework-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.framework-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  min-width: 2.5rem;
+  text-align: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.react-val { color: #61dafb; }
+.vue-val { color: #42b883; }
+.svelte-val { color: #ff3e00; }
+.solid-val { color: #76c7c0; }
+.preact-val { color: #a78bfa; }
+.qwik-val { color: #ac7ff4; }
+
+.btn-framework {
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.btn-react { background: #087ea4; color: #fff; }
+.btn-react:hover { background: #0a98c7; }
+.btn-vue { background: #42b883; color: #fff; }
+.btn-vue:hover { background: #33a06f; }
+.btn-svelte { background: #ff3e00; color: #fff; }
+.btn-svelte:hover { background: #e03700; }
+.btn-solid { background: #2c4f7c; color: #fff; }
+.btn-solid:hover { background: #3b6aa6; }
+.btn-preact { background: #673ab8; color: #fff; }
+.btn-preact:hover { background: #7c4ec9; }
+.btn-qwik { background: #ac7ff4; color: #18181b; }
+.btn-qwik:hover { background: #be9af8; }
+
+.btn-sub {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+  padding: 0.4rem 0.6rem;
+}
+.btn-sub:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-link-reset {
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  padding: 0.4rem 0.5rem;
+}
+.btn-link-reset:hover {
+  color: var(--text-main);
 }
 
 .framework-badge {

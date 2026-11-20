@@ -13,21 +13,21 @@
 </script>
 
 <template>
-  <div class="island-card vue-card">
-    <div class="island-header">
-      <span class="island-logo">🟢</span>
+  <div class="framework-card vue-card">
+    <div class="framework-header">
+      <span class="framework-logo">🟢</span>
       <div>
-        <strong class="vue-title">Vue 3 Island Component</strong>
-        <p class="island-sub">
+        <strong class="vue-title">Vue 3 SFC Component</strong>
+        <p class="framework-sub">
           Pure Single File Component (.vue SFC) di Aurelia
         </p>
       </div>
     </div>
-    <div class="island-controls">
-      <span class="island-value vue-val">{{ value }}</span>
-      <button class="btn-island btn-vue" @click="increment">+ Vue State</button>
-      <button class="btn-island btn-sub" @click="decrement">-</button>
-      <button class="btn-island btn-link-reset" @click="reset">Reset</button>
+    <div class="framework-controls">
+      <span class="framework-value vue-val">{{ value }}</span>
+      <button class="btn-framework btn-vue" @click="increment">+ Vue State</button>
+      <button class="btn-framework btn-sub" @click="decrement">-</button>
+      <button class="btn-framework btn-link-reset" @click="reset">Reset</button>
     </div>
   </div>
 </template>

@@ -73,15 +73,15 @@
       </div>
     </div>
 
-    <!-- Right: The Agnostic "Proto-Astro" Capability & Universal Islands -->
+    <!-- Right: The Universal Polyglot Bridge Capability (<au-bridge>) -->
     <div class="card">
-      <h2>2. Kemampuan Agnostik: Menampung 6 Framework Frontend di Aurelia</h2>
+      <h2>2. Universal Polyglot Bridge: Orkestrasi 6 Framework Frontend di Aurelia</h2>
       <p class="desc">
-        Aurelia sejak awal bisa menampung komponen library apapun secara agnostik di dalam Custom Element-nya (mirip konsep <strong>Islands Architecture Astro</strong>).
-        Kini disederhanakan dengan <strong>Universal Convention Island (<code>&lt;aurelia-island&gt;</code>)</strong> tanpa glue code manual!
+        Aurelia 2 dapat menampung dan mengorkestrasi komponen library manapun secara native di dalam pohon komponen Aurelia.
+        Melalui elemen deklaratif <strong><code>&lt;au-bridge using="..."&gt;</code></strong>, semua framework di-mount secara otomatis dengan reactive two-way binding tanpa boilerplate wrapper manual!
       </p>
 
-      <!-- Aurelia-Islands Shared State Display -->
+      <!-- Shared State Display -->
       <div class="state-bridge-box">
         <div class="bridge-row">
           <span class="bridge-label">Nilai Shared State di Aurelia ViewModel:</span>
@@ -93,70 +93,68 @@
         </p>
       </div>
 
-      <!-- Multi-Framework Agnostic Islands (Universal Convention Adapter) -->
-      <div class="islands-container">
-        <!-- 1. React 19 Island -->
-        <aurelia-island 
-          type="react" 
+      <!-- Multi-Framework Polyglot Bridge Grid -->
+      <div class="polyglot-grid">
+        <!-- 1. React 19 via <au-bridge> -->
+        <au-bridge 
+          using="react" 
           component.bind="ReactCounter" 
           value.bind="sharedCounter" 
           on-change.bind="handleCounterUpdate">
-        </aurelia-island>
+        </au-bridge>
 
-        <!-- 2. Vue 3 Island -->
-        <aurelia-island 
-          type="vue" 
+        <!-- 2. Vue 3 SFC via <au-bridge> -->
+        <au-bridge 
+          using="vue" 
           component.bind="VueCounter" 
           value.bind="sharedCounter" 
           on-change.bind="handleCounterUpdate">
-        </aurelia-island>
+        </au-bridge>
 
-        <!-- 3. Svelte 5 Island -->
-        <aurelia-island 
-          type="svelte" 
+        <!-- 3. Svelte 5 Runes via <au-bridge> -->
+        <au-bridge 
+          using="svelte" 
           component.bind="SvelteCounter" 
           value.bind="sharedCounter" 
           on-change.bind="handleCounterUpdate">
-        </aurelia-island>
+        </au-bridge>
 
-        <!-- 4. SolidJS Island -->
-        <aurelia-island 
-          type="solid" 
+        <!-- 4. SolidJS JSX via <au-bridge> -->
+        <au-bridge 
+          using="solid" 
           component.bind="SolidCounter" 
           value.bind="sharedCounter" 
           on-change.bind="handleCounterUpdate">
-        </aurelia-island>
+        </au-bridge>
 
-        <!-- 5. Preact Island -->
-        <aurelia-island 
-          type="preact" 
+        <!-- 5. Preact via <au-bridge> -->
+        <au-bridge 
+          using="preact" 
           component.bind="PreactCounter" 
           value.bind="sharedCounter" 
           on-change.bind="handleCounterUpdate">
-        </aurelia-island>
+        </au-bridge>
 
-        <!-- 6. Qwik Island -->
-        <aurelia-island 
-          type="qwik" 
+        <!-- 6. Qwik via <au-bridge> -->
+        <au-bridge 
+          using="qwik" 
           component.bind="QwikCounter" 
           value.bind="sharedCounter" 
           on-change.bind="handleCounterUpdate">
-        </aurelia-island>
+        </au-bridge>
       </div>
 
-      <!-- Architectural Critique Callout -->
+      <!-- Architectural Bounded Context Callout -->
       <div class="critique-box">
-        <h4>⚖️ Kritik Arsitektural: Aurelia vs Astro (Mengapa Astro Menang?):</h4>
+        <h4>⚖️ Disiplin Arsitektural: Pure Polyglot Bridge vs Islands Architecture</h4>
         <ul>
           <li>
-            <strong>Astro</strong> mendisiplinkan konsep ini menjadi <em>Islands Architecture</em> resmi 
-            (<code>@astrojs/react</code>, <code>@astrojs/vue</code>, <code>@astrojs/svelte</code>, <code>@astrojs/solid-js</code>, <code>@astrojs/preact</code>, dll) 
-            dengan lazy partial hydration (<code>client:visible</code>, <code>client:load</code>) yang bersih tanpa glue code manual bagi pengguna.
+            <strong>Polyglot Bridge (<code>@aureliajs/bridge</code>)</strong>:
+            Berfokus pada <em>interoperabilitas komponen murni</em>. Memungkinkan migrasi bertahap dan penggunaan design system lintas framework (React, Vue, Svelte, Solid, Preact, Qwik) di dalam satu aplikasi Aurelia 2 dengan live two-way reactive state.
           </li>
           <li>
-            <strong>Aurelia</strong> sudah punya fondasi agnostik sejak dulu, namun dokumentasi resminya membiarkan developer 
-            menulis <em>bloated glue code</em> manual. Lewat paket <strong><code>@aureliajs/bridge</code></strong> karya Sandikodev, 
-            kita membuktikan Aurelia mampu mengeksekusi arsitektur kepulauan ini secara bersih berbasis konvensi!
+            <strong>Islands Architecture (<code>@aureliajs/islands</code>)</strong>:
+            Berfokus pada <em>Zero-JS selective hydration</em> dan performa edge SSR (<code>client:visible</code>, <code>client:idle</code>, <code>client:media</code>). Keduanya adalah bounded context independen yang terpisah secara tegas!
           </li>
         </ul>
       </div>
@@ -196,10 +194,10 @@
             <td>Vue paling sebanding dengan Svelte (Native HTML feeling)</td>
           </tr>
           <tr>
-            <td><strong>Agnostic Hosting (Islands)</strong></td>
-            <td>Aurelia bisa menampung React/Vue melalui Universal Island</td>
+            <td><strong>Polyglot Interoperability</strong></td>
+            <td>Aurelia mengorkestrasi React/Vue/Svelte via <code>&lt;au-bridge&gt;</code></td>
             <td>Biasanya menjadi library yang di-mount, bukan container utama</td>
-            <td>Astro menyempurnakan konsep ini dengan sangat disiplin & ergonomis</td>
+            <td>Memerlukan wrapper custom jika di-host di luar ekosistemnya</td>
           </tr>
         </tbody>
       </table>
