@@ -20,6 +20,9 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test"
   },
+  "workspaces": [
+    "example"
+  ],
   "keywords": [
     "aurelia",
     "aurelia2",

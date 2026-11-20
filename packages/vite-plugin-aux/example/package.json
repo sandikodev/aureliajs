@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@aureliajs/vite-plugin-aux": "workspace:*",
+    "@aureliajs/vite-plugin-aux": "file:..",
     "aurelia": "^2.0.0-rc.2"
   },
   "devDependencies": {

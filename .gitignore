@@ -29,9 +29,9 @@ Thumbs.db
 packages/*/src/**/*.js
 packages/*/src/**/*.js.map
 packages/*/src/**/*.d.ts
-examples/*/public/**/*.js
-examples/*/public/**/*.js.map
-examples/*/public/bridge/manifest.json
+packages/*/example/public/**/*.js
+packages/*/example/public/**/*.js.map
+packages/*/example/dist/
 
 # Reference benchmark apps
 benchmarks/
