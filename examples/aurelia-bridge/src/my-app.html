@@ -180,7 +180,7 @@
     </div>
   </div>
 
-  <!-- HTMX & Islands Composition Showcase -->
+  <!-- HTMX & Bridge Architecture Showcase -->
   <div class="grid">
     <!-- Left: HTMX Native Integration -->
     <div class="card htmx-card">
@@ -200,24 +200,23 @@
       </div>
     </div>
 
-    <!-- Right: Orthogonal Composition with @aureliajs/islands -->
-    <div class="card islands-comp-card">
-      <h2>4. Orthogonal Composition: <code>&lt;au-bridge island="..."&gt;</code></h2>
+    <!-- Right: Universal Bridge Architecture & Adapter Protocol -->
+    <div class="card bridge-protocol-card">
+      <h2>4. Universal Bridge Protocol: <code>&lt;au-bridge using="..."&gt;</code></h2>
       <p class="desc">
-        When combined with <strong><code>@aureliajs/islands</code></strong>, foreign runtimes (such as React 19) are neither downloaded nor mounted until triggered:
+        A single declarative contract orchestrates any frontend framework inside Aurelia 2 without glue code:
       </p>
       
       <div class="syntax-preview">
-        <pre><code>&lt;!-- Zero Foreign Runtime Until Element Enters Viewport --&gt;
+        <pre><code>&lt;!-- Pure Universal Declarative Bridge Syntax --&gt;
 &lt;au-bridge 
-  island="visible" 
-  using="react" 
-  component.bind="HeavyChart" 
-  props.bind="chartProps"&gt;
+  using="react | vue | svelte | solid | preact | qwik" 
+  component.bind="WidgetComponent" 
+  props.bind="{ value: sharedCounter, onChange: handleUpdate }"&gt;
 &lt;/au-bridge&gt;</code></pre>
       </div>
       <p class="bridge-note">
-        This clean monorepo architecture ensures <code>@aureliajs/bridge</code> handles component interop while <code>@aureliajs/islands</code> provides the <code>island</code> template controller for scheduling lazy partial hydration.
+        The <code>IBridgeRegistry</code> manages framework adapters as pluggable services, handling mounting, reactivity propagation, and DOM cleanup automatically across all component lifecycles.
       </p>
     </div>
   </div>

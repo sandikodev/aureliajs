@@ -2,12 +2,7 @@
 import { ref, watch, onMounted } from 'vue';
 
 const props = withDefaults(
-  defineProps<{
-    value?: number;
-  }>(),
-  {
-    value: 0,
-  }
+  defineProps<{ value?: number }>(), { value: 0 }
 );
 
 const emit = defineEmits<{
@@ -89,10 +84,7 @@ function cycleLocalStep() {
       <button type="button" class="btn-framework btn-sub" @click="notifyChange(value - localStep)">
         -{{ localStep }}
       </button>
-      <button 
-        type="button"
-        class="btn-framework btn-isolated" 
-        @click="cycleLocalStep" 
+      <button type="button" class="btn-framework btn-isolated" @click="cycleLocalStep"
         title="Toggles local step size exclusively inside Vue without affecting Aurelia host">
         Step: &plusmn;{{ localStep }} (Local)
       </button>

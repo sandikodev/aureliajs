@@ -2,7 +2,7 @@
   let {
     value = 0,
     onChange,
-    onCounterChange
+    onCounterChange,
   }: {
     value?: number;
     onChange?: (val: number) => void;
@@ -64,19 +64,30 @@
 
   <!-- Controls -->
   <div class="framework-controls">
-    <button type="button" class="btn-framework btn-svelte" onclick={() => notifyChange(value + localStep)}>
+    <button
+      type="button"
+      class="btn-framework btn-svelte"
+      onclick={() => notifyChange(value + localStep)}
+    >
       +{localStep} Shared
     </button>
-    <button type="button" class="btn-framework btn-sub" onclick={() => notifyChange(value - localStep)}>
+    <button
+      type="button"
+      class="btn-framework btn-sub"
+      onclick={() => notifyChange(value - localStep)}
+    >
       -{localStep}
     </button>
-    <button 
+    <button
       type="button"
-      class="btn-framework btn-isolated" 
+      class="btn-framework btn-isolated"
       onclick={cycleLocalStep}
-      title="Toggles local step size exclusively inside Svelte without affecting Aurelia host">
+      title="Toggles local step size exclusively inside Svelte without affecting Aurelia host"
+    >
       Step: &plusmn;{localStep} (Local)
     </button>
-    <button type="button" class="btn-framework btn-link-reset" onclick={() => notifyChange(0)}>Reset</button>
+    <button type="button" class="btn-framework btn-link-reset" onclick={() => notifyChange(0)}
+      >Reset</button
+    >
   </div>
 </div>

@@ -10,7 +10,7 @@ if (typeof Error.prepareStackTrace === 'function' && Error.prepareStackTrace.nam
 }
 
 describe('examples/aurelia-bridge integration tests', () => {
-  it('registers BridgeConfiguration, AuBridge, and AureliaIsland in Aurelia DI container', () => {
+  it('registers BridgeConfiguration and AuBridge in Aurelia DI container', () => {
     const container = DI.createContainer();
     container.register(BridgeConfiguration);
 

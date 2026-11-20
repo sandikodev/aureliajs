@@ -81,39 +81,29 @@ This example mounts seven distinct UI paradigms inside a single Aurelia 2 applic
 6. **Qwik 1.20 Component**: Resumable JSX component with serializable QRL event boundaries (`src/components/frontend/counter.qwik.tsx`).
 7. **HTMX 2.0 Component (`htmx.html`)**: Pure HTML hypermedia component powered by the `au-htmx` custom attribute (`src/components/frontend/htmx.html`).
 
-### B. Orthogonal Composition with `@aureliajs/islands`
-When combined with [`@aureliajs/islands`](../../packages/aurelia-islands), foreign library runtimes (such as React 19 or Vue 3) are **neither downloaded nor mounted** until triggered in the client browser:
+### B. Bidirectional Lifecycle & Event Protocol
+Foreign components are mounted, updated, and destroyed deterministically by `@aureliajs/bridge`'s adapter protocol:
 
 ```html
-<!-- Zero foreign bundle download until element enters the viewport (IntersectionObserver) -->
+<!-- Direct binding to any foreign component with two-way metric sync -->
 <au-bridge 
-  island="visible" 
   using="react" 
-  loader.bind="() => import('./heavy-chart.react')" 
-  props.bind="chartData">
+  component.bind="ReactCounter" 
+  props.bind="{ value: sharedCounter, onChange: handleCounterUpdate }">
 </au-bridge>
 
-<!-- Defer mounting until the browser main thread is idle (requestIdleCallback) -->
+<!-- Seamlessly orchestrating Vue 3 SFC with isolated local refs -->
 <au-bridge 
-  island="idle" 
   using="vue" 
-  component.bind="ChatWidget" 
-  props.bind="userSession">
-</au-bridge>
-
-<!-- Mount conditionally based on CSS Media Query evaluation -->
-<au-bridge 
-  island="media" 
-  data-au-media="(min-width: 1024px)" 
-  using="svelte" 
-  component.bind="DesktopSidebar">
+  component.bind="VueCounter" 
+  props.bind="{ value: sharedCounter, onChange: handleCounterUpdate }">
 </au-bridge>
 ```
 
 > **Architectural Boundary Principle**:
-> - `@aureliajs/bridge` is responsible for **component interoperability** (*what* foreign runtime is mounted and *how* bidirectional state is synchronized).
-> - `@aureliajs/islands` is responsible for **selective hydration scheduling** (*when* and *under what conditions* hydration occurs).
-> - The two modules remain strictly decoupled while composing seamlessly through Aurelia's template compiler.
+> - `@aureliajs/bridge` is responsible for **component interoperability** (*what* foreign runtime is mounted, *how* props are bound, and *how* bidirectional events are synchronized).
+> - Each foreign component manages its **isolated private state & local DOM refs** independently.
+> - Aurelia 2 maintains the **enterprise host state, DI singletons, and cross-framework audit trail**.
 
 ### C. Native Hypermedia Integration (`au-htmx`)
 For hypermedia-driven interfaces, `@aureliajs/bridge` provides the `au-htmx` Custom Attribute:

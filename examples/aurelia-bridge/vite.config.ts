@@ -62,6 +62,11 @@ function polyglotBridgePlugin(): Plugin {
       // 5. Aurelia HTML Templates & HTML Components (Query-safe & HMR-safe transform)
       const cleanId = id.split('?')[0];
       if (cleanId.endsWith('.html') && !cleanId.endsWith('index.html')) {
+        // Prevent double transformation if already preprocessed
+        if (code.includes('export const template') || code.includes('export default') || code.includes('@aurelia/runtime-html')) {
+          return null;
+        }
+
         const result = preprocess(
           { path: cleanId, contents: code },
           {
