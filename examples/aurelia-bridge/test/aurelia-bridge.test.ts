@@ -74,6 +74,17 @@ describe('examples/aurelia-bridge integration tests', () => {
 
     // Verify host pulse invocation without error
     expect(() => app.triggerHostPulse()).not.toThrow();
+
+    // Verify floating console dock toggle & clear
+    expect(app.isConsoleExpanded).toBe(false);
+    app.toggleConsole();
+    expect(app.isConsoleExpanded).toBe(true);
+    app.toggleConsole();
+    expect(app.isConsoleExpanded).toBe(false);
+
+    expect(app.auditTrail.length).toBeGreaterThan(0);
+    app.clearAuditTrail();
+    expect(app.auditTrail.length).toBe(0);
   });
 
   afterAll(() => {

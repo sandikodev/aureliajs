@@ -1,3 +1,4 @@
+/** @jsxImportSource preact */
 import { useState, useRef, useEffect } from 'preact/hooks';
 
 export interface PreactCounterProps {

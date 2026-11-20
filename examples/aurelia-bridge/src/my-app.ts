@@ -96,6 +96,17 @@ export class MyApp {
   /** Real-time audit trail recording every state change and its exact origin */
   public auditTrail: AuditLogEntry[] = [];
 
+  /** Controls floating bottom telemetry & audit console dock expansion */
+  public isConsoleExpanded: boolean = false;
+
+  public toggleConsole(): void {
+    this.isConsoleExpanded = !this.isConsoleExpanded;
+  }
+
+  public clearAuditTrail(): void {
+    this.auditTrail = [];
+  }
+
   // Host DOM element reference for host-level DOM manipulation
   public polyglotGridRef?: HTMLElement;
 
