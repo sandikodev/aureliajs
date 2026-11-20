@@ -15,7 +15,7 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*", "test/**/*"],
+  "include": ["src/**/*", "test/**/*", "preload.ts"],
   "exclude": [
     "node_modules",
     "dist",

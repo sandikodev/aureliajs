@@ -11,7 +11,7 @@
  */
 
 import { describe, it, expect } from 'bun:test';
-import { JSDOM } from 'jsdom';
+import { JSDOM, VirtualConsole } from 'jsdom';
 import { renderAurelia, serializeState, createHtmlDocument } from '@aureliajs/ssr';
 import { createPlaygroundApp } from '../src/server/app.js';
 import { loadAllExamples } from '../src/examples/loader.js';
@@ -53,11 +53,26 @@ describe('Headless Reversing & Diagnostics Suite', () => {
       expect(html).toContain('p-2 focus:outline-none');
 
       // Verify DOM script functions for single active category expansion
-      const dom = new JSDOM(html, { runScripts: 'dangerously', url: 'http://localhost:4700/?example=hello-world' });
+      const virtualConsole = new VirtualConsole();
+      virtualConsole.sendTo(console, { omitJSDOMErrors: true });
+
+      const dom = new JSDOM(html, {
+        runScripts: 'dangerously',
+        url: 'http://localhost:4700/?example=hello-world',
+        virtualConsole,
+        beforeParse(window) {
+          (window as any).tailwind = { config: {} };
+          (window as any).fetch = async () =>
+            new Response(
+              JSON.stringify({ success: true, html: '', css: '', js: '', metadata: {} }),
+              { status: 200, headers: { 'Content-Type': 'application/json' } }
+            );
+        },
+      });
       const doc = dom.window.document;
 
-      // Trigger loadExample for component-basics
-      dom.window.loadExample('component-basics', false);
+      // Trigger loadExample for component-basics without triggering async compilation on detached JSDOM
+      dom.window.loadExample('component-basics', false, false);
 
       const categories = doc.querySelectorAll('#dropdownExamplesList [data-category]');
       expect(categories.length).toBeGreaterThan(0);

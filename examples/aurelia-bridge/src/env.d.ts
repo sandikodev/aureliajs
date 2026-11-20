@@ -25,3 +25,5 @@ declare module '*.svelte' {
 }
 
 declare module 'jsdom';
+declare module '@babel/core';
+declare module 'babel-preset-solid';

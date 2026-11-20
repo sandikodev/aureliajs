@@ -579,6 +579,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     const componentModelBadge = document.getElementById('componentModelBadge');
     const editorLiveIndicator = document.getElementById('editorLiveIndicator');
     const optWhitelistAudit = document.getElementById('opt-whitelist-audit');
+    const linterStatusPill = document.getElementById('linterStatusPill');
     const linterStatusIcon = document.getElementById('linterStatusIcon');
     const linterStatusText = document.getElementById('linterStatusText');
 
@@ -796,7 +797,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
     }
 
     // Load an Example with its OWN profiling options and sync URL query param
-    function loadExample(id, updateUrl = true) {
+    function loadExample(id, updateUrl = true, shouldCompile = true) {
       if (!EXAMPLES[id]) return;
       activeExampleId = id;
       const ex = EXAMPLES[id];
@@ -847,7 +848,9 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
 
       renderFileTabs(ex);
       switchFile(ex.defaultFile || Object.keys(ex.files)[0]);
-      compileAndRender();
+      if (shouldCompile) {
+        compileAndRender();
+      }
     }
 
     // Render Dynamic File Tabs
@@ -1018,6 +1021,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         });
 
         const data = await res.json();
+        if (typeof document === 'undefined' || !document.querySelector) return;
         currentDiagnostics = data.diagnostics || [];
         updateLinterUI(currentDiagnostics);
 
@@ -1029,6 +1033,7 @@ export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta
         editorLiveIndicator.textContent = '● Live Synchronized';
         editorLiveIndicator.className = 'text-emerald-400';
       } catch (err) {
+        if (typeof document === 'undefined' || !document.querySelector) return;
         console.error('[Compilation Request Failed]:', err);
         editorLiveIndicator.textContent = '● Compilation Failed';
         editorLiveIndicator.className = 'text-red-400';

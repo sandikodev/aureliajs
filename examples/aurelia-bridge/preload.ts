@@ -1,3 +1,4 @@
+/// <reference types="bun-types" />
 import { plugin } from 'bun';
 
 // Native Bun loader for HTML templates (returns template string directly)
