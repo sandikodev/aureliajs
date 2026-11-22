@@ -106,7 +106,7 @@ Berdasarkan audit forensik menyeluruh, berikut adalah 7 titik yang belum murni n
 ### Fase 2: Monorepo Workspace & Lockfile Consolidation (Status: Selesai ✅)
 **Tujuan**: Menyatukan seluruh paket dan contoh ke dalam satu tata kelola workspace yang bersih dan konsisten.
 
-* [x] **Langkah 2.1**: Update `workspaces` pada root [`package.json`](file:///home/dev/project/aureliajs/package.json) dan [`pnpm-workspace.yaml`](file:///home/dev/project/aureliajs/pnpm-workspace.yaml):
+* [x] **Langkah 2.1**: Update `workspaces` pada root [`package.json`](../package.json) (serta eliminasi `pnpm-workspace.yaml`):
   ```json
   "workspaces": [
     "apps/*",
@@ -118,10 +118,10 @@ Berdasarkan audit forensik menyeluruh, berikut adalah 7 titik yang belum murni n
   - Hapus `examples/fullstack-ssr/pnpm-lock.yaml`.
   - Hapus `packages/ssr-playground/bun.lock` (satukan ke root).
   - Ganti seluruh `link:../` di `examples/fullstack-ssr/package.json` dan `packages/ssr-playground/package.json` menjadi `workspace:*`.
-* [x] **Langkah 2.3**: Perbaiki resolusi di [`apps/web/vite.config.ts`](file:///home/dev/project/aureliajs/apps/web/vite.config.ts):
+* [x] **Langkah 2.3**: Perbaiki resolusi di [`apps/web/vite.config.ts`](../apps/web/vite.config.ts):
   - Ganti `import { auxPlugin } from '../../packages/vite-plugin-aux/dist/index.js'` menjadi `import { auxPlugin } from '@aureliajs/vite-plugin-aux'`.
   - Hapus alias manual ke file `.ts` internal, gunakan package exports resmi.
-* [x] **Langkah 2.4**: Refaktor [`scripts/emulate-devtools.ts`](file:///home/dev/project/aureliajs/scripts/emulate-devtools.ts):
+* [x] **Langkah 2.4**: Refaktor [`scripts/emulate-devtools.ts`](../scripts/emulate-devtools.ts):
   - Ganti deep path traversal (`../node_modules/.pnpm/...`) menjadi import package standar (`import { JSDOM } from 'jsdom'`, `@aurelia/platform-browser`, etc.).
 * [x] **Verifikasi**: Jalankan `bun x oxlint` (0 warning, 0 error), `bun run test` (222/222 pass), dan `bun scripts/emulate-devtools.ts` (0 warning, 0 error).
 
@@ -130,7 +130,7 @@ Berdasarkan audit forensik menyeluruh, berikut adalah 7 titik yang belum murni n
 ### Fase 3: Pure Bun-Native Toolchain & HTTP Server (Status: Selesai ✅)
 **Tujuan**: Menghilangkan wrapper Node.js (`tsx`, `@hono/node-server`) pada aplikasi yang dijalankan di Bun.
 
-* [x] **Langkah 3.1**: Di [`apps/api/package.json`](file:///home/dev/project/aureliajs/apps/api/package.json):
+* [x] **Langkah 3.1**: Di [`apps/api/package.json`](../apps/api/package.json):
   - Ubah `"dev": "tsx watch src/index.ts"` menjadi `"dev": "bun --watch src/index.ts"`.
   - Ubah `"db:migrate": "tsx src/db/migrate.ts"` menjadi `"db:migrate": "bun src/db/migrate.ts"`.
   - Ubah `"db:seed": "tsx src/db/seed.ts"` menjadi `"db:seed": "bun src/db/seed.ts"`.

@@ -4,7 +4,7 @@
 **Author**: Sandikodev (`@sandikodev`) & Framework Core Agentic Architecture Team  
 **Date**: November 17, 2026 | **Revised & Synchronized**: November 22, 2026  
 **Status**: Living Architecture Blueprint & Production Framework Standards  
-**Repository**: [aureliajs](file:///home/dev/project/aureliajs)
+**Repository**: [aureliajs](../README.md)
 
 ---
 
@@ -52,7 +52,7 @@ Aurelia 2 was never missing features—its core runtime has always been extraord
 - **Client Hydration Subpath (`@hono/aurelia/client`)**: Solved the DX bottleneck where users previously had to manually install `@aureliajs/ssr`. Browser entrypoints now cleanly import `createClientHydrator` directly from `@hono/aurelia/client` with zero server-adapter or Hono leakage into browser bundles.
 - **Generic `RenderContext`**: Changed from rigid business DTOs to `export type RenderContext = Record<string, unknown>;`. Safe whitelist projection redacts credentials (`password`, `token`, `secret`) while preserving arbitrary application state.
 - **Official Bundler Support**: Exported `auxEsbuildPlugin({ isServer?: boolean })` directly from `@aureliajs/vite-plugin-aux`.
-- **Pure SFC Fullstack Reference**: [`examples/fullstack-ssr`](file:///home/dev/project/aureliajs/examples/fullstack-ssr) converted 100% to `.aux` SFCs with `<script setup>` and co-located `<script server>`, eliminating all split `.ts` + `.html` files.
+- **Pure SFC Fullstack Reference**: [`packages/hono-aurelia/example`](../packages/hono-aurelia/example) converted 100% to `.aux` SFCs with `<script setup>` and co-located `<script server>`, eliminating all split `.ts` + `.html` files.
 
 ---
 

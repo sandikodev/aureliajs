@@ -234,7 +234,7 @@ Apakah ini sekadar perasaan subjektif? **Sama sekali tidak.** Ini adalah fakta a
 ### A. Sisi DX: Jiwa Arsitektur Angular yang Dibebaskan
 Kreator Aurelia adalah **Rob Eisenberg**. Ketika Rob meninggalkan tim Angular 2 Google pada 2015, ia membawa visi yang jelas:
 1. **Pemisahan Berkas Alami yang Bersih**:
-   - Komponen Aurelia 2 terdiri dari **class TypeScript murni** ([`home.ts`](file:///home/dev/project/aureliajs/examples/fullstack-ssr/src/pages/home.ts)) dan **template HTML pendamping murni** ([`home.html`](file:///home/dev/project/aureliajs/examples/fullstack-ssr/src/pages/home.html)).
+   - Komponen Aurelia 2 terdiri dari **class TypeScript murni** ([`landing-page.ts`](../../apps/web/src/pages/landing-page.ts)) dan **template HTML pendamping murni** ([`landing-page.html`](../../apps/web/src/pages/landing-page.html)).
    - Tidak ada JSX syntax, tidak ada fragmen virtual, tidak ada string backtick di dalam kode TypeScript.
 2. **Sintaksis Pengikatan Elegan**:
    - `repeat.for="post of posts"` (bukan map array di dalam JSX).

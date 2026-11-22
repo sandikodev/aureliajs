@@ -190,10 +190,12 @@ A production-shaped SaaS admin dashboard with real APIs, 1 000 seeded database r
 
 This monorepo documents in-depth philosophical and technical research exploring the evolution of the web substrate:
 
-* 📄 **[The Resumable Frontier](docs/the-resumable-frontier.md)** — *Manifesto Rekayasa Radikal Aurelia 2, Svelte DX, Hono, dan Qwik*: Blueprint for `.aux` Single-File Components, 3-layer responsibility scoping, and exploring Qwik-style resumability on top of Aurelia's Direct-DOM architecture.
-* 📄 **[The Angular-Aurelia Heritage](docs/the-angular-aurelia-heritage.md)** — *Sejarah, Semantik, dan Rekonsiliasi Mental Model Frontend*: Understanding why Aurelia feels foreign to developers from React/Vue unless familiar with Angular, uncovering the historical collaboration between Rob Eisenberg and Google in 2014, and tracing the path to modern signals.
-* 📄 **[The Web Substrate Paradox](docs/the-javascript-fallacy.md)** — *Anatomi Kelahiran Prematur JavaScript, Ilusi TypeScript, dan Kerendahan Hati terhadap Bahasa Sistem Modern*: Critical dissection of why raw JS is not a technological trophy compared to Go, Rust, Nim, and Zig, and why strict typing and memory discipline are vital.
-* 📄 **[The Reactive Continuum](docs/the-reactive-continuum.md)** — Architectural matrix comparing React, Vue, Solid, Angular, Svelte, Astro, Qwik, and Aurelia 2 across runtime taxes, change detection, and execution lifecycles.
+* 📚 **[Documentation & Architecture Index](docs/README.md)** — Master navigation index and single source of truth across all monorepo architectural tiers.
+* 🏛️ **[Master Architectural Blueprint](docs/ARCHITECTURAL-STUDY.md)** — Production 4-Tier Decoupled Suite: `@aureliajs/bridge`, `@aureliajs/islands`, `@aureliajs/ssr`, and `@hono/aurelia`.
+* 📄 **[The Resumable Frontier](docs/essays/the-resumable-frontier.md)** — *Manifesto Rekayasa Radikal Aurelia 2, Svelte DX, Hono, dan Qwik*: Blueprint for `.aux` Single-File Components, 3-layer responsibility scoping, and exploring Qwik-style resumability on top of Aurelia's Direct-DOM architecture.
+* 📄 **[The Angular-Aurelia Heritage](docs/essays/the-angular-aurelia-heritage.md)** — *Sejarah, Semantik, dan Rekonsiliasi Mental Model Frontend*: Understanding why Aurelia feels foreign to developers from React/Vue unless familiar with Angular, uncovering the historical collaboration between Rob Eisenberg and Google in 2014, dan tracing the path to modern signals.
+* 📄 **[The Web Substrate Paradox](docs/essays/the-javascript-fallacy.md)** — *Anatomi Kelahiran Prematur JavaScript, Ilusi TypeScript, dan Kerendahan Hati terhadap Bahasa Sistem Modern*: Critical dissection of why raw JS is not a technological trophy compared to Go, Rust, Nim, and Zig, and why strict typing and memory discipline are vital.
+* 📄 **[The Reactive Continuum](docs/essays/the-reactive-continuum.md)** — Architectural matrix comparing React, Vue, Solid, Angular, Svelte, Astro, Qwik, and Aurelia 2 across runtime taxes, change detection, and execution lifecycles.
 * 📄 **[Production Architecture & Security](docs/architecture.md)** — Comprehensive technical specifications for multi-tenant isolation, state hydration, and Stripe integration.
 
 ---
@@ -265,5 +267,5 @@ bun run test:e2e
 
 ## 📄 License
 
-Open-source licensed under the [MIT License](LICENSE).  
+Open-source licensed under the [MIT License](package.json).  
 Created and maintained by [Sandiko (@sandikodev)](https://github.com/sandikodev).

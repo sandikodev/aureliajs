@@ -242,12 +242,12 @@ Kami menolak jalan pintas yang merusak keandalan sistem. Di repositori ini berla
 - **Verifiable Success Criteria**: Setiap perubahan compiler atau runtime wajib dibuktikan dengan pengujian unit (`bun test` / `vitest`) dan simulasi browser runtime nyata.
 
 ### B. Struktur Direktori Kunci
-- [`packages/vite-plugin-aux`](file:///home/dev/project/aureliajs/packages/vite-plugin-aux): Compiler resmi Single-File Component `.aux`. Tempat riset AST extraction, scoped CSS, dan decorator lowering.
-- [`packages/vscode-aux`](file:///home/dev/project/aureliajs/packages/vscode-aux): Extension VS Code untuk sintaks, linter, analyzer, dan autocompletion `.aux`.
-- [`packages/skills`](file:///home/dev/project/aureliajs/packages/skills): Agent knowledge base murni Aurelia 2 (bebas dari coupling backend).
-- [`packages/shared`](file:///home/dev/project/aureliajs/packages/shared): Subpath contracts (`/utils` dan `/schemas`) dengan `"sideEffects": false`.
-- [`packages/hono-aurelia`](file:///home/dev/project/aureliajs/packages/hono-aurelia): Laboratorium integrasi SSR Aurelia dengan runtime Hono.
-- [`scripts/emulate-devtools.ts`](file:///home/dev/project/aureliajs/scripts/emulate-devtools.ts): Emulator DevTools terminal untuk memverifikasi modul, binding, dan reaktivitas DOM secara instan tanpa browser fisik.
+- [`packages/vite-plugin-aux`](../../packages/vite-plugin-aux): Compiler resmi Single-File Component `.aux`. Tempat riset AST extraction, scoped CSS, dan decorator lowering.
+- [`packages/vscode-aux`](../../packages/vscode-aux): Extension VS Code untuk sintaks, linter, analyzer, dan autocompletion `.aux`.
+- [`.agents/skills`](../../.agents/skills): Agent knowledge base murni Aurelia 2 (bebas dari coupling backend).
+- [`apps/shared`](../../apps/shared): Subpath contracts (`/utils` dan `/schemas`) dengan `"sideEffects": false`.
+- [`packages/hono-aurelia`](../../packages/hono-aurelia): Laboratorium integrasi SSR Aurelia dengan runtime Hono.
+- [`scripts/emulate-devtools.ts`](../../scripts/emulate-devtools.ts): Emulator DevTools terminal untuk memverifikasi modul, binding, dan reaktivitas DOM secara instan tanpa browser fisik.
 
 ---
 
