@@ -9,6 +9,7 @@ import { hash } from '@node-rs/argon2';
 import { createHash, randomBytes } from 'node:crypto';
 import { setCookie } from 'hono/cookie';
 import { SESSION_COOKIE, sessionCookie } from '../lib/session.js';
+import { sendInviteEmail } from '../services/email.js';
 
 const invitesRoutes = new Hono();
 
@@ -142,6 +143,16 @@ invitesRoutes.post('/invites', async (c) => {
     target: email,
   });
 
+  const acceptUrl = `${env.WEB_ORIGIN}/invite?token=${token}`;
+
+  const emailResult = await sendInviteEmail({
+    to: email,
+    inviterName: tenant.actorName,
+    role,
+    acceptUrl,
+    expiresAt,
+  });
+
   return c.json(
     {
       invite: {
@@ -150,10 +161,9 @@ invitesRoutes.post('/invites', async (c) => {
         role,
         expiresAt: expiresAt.toISOString(),
       },
-      // There is no mail server in this project, so the accept link is
-      // returned directly — in production this would be the body of an
-      // email and the token would never touch the browser.
-      acceptUrl: `${env.WEB_ORIGIN}/invite?token=${token}`,
+      acceptUrl,
+      emailSent: emailResult.success,
+      emailProvider: emailResult.provider,
     },
     201,
   );

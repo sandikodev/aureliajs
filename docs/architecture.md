@@ -10,9 +10,9 @@ that every layer is a _seam_ you can replace without rewriting the rest.
 aureliajs/
 ├── apps/
 │   ├── web/          Aurelia 2 + Vite 8 + Tailwind v4 (UI kit, pages, router)
-│   └── api/          Hono + Zod + Drizzle + Postgres + Stripe
-├── packages/
-│   └── shared/       Zod schemas + types + plan limits used by both sides
+│   ├── api/          Hono + Zod + Drizzle + Postgres + Stripe
+│   └── shared/       Zod schemas + types + plan limits (@aurelia-ops/shared)
+├── packages/         Core decoupled framework suite (@aureliajs/bridge, islands, ssr, hono-aurelia, etc.)
 ├── e2e/              Playwright smoke + billing + team tests
 └── docs/             architecture, case study, Upwork strategy
 ```
@@ -100,7 +100,7 @@ cookies itself. If you inherit this codebase, start by reading that file.
 
 ## Type safety across the boundary
 
-`packages/shared/src/index.ts` is the single source of truth:
+`apps/shared/src/index.ts` is the single source of truth:
 
 - web imports the **types** (`Project`, `CreateProjectInput`, `BillingOverview`);
 - the API imports the **schemas** for request validation;

@@ -38,7 +38,7 @@ export function planFromSubscription(
   switch (subscriptionStatus) {
     case 'active':
     case 'trialing':
-      return 'pro';
+      return fallbackPlan === 'scale' ? 'scale' : 'pro';
     case 'past_due':
       return fallbackPlan;
     case 'unpaid':

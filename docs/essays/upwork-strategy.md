@@ -325,7 +325,7 @@ Pantau mingguan, 5 angka saja:
 | Klaim di profil                          | Bukti di repo                                                                                             |
 | ---------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | "Multi-tenant admin dashboard"           | `apps/api/src/middleware/tenant.ts` — seam tenancy yang jelas, siap ditukar ke session auth               |
-| "Type-safe end-to-end"                   | `packages/shared/src/index.ts` — satu skema Zod dipakai web + API                                         |
+| "Type-safe end-to-end"                   | `apps/shared/src/index.ts` — satu skema Zod dipakai web + API                                             |
 | "Data path yang tidak takut 1 000 baris" | `apps/api/src/routes/projects.ts` — filter, sort, pagination di SQL; `apps/web/src/pages/projects-page.*` |
 | "UI system, bukan CSS acak"              | `apps/web/src/ui/*` + token shadcn di `apps/web/src/styles/main.css`                                      |
 | "Jujur soal batasan"                     | banner "Demo data", `docs/case-study.md` bagian _Deliberately deferred_                                   |
