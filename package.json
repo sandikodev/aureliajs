@@ -35,6 +35,7 @@
     "@babel/core": "7.29.13",
     "@babel/preset-typescript": "7.29.7",
     "@playwright/test": "1.65.0",
+    "@types/jsdom": "^30.0.0",
     "@types/node": "24.10.1",
     "aurelia": "^2.0.0-rc.2",
     "bun-types": "^1.4.4",

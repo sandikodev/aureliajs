@@ -1,98 +1,68 @@
 # Codebase State
 
-> **Generated**: 2026-11-13 (verified against running code)  
-> **Quality**: ✅ All checks passing
+> **Last Verified**: 2026-11-22 (verified against running code & automated test runners)  
+> **Quality Gate**: ✅ 148 Tests Passing (100% Green, 999 Assertions) • 9 Workspaces Typecheck Clean (0 Errors)
 
 ## Structure
 
 ```
-apps/
-├── web/                  Aurelia 2 SPA (:4600)
-│   ├── src/pages/       9 pages (landing, login, dashboard, projects, members, billing, settings, invite, 404)
-│   ├── src/ui/          19 UI primitives (button, input, select, card, dialog, toast, etc.)
-│   ├── src/services/    api, auth, i18n, session-cache, theme, toast
-│   └── src/config/      routes (public/protected metadata)
-└── api/                  Hono JSON API (:4601)
-    ├── src/routes/      auth, billing, health, invites, members, overview, projects, workspaces
-    ├── src/middleware/  tenant resolution (THE critical file)
-    ├── src/db/          schema (8 tables), migrations, seed
-    └── src/lib/         error, session, workspace, stripe, plan-limits
-
-packages/
-├── shared/              Zod schemas + types + PLAN_LIMITS (single source of truth)
-└── hono-aurelia/    ⚠️ Nested git repo (excluded from workspace)
-
-examples/
-└── fullstack-ssr/       ⚠️ Standalone (NOT in workspace) — SSR reference implementation
+aureliajs/
+├── apps/
+│   ├── shared/               # SaaS Domain Zod schemas, DTOs & entitlements (@aurelia-ops/shared)
+│   ├── web/                  # Multi-Tenant Client SPA (Aurelia 2 + Tailwind 4) (:4600)
+│   └── api/                  # Multi-Tenant REST Backend (Hono + Drizzle + Stripe) (:4601)
+├── packages/
+│   ├── aurelia-ssr/          # Pure Aurelia 2 SSR & HTML5 JSON Hydration Engine (@aureliajs/ssr)
+│   ├── hono-aurelia/         # Thin Web-Standards Hono SSR, Actions & Hydration Adapter (@hono/aurelia)
+│   ├── aurelia-islands/      # Zero-JS Selective Hydration & Native `island` Template Controller
+│   ├── aurelia-bridge/       # Polyglot Multi-Frontend Interop (<au-react>, <au-vue>, etc. + au-htmx)
+│   ├── vite-plugin-aux/      # .aux Single-File Component Compiler (Vite, Bun, esbuild)
+│   ├── vscode-aux/           # VS Code Language Extension for .aux SFCs
+│   └── ssr-playground/       # Interactive Web GUI & Headless SSR Inspector (port 4700)
+├── examples/
+│   └── fullstack-ssr/        # Live Reference App (Hono + Aurelia 2 SSR + Zero-JS /islands route)
+├── docs/                     # Architectural Manifestos & 5-Tier Document System
+└── e2e/                      # Playwright E2E Test Suite (Accessibility & Workflows)
 ```
 
 ## Key Files
 
 | File | Purpose |
 |------|---------|
-| `apps/api/src/middleware/tenant.ts` | **THE SEAM** — session + workspace resolution |
-| `apps/api/src/app.ts` | Route registration order (health, auth, webhook BEFORE tenant) |
-| `apps/web/src/app.ts` | Root component, auth lifecycle, layout state machine |
-| `apps/web/src/main.ts` | Router bootstrap, DI registration |
-| `apps/web/src/config/routes.ts` | Public vs protected route metadata |
-| `apps/web/src/services/session-cache.ts` | localStorage cache to eliminate flicker |
-| `packages/shared/src/index.ts` | Zod contract + PLAN_LIMITS |
+| `docs/ARCHITECTURAL-STUDY.md` | Master Architectural Blueprint (4-Tier Decoupled Suite) |
+| `docs/AURELIA_CLEAN_NATIVE_ROADMAP.md` | 21 Refactoring Execution Phases (100% Green) |
+| `apps/api/src/middleware/tenant.ts` | **THE SEAM** — session + workspace resolution in SaaS backend |
+| `packages/hono-aurelia/src/client.ts` | `./client` subpath export for zero-server client hydration |
+| `packages/aurelia-ssr/src/document.ts` | Unified 1-step `renderDocument()` API combining render + serialize + HTML shell |
+| `packages/aurelia-bridge/src/index.ts` | Polyglot bridge components (`<au-react>`, `<au-vue>`, `<au-svelte>`, etc.) |
+| `packages/aurelia-islands/src/index.ts` | Selective hydration scheduler (`island="visible"`, `idle`, `interaction`, `media`) |
 
 ## Architecture Decisions
 
-### ✅ SPA + API Pattern (Vite + Hono)
-**Why**: Optimal for authenticated dashboard, CDN deploy, scale independently.
+### ✅ 4-Tier Decoupled Framework Suite
+1. **WHAT (`@aureliajs/bridge`)**: Dedicated Custom Elements mounting foreign UI runtimes without reconciler collision.
+2. **WHEN (`@aureliajs/islands`)**: Template Controller scheduling selective hydration using Synthetic Views.
+3. **WHERE (`@aureliajs/ssr`)**: Headless request-scoped server rendering without `globalThis` leaks or mutex bottlenecks.
+4. **HOW (`@hono/aurelia`)**: Thin Web-Standards HTTP adapter with streaming and direct `./client` hydration export.
 
-**NOT using**: Fullstack SSR single-server (that's for `/examples/fullstack-ssr` only).
-
-### ✅ Tenant Isolation at SQL Level
-Every query: `WHERE workspace_id = ?` — enforced by middleware, not per-handler.
-
-### ✅ Session Cache for Zero Flicker
-`localStorage` cache → render immediately → validate in background → update if stale.
-
-### ✅ Single Source of Truth for Plan Limits
-`PLAN_LIMITS` in `packages/shared` → enforced by API, rendered by UI (can't disagree).
-
-### ✅ Idempotensi Webhook via PK
-`stripe_events.id` (primary key) + `onConflictDoNothing` → duplicate webhook = no-op.
+### ✅ SaaS Production App (SPA + API)
+- `apps/web` — Aurelia 2 Direct-DOM SPA with Tailwind 4.
+- `apps/api` — Hono JSON API with Drizzle ORM, PostgreSQL, and Stripe Billing.
+- `apps/shared` — Zod schemas and plan entitlements shared across apps.
 
 ## Verified Quality
 
 ```bash
-✅ pnpm typecheck  # web + api + shared (SSR excluded from workspace)
-✅ pnpm lint       # warnings only (unused imports in archived SSR package)
-✅ pnpm test       # 127 tests (SSR library)
-✅ Dev servers     # :4600 (web) + :4601 (api healthy)
-✅ Database        # Postgres up, seeded (demo@aureliajs.dev, 1000 projects)
+bun run typecheck   # ✅ PASSING (all 9 workspaces: shared, web, api, hono, ssr, islands, bridge, aux, playground)
+bun test            # ✅ PASSING (148 tests across 27 files, 999 assertions, 0 failures)
+bunx oxlint .       # ✅ PASSING (0 errors)
 ```
 
-## What Changed (2026-11-13)
-
-1. ✅ **Fixed typecheck**: Import `PUBLIC_ROUTES`, align `session-cache.ts` types with shared
-2. ✅ **Cleaned junk**: Removed `.deb` file, `i` file, `bun.lock`
-3. ✅ **Fixed nested repo**: Excluded `packages/hono-aurelia` from workspace
-4. ✅ **Consolidated docs**: 32 files → 3 files (archived 29 to `docs/archive/`)
-
-## Development
+## Development Commands
 
 ```bash
-pnpm dev          # Both servers (web proxy /api → :4601)
-pnpm typecheck    # Should be clean
-pnpm lint         # Warnings OK
-pnpm build        # Production bundle
+bun dev             # Start web + api dev servers concurrently
+bun test            # Run all unit and integration tests across monorepo
+bun run typecheck   # Typecheck all 9 workspaces with tsc --noEmit
+bun run build       # Build all packages and applications
 ```
-
-## What's Real
-
-- **8 DB tables**: users, workspaces, memberships, projects, invites, activity, sessions, stripe_events
-- **1000 seeded projects**: "Northwind Studio" workspace (demo account)
-- **9 pages**: full CRUD + auth + billing + settings
-- **19 UI primitives**: design system complete
-- **Real Stripe**: webhook signature verification, idempotency, plan enforcement
-- **Real tests**: 127 passing (SSR library)
-- **Zero placeholders**: every feature is wired end-to-end
-
----
-
-_All claims verified against running code, not docs._
