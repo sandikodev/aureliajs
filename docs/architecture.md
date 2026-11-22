@@ -1,4 +1,7 @@
-# Architecture
+# Architecture — Aurelia Ops (Production SaaS Reference App)
+
+> **Scope Dokumen:** Arsitektur Aplikasi Produksi Multi-Tenant SaaS (`apps/web` + `apps/api` + `apps/shared`).  
+> **Catatan:** Untuk arsitektur ekosistem framework monorepo dan suite decoupled polyglot (`@aureliajs/bridge`, `@aureliajs/islands`, `@aureliajs/ssr`, `@hono/aurelia`), silakan merujuk ke **[`ARCHITECTURAL-STUDY.md`](ARCHITECTURAL-STUDY.md)**.
 
 A working SaaS admin dashboard in a Bun workspace monorepo. The point is not the feature list — it is
 that every layer is a _seam_ you can replace without rewriting the rest.

@@ -28,11 +28,12 @@ docs/
 │   └── EXAMPLES.md                                # Panduan implementasi contoh di setiap package
 │
 ├── [Tier 4] Theoretical Foundations & Philosophy (Cikal Bakal Kursus)
-│   ├── the-reactive-continuum.md                  # Spektrum reaktivitas: VDOM vs Signals vs Compiler vs Direct-DOM
-│   ├── the-angular-aurelia-heritage.md            # Sejarah Rob Eisenberg, Google 2014, dan semantik kelas
-│   ├── the-resumable-frontier.md                  # Resumability Qwik vs Islands vs Hydration
-│   ├── the-javascript-fallacy.md                  # Paradoks substrate web: 10 hari JS, ilusi TS, dan sistem modern
-│   └── upwork-strategy.md                         # Analisis pasar global Upwork & strategi niche karier
+│   └── essays/
+│       ├── the-reactive-continuum.md                  # Spektrum reaktivitas: VDOM vs Signals vs Compiler vs Direct-DOM
+│       ├── the-angular-aurelia-heritage.md            # Sejarah Rob Eisenberg, Google 2014, dan semantik kelas
+│       ├── the-resumable-frontier.md                  # Resumability Qwik vs Islands vs Hydration
+│       ├── the-javascript-fallacy.md                  # Paradoks substrate web: 10 hari JS, ilusi TS, dan sistem modern
+│       └── upwork-strategy.md                         # Analisis pasar global Upwork & strategi niche karier
 │
 └── [Tier 5] Archive (RFCs & Historical Proposals)
     └── archive/                                   # Proposal yang telah diimplementasikan (termasuk routing refactor)
@@ -78,15 +79,15 @@ docs/
 
 ---
 
-## 💡 Tingkat 4: Fondasi Filosofis & Teoretis
+## 💡 Tingkat 4: Fondasi Filosofis & Teoretis (`essays/`)
 
-Dokumen-dokumen ini adalah kumpulan esai filosofis yang ditulis oleh Sandikodev. Esai-esai ini kemudian menjadi cikal bakal kurikulum buku **Evolusi Web** (`course/evolusi-web`) dan **Course Aurelia 2** (`course/aureliajs`):
+Dokumen-dokumen ini adalah kumpulan esai filosofis yang ditulis oleh Sandikodev dan disimpan di dalam folder [`docs/essays/`](essays/). Esai-esai ini menjadi cikal bakal kurikulum buku **Evolusi Web** (`course/evolusi-web`) dan **Course Aurelia 2** (`course/aureliajs`):
 
-1. **[`the-reactive-continuum.md`](the-reactive-continuum.md)**: Bedah spektrum reaktivitas (Virtual DOM vs Proxy vs Signals vs Compiler vs Direct-DOM).
-2. **[`the-angular-aurelia-heritage.md`](the-angular-aurelia-heritage.md)**: Sejarah Rob Eisenberg keluar dari tim Google Angular 2 (2014) untuk membangun Aurelia.
-3. **[`the-resumable-frontier.md`](the-resumable-frontier.md)**: Eksplorasi konsep Resumability Qwik dan perbandingannya dengan selective hydration.
-4. **[`the-javascript-fallacy.md`](the-javascript-fallacy.md)**: Telaah kritis terhadap platform JavaScript dan ilusi keamanan TypeScript statis.
-5. **[`upwork-strategy.md`](upwork-strategy.md)**: Panduan strategi karier global dan peluang freelance di pasar Upwork.
+1. **[`the-reactive-continuum.md`](essays/the-reactive-continuum.md)**: Bedah spektrum reaktivitas (Virtual DOM vs Proxy vs Signals vs Compiler vs Direct-DOM).
+2. **[`the-angular-aurelia-heritage.md`](essays/the-angular-aurelia-heritage.md)**: Sejarah Rob Eisenberg keluar dari tim Google Angular 2 (2014) untuk membangun Aurelia.
+3. **[`the-resumable-frontier.md`](essays/the-resumable-frontier.md)**: Eksplorasi konsep Resumability Qwik dan perbandingannya dengan selective hydration.
+4. **[`the-javascript-fallacy.md`](essays/the-javascript-fallacy.md)**: Telaah kritis terhadap platform JavaScript dan ilusi keamanan TypeScript statis.
+5. **[`upwork-strategy.md`](essays/upwork-strategy.md)**: Panduan strategi karier global dan peluang freelance di pasar Upwork.
 
 ---
 

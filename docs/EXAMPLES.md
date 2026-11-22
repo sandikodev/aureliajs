@@ -30,6 +30,14 @@ Canonical fullstack application demonstrating server-side rendering with Hono an
 - **Web Streams**: True progressive streaming SSR via Web Streams (`ReadableStream`) flushes the `<head>` and preambles immediately.
 - **Content Negotiation**: Same URL returns HTML5 for browser requests and JSON DTOs for `Accept: application/json` API consumers.
 - **Edge Compatible**: Cloudflare Worker bundle compiled with LinkeDOM optimization for sub-millisecond cold starts.
+- **Client Hydration via `@hono/aurelia/client`**: Client-side entry points simply import `createClientHydrator` directly from `@hono/aurelia/client`, eliminating the need to directly depend on or configure `@aureliajs/ssr`:
+  ```ts
+  import { createClientHydrator } from '@hono/aurelia/client';
+  import { App } from './app';
+
+  const hydrator = createClientHydrator({ component: App });
+  await hydrator.hydrate();
+  ```
 
 ### Quick Start
 ```bash

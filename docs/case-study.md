@@ -1,4 +1,7 @@
-# Case study — Aurelia Ops
+# Case study — Aurelia Ops (Production SaaS Reference App)
+
+> **Scope Dokumen:** Studi Kasus Rekayasa Aplikasi Multi-Tenant SaaS (`apps/`).  
+> Ditulis sebagai *work sample* produksi nyata yang mendampingi monorepo framework ini.
 
 _A multi-tenant SaaS admin dashboard built with Aurelia 2, TypeScript, Tailwind CSS 4, Hono and
 Stripe. Written as a work sample: this is the honest version, including what is not finished._

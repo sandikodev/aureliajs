@@ -2,8 +2,8 @@
 ## *The Enterprise-Grade Astro: Direct-DOM, Dependency Injection, and Modern SFC*
 
 **Author**: Sandikodev (`@sandikodev`) & Framework Core Agentic Architecture Team  
-**Date**: November 17, 2026  
-**Status**: Living Architecture Blueprint & 7-Day Execution Roadmap  
+**Date**: November 17, 2026 | **Revised & Synchronized**: November 22, 2026  
+**Status**: Living Architecture Blueprint & Production Framework Standards  
 **Repository**: [aureliajs](file:///home/dev/project/aureliajs)
 
 ---
@@ -47,8 +47,9 @@ Aurelia 2 was never missing features—its core runtime has always been extraord
 3. **Redundant Hydration Parsing**: Component classes were bloated with manual `attached()` hooks calling `hydrateFromServer()` and parsing JSON payloads manually, despite `createClientHydrator` already injecting data onto instances automatically.
 4. **Toolchain Fragmentation**: Custom 40-line build scripts in user applications (`examples/fullstack-ssr/scripts/build.ts`) manually re-implemented esbuild AST caching.
 
-### What Is Now Solved (Milestone Commits `5148c72` & `cddcf91`):
-- **`@hono/aurelia` is a Pure Thin Adapter**: Stripped down to `aurelia()`, `aureliaDefaults()`, `setAureliaDefaults()`, and `serveAureliaAssets()`. Zero JSDOM, zero SSR proxies.
+### What Is Now Solved (Milestone Commits `5148c72`, `cddcf91`, & `d3de0d5`):
+- **`@hono/aurelia` is a Pure Thin Adapter**: Stripped down to `aurelia()`, `aureliaAction()`, and request-scoped `aureliaDefaults()` (backed by `WeakMap<Request>`). Zero JSDOM, zero SSR proxies, zero global mutable state (`setAureliaDefaults` killed), and zero `node:fs` asset leaks (`serveAureliaAssets` replaced by native Hono static serving).
+- **Client Hydration Subpath (`@hono/aurelia/client`)**: Solved the DX bottleneck where users previously had to manually install `@aureliajs/ssr`. Browser entrypoints now cleanly import `createClientHydrator` directly from `@hono/aurelia/client` with zero server-adapter or Hono leakage into browser bundles.
 - **Generic `RenderContext`**: Changed from rigid business DTOs to `export type RenderContext = Record<string, unknown>;`. Safe whitelist projection redacts credentials (`password`, `token`, `secret`) while preserving arbitrary application state.
 - **Official Bundler Support**: Exported `auxEsbuildPlugin({ isServer?: boolean })` directly from `@aureliajs/vite-plugin-aux`.
 - **Pure SFC Fullstack Reference**: [`examples/fullstack-ssr`](file:///home/dev/project/aureliajs/examples/fullstack-ssr) converted 100% to `.aux` SFCs with `<script setup>` and co-located `<script server>`, eliminating all split `.ts` + `.html` files.
@@ -77,13 +78,13 @@ graph TD
         RouteHandler["aurelia(Component, Title)"]
         ContentNeg["Content Negotiation (Accept: text/html vs application/json)"]
         ActionsHandler["Co-Located Mutations Handler (POST/PUT/DELETE)"]
-        AssetMiddleware["serveAureliaAssets() (MIME & Cache Control)"]
+        HydrationExports["@hono/aurelia/client (Browser Hydration Re-export)"]
     end
 
     subgraph Layer4["4. User Application Layer"]
         AuxPages["Pages in .aux (Home.aux, PostDetail.aux, Dashboard.aux)"]
         HonoApp["Hono Server (app.get('/', aurelia(HomePage)))"]
-        ClientBundle["client.ts (createClientHydrator([Pages]))"]
+        ClientBundle["client.ts (import { createClientHydrator } from '@hono/aurelia/client')"]
     end
 
     Layer1 --> Layer2
