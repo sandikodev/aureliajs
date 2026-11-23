@@ -1,5 +1,6 @@
 import type { Context } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import { ZodError } from 'zod';
 import { log } from './log';
 
 export type FieldIssue = { path: string; message: string };
@@ -38,6 +39,25 @@ export function issuesFromZod(error: {
 }
 
 export function errorResponse(c: Context, error: unknown) {
+  if (error instanceof ZodError) {
+    const issues = issuesFromZod(error);
+    log.warn('validation rejected', {
+      requestId: c.get('requestId'),
+      issues,
+    });
+    return c.json(
+      {
+        error: {
+          code: 'validation_failed',
+          message: 'Invalid input data',
+          issues,
+        },
+        requestId: c.get('requestId'),
+      },
+      422,
+    );
+  }
+
   if (error instanceof HttpError) {
     // A 4xx is the client's problem and is expected traffic — log it at
     // warning level with the code, not as a server error.

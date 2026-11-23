@@ -10,6 +10,11 @@ export const STRIPE_API_VERSION = '2026-10-28.endive';
 
 let client: Stripe | null = null;
 
+/** Override or inject Stripe client (e.g. for testing / mocking - Pillar 5). */
+export function setStripe(customStripe: Stripe | null): void {
+  client = customStripe;
+}
+
 /**
  * Lazily construct the Stripe client.
  *

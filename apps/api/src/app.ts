@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { bodyLimit } from 'hono/body-limit';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import { env, isProd } from './env';
@@ -19,6 +20,22 @@ export function createApp() {
 
   app.use(requestLogger());
   app.use(secureHeaders());
+  app.use(
+    bodyLimit({
+      maxSize: 1024 * 1024, // 1MB payload size limit (Pillar 10)
+      onError: (c) =>
+        c.json(
+          {
+            error: {
+              code: 'payload_too_large',
+              message: 'Request payload exceeds maximum allowed size (1MB)',
+            },
+          },
+          413,
+        ),
+    }),
+  );
+
   if (isProd) {
     app.use('*', async (c, next) => {
       await next();
@@ -30,7 +47,8 @@ export function createApp() {
     cors({
       origin: env.WEB_ORIGIN,
       credentials: true,
-      allowHeaders: ['content-type'],
+      allowHeaders: ['content-type', 'x-request-id'],
+      exposeHeaders: ['x-request-id', 'retry-after'],
       allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     }),
   );

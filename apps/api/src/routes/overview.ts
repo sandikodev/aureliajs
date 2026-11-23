@@ -1,7 +1,9 @@
 import { Hono } from 'hono';
 import { and, count, desc, eq, gte, isNotNull, lt, sql, sum } from 'drizzle-orm';
-import { z } from 'zod';
+import { zValidator } from '@hono/zod-validator';
+import { overviewQuerySchema } from '@aurelia-ops/shared';
 import { getDb, schema } from '../db/client';
+import { issuesFromZod } from '../lib/errors';
 import { tenantOf } from '../middleware/tenant';
 
 export const overviewRoutes = new Hono();
@@ -13,8 +15,6 @@ const PERIODS = {
   quarter: 90,
 } as const;
 
-const periodSchema = z.enum(['last-7', 'last-30', 'quarter']).catch('last-30').default('last-30');
-
 /**
  * `GET /api/overview` — the numbers behind the dashboard.
  *
@@ -22,13 +22,29 @@ const periodSchema = z.enum(['last-7', 'last-30', 'quarter']).catch('last-30').d
  * status counts, the budget and the overdue count are computed over, so
  * switching the range in the UI actually changes the numbers.
  */
-overviewRoutes.get('/overview', async (c) => {
-  const { workspaceId } = tenantOf(c);
-  const db = getDb();
-  const today = new Date().toISOString().slice(0, 10);
+overviewRoutes.get(
+  '/overview',
+  zValidator('query', overviewQuerySchema, (result, c) => {
+    if (!result.success) {
+      return c.json(
+        {
+          error: {
+            code: 'validation_failed',
+            message: 'Invalid query parameter',
+            issues: issuesFromZod(result.error),
+          },
+        },
+        422,
+      );
+    }
+  }),
+  async (c) => {
+    const { workspaceId } = tenantOf(c);
+    const db = getDb();
+    const today = new Date().toISOString().slice(0, 10);
 
-  const period = periodSchema.parse(c.req.query('period'));
-  const days = PERIODS[period];
+    const { period } = c.req.valid('query');
+    const days = PERIODS[period];
   const since = new Date(Date.now() - days * 86_400_000);
 
   const scope = eq(schema.projects.workspaceId, workspaceId);

@@ -10,7 +10,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { getDb, schema } from '../db/client';
-import { issuesFromZod, notFound } from '../lib/errors';
+import { HttpError, issuesFromZod, notFound } from '../lib/errors';
 import { limitsFor } from '../lib/plan-limits';
 import { requireRole, tenantOf } from '../middleware/tenant';
 
@@ -152,14 +152,18 @@ projectRoutes.post(
       .values({ ...input, workspaceId: tenant.workspaceId })
       .returning();
 
+    if (!created) {
+      throw new HttpError(500, 'database_error', 'Failed to create project');
+    }
+
     await db.insert(schema.auditLogs).values({
       workspaceId: tenant.workspaceId,
       actorName: tenant.actorName,
       action: 'project.created',
-      target: created!.name,
+      target: created.name,
     });
 
-    return c.json({ project: toProject(created!) }, 201);
+    return c.json({ project: toProject(created) }, 201);
   },
 );
 

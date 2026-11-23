@@ -18,6 +18,11 @@ export function getDb(): PostgresJsDatabase<typeof schema> {
   return database;
 }
 
+/** Set or override the database instance (e.g. for unit testing / mocking - Pillar 5). */
+export function setDb(customDb?: PostgresJsDatabase<typeof schema>): void {
+  database = customDb;
+}
+
 export async function pingDb(): Promise<boolean> {
   try {
     const client = sql ?? postgres(env.DATABASE_URL, { max: 1, onnotice: () => {} });

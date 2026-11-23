@@ -166,6 +166,11 @@ export const registerSchema = loginSchema.extend({
 });
 export type RegisterInput = z.infer<typeof registerSchema>;
 
+export const switchWorkspaceSchema = z.object({
+  workspaceId: idSchema,
+});
+export type SwitchWorkspaceInput = z.infer<typeof switchWorkspaceSchema>;
+
 /* ------------------------------------------------------------------ */
 /* Workspaces                                                          */
 /* ------------------------------------------------------------------ */
@@ -215,6 +220,11 @@ export const memberSchema = z.object({
 });
 export type Member = z.infer<typeof memberSchema>;
 
+export const updateMemberRoleSchema = z.object({
+  role: roleSchema,
+});
+export type UpdateMemberRoleInput = z.infer<typeof updateMemberRoleSchema>;
+
 export const membersResponseSchema = z.object({
   members: z.array(memberSchema),
   seatLimit: z.number().int(),
@@ -230,6 +240,21 @@ export const createInviteSchema = z.object({
 });
 export type CreateInviteInput = z.infer<typeof createInviteSchema>;
 
+export const acceptInviteSchema = z.object({
+  token: z.string().min(10),
+});
+export type AcceptInviteInput = z.infer<typeof acceptInviteSchema>;
+
+export const revokeInviteQuerySchema = z
+  .object({
+    id: idSchema.optional(),
+    email: emailSchema.optional(),
+  })
+  .refine((data) => Boolean(data.id || data.email), {
+    message: 'An email or an invitation id is required',
+  });
+export type RevokeInviteQuery = z.infer<typeof revokeInviteQuerySchema>;
+
 export const inviteSchema = z.object({
   id: idSchema,
   email: emailSchema,
@@ -240,6 +265,18 @@ export const inviteSchema = z.object({
   state: z.enum(['pending', 'accepted', 'expired']),
 });
 export type Invite = z.infer<typeof inviteSchema>;
+
+/* ------------------------------------------------------------------ */
+/* Dashboard overview                                                 */
+/* ------------------------------------------------------------------ */
+
+export const overviewPeriodSchema = z.enum(['last-7', 'last-30', 'quarter']);
+export type OverviewPeriod = z.infer<typeof overviewPeriodSchema>;
+
+export const overviewQuerySchema = z.object({
+  period: overviewPeriodSchema.default('last-30'),
+});
+export type OverviewQuery = z.infer<typeof overviewQuerySchema>;
 
 /* ------------------------------------------------------------------ */
 /* Errors                                                              */

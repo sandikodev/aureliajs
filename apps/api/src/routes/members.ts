@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
-import { z } from 'zod';
 import { and, count, eq, isNull } from 'drizzle-orm';
+import { zValidator } from '@hono/zod-validator';
+import { updateMemberRoleSchema } from '@aurelia-ops/shared';
 import { getDb, schema } from '../db/client';
-import { badRequest, conflict, forbidden, notFound } from '../lib/errors';
+import { badRequest, conflict, forbidden, issuesFromZod, notFound } from '../lib/errors';
 import { limitsFor } from '../lib/plan-limits';
-import { tenantOf } from '../middleware/tenant';
+import { requireRole, tenantOf } from '../middleware/tenant';
 
 export const memberRoutes = new Hono();
 
@@ -64,72 +65,81 @@ memberRoutes.get('/members', async (c) => {
  * Owner only. Admins can remove members but cannot promote anyone to admin:
  * handing out admin rights is an owner decision.
  */
-memberRoutes.patch('/members/:userId', async (c) => {
-  const tenant = tenantOf(c);
-  if (tenant.role !== 'owner') {
-    throw forbidden('Only the workspace owner can change roles');
-  }
+memberRoutes.patch(
+  '/members/:userId',
+  zValidator('json', updateMemberRoleSchema, (result, c) => {
+    if (!result.success) {
+      return c.json(
+        {
+          error: {
+            code: 'validation_failed',
+            message: 'Role must be one of owner, admin or member',
+            issues: issuesFromZod(result.error),
+          },
+        },
+        422,
+      );
+    }
+  }),
+  async (c) => {
+    const tenant = tenantOf(c);
+    requireRole(tenant, 'owner');
 
-  const body = await c.req.json().catch(() => null);
-  const parsed = z.object({ role: z.enum(['owner', 'admin', 'member']) }).safeParse(body);
+    const { role } = c.req.valid('json');
+    const db = getDb();
+    const targetId = c.req.param('userId');
 
-  if (!parsed.success) {
-    throw badRequest('Role must be one of owner, admin or member');
-  }
-
-  const db = getDb();
-  const targetId = c.req.param('userId');
-
-  const [membership] = await db
-    .select()
-    .from(schema.memberships)
-    .where(
-      and(
-        eq(schema.memberships.workspaceId, tenant.workspaceId),
-        eq(schema.memberships.userId, targetId),
-      ),
-    )
-    .limit(1);
-
-  if (!membership) throw notFound('That person is not a member of this workspace');
-
-  // A workspace needs exactly one owner.
-  if (membership.role === 'owner' && parsed.data.role !== 'owner') {
-    const [otherOwner] = await db
-      .select({ userId: schema.memberships.userId })
+    const [membership] = await db
+      .select()
       .from(schema.memberships)
       .where(
         and(
           eq(schema.memberships.workspaceId, tenant.workspaceId),
-          eq(schema.memberships.role, 'owner'),
+          eq(schema.memberships.userId, targetId),
         ),
       )
       .limit(1);
 
-    if (!otherOwner) {
-      throw conflict('A workspace must keep at least one owner');
+    if (!membership) throw notFound('That person is not a member of this workspace');
+
+    // A workspace needs exactly one owner.
+    if (membership.role === 'owner' && role !== 'owner') {
+      const [otherOwner] = await db
+        .select({ userId: schema.memberships.userId })
+        .from(schema.memberships)
+        .where(
+          and(
+            eq(schema.memberships.workspaceId, tenant.workspaceId),
+            eq(schema.memberships.role, 'owner'),
+          ),
+        )
+        .limit(1);
+
+      if (!otherOwner) {
+        throw conflict('A workspace must keep at least one owner');
+      }
     }
-  }
 
-  await db
-    .update(schema.memberships)
-    .set({ role: parsed.data.role })
-    .where(
-      and(
-        eq(schema.memberships.workspaceId, tenant.workspaceId),
-        eq(schema.memberships.userId, targetId),
-      ),
-    );
+    await db
+      .update(schema.memberships)
+      .set({ role })
+      .where(
+        and(
+          eq(schema.memberships.workspaceId, tenant.workspaceId),
+          eq(schema.memberships.userId, targetId),
+        ),
+      );
 
-  await db.insert(schema.auditLogs).values({
-    workspaceId: tenant.workspaceId,
-    actorName: tenant.actorName,
-    action: 'member.role_changed',
-    target: `${targetId} → ${parsed.data.role}`,
-  });
+    await db.insert(schema.auditLogs).values({
+      workspaceId: tenant.workspaceId,
+      actorName: tenant.actorName,
+      action: 'member.role_changed',
+      target: `${targetId} → ${role}`,
+    });
 
-  return c.json({ ok: true, role: parsed.data.role });
-});
+    return c.json({ ok: true, role });
+  },
+);
 
 /**
  * `DELETE /api/members/:userId` — remove somebody from the workspace.
@@ -139,12 +149,10 @@ memberRoutes.patch('/members/:userId', async (c) => {
  */
 memberRoutes.delete('/members/:userId', async (c) => {
   const tenant = tenantOf(c);
+  requireRole(tenant, 'owner', 'admin');
+
   const db = getDb();
   const targetId = c.req.param('userId');
-
-  if (tenant.role !== 'owner' && tenant.role !== 'admin') {
-    throw forbidden('Only owners and admins can remove members');
-  }
 
   if (targetId === tenant.userId) {
     throw badRequest('You cannot remove yourself from the workspace');
