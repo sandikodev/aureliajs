@@ -98,7 +98,7 @@ No double wrapper elements (`<au-island><au-bridge>...</au-bridge></au-island>`)
 | `hono-aurelia` | `@hono/aurelia` | `.`, `./client`, `./server`, `./build` | [Read Guide & Internals](./hono-aurelia/README.md) |
 | `aurelia-islands` | `@aureliajs/islands` | `.`, `./scheduler`, `./loader`, `./server` | [Read Guide & Internals](./aurelia-islands/README.md) |
 | `aurelia-bridge` | `@aureliajs/bridge` | `.`, `./adapters`, `./vite` | [Read Guide & Internals](./aurelia-bridge/README.md) |
-| `vite-plugin-aux` | `@aureliajs/vite-plugin-aux` | `.` | [Read Guide & Internals](./vite-plugin-aux/README.md) |
+| `vite-plugin-aux` | `@aureliajs/vite-plugin-aux` | `.`, `./client` | [Read Guide & Internals](./vite-plugin-aux/README.md) |
 | `ssr-playground` | `ssr-playground` | CLI / HTTP GUI | [Explore Playground](./ssr-playground) |
 | `vscode-aux` | `vscode-aux` | VS Code Extension | [Explore Extension](./vscode-aux) |
 
