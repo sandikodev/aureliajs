@@ -2,7 +2,9 @@
 
 # ⚡ Aurelia 2 Enterprise Ecosystem & Fullstack Portfolio
 
-**Sandikodev's Definitive Monorepo: Production Multi-Tenant SaaS Showcase, Edge SSR Engines, `.aux` Single-File Components & Upstream Open-Source Sub-Modules.**
+**The Definitive Fullstack Track Record & Open-Source Engineering Lab by Sandiko ([@sandikodev](https://github.com/sandikodev))**
+
+*A production-grade Multi-Tenant SaaS showcase, Edge SSR engines, `.aux` Single-File Components, and upstream meta-framework sub-modules.*
 
 [![Aurelia 2](https://img.shields.io/badge/Aurelia_2-2.0.0--rc.2-ed2939.svg?style=flat-square&logo=aurelia&logoColor=white)](https://aurelia.io)
 [![Hono](https://img.shields.io/badge/Hono-v4.13-E36002.svg?style=flat-square&logo=hono&logoColor=white)](https://hono.dev)
@@ -15,11 +17,11 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
 <p align="center">
-  <a href="#-architectural-separation--repository-identity">Monorepo Identity</a> •
+  <a href="#-author-preface--the-two-pillars">Author Preface</a> •
   <a href="#-the-architectural-paradigm-aurelia--angular-vs-react-and-vue">Aurelia vs React/Vue</a> •
-  <a href="#-domain-1-production-saas-showcase-application-apps">Showcase SaaS App</a> •
-  <a href="#-domain-2-upstream-open-source-framework-packages-packages">Upstream Packages</a> •
-  <a href="#-interactive-ssr-playground">Playground</a> •
+  <a href="#-pillar-1-personal-showcase-saas-application-apps">Showcase SaaS App</a> •
+  <a href="#-pillar-2-upstream-open-source-framework-packages-packages">Upstream Packages</a> •
+  <a href="#-interactive-developer-playground">Playground</a> •
   <a href="#-architectural-manifestos--research">Manifestos</a> •
   <a href="#-quick-start">Quick Start</a>
 </p>
@@ -28,99 +30,125 @@
 
 ---
 
-## 🏛️ Architectural Separation & Repository Identity
+## 🧭 Author Preface: The Two Pillars of this Monorepo
 
-This monorepo serves a dual purpose as the author's (**Sandikodev / @sandikodev**) Next-Gen Fullstack Portfolio in the Aurelia 2 ecosystem. To avoid confusion for visitors, recruiters, and open-source contributors, the codebase is segregated into **three distinct domains with crystalline boundaries**:
+Welcome! This repository is my comprehensive engineering track record and research lab in the modern **Aurelia 2** ecosystem.
+
+To ensure clarity for engineers, engineering leaders, and open-source contributors exploring this repository, the monorepo is built on **two distinct pillars with unambiguous boundaries**:
 
 ```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                        AURELIAJS ECOSYSTEM & PORTFOLIO MONOREPO                        │
-│                (Sandikodev's Architecture Lab & Production Track Record)               │
-├────────────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                        │
-│  DOMAIN 1: PRODUCTION SAAS SHOWCASE (apps/)                                            │
-│  "What can you build with Aurelia 2 in production?"                                    │
-│  • apps/web: Multi-Tenant Client SPA (Aurelia 2 + Tailwind v4 + .aux SFCs)             │
-│  • apps/api: Enterprise REST Backend (Hono + Drizzle ORM + PostgreSQL + Bun.password)  │
-│  • apps/shared: SaaS Domain Contracts (Zod schemas, DTOs & Entitlements)               │
-│  👉 Status: Personal Portfolio Fullstack Application (End-User SaaS Case Study).       │
-│                                                                                        │
-├────────────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                        │
-│  DOMAIN 2: UPSTREAM OPEN-SOURCE PACKAGES (packages/)                                   │
-│  "What meta-framework infrastructure does Aurelia 2 need to win the modern web?"       │
-│  • @aureliajs/ssr: Pure Aurelia 2 SSR & HTML5 JSON Hydration Engine                    │
-│  • @hono/aurelia: Web-Standards Hono Middleware & Action Adapter                       │
-│  • @aureliajs/islands: Zero-JS Selective Hydration & Native `island` Controller        │
-│  • @aureliajs/bridge: Polyglot Foreign Framework Interop (<au-bridge> React/Vue/etc)  │
-│  • @aureliajs/vite-plugin-aux: .aux Single-File Component Compiler (Vite/Bun/esbuild) │
-│  • ssr-playground: Interactive Web GUI & Headless Reversing Inspector                  │
-│  👉 Status: Decoupled, reusable open-source libraries contributed to the ecosystem.    │
-│                                                                                        │
-├────────────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                        │
-│  DOMAIN 3: VERIFICATION, ESSAYS & PLAYGROUND (e2e/ & docs/ & examples/)                │
-│  • e2e/: Playwright End-to-End Suite (Accessibility WCAG AA/AAA & Core User Flows)     │
-│  • docs/essays/: Deep Architectural Manifestos on History, Semantics & Reactive Shifts │
-│  • examples/: Standalone Reference Apps (e.g. examples/fullstack-ssr)                  │
-│                                                                                        │
-└────────────────────────────────────────────────────────────────────────────────────────┘
+                                 ┌───────────────────────────────────────────────┐
+                                 │                   aureliajs                   │
+                                 │      SANDIKODEV'S FULLSTACK PORTFOLIO         │
+                                 └───────────────────────┬───────────────────────┘
+                                                         │
+                    ┌────────────────────────────────────┴────────────────────────────────────┐
+                    │                                                                         │
+                    ▼                                                                         ▼
+┌───────────────────────────────────────┐                                 ┌───────────────────────────────────────┐
+│               PILLAR 1:               │                                 │               PILLAR 2:               │
+│        SHOWCASE SAAS APPLICATION      │                                 │      UPSTREAM OPEN-SOURCE PACKAGES    │
+│               (apps/)                 │                                 │              (packages/)              │
+├───────────────────────────────────────┤                                 ├───────────────────────────────────────┤
+│ • apps/web: Multi-Tenant SPA (Aurelia │                                 │ • @aureliajs/ssr: Edge SSR & Hydrator │
+│   2, Tailwind v4, .aux SFCs)          │                                 │ • @hono/aurelia: Hono SSR Adapter     │
+│ • apps/api: Enterprise REST Backend   │                                 │ • @aureliajs/islands: Zero-JS Islands │
+│   (Hono, Drizzle ORM, PostgreSQL)     │                                 │ • @aureliajs/bridge: Polyglot Interop │
+│ • apps/shared: SaaS Domain Contracts  │                                 │ • @aureliajs/vite-plugin-aux: SFC     │
+│                                       │                                 │ • ssr-playground: Interactive Web GUI │
+├───────────────────────────────────────┤                                 ├───────────────────────────────────────┤
+│ 👉 ROLE: My personal end-user SaaS    │                                 │ 👉 ROLE: Decoupled infrastructure     │
+│    portfolio showing how to build     │                                 │    contributions created to advance   │
+│    production systems with Aurelia 2. │                                 │    Aurelia 2 for the global community.│
+└───────────────────────────────────────┘                                 └───────────────────────────────────────┘
 ```
 
 > [!IMPORTANT]
-> **Strict Separation Rule**: Code inside `packages/` is completely decoupled and never imports from `apps/`. Conversely, `apps/` serves as the living production proof of how these modern patterns operate in an enterprise SaaS application.
+> **Strict Separation of Concerns**:
+> * **`apps/` is an end-user application portfolio** — it is not a library. It proves architectural rigor in a fullstack SaaS context (multi-tenancy, RBAC, session auth, PostgreSQL queries, Stripe billing).
+> * **`packages/` is a suite of reusable libraries** — they are published/publishable open-source sub-modules. They never import from `apps/` and solve framework-level challenges (SSR, island hydration, compiler tooling, foreign framework bridging).
 
 ---
 
 ## 🧠 The Architectural Paradigm: Aurelia & Angular vs. React and Vue
 
-Why does Aurelia feel profoundly natural to developers with an **Angular (or AngularJS)** background, yet cause cognitive dissonance for developers accustomed to **React, Vue, or Svelte**?
+### 1. The 2017 to 2026 Journey
+When I first learned Aurelia back in 2017 (the Aurelia 1 era), I did not yet fully grasp the profound discipline it offered compared to AngularJS (v1.x). At that time, AngularJS was plagued by `$scope`, dirty-checking `$digest` loops that degraded with thousands of watchers, and complex directive configurations. Aurelia 1—created by Rob Eisenberg after departing the Angular 2 core team—pioneered clean ES6 classes, standard TC39 decorators, and two-way property observers without dirty checking.
 
-### 1. The Clean Engineering Paradigm (Aurelia & Angular)
-* **Direct-DOM & Zero Virtual DOM Overhead**: Unlike React, which re-runs render functions and calculates Virtual DOM diffs on every state tick, Aurelia binds directly to the live DOM using precise property observers.
-* **Inversion of Control (IoC) & Dependency Injection**: Enterprise codebases require real Dependency Injection (`@resolve`, constructor injection). In Aurelia, services (`AuthService`, `I18nService`, `ToastService`) are decoupled, testable singletons or container-scoped instances—not global state hooks.
-* **Separation of Concerns (View vs. ViewModel)**: A component is a real, stateful TypeScript class instance (`ViewModel`) paired with an HTML template (`View`). Business logic remains clean POJO/TS; presentation remains declarative HTML.
-* **Historical Roots (2014–2017 to Present)**: In 2014, Rob Eisenberg worked with the Google Angular team before creating Aurelia 1 to offer clean ES6 classes without the dirty-checking digest cycles and `$scope` mess of AngularJS. Today in Aurelia 2, standard TC39 decorators and compile-time optimization fulfill that original vision of native purity.
+Returning to Aurelia 2 after years in modern frontend development brought a powerful realization:
+**The world of Aurelia and Angular cannot be compared "apple-to-apple" with the cultures of React, Vue, or Svelte.**
 
-### 2. Why React/Vue Cannot Be Compared "Apple-to-Apple"
-* **The React Culture**: Relies on ephemeral closures, cascading hooks (`useEffect`), and a proliferation of ad-hoc glue libraries (`class-variance-authority`, `clsx`, `tailwind-merge`, `zustand`, `redux`).
-* **The Aurelia Way**: Solves styling and reactivity natively. As demonstrated in this monorepo, removing React utility libraries in favor of native Aurelia template bindings (`class="${item.active ? 'bg-primary' : ''}" & debounce:300`) eliminates bundle bloat and preserves architectural cleanliness.
+```
+┌──────────────────────────────────────────────────┬──────────────────────────────────────────────────┐
+│      THE REACT / VUE / SVELTE TRADITION          │         THE AURELIA / ANGULAR TRADITION          │
+│            (Functional / Reactive Glue)          │           (Enterprise Clean Engineering)         │
+├──────────────────────────────────────────────────┼──────────────────────────────────────────────────┤
+│ • Mental Model: Re-render closures & Hooks       │ • Mental Model: Stateful ViewModels & Direct DOM │
+│ • State: Ad-hoc glue (Redux, Zustand, Pinia)     │ • Architecture: Inversion of Control & native DI │
+│ • Reactivity: Hook dependencies & compiler magic │ • Reactivity: Native property observers (Direct) │
+│ • Styling: Third-party utility glue (cva, clsx)  │ • Styling: Native template class bindings        │
+│ • Long-term DX: High churn, glue-code fatigue    │ • Long-term DX: Enterprise stability, low debt   │
+└──────────────────────────────────────────────────┴──────────────────────────────────────────────────┘
+```
 
-📖 *For a deep historical dissection, read Sandikodev's essay: [The Angular-Aurelia Heritage: Sejarah, Semantik, dan Rekonsiliasi Mental Model Frontend](docs/essays/the-angular-aurelia-heritage.md).*
+### 2. Why Aurelia 2 Excels in Enterprise Architecture
+* **Direct-DOM (Zero Virtual DOM Tax)**: React re-invokes render functions and diffs Virtual DOM trees in memory. Aurelia observes properties directly on the live DOM with near-zero overhead.
+* **Inversion of Control (IoC) & Dependency Injection**: Services (`AuthService`, `I18nService`, `ToastService`) are clean, injectable classes resolved via `@resolve` or constructors. No context providers or prop-drilling.
+* **Pure TypeScript Class Semantics**: A component is an authentic, stateful TypeScript class (`ViewModel`) paired with an HTML template (`View`). Business logic remains clean, testable TypeScript; templates remain declarative HTML.
+* **Elimination of React Glue Code**: In this repository, we purged `class-variance-authority`, `clsx`, and `tailwind-merge` in favor of native Aurelia 2 bindings (`class="${active ? 'bg-primary' : ''}" & debounce:300`), removing bundle weight while improving readability.
+
+📖 *Deep dive into history and semantics: [The Angular-Aurelia Heritage: Sejarah, Semantik, dan Rekonsiliasi Mental Model Frontend](docs/essays/the-angular-aurelia-heritage.md).*
 
 ---
 
-## 🏢 DOMAIN 1: Production SaaS Showcase Application (`apps/`)
+## 🏢 PILLAR 1: Personal Showcase SaaS Application (`apps/`)
 
-Located under [`apps/`](apps/), this is a fully fledged, production-shaped Multi-Tenant SaaS platform demonstrating the practical application of Aurelia 2 in an enterprise fullstack context.
+Under [`apps/`](apps/), I built a production-shaped, multi-tenant SaaS admin platform named **Aurelia Ops**. It demonstrates how Aurelia 2 acts as the core client engine for high-performance SaaS applications.
+
+### 📸 Visual Portfolio Showcase
 
 <div align="center">
 
+#### 1. Executive Overview & Metrics Dashboard (Light Theme)
+*Throughput SVG sparklines, status breakdown distribution, period window switcher, and real-time audit ledger.*
 ![Dashboard Light Theme](docs/screenshots/dashboard-light.png)
-
-| Projects Table (Tailwind v4 + Native Aurelia) | Stripe Billing & Customer Portal |
-| :---: | :---: |
-| ![Projects table](docs/screenshots/projects-light.png) | ![Billing in dark theme](docs/screenshots/billing-dark.png) |
-
-| Members & Magic Link Invites | Native `<dialog>` CRUD Flow |
-| :---: | :---: |
-| ![Members dark theme](docs/screenshots/members-dark.png) | ![Project dialog](docs/screenshots/project-dialog-light.png) |
-
-</div>
-
-### Key Showcase Capabilities:
-* **Strict Multi-Tenancy**: Centralized in [`apps/api/src/middleware/tenant.ts`](apps/api/src/middleware/tenant.ts). Handlers cleanly access `tenantOf(c)` with verified workspace and role permissions (`owner`, `admin`, `member`). Every database query enforces tenant isolation (`eq(schema.projects.workspaceId, workspaceId)`).
-* **Native Bun Password Hashing (RFC 1)**: Pure `Bun.password` Argon2id hashing in standard PHC string format—zero native C++ addon (`@node-rs/argon2`) overhead.
-* **Pure Tailwind CSS 4 & Native `.aux` UI Primitives (RFC 2)**: 14 ported shadcn/ui components (`button.aux`, `badge.aux`, `alert.aux`, `card.ts`, `select.aux`, `dialog`, `toaster.aux`) without any React dependencies (`cva`, `clsx`, `tailwind-merge`).
-* **Deterministic Offline Demo Fallback**: When the backend API is offline, the web application seamlessly falls back to local sample data and displays a non-intrusive demo banner—never crashing or presenting a white screen.
-* **Stripe Billing Integration**: Hosted Checkout Sessions, Customer Portal self-service, and idempotent signature-verified webhooks (`stripe_events.id`).
-* **Rigorous Component & Route Testing**: Backed by live JSDOM component tests in [`apps/web/test/components.test.ts`](apps/web/test/components.test.ts) and RBAC security tests in [`apps/api/test/routes.test.ts`](apps/api/test/routes.test.ts).
 
 ---
 
-## 📦 DOMAIN 2: Upstream Open-Source Framework Packages (`packages/`)
+#### 2. Projects Data Table & Native Dialog CRUD
+| Projects Table (Tailwind v4 + Native Aurelia) | Accessible `<dialog>` Modal CRUD |
+| :---: | :---: |
+| ![Projects table](docs/screenshots/projects-light.png) | ![Project dialog](docs/screenshots/project-dialog-light.png) |
+| *1,000 seeded projects, debounced search, status filters, deterministic sorting, and CSV formula injection mitigation.* | *HTML5 native `<dialog>` element, keyboard traps, accessible ARIA attributes, and reactive currency binding.* |
 
-For in-depth documentation of every ecosystem module, trade-offs, and internals, see **[`packages/README.md`](packages/README.md)**.
+---
+
+#### 3. Stripe Billing & Team Management (Dark Theme)
+| Stripe Customer Portal & Entitlements | Team Members & Magic Link Invites |
+| :---: | :---: |
+| ![Billing in dark theme](docs/screenshots/billing-dark.png) | ![Members dark theme](docs/screenshots/members-dark.png) |
+| *Subscription tiers (Free, Pro, Scale), usage limits, hosted Stripe Checkout, and signature-verified webhook handlers.* | *Role-based permissions (Owner, Admin, Member), invite revocation, and Argon2id session authentication.* |
+
+---
+
+#### 4. Responsive Mobile Experience
+<img src="docs/screenshots/dashboard-mobile.png" width="380" alt="Dashboard mobile view" />
+
+*Full mobile responsiveness with accessible drawer navigation, touch-friendly tap targets, and responsive tables.*
+
+</div>
+
+### 🛠️ Architecture of `apps/`
+* **`apps/web` (Client SPA)**: Built with Aurelia 2, Vite, Tailwind CSS 4, and ported `.aux` Single-File Components. Features deterministic demo fallback when the backend API is offline (`demo = true`).
+* **`apps/api` (REST Backend)**: Built with Hono, Drizzle ORM, PostgreSQL, and native Bun Argon2id password hashing (`Bun.password`).
+* **`apps/shared` (Domain Contract)**: Strict Zod schemas, DTOs, and plan entitlement matrices shared type-safely between client and server.
+* **Strict Multi-Tenancy**: Guaranteed at the database layer via `eq(schema.projects.workspaceId, tenant.workspaceId)` on every query.
+
+---
+
+## 📦 PILLAR 2: Upstream Open-Source Framework Packages (`packages/`)
+
+Under [`packages/`](packages/), I designed and maintain decoupled, reusable meta-framework packages contributed to the global Aurelia 2 community.
 
 ```
 aureliajs/packages/
@@ -133,40 +161,38 @@ aureliajs/packages/
 └── ssr-playground/       # Interactive Web GUI & Headless SSR Inspector (port 4700)
 ```
 
-| Package | Path | Responsibility | Tech Stack | Guide |
-|---|---|---|---|---|
-| **`@aureliajs/ssr`** | [`packages/aurelia-ssr`](packages/aurelia-ssr) | Pure SSR renderer (`BrowserPlatform` per container, real `ISSRContext`, `SsrTemplateElementFactory`) & zero-JSDOM `./client` hydrator | Aurelia 2, JSDOM, TypeScript | [README](packages/aurelia-ssr/README.md) |
-| **`@hono/aurelia`** | [`packages/hono-aurelia`](packages/hono-aurelia) | Thin Web-Standards Hono adapter (`aurelia`, `aureliaAction`, `aureliaDefaults` via `WeakMap<Request>`, real `ReadableStream` SSR) | Hono 4, Web Streams | [README](packages/hono-aurelia/README.md) |
-| **`@aureliajs/islands`** | [`packages/aurelia-islands`](packages/aurelia-islands) | Zero-JS Selective Hydration (`./server` + ~1.33 KB gz `./loader`) & native Aurelia 2 `island` Template Controller | Web APIs, Aurelia 2 | [README](packages/aurelia-islands/README.md) |
-| **`@aureliajs/bridge`** | [`packages/aurelia-bridge`](packages/aurelia-bridge) | Polyglot `<au-bridge>` (React, Vue, Svelte, Solid, Preact, Qwik) + `au-htmx` with container-scoped `IBridgeRegistry` DI | Aurelia 2 DI, TypeScript | [README](packages/aurelia-bridge/README.md) |
-| **`@aureliajs/vite-plugin-aux`** | [`packages/vite-plugin-aux`](packages/vite-plugin-aux) | `.aux` SFC compiler (`<script setup>`, `defineProps<T>()`, `<script server>`, `<template island="...">`, TC39 Stage 3 decorators) | Vite 8 Oxc, SWC, Bun, esbuild | [README](packages/vite-plugin-aux/README.md) |
-| **`@aureliajs/vscode-aux`** | [`packages/vscode-aux`](packages/vscode-aux) | VS Code extension providing `.aux` TextMate highlighting and AST template completions | VS Code API | [Folder](packages/vscode-aux) |
-| **`ssr-playground`** | [`packages/ssr-playground`](packages/ssr-playground) | Interactive Web GUI & headless reversing/diagnostics inspector with 16 canonical Aurelia 2 examples | Bun, Hono, Aurelia 2 | [Folder](packages/ssr-playground) |
+| Sub-Module | Responsibility | Tech Stack | Documentation |
+|---|---|---|---|
+| **`@aureliajs/ssr`** | Pure SSR renderer (`BrowserPlatform` per container, real `ISSRContext`, `SsrTemplateElementFactory`) & zero-JSDOM `./client` hydrator. | Aurelia 2, JSDOM, TypeScript | [Read Guide](packages/aurelia-ssr/README.md) |
+| **`@hono/aurelia`** | Thin Web-Standards Hono adapter (`aurelia`, `aureliaAction`, `aureliaDefaults` via `WeakMap<Request>`, real `ReadableStream` SSR). | Hono 4, Web Streams | [Read Guide](packages/hono-aurelia/README.md) |
+| **`@aureliajs/islands`** | Zero-JS Selective Hydration (`./server` + ~1.33 KB gz `./loader`) & native Aurelia 2 `island` Template Controller. | Web APIs, Aurelia 2 | [Read Guide](packages/aurelia-islands/README.md) |
+| **`@aureliajs/bridge`** | Polyglot `<au-bridge>` (React, Vue, Svelte, Solid, Preact, Qwik) + `au-htmx` with container-scoped `IBridgeRegistry` DI. | Aurelia 2 DI, TypeScript | [Read Guide](packages/aurelia-bridge/README.md) |
+| **`@aureliajs/vite-plugin-aux`** | `.aux` SFC compiler (`<script setup>`, `defineProps<T>()`, `<script server>`, `<template island="...">`, TC39 Stage 3 decorators). | Vite 8 Oxc, SWC, Bun, esbuild | [Read Guide](packages/vite-plugin-aux/README.md) |
+| **`@aureliajs/vscode-aux`** | VS Code extension providing `.aux` TextMate syntax highlighting and AST completions. | VS Code API | [Folder](packages/vscode-aux) |
+| **`ssr-playground`** | Interactive Web GUI & headless reversing/diagnostics inspector with 16 canonical Aurelia 2 examples. | Bun, Hono, Aurelia 2 | [Folder](packages/ssr-playground) |
 
 ---
 
-## 🔬 Interactive SSR Playground
+## 🔬 Interactive Developer Playground
 
-Located at [`packages/ssr-playground`](packages/ssr-playground), this developer tool provides an ergonomic development environment modeled after modern reactive playgrounds:
+Located at [`packages/ssr-playground`](packages/ssr-playground), this developer tool provides a live reactive environment modeled after modern framework playgrounds:
 
 ```bash
 # Launch the Web GUI Playground (Default: port 4700)
 bun packages/ssr-playground/src/cli/index.ts --serve --port 4700
 
-# Or run terminal TUI diagnostics on all fixtures
+# Or run terminal TUI diagnostics on all 16 fixtures
 bun packages/ssr-playground/src/cli/index.ts
 ```
 
-### Key Capabilities:
-* **Dual-Pane Resizable Interface**: Drag-to-resize split panes with zero flicker and memory-safe event handling.
-* **16 Canonical Examples**: Basic interpolation, reactive counters, two-way forms, value converters, binding behaviors, dependency injection, content projection, `.aux` SFCs, and zero-JS resumable hydration.
-* **Multi-Tab Output Inspector**: Live hydrated preview, TypeScript transpilation, SSR HTML output, and synchronized console logs.
+* **16 Canonical Fixtures**: Basic interpolation, reactive counters, two-way forms, value converters, binding behaviors, dependency injection, content projection, `.aux` SFCs, and zero-JS resumable hydration.
+* **Split-Pane Inspector**: Live hydrated preview inside an isolated security sandbox, TypeScript transpilation AST, server-rendered HTML, and bi-directional runtime logs.
 
 ---
 
 ## 🧩 Aurelia in HTML (`.aux` Single-File Components)
 
-Developed in [`packages/vite-plugin-aux`](packages/vite-plugin-aux), `.aux` introduces modern SFC ergonomics to Aurelia 2 while maintaining strict compliance with TC39 Stage 3 standards and Direct-DOM performance:
+Developed in [`packages/vite-plugin-aux`](packages/vite-plugin-aux), `.aux` introduces modern Single-File Component ergonomics to Aurelia 2 while maintaining strict compliance with TC39 Stage 3 standards and Direct-DOM performance:
 
 ```html
 <!-- Example: counter-widget.aux -->
@@ -239,9 +265,9 @@ This monorepo documents in-depth philosophical and technical research exploring 
 
 ### Prerequisites
 * **Bun**: `≥ 1.2.0` (package manager, runtime, bundler & native test runner)
-* **Docker**: (for PostgreSQL container)
+* **Docker**: (for PostgreSQL database)
 
-### 1. Launching the Multi-Tenant SaaS Showcase (`apps/`)
+### Option A: Launching the SaaS Showcase Application (`apps/`)
 ```bash
 # Clone repository
 git clone git@github.com:sandikodev/aureliajs.git
@@ -266,7 +292,7 @@ bun run dev           # Web on :4600, API on :4601
 * **API Health Check**: [`http://localhost:4601/health`](http://localhost:4601/health)
 * **Demo Credentials**: `demo@aureliajs.dev` / `demo-password-123`
 
-### 2. Launching the SSR Playground
+### Option B: Launching the Framework SSR Playground (`packages/`)
 ```bash
 # Launch the interactive SSR Playground web dashboard
 bun packages/ssr-playground/src/cli/index.ts --serve --port 4700
@@ -277,24 +303,24 @@ open http://localhost:4700
 
 ---
 
-## 🧪 Quality Gates & Verification
+## 🧪 Testing Machines & Quality Rigor
 
-Every component and adapter in this monorepo is backed by automated tests:
+Every layer of this codebase is backed by automated tests, rejecting superficial mock reports in favor of real runtime and DOM assertions:
 
 ```bash
-# 1. Build & typecheck every workspace package and app (100% strict TS)
-bun run build && bun run typecheck
+# 1. Typecheck all workspaces (100% strict TypeScript across 8 workspaces)
+bun run typecheck
 
-# 2. Run lightning-fast linting with Oxlint (0 warnings / 0 errors across 235 files)
+# 2. Fast linting with Oxlint (0 warnings / 0 errors across 235 files)
 bun run lint
 
-# 3. Run all unit & integration tests (204 tests passing, 1,306 assertions)
+# 3. Full test suites (204 tests passing, 1,306 assertions across 36 files)
 bun run test
 
-# 4. Run live JSDOM + Aurelia 2 DevTools verification emulator
+# 4. Terminal DevTools & JSDOM Aurelia 2 live hydration emulator
 bun run emulate
 
-# 5. Execute Playwright E2E accessibility suite
+# 5. Playwright E2E accessibility suite (WCAG AA/AAA)
 bun run test:e2e
 ```
 
@@ -303,4 +329,4 @@ bun run test:e2e
 ## 📄 License
 
 Open-source licensed under the [MIT License](LICENSE).  
-Created and maintained by [Sandiko (@sandikodev)](https://github.com/sandikodev).
+Created, designed, and maintained by [Sandiko (@sandikodev)](https://github.com/sandikodev).
