@@ -23,6 +23,7 @@ Thumbs.db
 !.agents/skills/
 .agents/skills/*
 !.agents/skills/aurelia-*
+!.agents/skills/code-cleanliness-auditor
 
 # Compiled output that accidentally landed next to the sources once.
 # The real build output lives in `dist/` (already ignored above).
