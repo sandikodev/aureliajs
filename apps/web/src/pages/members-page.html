@@ -167,7 +167,7 @@
           <span class="font-medium tabular-nums">${seatsTotalLabel}</span>
         </div>
         <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-          <div class="h-full rounded-full bg-primary" style="width: ${seatsPercent}%"></div>
+          <div class="h-full rounded-full bg-primary" style.bind="seatsStyle"></div>
         </div>
         <p class="mt-3 text-[11px] text-muted-foreground">${copy['members.seatsHint']}</p>
       </ui-card-content>
@@ -188,7 +188,7 @@
       </span>
       <div>
         <h2 class="text-base font-semibold leading-none">${copy['members.inviteLink']}</h2>
-        <p class="text-xs text-muted-foreground mt-1">${copy['members.inviteModalSubtitle'] || 'Teammate invitation created'}</p>
+        <p class="text-xs text-muted-foreground mt-1">${inviteModalSubtitle}</p>
       </div>
     </div>
     <button
@@ -203,7 +203,7 @@
 
   <div class="flex flex-col gap-4 px-5 py-5">
     <p class="text-sm text-muted-foreground">
-      ${invitedEmail ? (copy['members.inviteFor'] || 'Share this link with') + ' ' + invitedEmail : (copy['members.inviteModalDesc'] || 'Share this link with your teammate. Anyone with this link can join your workspace.')}
+      ${inviteModalDescription}
     </p>
 
     <div class="flex items-center gap-2">
@@ -213,7 +213,7 @@
         readonly
         value.bind="lastInviteUrl"
         class="font-mono text-xs flex-1 select-all"
-        click.trigger="$event.target.select()"
+        click.trigger="selectInput($event)"
       ></ui-input>
       <ui-button
         type="button"
@@ -222,7 +222,7 @@
         click.trigger="copyInviteLink()"
       >
         <ui-icon name.bind="copied ? 'check' : 'copy'" size="14"></ui-icon>
-        ${copied ? (copy['members.copied'] || 'Copied') : (copy['members.copy'] || 'Copy')}
+        ${copyButtonLabel}
       </ui-button>
     </div>
 
@@ -232,7 +232,7 @@
         size="sm"
         click.trigger="closeInviteModal()"
       >
-        ${copy['members.close'] || 'Done'}
+        ${modalCloseLabel}
       </ui-button>
     </div>
   </div>

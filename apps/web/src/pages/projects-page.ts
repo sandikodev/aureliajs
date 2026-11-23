@@ -12,6 +12,15 @@ import { AuthService } from '@/services/auth';
 import { I18nService } from '@/services/i18n';
 import { ToastService } from '@/services/toast';
 
+type StatusKey = `status.${ProjectStatus}`;
+
+function sanitizeCsvCell(value: unknown): string {
+  const str = String(value ?? '');
+  // Mitigate CSV formula injection (DDE attacks) when opened in Excel/Sheets
+  const safe = /^[=+\-@\t\r]/.test(str) ? `'${str}` : str;
+  return `"${safe.replaceAll('"', '""')}"`;
+}
+
 @customElement({ name: 'projects-page', template, dependencies: [ProjectDialog] })
 export class ProjectsPage implements IRouteViewModel {
   dialog!: ProjectDialog;
@@ -61,20 +70,26 @@ export class ProjectsPage implements IRouteViewModel {
   get statusMeta() {
     this.i18n.track();
     return Object.fromEntries(
-      (Object.keys(STATUS_META) as ProjectStatus[]).map((status) => [
-        status,
-        { ...STATUS_META[status], label: this.i18n.t(`status.${status}` as never) },
-      ]),
+      (Object.keys(STATUS_META) as ProjectStatus[]).map((status) => {
+        const key: StatusKey = `status.${status}`;
+        return [
+          status,
+          { ...STATUS_META[status], label: this.i18n.t(key) },
+        ];
+      }),
     ) as Record<ProjectStatus, { label: string; variant: string; dot: string }>;
   }
 
   /** The status labels for the filter and the dialog, from the catalog. */
   get statusOptions(): { value: ProjectStatus; label: string }[] {
     this.i18n.track();
-    return (['planning', 'active', 'paused', 'done'] as ProjectStatus[]).map((value) => ({
-      value,
-      label: this.i18n.t(`status.${value}` as never),
-    }));
+    return (['planning', 'active', 'paused', 'done'] as ProjectStatus[]).map((value) => {
+      const key: StatusKey = `status.${value}`;
+      return {
+        value,
+        label: this.i18n.t(key),
+      };
+    });
   }
 
   get sortOptions(): { value: 'updated' | 'budget' | 'name'; label: string }[] {
@@ -116,8 +131,6 @@ export class ProjectsPage implements IRouteViewModel {
 
   isLoading = true;
   demo = false;
-
-  private searchTimer: ReturnType<typeof setTimeout> | undefined;
 
   get totalPages(): number {
     return Math.max(1, Math.ceil(this.total / this.pageSize));
@@ -162,10 +175,6 @@ export class ProjectsPage implements IRouteViewModel {
     await this.load();
   }
 
-  detaching(): void {
-    clearTimeout(this.searchTimer);
-  }
-
   async load(): Promise<void> {
     this.isLoading = true;
     try {
@@ -208,11 +217,8 @@ export class ProjectsPage implements IRouteViewModel {
   }
 
   onSearchInput(): void {
-    clearTimeout(this.searchTimer);
-    this.searchTimer = setTimeout(() => {
-      this.page = 1;
-      void this.load();
-    }, 300);
+    this.page = 1;
+    void this.load();
   }
 
   onFilterChange(): void {
@@ -244,9 +250,10 @@ export class ProjectsPage implements IRouteViewModel {
   }
 
   async onProjectSaved(detail: ProjectSavedDetail): Promise<void> {
-    if (detail.project) {
+    const project = detail.project;
+    if (project) {
       if (detail.isEdit) {
-        this.items = this.items.map((row) => (row.id === detail.project!.id ? detail.project! : row));
+        this.items = this.items.map((row) => (row.id === project.id ? project : row));
       } else {
         await this.load();
       }
@@ -328,7 +335,7 @@ export class ProjectsPage implements IRouteViewModel {
       p.updatedAt,
     ]);
     const csv = [header, ...rows]
-      .map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(','))
+      .map((row) => row.map((cell) => sanitizeCsvCell(cell)).join(','))
       .join('\n');
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
     const anchor = document.createElement('a');

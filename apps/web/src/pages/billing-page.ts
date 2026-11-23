@@ -1,13 +1,12 @@
 import { formatCents, PLAN_LIMITS, type Plan } from '@aurelia-ops/shared/utils';
 import type { BillingOverview } from '@aurelia-ops/shared';
-import { customElement } from 'aurelia';
+import { customElement, resolve } from 'aurelia';
 import template from './billing-page.html';
 import { DEMO_BILLING } from '@/lib/demo-data';
 import { api, ApiError } from '@/services/api';
 import { AuthService } from '@/services/auth';
-import { I18nService } from '@/services/i18n';
+import { I18nService, type MessageKey } from '@/services/i18n';
 import { ToastService } from '@/services/toast';
-import { resolve } from 'aurelia';
 
 type PlanTier = {
   id: Plan;
@@ -16,7 +15,7 @@ type PlanTier = {
   blurbKey: 'billing.planFreeBlurb' | 'billing.planProBlurb' | 'billing.planScaleBlurb';
 };
 
-const PLAN_TIERS: PlanTier[] = [
+const PLAN_TIERS: readonly PlanTier[] = [
   {
     id: 'free',
     labelKey: 'billing.planFree',
@@ -163,7 +162,7 @@ export class BillingPage {
     if (!this.isPaid) {
       return this.i18n.t('billing.planFree');
     }
-    const map: Record<string, string> = {
+    const map: Record<string, MessageKey> = {
       active: 'billing.statusActive',
       trialing: 'billing.statusTrialing',
       past_due: 'billing.statusPastDue',
@@ -173,7 +172,7 @@ export class BillingPage {
       paused: 'billing.statusPaused',
       none: 'billing.statusNone',
     };
-    return this.i18n.t((map[this.subscriptionStatus] ?? 'billing.statusNone') as never);
+    return this.i18n.t(map[this.subscriptionStatus] ?? 'billing.statusNone');
   }
 
   get statusTone(): 'success' | 'warning' | 'destructive' | 'outline' {
@@ -214,6 +213,14 @@ export class BillingPage {
 
   get isSeatsAtLimit(): boolean {
     return this.seatsPercent >= 100;
+  }
+
+  get projectsProgressStyle(): string {
+    return `width: ${this.projectsPercent}%`;
+  }
+
+  get seatsProgressStyle(): string {
+    return `width: ${this.seatsPercent}%`;
   }
 
   tierActionLabel(tier: (typeof PLAN_TIERS)[number]): string {

@@ -106,11 +106,14 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       signal: AbortSignal.timeout(8000),
       ...init,
     });
-  } catch {
+  } catch (error: unknown) {
+    if (error instanceof DOMException && error.name === 'TimeoutError') {
+      throw new ApiError(0, 'timeout', 'The request timed out. Please try again.');
+    }
     throw new ApiError(0, 'network_error', 'The API is unreachable');
   }
 
-  if (response.status === 204) return undefined as T;
+  if (response.status === 204) return undefined as unknown as T;
 
   const payload = (await response.json().catch(() => null)) as {
     error?: { code?: string; message?: string; issues?: ApiIssue[] };

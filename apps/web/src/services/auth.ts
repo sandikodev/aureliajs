@@ -1,4 +1,6 @@
 import type { AuthSession, Role, User, Workspace } from '@aurelia-ops/shared';
+import { observable } from 'aurelia';
+import { initials } from '@/lib/utils';
 import { api } from './api';
 
 const empty: AuthSession = { user: null, workspace: null, role: null };
@@ -15,9 +17,9 @@ const empty: AuthSession = { user: null, workspace: null, role: null };
  * - No caching, no localStorage — server is the authority
  */
 export class AuthService {
-  user: User | null = null;
-  workspace: Workspace | null = null;
-  role: Role | null = null;
+  @observable user: User | null = null;
+  @observable workspace: Workspace | null = null;
+  @observable role: Role | null = null;
 
   get isAuthenticated(): boolean {
     return this.user !== null;
@@ -28,21 +30,11 @@ export class AuthService {
   }
 
   get initials(): string {
-    return (this.user?.name ?? '?')
-      .split(' ')
-      .map((part) => part[0] ?? '')
-      .join('')
-      .slice(0, 2)
-      .toUpperCase();
+    return initials(this.user?.name ?? '?');
   }
 
   get workspaceInitials(): string {
-    return (this.workspace?.name ?? '?')
-      .split(' ')
-      .map((part) => part[0] ?? '')
-      .join('')
-      .slice(0, 2)
-      .toUpperCase();
+    return initials(this.workspace?.name ?? '?');
   }
 
   apply(session: AuthSession): void {

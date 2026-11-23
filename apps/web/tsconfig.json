@@ -1,10 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "types": ["vite/client"],
+    "types": [],
     "experimentalDecorators": false,
     "useDefineForClassFields": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@aurelia-ops/shared": ["../shared/src/index.ts"],
