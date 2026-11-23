@@ -363,6 +363,35 @@ curl -b cookies.txt -H 'content-type: application/json' \
   https://<project>.vercel.app/api/billing/checkout                          # 201 + Stripe URL
 ```
 
+### Full live smoke suite
+
+The committed runner covers all 39 checks (SPA routes, auth/RBAC, projects CRUD, team/invites,
+workspace settings, billing, third-party calls and cleanup):
+
+```bash
+# Read-only — safe on production:
+bun run smoke:live
+
+# Full suite, including write flows and signed webhook events:
+NEON_DIRECT_URL='<direct-neon-url>' STRIPE_WEBHOOK_SECRET='<current webhook secret>' \
+  LIVE_WRITE=1 bun run smoke:live
+```
+
+`LIVE_WRITE=1` creates a temporary workspace, projects and invitations, exercises every write
+endpoint, then deletes every row it created using `NEON_DIRECT_URL`. Without that URL the
+mutating checks are skipped. `STRIPE_WEBHOOK_SECRET` must be the secret of the endpoint currently
+registered in Stripe — Stripe only shows it when the endpoint is created, and `vercel env pull`
+redacts Secret variables to `[SENSITIVE]`, so keep it outside the repo.
+
+**Third-party status on the live deployment:**
+
+| Service | Status | Notes |
+| --- | --- | --- |
+| Neon Postgres | Live | API totals match direct SQL row counts; runtime uses the pooled endpoint, migrations use the direct one |
+| Stripe (test mode) | Live | Real Checkout and Billing Portal sessions; signed webhooks apply once, dedupe redeliveries and keep `pro` on `past_due` |
+| Stripe yearly / scale prices | Not configured | Checkout returns a clear 400 naming the missing price; add `STRIPE_PRICE_YEARLY` / `STRIPE_PRICE_SCALE` to enable them |
+| Resend email | Not configured | Without `RESEND_API_KEY` the invite route returns `emailProvider: "console"` — the invite is created but no mail is delivered; set `RESEND_API_KEY` and `EMAIL_FROM` in Vercel for real delivery |
+
 ## Roadmap (and where each milestone lands)
 
 | Milestone | Scope                                                                      | Primary files                                                |

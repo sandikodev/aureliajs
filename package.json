@@ -20,6 +20,7 @@
     "test": "bun test",
     "postinstall": "bun scripts/postinstall.ts",
     "test:e2e": "bunx playwright test",
+    "smoke:live": "bun scripts/live-smoke.ts",
     "emulate": "bun scripts/emulate-devtools.ts",
     "lint": "bunx oxlint --ignore-path .oxlintignore .",
     "format": "bunx prettier --write .",

@@ -314,8 +314,13 @@ Register `https://<project>.vercel.app/api/billing/webhook` in Stripe for webhoo
 **Live deployment:** [https://aureliajs.vercel.app](https://aureliajs.vercel.app)
 (demo login: `demo@aureliajs.dev` / `demo-password-123`).
 
-Full details — including the pooled-vs-direct connection strings, env table, and smoke tests —
-are in [`docs/architecture.md`](docs/architecture.md#deploying-it-vercel-functions--neon).
+Verify the live deployment with `bun run smoke:live` (read-only) or, with
+`NEON_DIRECT_URL`, `STRIPE_WEBHOOK_SECRET` and `LIVE_WRITE=1`, the full 39-check suite that also
+exercises writes and signed Stripe webhooks and cleans up after itself.
+
+Full details — including the pooled-vs-direct connection strings, env table, third-party status
+and smoke tests — are in
+[`docs/architecture.md`](docs/architecture.md#deploying-it-vercel-functions--neon).
 
 > The Cloudflare Worker example (`aurelia-hono-ssr`) is a separate SSR reference app under
 > `packages/hono-aurelia/example`, not the deployment target for `apps/`.
