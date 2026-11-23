@@ -1,7 +1,9 @@
 dist
 build
 node_modules
-public/*.js
-public/*.js.map
-examples/*/public/*.js
-examples/*/public/*.js.map
+*.min.js
+**/public/*.js
+**/public/*.js.map
+packages/*/example/public/**
+packages/*/example/dist/**
+benchmarks/**
