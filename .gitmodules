@@ -13,3 +13,6 @@
 [submodule "packages/aurelia-ssr"]
 	path = packages/aurelia-ssr
 	url = git@github.com:sandikodev/aurelia-ssr.git
+[submodule "packages/vite-plugin-aux"]
+	path = packages/vite-plugin-aux
+	url = git@github.com:sandikodev/vite-plugin-aux.git
