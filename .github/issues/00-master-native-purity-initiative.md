@@ -6,20 +6,18 @@ As part of our commitment to **Convention over Configuration (CoC)**, architectu
 
 Our goal is to **strip accidental complexity, eliminate redundant transitive dependencies, and adopt the cleanest possible native conventions** matching Bun, Vite, Hono, and Aurelia 2. 
 
-Every proposal below is isolated into its own RFC issue so the community can evaluate, discuss, debate, and verify trade-offs. If a migration ever causes unforeseen regressions, each issue contains an explicit rollback plan.
+Every proposal below is isolated into its own GitHub Issue so the community can evaluate, discuss, debate, and verify trade-offs. If a migration ever causes unforeseen regressions, each issue contains an explicit rollback plan.
 
 ---
 
 ## 📋 Tracked RFC Issues
 
-| Issue | Area | Proposal | Type | Status |
-|---|---|---|---|---|
-| [#1](./01-rfc-migrate-argon2-to-bun-password.md) | `apps/api` | Migrate `@node-rs/argon2` $\rightarrow$ Native `Bun.password` | `native` / `shrink` | 📝 Open for Discussion |
-| [#2](./02-rfc-eliminate-react-css-utilities-in-web.md) | `apps/web` | Eliminate `cva`, `clsx`, `tailwind-merge` $\rightarrow$ Aurelia Native Bindings | `native` / `yagni` | 📝 Open for Discussion |
-| [#3](./03-rfc-migrate-ssr-dom-from-jsdom-to-linkedom.md) | `packages/aurelia-ssr` | Migrate default DOM emulation from `jsdom` $\rightarrow$ `linkedom` | `native` / `shrink` | 📝 Open for Discussion |
-| [#4](./04-rfc-eliminate-babel-from-vite-bridge.md) | `packages/aurelia-bridge` | Eliminate `@babel/core` $\rightarrow$ Vite Native / Esbuild | `native` / `delete` | 📝 Open for Discussion |
-| [#5](./05-rfc-consolidate-lint-format-to-biome.md) | Monorepo Root | Consolidate `oxlint` + `prettier` $\rightarrow$ `biome` (Rust Toolchain) | `tooling` | 📝 Open for Discussion |
-| [#6](./06-rfc-purge-binary-vsix-from-git.md) | `packages/vscode-aux` | Purge 8.1MB binary `.vsix` from git $\rightarrow$ CI/CD Release Artifact | `git-hygiene` | 📝 Open for Discussion |
+- [x] **[RFC 1: Migrate `@node-rs/argon2` to Native `Bun.password`](https://github.com/sandikodev/aureliajs/issues/1)** (`apps/api`) — Eliminates Rust N-API native bindings.
+- [x] **[RFC 2: Eliminate React CSS Utilities (`cva`, `clsx`, `tailwind-merge`)](https://github.com/sandikodev/aureliajs/issues/2)** (`apps/web`) — Restores native Aurelia template class bindings.
+- [ ] **[RFC 3: Migrate SSR DOM Emulation from `jsdom` to `linkedom` / `happy-dom`](https://github.com/sandikodev/aureliajs/issues/3)** (`packages/aurelia-ssr`) — 10.8x faster SSR throughput.
+- [x] **[RFC 4: Eliminate Babel Dependencies from `aurelia-bridge`](https://github.com/sandikodev/aureliajs/issues/4)** (`packages/aurelia-bridge`) — Pure Vite/esbuild native transform.
+- [ ] **[RFC 5: Consolidate Linter and Formatter (`oxlint` + `prettier`) into `biome`](https://github.com/sandikodev/aureliajs/issues/5)** (Root) — Unified Rust-based developer toolchain.
+- [x] **[RFC 6: Purge Precompiled Binary VSIX from Git & Automate CI Release](https://github.com/sandikodev/aureliajs/issues/6)** (`packages/vscode-aux`) — Cuts 8.1MB binary bloat from git tree.
 
 ---
 
