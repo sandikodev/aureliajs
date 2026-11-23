@@ -12,6 +12,8 @@ import { zValidator } from '@hono/zod-validator';
 import { getDb, schema } from '../db/client';
 import { isProd } from '../env';
 import { HttpError, issuesFromZod, unauthorized } from '../lib/errors';
+import { clientIp } from '../lib/client-ip';
+import { planFromSubscription } from '../lib/plan-limits';
 import { resolveWorkspace, type WorkspaceContext } from '../lib/workspace';
 import * as rateLimit from '../lib/rate-limit';
 import {
@@ -42,7 +44,11 @@ function toSession(
           id: workspace.id,
           name: workspace.name,
           slug: workspace.slug,
-          plan: workspace.plan,
+          plan: planFromSubscription(
+            workspace.subscriptionStatus,
+            Boolean(workspace.stripeCustomerId),
+            workspace.plan,
+          ),
           trialEndsAt: workspace.trialEndsAt,
         }
       : null,
@@ -91,7 +97,7 @@ authRoutes.post(
   async (c) => {
     const { email, password } = c.req.valid('json');
 
-    const ip = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? 'local';
+    const ip = clientIp(c);
     const key = `login:${ip}:${email}`;
     const limit = rateLimit.hit(key, 8, 5 * 60);
     if (!limit.allowed) {

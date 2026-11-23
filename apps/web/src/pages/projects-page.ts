@@ -153,18 +153,32 @@ export class ProjectsPage implements IRouteViewModel {
   }
 
   private shouldOpenNew = false;
+  private isAttached = false;
 
-  loading(params: Params): void {
-    if (params?.q) {
-      this.q = String(params.q);
+  loading(params: Params, next?: any): void {
+    const query =
+      next?.queryParams ??
+      (typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null);
+    const qVal = params?.q ?? query?.get?.('q');
+    if (qVal) {
+      this.q = String(qVal);
     }
-    const isNew = params?.new === 'true' || params?.new === '1';
+    const isNew =
+      params?.new === 'true' ||
+      params?.new === '1' ||
+      query?.get?.('new') === 'true' ||
+      query?.get?.('new') === '1';
+
     if (isNew) {
       this.shouldOpenNew = true;
+      if (this.isAttached) {
+        this.openCreate();
+      }
     }
   }
 
   async attached(): Promise<void> {
+    this.isAttached = true;
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (!this.q && params.get('q')) {
@@ -173,15 +187,16 @@ export class ProjectsPage implements IRouteViewModel {
       if (this.shouldOpenNew || params.get('new') === 'true' || params.get('new') === '1') {
         this.shouldOpenNew = false;
         this.openCreate();
-        const cleanUrl = new URL(window.location.href);
-        cleanUrl.searchParams.delete('new');
-        window.history.replaceState({}, '', cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ''));
       }
     } else if (this.shouldOpenNew) {
       this.shouldOpenNew = false;
       this.openCreate();
     }
     await this.load();
+  }
+
+  detaching(): void {
+    this.isAttached = false;
   }
 
   async load(): Promise<void> {
@@ -251,7 +266,21 @@ export class ProjectsPage implements IRouteViewModel {
   }
 
   openCreate(): void {
-    this.dialog.openCreate();
+    const tryOpen = () => {
+      if (this.dialog?.dialogEl) {
+        this.dialog.openCreate();
+        return true;
+      }
+      return false;
+    };
+
+    if (!tryOpen()) {
+      requestAnimationFrame(() => {
+        if (!tryOpen()) {
+          setTimeout(tryOpen, 60);
+        }
+      });
+    }
   }
 
   openEdit(project: Project): void {
@@ -325,7 +354,8 @@ export class ProjectsPage implements IRouteViewModel {
   }
 
   updated(project: Project): string {
-    return relativeTime(project.updatedAt);
+    this.i18n.track();
+    return relativeTime(project.updatedAt, this.i18n.locale, this.i18n.t('common.justNow'));
   }
 
   isOverdue(project: Project): boolean {
@@ -334,7 +364,14 @@ export class ProjectsPage implements IRouteViewModel {
   }
 
   exportCsv(): void {
-    const header = ['Name', 'Status', 'Owner', 'Budget (USD)', 'Due date', 'Updated'];
+    const header = [
+      this.i18n.t('projects.columnName'),
+      this.i18n.t('projects.columnStatus'),
+      this.i18n.t('projects.columnOwner'),
+      this.i18n.t('projects.fieldBudget'),
+      this.i18n.t('projects.columnDue'),
+      this.i18n.t('projects.columnUpdated'),
+    ];
     const rows = this.items.map((p) => [
       p.name,
       this.statusMeta[p.status].label,

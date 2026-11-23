@@ -87,7 +87,9 @@ export class ProjectDialog {
     this.form = emptyForm();
     this.fieldErrors = {};
     this.formError = '';
-    this.dialogEl.showModal();
+    if (!this.dialogEl?.open) {
+      this.dialogEl?.showModal();
+    }
   }
 
   openEdit(project: Project): void {
@@ -105,7 +107,18 @@ export class ProjectDialog {
   }
 
   close(): void {
-    this.dialogEl.close();
+    if (this.dialogEl?.open) {
+      this.dialogEl.close();
+    }
+    this.cleanNewQueryParam();
+  }
+
+  private cleanNewQueryParam(): void {
+    if (typeof window !== 'undefined' && window.location.search.includes('new=')) {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('new');
+      window.history.replaceState({}, '', cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ''));
+    }
   }
 
   async save(): Promise<void> {
@@ -139,7 +152,7 @@ export class ProjectDialog {
         this.notifySuccess('projects.created', project.name);
         this.dispatchSaved({ project, isEdit: false, input: parsed.data });
       }
-      this.dialogEl.close();
+      this.close();
     } catch (error) {
       if (error instanceof ApiError) {
         this.formError = error.message;
@@ -149,7 +162,7 @@ export class ProjectDialog {
       } else {
         // Fallback for demo/offline: dispatch to parent to apply local mutation
         this.dispatchSaved({ isEdit: this.isEditing, input: parsed.data });
-        this.dialogEl.close();
+        this.close();
       }
     } finally {
       this.saving = false;

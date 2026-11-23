@@ -4,7 +4,7 @@ import { Hono } from 'hono';
 import Stripe from 'stripe';
 import { zValidator } from '@hono/zod-validator';
 import { env, isProd } from '../env';
-import { getDb, schema } from '../db/client';
+import { getDb, schema, type DbClient } from '../db/client';
 import { badRequest, HttpError, notFound } from '../lib/errors';
 import { limitsFor, planFromSubscription } from '../lib/plan-limits';
 import { log } from '../lib/log';
@@ -78,12 +78,12 @@ async function loadWorkspace(workspaceId: string) {
 
 /** Small helper so the audit trail stays consistent across billing events. */
 async function dbAudit(
+  db: DbClient,
   workspaceId: string,
   actorName: string,
   action: string,
   target: string,
 ): Promise<void> {
-  const db = getDb();
   await db.insert(schema.auditLogs).values({ workspaceId, actorName, action, target });
 }
 
@@ -243,12 +243,14 @@ billingRoutes.post(
       allow_promotion_codes: true,
     });
 
-    await dbAudit(tenant.workspaceId, tenant.actorName, 'billing.checkout_started', plan);
+    await dbAudit(db, tenant.workspaceId, tenant.actorName, 'billing.checkout_started', plan);
 
     if (!session.url) {
       throw new HttpError(502, 'checkout_failed', 'Stripe did not return a checkout URL');
     }
-    return c.json({ url: session.url });
+    // A Checkout Session is a newly created resource; 201 matches the API
+    // contract the e2e suite asserts.
+    return c.json({ url: session.url }, 201);
   },
 );
 
@@ -301,7 +303,6 @@ billingRoutes.post('/billing/portal', async (c) => {
  * cookie, so the request is authenticated by the signature instead.
  */
 publicBillingRoutes.post('/billing/webhook', async (c) => {
-  const stripe = getStripe();
   const signature = c.req.header('stripe-signature');
   if (!signature) {
     return c.json(
@@ -310,12 +311,24 @@ publicBillingRoutes.post('/billing/webhook', async (c) => {
     );
   }
 
+  // Construct the client only after the request is known to be a real webhook:
+  // a malformed unauthenticated call should get a 400, not "billing not set up".
+  const stripe = getStripe();
+
   // The raw body is required — a parsed JSON object breaks the signature.
   const payload = await c.req.text();
 
+  // Resolve configuration outside the try: a missing secret is a deployment
+  // problem (503 + setup instructions), not a forged signature (400).
+  const webhookSecret = getWebhookSecret();
+
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(payload, signature, getWebhookSecret());
+    // Stripe's WebCrypto provider cannot verify a signature synchronously on
+    // Bun/Edge runtimes. The sync API throws "SubtleCryptoProvider cannot be
+    // used in a synchronous context", which used to surface as a permanent
+    // 400 for *every* webhook — paid plans were never activated.
+    event = await stripe.webhooks.constructEventAsync(payload, signature, webhookSecret);
   } catch (error) {
     log.error('webhook signature verification failed', {
       error: error instanceof Error ? error.message : String(error),
@@ -329,29 +342,35 @@ publicBillingRoutes.post('/billing/webhook', async (c) => {
 
   const db = getDb();
 
-  // Idempotency: the event id is the primary key, so a duplicate delivery
-  // hits a conflict and we return 200 without applying the side effect twice.
-  const inserted = await db
-    .insert(schema.stripeEvents)
-    .values({ id: event.id, type: event.type })
-    .onConflictDoNothing()
-    .returning({ id: schema.stripeEvents.id });
-
-  if (inserted.length === 0) {
-    return c.json({ received: true, duplicate: true });
-  }
-
   try {
-    await applyEvent(event);
-    return c.json({ received: true, duplicate: false });
+    /*
+     * Claim + side effects share one transaction. The event id is the primary
+     * key: a second delivery finds no inserted row and is acknowledged without
+     * re-applying anything. If applyEvent throws, the ledger row is rolled back
+     * with it. The previous version deleted the row on failure, which could
+     * leave a partially applied event (audit written, plan not updated) and let
+     * a concurrent retry see a "duplicate" for work that never finished.
+     */
+    const outcome = await db.transaction(async (tx) => {
+      const inserted = await tx
+        .insert(schema.stripeEvents)
+        .values({ id: event.id, type: event.type })
+        .onConflictDoNothing()
+        .returning({ id: schema.stripeEvents.id });
+
+      if (inserted.length === 0) return { duplicate: true };
+
+      await applyEvent(event, tx);
+      return { duplicate: false };
+    });
+
+    return c.json({ received: true, ...outcome });
   } catch (error) {
     log.error('failed to handle stripe event', {
       type: event.type,
       error: error instanceof Error ? error.message : String(error),
     });
-    // Remove the ledger row so Stripe's retry can process it again.
-    await db.delete(schema.stripeEvents).where(eq(schema.stripeEvents.id, event.id));
-    // 5xx: Stripe retries, which is what we want for a transient failure.
+    // 5xx: the transaction rolled back, so Stripe's retry starts clean.
     return c.json({ error: { code: 'handler_failed', message: 'Could not process event' } }, 500);
   }
 });
@@ -362,9 +381,7 @@ publicBillingRoutes.post('/billing/webhook', async (c) => {
  * Kept separate from the HTTP handler so it can be exercised directly in a
  * test without going through signature verification.
  */
-async function applyEvent(event: Stripe.Event): Promise<void> {
-  const db = getDb();
-
+async function applyEvent(event: Stripe.Event, db: DbClient): Promise<void> {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;
@@ -392,6 +409,7 @@ async function applyEvent(event: Stripe.Event): Promise<void> {
         .where(eq(schema.stripeEvents.id, event.id));
 
       await dbAudit(
+        db,
         workspaceId,
         'Stripe',
         'billing.plan_activated',
@@ -409,8 +427,14 @@ async function applyEvent(event: Stripe.Event): Promise<void> {
       const status = subscription.status;
       // Since API 2025-03-31 the period end lives on the subscription item.
       const periodEnd = subscription.items.data[0]?.current_period_end;
-      const plan = subscription.metadata?.plan === 'scale' ? 'scale' : 'pro';
-      const isActive = status === 'active' || status === 'trialing';
+      const subscribedPlan = subscription.metadata?.plan === 'scale' ? 'scale' : 'pro';
+      /*
+       * `plan` is the entitlement, not a copy of the Stripe status. Using the
+       * same policy here that the tenant middleware and billing page use is
+       * what keeps `past_due` from silently downgrading a paying workspace
+       * while Stripe is still retrying the card.
+       */
+      const plan = planFromSubscription(status, true, subscribedPlan);
 
       await db
         .update(schema.workspaces)
@@ -419,7 +443,7 @@ async function applyEvent(event: Stripe.Event): Promise<void> {
           subscriptionStatus: status,
           subscriptionCurrentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,
           subscriptionCancelAtPeriodEnd: subscription.cancel_at_period_end,
-          plan: isActive ? plan : 'free',
+          plan,
         })
         .where(eq(schema.workspaces.id, workspaceId));
 
@@ -429,10 +453,15 @@ async function applyEvent(event: Stripe.Event): Promise<void> {
         .where(eq(schema.stripeEvents.id, event.id));
 
       await dbAudit(
+        db,
         workspaceId,
         'Stripe',
-        isActive ? 'billing.plan_activated' : 'billing.plan_changed',
-        `${plan} · ${status}`,
+        status === 'active' || status === 'trialing'
+          ? 'billing.plan_activated'
+          : status === 'past_due'
+            ? 'billing.payment_past_due'
+            : 'billing.plan_changed',
+        `${subscribedPlan} · ${status}`,
       );
       return;
     }
@@ -452,6 +481,7 @@ async function applyEvent(event: Stripe.Event): Promise<void> {
         .where(eq(schema.stripeEvents.id, event.id));
 
       await dbAudit(
+        db,
         workspaceId,
         'Stripe',
         event.type === 'invoice.paid' ? 'billing.invoice_paid' : 'billing.invoice_failed',

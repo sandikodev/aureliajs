@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { and, count, eq, isNull } from 'drizzle-orm';
+import { and, count, eq, gt, isNull } from 'drizzle-orm';
 import { zValidator } from '@hono/zod-validator';
 import {
   acceptInviteSchema,
@@ -8,6 +8,8 @@ import {
 } from '@aurelia-ops/shared';
 import { getDb, schema } from '../db/client';
 import { HttpError, badRequest, conflict, issuesFromZod, notFound } from '../lib/errors';
+import { activeInviteWhere, inviteState } from '../lib/membership-policy';
+import { clientIp } from '../lib/client-ip';
 import { limitsFor } from '../lib/plan-limits';
 import { env } from '../env';
 import { hashPassword } from '../lib/password';
@@ -97,9 +99,7 @@ invitesRoutes.post(
     const [pendingRow] = await db
       .select({ value: count() })
       .from(schema.invites)
-      .where(
-        and(eq(schema.invites.workspaceId, tenant.workspaceId), isNull(schema.invites.acceptedAt)),
-      );
+      .where(and(eq(schema.invites.workspaceId, tenant.workspaceId), activeInviteWhere()));
 
     const used = Number(seatRow?.value ?? 0) + Number(pendingRow?.value ?? 0);
     if (used >= seatLimit) {
@@ -200,11 +200,7 @@ invitesRoutes.get('/invites', async (c) => {
       expiresAt: invite.expiresAt.toISOString(),
       createdAt: invite.createdAt.toISOString(),
       acceptedAt: invite.acceptedAt?.toISOString() ?? null,
-      state: invite.acceptedAt
-        ? 'accepted'
-        : invite.expiresAt.getTime() < now
-          ? 'expired'
-          : 'pending',
+      state: inviteState(invite, now),
     })),
   );
 });
@@ -290,7 +286,7 @@ publicInviteRoutes.post(
     }
   }),
   async (c) => {
-    const ip = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? 'local';
+    const ip = clientIp(c);
     const limit = rateLimit.hit(`invite-accept:${ip}`, 15, 60);
     if (!limit.allowed) {
       c.header('Retry-After', String(limit.retryAfter));
@@ -301,130 +297,142 @@ publicInviteRoutes.post(
     const db = getDb();
     const tokenHash = createHash('sha256').update(token).digest('hex');
 
-    const [invite] = await db
-      .select()
-      .from(schema.invites)
-      .where(eq(schema.invites.tokenHash, tokenHash))
-      .limit(1);
+    /*
+     * Everything below is one transaction. The old version checked
+     * `acceptedAt`, then wrote the user/membership/session and only marked the
+     * invite accepted at the end: two concurrent clicks could both pass the
+     * check, provision the same person twice and hand out two sessions. The
+     * conditional UPDATE below is the real lock — exactly one request can flip
+     * `acceptedAt` from null to a timestamp. A failure anywhere rolls the
+     * whole thing back, so a burned invite never leaves a half-provisioned user.
+     */
+    const accepted = await db.transaction(async (tx) => {
+      const [invite] = await tx
+        .select()
+        .from(schema.invites)
+        .where(eq(schema.invites.tokenHash, tokenHash))
+        .limit(1);
 
-    if (!invite) {
-      throw notFound('This invite link is not valid');
-    }
-    if (invite.acceptedAt) {
-      throw conflict('This invite has already been used');
-    }
-    if (invite.expiresAt.getTime() < Date.now()) {
-      throw badRequest('This invite has expired — ask the workspace owner for a new one');
-    }
+      if (!invite) throw notFound('This invite link is not valid');
 
-    // Find or create the user. A random password is stored so the account can
-    // never be logged into with a guess; the invite link is the way in.
-    let [user] = await db
-      .select()
-      .from(schema.users)
-      .where(eq(schema.users.email, invite.email))
-      .limit(1);
-
-    if (!user) {
-      const randomPassword = randomBytes(32).toString('base64url');
-      const passwordHash = await hashPassword(randomPassword);
-
-      // Derive a readable display name from the email local part.
-      const localPart = invite.email.split('@')[0] ?? 'User';
-      const name = localPart
-        .split(/[._-]+/)
-        .filter(Boolean)
-        .map((part) => (part[0] ? part[0].toUpperCase() + part.slice(1) : part))
-        .join(' ');
-
-      const [created] = await db
-        .insert(schema.users)
-        .values({ email: invite.email, name: name || invite.email, passwordHash })
-        .returning();
-
-      if (!created) {
-        throw new HttpError(500, 'database_error', 'Failed to provision user');
+      const state = inviteState(invite);
+      if (state === 'accepted') throw conflict('This invite has already been used');
+      if (state === 'expired') {
+        throw badRequest('This invite has expired — ask the workspace owner for a new one');
       }
-      user = created;
-    }
 
-    // Add the membership (idempotent — accepting twice is not possible because
-    // of the acceptedAt check above, but a re-run of the seed could race).
-    const [existingMembership] = await db
-      .select({ userId: schema.memberships.userId })
-      .from(schema.memberships)
-      .where(
-        and(
-          eq(schema.memberships.workspaceId, invite.workspaceId),
-          eq(schema.memberships.userId, user.id),
-        ),
-      )
-      .limit(1);
+      // Atomic claim. A concurrent acceptance will find zero rows here.
+      const [claimed] = await tx
+        .update(schema.invites)
+        .set({ acceptedAt: new Date() })
+        .where(
+          and(
+            eq(schema.invites.id, invite.id),
+            isNull(schema.invites.acceptedAt),
+            gt(schema.invites.expiresAt, new Date()),
+          ),
+        )
+        .returning({ id: schema.invites.id });
 
-    if (!existingMembership) {
-      await db.insert(schema.memberships).values({
+      if (!claimed) throw conflict('This invite has already been used');
+
+      // Find or create the user. A random password is stored so the account can
+      // never be logged into with a guess; the invite link is the way in.
+      let [user] = await tx
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.email, invite.email))
+        .limit(1);
+
+      if (!user) {
+        const randomPassword = randomBytes(32).toString('base64url');
+        const passwordHash = await hashPassword(randomPassword);
+
+        // Derive a readable display name from the email local part.
+        const localPart = invite.email.split('@')[0] ?? 'User';
+        const name = localPart
+          .split(/[._-]+/)
+          .filter(Boolean)
+          .map((part) => (part[0] ? part[0].toUpperCase() + part.slice(1) : part))
+          .join(' ');
+
+        const [created] = await tx
+          .insert(schema.users)
+          .values({ email: invite.email, name: name || invite.email, passwordHash })
+          .returning();
+
+        if (!created) {
+          throw new HttpError(500, 'database_error', 'Failed to provision user');
+        }
+        user = created;
+      }
+
+      // Unique (workspace, user) index makes this a no-op if the person was
+      // somehow already added — no read-then-write window here either.
+      await tx
+        .insert(schema.memberships)
+        .values({
+          workspaceId: invite.workspaceId,
+          userId: user.id,
+          role: invite.role,
+        })
+        .onConflictDoNothing();
+
+      await tx.insert(schema.auditLogs).values({
         workspaceId: invite.workspaceId,
-        userId: user.id,
-        role: invite.role,
+        actorName: user.name,
+        action: 'member.invite_accepted',
+        target: invite.email,
       });
-    }
 
-    await db
-      .update(schema.invites)
-      .set({ acceptedAt: new Date() })
-      .where(eq(schema.invites.id, invite.id));
+      // Sign the new member in straight away — that is the point of a magic link.
+      const sessionToken = randomBytes(32).toString('base64url');
+      const sessionTokenHash = createHash('sha256').update(sessionToken).digest('hex');
+      const sessionExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    await db.insert(schema.auditLogs).values({
-      workspaceId: invite.workspaceId,
-      actorName: user.name,
-      action: 'member.invite_accepted',
-      target: invite.email,
+      await tx.insert(schema.sessions).values({
+        tokenHash: sessionTokenHash,
+        userId: user.id,
+        activeWorkspaceId: invite.workspaceId,
+        expiresAt: sessionExpiresAt,
+      });
+
+      const [workspace] = await tx
+        .select({
+          id: schema.workspaces.id,
+          name: schema.workspaces.name,
+          slug: schema.workspaces.slug,
+          plan: schema.workspaces.plan,
+          trialEndsAt: schema.workspaces.trialEndsAt,
+        })
+        .from(schema.workspaces)
+        .where(eq(schema.workspaces.id, invite.workspaceId))
+        .limit(1);
+
+      return { user, workspace, role: invite.role, sessionToken };
     });
 
-    // Sign the new member in straight away — that is the point of a magic link.
-    const sessionToken = randomBytes(32).toString('base64url');
-    const sessionTokenHash = createHash('sha256').update(sessionToken).digest('hex');
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-    await db.insert(schema.sessions).values({
-      tokenHash: sessionTokenHash,
-      userId: user.id,
-      activeWorkspaceId: invite.workspaceId,
-      expiresAt,
-    });
-
-    setCookie(c, SESSION_COOKIE, sessionToken, sessionCookie());
-
-    const [workspace] = await db
-      .select({
-        id: schema.workspaces.id,
-        name: schema.workspaces.name,
-        slug: schema.workspaces.slug,
-        plan: schema.workspaces.plan,
-        trialEndsAt: schema.workspaces.trialEndsAt,
-      })
-      .from(schema.workspaces)
-      .where(eq(schema.workspaces.id, invite.workspaceId))
-      .limit(1);
+    // Cookies can only be set on the real response, after the commit.
+    setCookie(c, SESSION_COOKIE, accepted.sessionToken, sessionCookie());
 
     return c.json({
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        avatarUrl: user.avatarUrl,
-        createdAt: user.createdAt.toISOString(),
+        id: accepted.user.id,
+        email: accepted.user.email,
+        name: accepted.user.name,
+        avatarUrl: accepted.user.avatarUrl,
+        createdAt: accepted.user.createdAt.toISOString(),
       },
-      workspace: workspace
+      workspace: accepted.workspace
         ? {
-            id: workspace.id,
-            name: workspace.name,
-            slug: workspace.slug,
-            plan: workspace.plan,
-            trialEndsAt: workspace.trialEndsAt?.toISOString() ?? null,
+            id: accepted.workspace.id,
+            name: accepted.workspace.name,
+            slug: accepted.workspace.slug,
+            plan: accepted.workspace.plan,
+            trialEndsAt: accepted.workspace.trialEndsAt?.toISOString() ?? null,
           }
         : null,
-      role: invite.role,
+      role: accepted.role,
     });
   },
 );

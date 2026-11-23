@@ -27,7 +27,7 @@
           id="project-name"
           autocomplete="off"
           value.two-way="form.name"
-          placeholder="Billing revamp"
+          placeholder="${copy['projects.namePlaceholder']}"
           invalid.bind="!!fieldErrors['name']"
         ></ui-input>
         <p if.bind="fieldErrors['name']" class="text-xs text-destructive">${fieldErrors['name']}</p>
@@ -40,7 +40,7 @@
             id="project-owner"
             autocomplete="off"
             value.two-way="form.ownerName"
-            placeholder="Ayu Prameswari"
+            placeholder="${copy['projects.ownerPlaceholder']}"
             invalid.bind="!!fieldErrors['ownerName']"
           ></ui-input>
           <p if.bind="fieldErrors['ownerName']" class="text-xs text-destructive">${fieldErrors['ownerName']}</p>
@@ -59,7 +59,7 @@
             type="number"
             autocomplete="off"
             value.two-way="form.budget"
-            placeholder="12000"
+            placeholder="${copy['projects.budgetPlaceholder']}"
             invalid.bind="!!fieldErrors['budgetCents']"
           ></ui-input>
           <p if.bind="fieldErrors['budgetCents']" class="text-xs text-destructive">${fieldErrors['budgetCents']}</p>

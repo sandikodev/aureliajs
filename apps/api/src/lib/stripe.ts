@@ -65,10 +65,3 @@ export function getWebhookSecret(): string {
   }
   return secret;
 }
-
-/** The Price id for a billing interval, or null when it has not been configured. */
-export function priceIdFor(interval: 'monthly' | 'yearly'): string | null {
-  return interval === 'monthly'
-    ? (env.STRIPE_PRICE_MONTHLY ?? null)
-    : (env.STRIPE_PRICE_YEARLY ?? null);
-}

@@ -88,6 +88,69 @@ test.describe('team', () => {
     await expect(page.getByText(/\d+ of \d+ seats/)).toBeVisible();
   });
 
+  test('changing a role from the members page persists through the API', async ({ page }) => {
+    await login(page);
+
+    const before = await (await page.request.get('/api/members')).json();
+    const target = before.members.find(
+      (m: { email: string }) => m.email === 'daniel@northwind.test',
+    );
+    expect(target, 'the seeded member should exist').toBeTruthy();
+    const originalRole = target.role as string;
+
+    try {
+      await page.goto('/members');
+      await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
+
+      const row = page.getByRole('row').filter({ hasText: 'daniel@northwind.test' });
+      // <ui-select value.bind="member.role"> plus change.trigger both listen
+      // to the native change event. If the two-way binding updates the source
+      // first, changeRole() sees an unchanged role and returns early — so the
+      // select would appear to work while never calling the API. This test is
+      // the guard for that ordering bug.
+      await row.locator('select').selectOption('admin');
+
+      await expect.poll(async () => {
+        const fresh = await (await page.request.get('/api/members')).json();
+        return fresh.members.find((m: { id: string }) => m.id === target.id)?.role;
+      }).toBe('admin');
+    } finally {
+      // Leave the seeded state intact for the rest of the suite.
+      await page.request.patch(`/api/members/${target.id}`, {
+        data: { role: originalRole },
+        headers: { 'content-type': 'application/json' },
+      });
+    }
+  });
+
+  test('members page on mobile viewport has no horizontal scroll or layout overflow', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await login(page);
+    await page.goto('/members');
+
+    await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
+    await expect(page.getByRole('table').getByText('demo@aureliajs.dev')).toBeVisible();
+
+    const metrics = await page.evaluate(() => {
+      const doc = document.documentElement;
+      const body = document.body;
+      const main = document.querySelector('main');
+      return {
+        windowScrollX: window.scrollX,
+        docClientWidth: doc.clientWidth,
+        docScrollWidth: doc.scrollWidth,
+        bodyScrollWidth: body.scrollWidth,
+        mainClientWidth: main ? main.clientWidth : 0,
+        mainScrollWidth: main ? main.scrollWidth : 0,
+      };
+    });
+
+    expect(metrics.docScrollWidth).toBeLessThanOrEqual(metrics.docClientWidth);
+    expect(metrics.bodyScrollWidth).toBeLessThanOrEqual(metrics.docClientWidth);
+    expect(metrics.mainScrollWidth).toBeLessThanOrEqual(metrics.mainClientWidth);
+    expect(metrics.windowScrollX).toBe(0);
+  });
+
   test('an invite can be created and accepted, and the new member joins', async ({ page }) => {
     await login(page);
 
@@ -128,6 +191,26 @@ test.describe('team', () => {
 
     // Leave the workspace the way we found it.
     await removeMember(page, INVITEE_EMAIL);
+  });
+
+  test('the only owner cannot demote themselves', async ({ page }) => {
+    await login(page);
+
+    const session = await (await page.request.get('/api/auth/me')).json();
+    const members = await (await page.request.get('/api/members')).json();
+    const self = members.members.find((m: { id: string }) => m.id === session.user.id);
+    expect(self?.role).toBe('owner');
+
+    // The guard must exclude the target from the "another owner exists" query.
+    const response = await page.request.patch(`/api/members/${self.id}`, {
+      data: { role: 'member' },
+      headers: { 'content-type': 'application/json' },
+    });
+    expect(response.status()).toBe(409);
+    expect((await response.json()).error.message).toContain('at least one owner');
+
+    const after = await (await page.request.get('/api/members')).json();
+    expect(after.members.find((m: { id: string }) => m.id === self.id).role).toBe('owner');
   });
 
   test('a member can be demoted and removed by the owner', async ({ page }) => {

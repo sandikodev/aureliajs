@@ -32,7 +32,7 @@ async function setLocale(page: Page, locale: 'en' | 'id') {
   });
 
   if (!(await button.isVisible())) {
-    await page.locator('summary[aria-label="Change language"]').click();
+    await page.locator('[data-testid="language-menu"]').click();
   }
 
   await button.click();

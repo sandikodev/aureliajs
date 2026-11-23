@@ -50,7 +50,7 @@ export class MembersPage {
       }, 2000);
       this.toast.success(this.i18n.t('members.inviteCopied').trim());
     } catch {
-      this.toast.error('Could not copy link to clipboard.');
+      this.toast.error(this.i18n.t('errors.copyLinkFailed'));
     }
   }
 
@@ -58,11 +58,14 @@ export class MembersPage {
     clearTimeout(this.copyTimer);
   }
 
-  readonly roleOptions = [
-    { value: 'member', label: 'Member' },
-    { value: 'admin', label: 'Admin' },
-    { value: 'owner', label: 'Owner' },
-  ];
+  get roleOptions() {
+    this.i18n.track();
+    return [
+      { value: 'member', label: this.roleLabel('member') },
+      { value: 'admin', label: this.roleLabel('admin') },
+      { value: 'owner', label: this.roleLabel('owner') },
+    ];
+  }
 
   /** The message catalog — see the note on `App.copy`. */
   get copy() {
@@ -94,26 +97,20 @@ export class MembersPage {
 
   get inviteModalSubtitle(): string {
     this.i18n.track();
-    return this.copy['members.inviteModalSubtitle'] || 'Teammate invitation created';
+    return this.i18n.t('members.inviteModalSubtitle');
   }
 
   get inviteModalDescription(): string {
     this.i18n.track();
     if (this.invitedEmail) {
-      const prefix = this.copy['members.inviteFor'] || 'Share this link with';
-      return `${prefix} ${this.invitedEmail}`;
+      return `${this.i18n.t('members.inviteFor')} ${this.invitedEmail}`;
     }
-    return (
-      this.copy['members.inviteModalDesc'] ||
-      'Share this link with your teammate. Anyone with this link can join your workspace.'
-    );
+    return this.i18n.t('members.inviteModalDesc');
   }
 
   get copyButtonLabel(): string {
     this.i18n.track();
-    return this.copied
-      ? this.copy['members.copied'] || 'Copied'
-      : this.copy['members.copy'] || 'Copy';
+    return this.i18n.t(this.copied ? 'members.copied' : 'members.copy');
   }
 
   get modalCloseLabel(): string {
@@ -200,17 +197,21 @@ export class MembersPage {
 
     const email = this.invite.email.trim().toLowerCase();
     if (!email || !email.includes('@')) {
-      this.toast.error('Enter a valid email address.');
+      this.toast.error(this.i18n.t('errors.invalidEmail'));
       return;
     }
 
     this.isInviting = true;
     try {
-      const { acceptUrl } = await api.createInvite({ email, role: this.invite.role });
+      const { invite, acceptUrl } = await api.createInvite({ email, role: this.invite.role });
       this.lastInviteUrl = acceptUrl;
       this.invitedEmail = email;
       this.copied = false;
       this.invite = { email: '', role: 'member' };
+      if (invite) {
+        this.invites = [invite, ...this.invites.filter((i) => i.id !== invite.id)];
+        this.seatUsed++;
+      }
 
       try {
         await navigator.clipboard.writeText(acceptUrl);
@@ -225,35 +226,58 @@ export class MembersPage {
       this.inviteModalEl?.showModal();
       await this.load();
     } catch (cause) {
-      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not create the invitation.');
+      this.toast.error(
+        cause instanceof ApiError ? cause.message : this.i18n.t('errors.createInviteFailed'),
+      );
     } finally {
       this.isInviting = false;
     }
   }
 
   async changeRole(member: Member, role: Role): Promise<void> {
-
     if (role === member.role) return;
+
+    const previousRole = member.role;
+    // Optimistic in-place mutation: badge and select update immediately without reload
+    member.role = role;
+    this.members = this.members.map((m) => (m.id === member.id ? { ...m, role } : m));
 
     try {
       await api.changeMemberRole(member.id, role);
-      this.toast.success(`${member.name} is now ${this.roleLabel(role)}.`);
+      this.toast.success(
+        this.i18n.t('members.roleChanged', { name: member.name, role: this.roleLabel(role) }),
+      );
       await this.load();
     } catch (cause) {
-      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not change that role.');
+      this.members = this.members.map((m) => (m.id === member.id ? { ...m, role: previousRole } : m));
+      this.toast.error(
+        cause instanceof ApiError ? cause.message : this.i18n.t('errors.changeRoleFailed'),
+      );
     }
   }
 
   async removeMember(member: Member): Promise<void> {
+    if (!confirm(this.i18n.t('members.removeConfirm', { name: member.name }))) return;
 
-    if (!confirm(`Remove ${member.name} from this workspace?`)) return;
+    const previousMembers = [...this.members];
+    const previousSeats = this.seatUsed;
+
+    // Optimistic in-place removal: UI updates immediately without reload
+    this.members = this.members.filter((m) => m.id !== member.id);
+    this.seatUsed = Math.max(0, this.seatUsed - 1);
 
     try {
       await api.removeMember(member.id);
-      this.toast.success(`${member.name} was removed from the workspace.`);
+      this.toast.success(
+        this.i18n.t('members.memberRemoved', { name: member.name }),
+      );
       await this.load();
     } catch (cause) {
-      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not remove that member.');
+      this.members = previousMembers;
+      this.seatUsed = previousSeats;
+      this.toast.error(
+        cause instanceof ApiError ? cause.message : this.i18n.t('errors.removeMemberFailed'),
+      );
     }
   }
 
@@ -263,14 +287,25 @@ export class MembersPage {
   }
 
   async revokeInvite(invite: Invite): Promise<void> {
-    if (!confirm(`Revoke invitation for ${invite.email}?`)) return;
+    if (!confirm(this.i18n.t('members.revokeInvite', { email: invite.email }))) return;
+
+    const previousInvites = [...this.invites];
+    const previousSeats = this.seatUsed;
+
+    // Optimistic in-place removal: UI updates immediately without reload
+    this.invites = this.invites.filter((i) => i.id !== invite.id);
+    this.seatUsed = Math.max(0, this.seatUsed - 1);
 
     try {
       await api.revokeInvite(invite.id);
       this.toast.success(this.i18n.t('members.inviteRevoked', { email: invite.email }));
       await this.load();
     } catch (cause) {
-      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not revoke that invitation.');
+      this.invites = previousInvites;
+      this.seatUsed = previousSeats;
+      this.toast.error(
+        cause instanceof ApiError ? cause.message : this.i18n.t('errors.revokeInviteFailed'),
+      );
     }
   }
 
@@ -300,21 +335,27 @@ export class MembersPage {
   }
 
   joined(member: Member): string {
+    this.i18n.track();
     const days = Math.max(
       0,
       Math.floor((Date.now() - new Date(member.joinedAt).getTime()) / 86_400_000),
     );
-    if (days === 0) return 'joined today';
-    if (days === 1) return 'joined yesterday';
-    if (days < 30) return `joined ${days} days ago`;
+    if (days === 0) return this.i18n.t('members.joinedToday');
+    if (days === 1) return this.i18n.t('members.joinedYesterday');
+    if (days < 30) {
+      return this.i18n.t('members.joinedDaysAgo', { count: days });
+    }
     const months = Math.floor(days / 30);
-    return `joined ${months} month${months === 1 ? '' : 's'} ago`;
+    return this.i18n.t(months === 1 ? 'members.joinedOneMonthAgo' : 'members.joinedMonthsAgo', {
+      count: months,
+    });
   }
 
   expiresIn(invite: Invite): string {
+    this.i18n.track();
     const hours = Math.floor((new Date(invite.expiresAt).getTime() - Date.now()) / 3_600_000);
-    if (hours <= 0) return 'expired';
-    if (hours < 24) return `expires in ${hours}h`;
-    return `expires in ${Math.floor(hours / 24)}d`;
+    if (hours <= 0) return this.i18n.t('members.inviteExpiredNow');
+    if (hours < 24) return this.i18n.t('members.expiresInHours', { count: hours });
+    return this.i18n.t('members.expiresInDays', { count: Math.floor(hours / 24) });
   }
 }

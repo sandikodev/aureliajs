@@ -12,7 +12,14 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(4601),
   WEB_ORIGIN: z.string().default('http://localhost:4600'),
   DATABASE_URL: z.string().default('postgres://aureliajs:aureliajs@localhost:5544/aureliajs'),
-  SESSION_SECRET: z.string().min(16).default('dev-only-change-me-32-characters-min'),
+  /**
+   * Set to 1 only when the API is behind a reverse proxy that overwrites
+   * x-forwarded-for. Off by default: the header is client-controlled otherwise.
+   */
+  TRUST_PROXY: z
+    .enum(['0', '1', 'true', 'false'])
+    .default('false')
+    .transform((value) => value === '1' || value === 'true'),
   /** Reported by /health so a deployment can be traced to a build. */
   APP_VERSION: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().optional(),

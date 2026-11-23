@@ -16,7 +16,7 @@ Together they form a **fullstack SaaS dashboard** — single-container Docker se
 ### `apps/api/`
 - **Entry**: `src/index.ts` — Hono app listening on `:4601`
 - **Build**: `bun run build` → `dist/server.js`
-- **Run**: `bun run dev` or `bun run start`
+- **Run**: `bun run dev` (watch) or `bun run start` (built output, via Bun — same as the production Dockerfile)
 - **API Docs**: `/api` routes (type-safe via Zod)
 - **Database**: Drizzle ORM + Postgres (migrations in `drizzle/`)
 - **Auth**: Session cookies (HttpOnly, Argon2id hashed)
@@ -94,8 +94,6 @@ aureliajs/
 │   ├── api/                 # Enterprise REST API (Hono + Drizzle + Postgres + Bun.password)
 │   ├── web/                 # Multi-Tenant Client SPA (Aurelia 2 + Tailwind 4 + .aux)
 │   └── shared/              # SaaS Domain Schemas, DTOs & Entitlements (@aurelia-ops/shared)
-├── examples/                # Live Reference Implementations
-│   └── fullstack-ssr/       # Fullstack Edge SSR Reference
 ├── docker-compose.prod.yml  # Production deployment
 ├── Dockerfile               # Single-container build
 ├── .env.example             # Dev values (safe defaults)
@@ -169,7 +167,7 @@ See `Dockerfile` and `docker-compose.prod.yml` for the multi-stage build.
 |------|---------|
 | `apps/shared/` | Shared Zod schemas, PLAN_LIMITS, API types (@aurelia-ops/shared) |
 | `packages/hono-aurelia/` | SSR adapter (Web-Standards Hono SSR) |
-| `examples/fullstack-ssr/` | Reference: Hono + Aurelia SSR (standalone) |
+| `packages/*/example/` | Live references colocated with each package workspace |
 | `docker-compose.prod.yml` | Production deployment config |
 
 ---

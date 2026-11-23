@@ -34,7 +34,9 @@ services:
       PORT: 4601
       APP_VERSION: ${APP_VERSION:-0.1.0}
       DATABASE_URL: postgres://${POSTGRES_USER:-aureliajs}:${POSTGRES_PASSWORD:-aureliajs}@db:5432/${POSTGRES_DB:-aureliajs}
-      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env}
+      # Enable only when this container is NOT directly reachable from the
+      # internet and the proxy overwrites X-Forwarded-For. See apps/api/src/env.ts.
+      TRUST_PROXY: ${TRUST_PROXY:-0}
       # The public URL of this deployment. It decides the CORS origin *and*
       # the accept links in invitations, so a wrong value sends people to a
       # dead link — it is required, not defaulted.

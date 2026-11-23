@@ -65,19 +65,31 @@ Indexes exist for the queries that actually run hot:
 Stripe delivers events **at least once**. The same `checkout.session.completed` can arrive twice,
 and applying the plan change twice makes the audit trail lie about what happened.
 
-`stripe_events.id` is the Stripe event id and it is the primary key. The handler inserts the event
-first; a duplicate delivery violates the constraint, `onConflictDoNothing` returns no rows, and the
-handler answers `200 { duplicate: true }` **without** re-applying the side effect. If processing
-throws, the ledger row is deleted so Stripe's retry can try again.
+`stripe_events.id` is the Stripe event id and it is the primary key. The insert _is_ the dedupe:
+a duplicate delivery violates the constraint, `onConflictDoNothing` returns no rows, and the
+handler answers `200 { duplicate: true }` **without** re-applying the side effect.
+
+The ledger insert and every side effect (plan change, audit row) now run in **one database
+transaction**. If anything throws, Postgres rolls the whole thing back — ledger row included — so
+Stripe's retry starts from a clean state. An earlier version deleted the ledger row in a separate
+`catch` block; that could leave a half-applied plan change behind with no way to detect it, so the
+workaround was removed rather than documented.
 
 ```ts
-const inserted = await db
-  .insert(schema.stripeEvents)
-  .values({ id: event.id, type: event.type })
-  .onConflictDoNothing()
-  .returning({ id: schema.stripeEvents.id });
+const outcome = await db.transaction(async (tx) => {
+  const inserted = await tx
+    .insert(schema.stripeEvents)
+    .values({ id: event.id, type: event.type })
+    .onConflictDoNothing()
+    .returning({ id: schema.stripeEvents.id });
 
-if (inserted.length === 0) return c.json({ received: true, duplicate: true });
+  if (inserted.length === 0) return { duplicate: true } as const;
+
+  await applyEvent(event, tx); // plan change + audit row share this transaction
+  return { duplicate: false } as const;
+});
+
+if (outcome.duplicate) return c.json({ received: true, duplicate: true });
 ```
 
 ## The important seam: tenancy
@@ -147,7 +159,7 @@ next to the "Upgrade" button. One table, two consumers — they cannot disagree.
 | No Stripe customer yet (seeded / admin-set plan)  | keep the stored plan           |
 | Subscription `active` or `trialing`               | `pro`                          |
 | Subscription `past_due`                           | keep the plan (Stripe retries) |
-| Subscription `unpaid` / `incomplete` / `canceled` | `free`                         |
+| Subscription `unpaid` / `incomplete` / `canceled` / `paused` / `incomplete_expired` | `free` |
 
 ## Billing
 
@@ -159,17 +171,18 @@ POST /api/billing/checkout ──► Stripe Checkout Session ──► browser �
                                                                   │
 POST /api/billing/webhook ◄──── signed event ◄─────────────────┘
         │
-        ├─ verify `stripe-signature` (raw body, HMAC-SHA256)
-        ├─ insert into stripe_events (dedupe)
-        └─ apply the plan change + write an audit row
+        ├─ verify `stripe-signature` (raw body, HMAC-SHA256, async via constructEventAsync)
+        └─ one DB transaction: insert into stripe_events (dedupe)
+                               + apply the plan change + write an audit row
 ```
 
 `POST /api/billing/portal` opens the Stripe customer portal, where the customer can change the
 card, download invoices and cancel.
 
 The webhook handler answers **400** for a signature that does not verify (Stripe will not retry a
-malformed request) and **500** for a processing failure (Stripe retries — and the ledger row is
-removed so the retry can succeed).
+malformed request) and **500** for a processing failure (Stripe retries — the failed transaction
+rolled back, so the retry can succeed). Signature verification uses Stripe's async
+`constructEventAsync`; the synchronous variant throws under Bun/Edge.
 
 ## Team and invitations
 

@@ -122,9 +122,7 @@ export class BillingPage implements IRouteViewModel {
     } catch (cause) {
       this.busy = false;
       this.toast.error(
-        cause instanceof ApiError
-          ? cause.message
-          : 'Could not start the checkout session. Is Stripe configured?'
+        cause instanceof ApiError ? cause.message : this.i18n.t('errors.checkoutFailed'),
       );
     }
   }
@@ -137,7 +135,7 @@ export class BillingPage implements IRouteViewModel {
     } catch (cause) {
       this.busy = false;
       this.toast.error(
-        cause instanceof ApiError ? cause.message : 'Could not open the billing portal.'
+        cause instanceof ApiError ? cause.message : this.i18n.t('errors.portalFailed'),
       );
     }
   }

@@ -1,7 +1,7 @@
 # 📚 Aurelia 2 Ecosystem — Documentation & Architecture Index
 
 > **Arsitek & Penulis**: Sandikodev (@sandikodev)  
-> **Terakhir Diperbarui**: 2026-11-22  
+> **Terakhir Diperbarui**: 2026-11-23  
 > **Repositori**: `/home/dev/project/aureliajs`
 
 Repositori ini adalah pusat inovasi rekayasa perangkat lunak Aurelia 2: menggabungkan kecepatan **Direct-DOM** murni, arsitektur enterprise berbasis **IoC & Dependency Injection**, runtime **Hono Edge Fullstack SSR**, format **`.aux` Single-File Components**, serta suite **Agnostic Bridge & Selective Hydration Islands**.
@@ -35,8 +35,12 @@ docs/
 │       ├── the-javascript-fallacy.md                  # Paradoks substrate web: 10 hari JS, ilusi TS, dan sistem modern
 │       └── upwork-strategy.md                         # Analisis pasar global Upwork & strategi niche karier
 │
-└── [Tier 5] Archive (RFCs & Historical Proposals)
-    └── archive/                                   # Proposal yang telah diimplementasikan (termasuk routing refactor)
+└── [Tier 5] Archive (Historical Proposals)
+    └── archive/                                   # Proposal lama (termasuk routing refactor)
+│
+├── [Tier 6] Active RFCs (status per 2026-11-23)
+    └── .github/issues/0*.md                       # RFC Argon2 (implemented), jsdom→linkedom (partial), dll.
+                                                   # Cek field **Status:** tiap file sebelum mengutipnya.
 ```
 
 ---

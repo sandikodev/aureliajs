@@ -3,8 +3,8 @@
   <p class="mt-1 text-sm text-muted-foreground">${copy['members.subtitle']}</p>
 </div>
 
-<div class="mt-5 grid gap-4 lg:grid-cols-3">
-  <div class="space-y-4 lg:col-span-2">
+<div class="mt-5 grid min-w-0 gap-4 lg:grid-cols-3">
+  <div class="min-w-0 space-y-4 lg:col-span-2">
     <ui-card>
       <ui-card-header>
         <div class="flex items-center justify-between gap-2">
@@ -29,7 +29,7 @@
       </ui-card-content>
 
       <div if.bind="!isLoading && members.length > 0" class="overflow-x-auto">
-        <table class="w-full min-w-[560px] text-sm">
+        <table class="w-full min-w-0 table-fixed text-sm sm:table-auto">
           <thead>
             <tr class="border-y bg-muted/40">
               <th class="px-3 py-2.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase">
@@ -38,7 +38,7 @@
               <th class="px-3 py-2.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase">
                 ${copy['members.role']}
               </th>
-              <th class="px-3 py-2.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              <th class="hidden sm:table-cell px-3 py-2.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase">
                 ${copy['members.joined']}
               </th>
               <th class="px-3 py-2.5 text-right text-xs font-medium tracking-wide text-muted-foreground uppercase">
@@ -54,22 +54,28 @@
                   <div class="min-w-0">
                     <p class="truncate text-[13px] font-medium">${member.name}</p>
                     <p class="truncate text-[11px] text-muted-foreground">${member.email}</p>
+                    <p class="truncate text-[11px] text-muted-foreground sm:hidden">${joined(member)}</p>
                   </div>
                 </div>
               </td>
               <td class="px-3 py-3">
                 <ui-badge variant.bind="roleVariant(member.role)">${roleLabel(member.role)}</ui-badge>
               </td>
-              <td class="px-3 py-3 text-[12px] text-muted-foreground">${joined(member)}</td>
+              <td class="hidden sm:table-cell px-3 py-3 text-[12px] text-muted-foreground">${joined(member)}</td>
               <td class="px-3 py-3 text-right">
-                <div class="flex items-center justify-end gap-2">
-                  <ui-select
-                    if.bind="canInvite"
-                    value.bind="member.role"
-                    options.bind="roleOptions"
-                    change.trigger="changeRole(member, $event.target.value)"
-                    aria-label.bind="changeRoleLabel(member.name)"
-                  ></ui-select>
+                <div class="flex items-center justify-end gap-1.5 sm:gap-2">
+                  <div if.bind="canInvite" class="w-24 sm:w-28 shrink-0">
+                    <!-- One-way on purpose: `changeRole()` does the optimistic
+                         mutation itself. A two-way binding would set member.role
+                         before the change handler runs, so its `role === member.role`
+                         guard would return early and the API would never be called. -->
+                    <ui-select
+                      value.to-view="member.role"
+                      options.bind="roleOptions"
+                      change.trigger="changeRole(member, $event.target.value)"
+                      aria-label.bind="changeRoleLabel(member.name)"
+                    ></ui-select>
+                  </div>
                   <ui-button
                     if.bind="canManage && member.role !== 'owner' && member.id !== auth.user?.id"
                     variant="ghost"
@@ -117,7 +123,7 @@
     </ui-card>
   </div>
 
-  <div class="space-y-4">
+  <div class="min-w-0 space-y-4">
     <ui-card>
       <ui-card-header>
         <ui-card-title>${copy['members.inviteTitle']}</ui-card-title>
@@ -172,7 +178,17 @@
         <ui-card-title>${copy['members.seatsTitle']}</ui-card-title>
         <ui-card-description>${copy['members.seatsDescription']}</ui-card-description>
       </ui-card-header>
-      <ui-card-content>
+      <ui-card-content if.bind="isLoading">
+        <div role="status" aria-busy="true" aria-label="${copy['common.loading']}" class="space-y-3">
+          <div class="flex items-center justify-between">
+            <ui-skeleton width="30%" height="0.875rem" rounded="rounded"></ui-skeleton>
+            <ui-skeleton width="25%" height="0.875rem" rounded="rounded"></ui-skeleton>
+          </div>
+          <ui-skeleton width="100%" height="0.5rem" rounded="rounded-full"></ui-skeleton>
+          <ui-skeleton width="70%" height="0.75rem" rounded="rounded"></ui-skeleton>
+        </div>
+      </ui-card-content>
+      <ui-card-content if.bind="!isLoading">
         <div class="flex items-center justify-between text-xs">
           <span class="text-muted-foreground">${seatsUsedLabel}</span>
           <span class="font-medium tabular-nums">${seatsTotalLabel}</span>
@@ -205,7 +221,7 @@
     <button
       type="button"
       class="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-      aria-label="Close"
+      aria-label="${copy['common.close']}"
       click.trigger="closeInviteModal()"
     >
       <ui-icon name="x" size="16"></ui-icon>
@@ -223,7 +239,7 @@
         type="text"
         readonly
         value.bind="lastInviteUrl"
-        class="font-mono text-xs flex-1 select-all"
+        class="font-mono text-xs flex-1 min-w-0 select-all"
         click.trigger="selectInput($event)"
       ></ui-input>
       <ui-button

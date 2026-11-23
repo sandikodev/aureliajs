@@ -12,9 +12,13 @@
     "dev:web": "bun run --filter @aureliajs/web dev",
     "dev:api": "bun run --filter @aureliajs/api dev",
     "dev:example": "bun run --filter aurelia-ssr-example dev",
-    "build": "bun run --workspaces --if-present build",
+    "build:packages": "bun run --filter @aurelia-ops/shared build && bun run --filter @aureliajs/vite-plugin-aux build && bun run --filter @aureliajs/ssr build && bun run --filter @aureliajs/bridge build && bun run --filter aux-sfc-experimental build && bun run --filter @aureliajs/islands build && bun run --filter @hono/aurelia build && bun run --filter @aureliajs/ssr-playground build",
+    "build:apps": "bun run --filter @aureliajs/api build && bun run --filter @aureliajs/web build",
+    "build": "bun run build:packages && bun run build:apps",
+    "clean": "bun run --workspaces --if-present clean && rm -rf node_modules/.cache",
     "typecheck": "bun run --workspaces --if-present typecheck",
-    "test": "bun test && bun test packages/hono-aurelia",
+    "test": "bun test",
+    "postinstall": "bun scripts/postinstall.ts",
     "test:e2e": "bunx playwright test",
     "emulate": "bun scripts/emulate-devtools.ts",
     "lint": "bunx oxlint --ignore-path .oxlintignore .",
@@ -46,6 +50,7 @@
   },
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "packages/*/example"
   ]
 }

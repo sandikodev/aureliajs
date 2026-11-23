@@ -4,6 +4,7 @@ import { getCookie } from 'hono/cookie';
 import { isProd } from '../env';
 import { HttpError, forbidden, unauthorized, unavailable } from '../lib/errors';
 import { log } from '../lib/log';
+import { planFromSubscription } from '../lib/plan-limits';
 import { SESSION_COOKIE, loadSession } from '../lib/session';
 import { resolveWorkspace } from '../lib/workspace';
 
@@ -65,7 +66,14 @@ export const tenant = (): MiddlewareHandler => async (c, next) => {
   c.set('tenant', {
     workspaceId: workspace.id,
     workspaceName: workspace.name,
-    plan: workspace.plan,
+    // Entitlement is derived, never read raw from the mirrored column: the
+    // billing page and the enforcement point must answer the same question
+    // (especially for `past_due`, where access is intentionally kept).
+    plan: planFromSubscription(
+      workspace.subscriptionStatus,
+      Boolean(workspace.stripeCustomerId),
+      workspace.plan,
+    ),
     userId: session.userId,
     actorName: session.name,
     role: workspace.role,

@@ -1,10 +1,12 @@
-import { customElement, resolve } from 'aurelia';
+import { customElement, resolve, IEventAggregator } from 'aurelia';
 import { IRouter, IRouterEvents, route } from '@aurelia/router';
 import type { IDisposable } from 'aurelia';
+import type { NavigationStartEvent, NavigationEndEvent } from '@aurelia/router';
 import template from './app.html';
 import { api, setUnauthorizedHandler, ApiError, type ActivityItem } from '@/services/api';
 import { AuthService } from '@/services/auth';
-import { I18nService, LOCALES } from '@/services/i18n';
+import { I18nService, LOCALES, type MessageKey } from '@/services/i18n';
+import { actionLabel as translateAction } from '@/lib/activity';
 import { ToastService } from '@/services/toast';
 import { relativeTime } from '@/lib/utils';
 import type { Locale, WorkspaceSummary } from '@aurelia-ops/shared';
@@ -18,25 +20,6 @@ export type NavItem = {
   badge?: string;
 };
 
-const ACTION_LABELS: Readonly<Record<string, string>> = {
-  'project.created': 'created a project',
-  'project.updated': 'updated a project',
-  'project.deleted': 'deleted a project',
-  'project.status_changed': 'changed a status',
-  'member.invited': 'invited a teammate',
-  'member.invite_accepted': 'accepted an invitation',
-  'member.invite_revoked': 'revoked an invitation',
-  'member.role_changed': 'changed a role',
-  'member.removed': 'removed a member',
-  'billing.checkout_started': 'started a checkout',
-  'billing.plan_activated': 'activated a plan',
-  'billing.plan_changed': 'changed the plan',
-  'billing.invoice_paid': 'paid an invoice',
-  'billing.invoice_failed': 'had a failed invoice',
-  'workspace.updated': 'updated the workspace',
-  'workspace.created': 'created a workspace',
-};
-
 const config = getRouterConfig();
 
 @route(config)
@@ -44,7 +27,10 @@ const config = getRouterConfig();
 export class App {
   private readonly router = resolve(IRouter);
   private readonly events = resolve(IRouterEvents);
-  private subscription?: IDisposable;
+  private readonly ea = resolve(IEventAggregator);
+  private subscriptions: IDisposable[] = [];
+  /** Set while detaching so an in-flight boot cannot register leaks afterwards. */
+  private detached = false;
 
   readonly auth = resolve(AuthService);
   readonly i18n = resolve(I18nService);
@@ -97,6 +83,16 @@ export class App {
     }
   };
 
+  /**
+   * Escape closes the mobile drawer and any open `<details>` menu. Native
+   * `<dialog>` keeps handling its own Escape; this only covers the chrome.
+   */
+  private readonly handleGlobalKeydown = (event: KeyboardEvent): void => {
+    if (event.key !== 'Escape') return;
+    this.closeSidebar();
+    this.closeAllMenus();
+  };
+
   async changeLocale(locale: Locale): Promise<void> {
     this.closeAllMenus();
     if (locale === this.i18n.locale) return;
@@ -130,13 +126,15 @@ export class App {
 
   /**
    * Whether the authenticated shell (sidebar + header) should render.
-   * Plain property — set explicitly after boot and on every navigation-end.
-   * NOT a computed getter: window.location is not observable by Aurelia.
+   * Determined strictly by the route: public routes (landing, login, invite) render
+   * their own minimal/hero layouts, while all dashboard routes always render within
+   * the persistent App Shell (sidebar + header), with live or demo data.
    */
-  showShell = false;
+  showShell = typeof window !== 'undefined' ? !this.isPublicPath(window.location.pathname) : false;
 
-  private updateShell(): void {
-    this.showShell = this.auth.isAuthenticated && !this.isPublicPath(window.location.pathname);
+  private updateShell(currentPath?: string): void {
+    const target = currentPath ?? (typeof window !== 'undefined' ? window.location.pathname : '');
+    this.showShell = !this.isPublicPath(target);
   }
 
   /**
@@ -144,7 +142,11 @@ export class App {
    * '' (landing), 'login', 'invite'.
    */
   private isPublicPath(pathname: string): boolean {
-    const path = pathname.replace(/^\//, '');
+    const path = pathname
+      .replace(/^\//, '')
+      .split('?')[0]!
+      .split('#')[0]!
+      .replace(/\/$/, '');
     return PUBLIC_ROUTE_PATHS.has(path) || path === '';
   }
 
@@ -162,16 +164,22 @@ export class App {
    * 4. Load background data
    */
   async attached(): Promise<void> {
+    this.detached = false;
     document.addEventListener('click', this.handleDocumentClick);
+    document.addEventListener('keydown', this.handleGlobalKeydown);
     setUnauthorizedHandler(() => {
       this.auth.clear();
-      if (!this.isPublicPath(window.location.pathname)) {
+      if (!this.isPublicPath(window.location.pathname) && this.apiState === 'live') {
         void this.router.load('login');
       }
     });
 
     // Single server round-trip — no localStorage cache, no race condition
     const [authenticated] = await Promise.all([this.auth.refresh(), this.checkApi()]);
+    // The shell can be torn down while those requests are in flight (fast
+    // navigation, HMR, test teardown). Continuing would push subscriptions and
+    // start background loads on a dead component.
+    if (this.detached) return;
 
     const onPublicPath = this.isPublicPath(window.location.pathname);
     // Allow authenticated users to access /invite (accept invitation) without redirect
@@ -181,8 +189,8 @@ export class App {
       // Authenticated user on landing / login → send to app
       // But allow /invite so logged-in users can accept invitations
       await this.router.load('overview');
-    } else if (!authenticated && !onPublicPath) {
-      // Unauthenticated user on a protected URL → send to login with return URL
+    } else if (!authenticated && !onPublicPath && this.apiState === 'live') {
+      // Unauthenticated user on a protected URL when API is live → send to login with return URL
       const returnUrl = encodeURIComponent(window.location.pathname);
       await this.router.load(`login?returnUrl=${returnUrl}`);
     }
@@ -196,14 +204,46 @@ export class App {
       void Promise.all([this.loadActivity(), this.loadWorkspaces()]);
     }
 
-    // Subscribe after initial boot redirect so loadActivity() is not fired twice on startup
-    this.subscription = this.events.subscribe('au:router:navigation-end', () => {
-      this.updateShell();
-      this.closeSidebar();
-      if (this.auth.isAuthenticated && !this.isPublicPath(window.location.pathname)) {
-        void this.loadActivity();
-      }
-    });
+    // Subscribe to navigation events to eliminate layout flickers and sync data across transitions
+    this.updateDocumentTitle();
+    this.subscriptions.push(
+      { dispose: this.i18n.onChange(() => this.updateDocumentTitle()) },
+      this.ea.subscribe('workspace:updated', (updated: { id: string; name: string; slug: string }) => {
+        if (this.auth.workspace && this.auth.workspace.id === updated.id) {
+          this.auth.workspace = {
+            ...this.auth.workspace,
+            name: updated.name,
+            slug: updated.slug,
+          };
+        }
+        void this.loadWorkspaces();
+      }),
+      // 1. Navigation Start: Immediately toggle shell state to target route before viewport mounts
+      this.events.subscribe('au:router:navigation-start', (event: NavigationStartEvent) => {
+        try {
+          const targetPath = event.instructions?.toPath?.();
+          if (targetPath !== undefined) {
+            this.updateShell(targetPath);
+          }
+        } catch {
+          // fallback if instructions tree cannot be converted to path
+        }
+      }),
+      // 2. Navigation End: Re-verify shell, close mobile drawer, sync workspace/activity data, and update document title
+      this.events.subscribe('au:router:navigation-end', (event: NavigationEndEvent) => {
+        try {
+          const finalPath = event.finalInstructions?.toPath?.();
+          this.updateShell(finalPath);
+        } catch {
+          this.updateShell();
+        }
+        this.closeSidebar();
+        this.updateDocumentTitle();
+        if (this.auth.isAuthenticated && !this.isPublicPath(window.location.pathname)) {
+          void Promise.all([this.loadActivity(), this.loadWorkspaces()]);
+        }
+      }),
+    );
   }
 
   private async loadWorkspaces(): Promise<void> {
@@ -225,7 +265,7 @@ export class App {
       await this.router.load('overview');
     } catch (error) {
       this.workspaceError =
-        error instanceof ApiError ? error.message : 'Could not switch workspace.';
+        error instanceof ApiError ? error.message : this.i18n.t('errors.switchWorkspaceFailed');
     } finally {
       this.switchingWorkspace = false;
     }
@@ -255,7 +295,7 @@ export class App {
       this.toast.success(this.i18n.t('settings.workspaceCreated', { name }));
     } catch (error) {
       this.workspaceError =
-        error instanceof ApiError ? error.message : 'Could not create the workspace.';
+        error instanceof ApiError ? error.message : this.i18n.t('errors.createWorkspaceFailed');
     } finally {
       this.creatingWorkspace = false;
     }
@@ -276,7 +316,8 @@ export class App {
   }
 
   relativeTime(iso: string): string {
-    return relativeTime(iso);
+    this.i18n.track();
+    return relativeTime(iso, this.i18n.locale, this.i18n.t('common.justNow'));
   }
 
   private async checkApi(): Promise<void> {
@@ -289,8 +330,13 @@ export class App {
   }
 
   detaching(): void {
+    this.detached = true;
     document.removeEventListener('click', this.handleDocumentClick);
-    this.subscription?.dispose();
+    document.removeEventListener('keydown', this.handleGlobalKeydown);
+    for (const sub of this.subscriptions) {
+      sub.dispose();
+    }
+    this.subscriptions = [];
     setUnauthorizedHandler(null);
   }
 
@@ -319,6 +365,23 @@ export class App {
   }
 
   actionLabel(action: string): string {
-    return ACTION_LABELS[action] ?? action;
+    return translateAction(this.i18n, action);
+  }
+
+  private updateDocumentTitle(): void {
+    if (typeof window === 'undefined') return;
+    const path = window.location.pathname.replace(/^\//, '').split(/[?#]/)[0] || '';
+    const titleKeys: Readonly<Record<string, MessageKey>> = {
+      login: 'auth.signInTitle',
+      invite: 'invite.title',
+      overview: 'nav.overview',
+      projects: 'nav.projects',
+      members: 'nav.members',
+      billing: 'nav.billing',
+      settings: 'nav.settings',
+    };
+    const key = titleKeys[path];
+    const title = key ? this.i18n.t(key) : 'Aurelia Ops';
+    document.title = title === 'Aurelia Ops' ? title : `${title} · Aurelia Ops`;
   }
 }

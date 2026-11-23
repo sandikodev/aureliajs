@@ -9,24 +9,7 @@ import { api, type Overview, type Period } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { I18nService } from '@/services/i18n';
 import { ToastService } from '@/services/toast';
-
-const ACTION_LABELS: Readonly<Record<string, string>> = {
-  'project.created': 'created a project',
-  'project.updated': 'updated a project',
-  'project.deleted': 'deleted a project',
-  'project.status_changed': 'changed a status',
-  'member.invited': 'invited a teammate',
-  'member.invite_accepted': 'accepted an invitation',
-  'member.role_changed': 'changed a role',
-  'member.removed': 'removed a member',
-  'billing.checkout_started': 'started a checkout',
-  'billing.plan_activated': 'activated a plan',
-  'billing.plan_changed': 'changed the plan',
-  'billing.invoice_paid': 'paid an invoice',
-  'billing.invoice_failed': 'had a failed invoice',
-  'workspace.updated': 'updated the workspace',
-  'workspace.created': 'created a workspace',
-};
+import { actionLabel as translateAction } from '@/lib/activity';
 
 /**
  * Overview Page
@@ -192,10 +175,11 @@ export class OverviewPage {
   }
 
   ago(iso: string): string {
-    return relativeTime(iso);
+    this.i18n.track();
+    return relativeTime(iso, this.i18n.locale, this.i18n.t('common.justNow'));
   }
 
   actionLabel(action: string): string {
-    return ACTION_LABELS[action] ?? action;
+    return translateAction(this.i18n, action);
   }
 }

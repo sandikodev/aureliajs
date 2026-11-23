@@ -35,6 +35,14 @@ export const EN = {
   'app.workspaceFallback': 'Workspace',
   'app.signedOut': 'Signed out',
   'app.noWorkspaces': 'No workspaces yet',
+  'app.noActivity': 'No recent activity',
+  'app.initializing': 'Initializing…',
+  'app.tagline': 'SaaS admin starter',
+  'app.activeWorkspace': 'active',
+  'app.changeLanguage': 'Change language',
+  'app.toggleLightTheme': 'Switch to light theme',
+  'app.toggleDarkTheme': 'Switch to dark theme',
+  'app.workspaceNamePlaceholder': 'e.g. Acme Corp',
 
   /* Navigation labels */
   'nav.overview': 'Overview',
@@ -110,6 +118,9 @@ export const EN = {
   'projects.create': 'Create project',
   'projects.next': 'Next',
   'projects.previous': 'Previous',
+  'projects.namePlaceholder': 'Billing revamp',
+  'projects.ownerPlaceholder': 'Ayu Prameswari',
+  'projects.budgetPlaceholder': '12000',
 
   /* Status labels */
   'status.planning': 'Planning',
@@ -172,6 +183,14 @@ export const EN = {
   'members.roleChanged': '{name} is now {role}.',
   'members.memberRemoved': '{name} was removed from the workspace.',
   'members.emailRequired': 'Enter a valid email address.',
+  'members.joinedToday': 'joined today',
+  'members.joinedYesterday': 'joined yesterday',
+  'members.joinedDaysAgo': 'joined {count} days ago',
+  'members.joinedOneMonthAgo': 'joined {count} month ago',
+  'members.joinedMonthsAgo': 'joined {count} months ago',
+  'members.inviteExpiredNow': 'expired',
+  'members.expiresInHours': 'expires in {count}h',
+  'members.expiresInDays': 'expires in {count}d',
 
   /* Roles */
   'role.owner': 'Owner',
@@ -288,6 +307,27 @@ export const EN = {
     'This is your only workspace. Transfer ownership to somebody else before deleting it.',
   'settings.workspaceCreated': 'Workspace “{name}” created.',
 
+  /* Auth */
+  'auth.signInTitle': 'Sign in',
+
+  /* Activity feed — the same verbs the API writes to the audit trail */
+  'activity.projectCreated': 'created a project',
+  'activity.projectUpdated': 'updated a project',
+  'activity.projectDeleted': 'deleted a project',
+  'activity.projectStatusChanged': 'changed a status',
+  'activity.memberInvited': 'invited a teammate',
+  'activity.memberInviteAccepted': 'accepted an invitation',
+  'activity.memberInviteRevoked': 'revoked an invitation',
+  'activity.memberRoleChanged': 'changed a role',
+  'activity.memberRemoved': 'removed a member',
+  'activity.billingCheckoutStarted': 'started a checkout',
+  'activity.billingPlanActivated': 'activated a plan',
+  'activity.billingPlanChanged': 'changed the plan',
+  'activity.billingInvoicePaid': 'paid an invoice',
+  'activity.billingInvoiceFailed': 'had a failed invoice',
+  'activity.workspaceUpdated': 'updated the workspace',
+  'activity.workspaceCreated': 'created a workspace',
+
   /* Login */
   'login.title': 'Sign in to Aurelia Ops',
   'login.subtitle': 'A multi-tenant app for delivery teams.',
@@ -297,6 +337,8 @@ export const EN = {
   'login.submitting': 'Signing in…',
   'login.failed': 'Email or password is incorrect.',
   'login.demoHint': 'Demo account: demo@aureliajs.dev / demo-password-123',
+  'login.emailPlaceholder': 'you@company.com',
+  'login.passwordPlaceholder': '••••••••••••',
 
   /* Invite */
   'invite.title': 'Workspace invitation',
@@ -314,6 +356,24 @@ export const EN = {
   'notFound.description': 'The page you are looking for does not exist or has moved.',
   'notFound.back': 'Back to overview',
 
+  /* Errors — localised fallbacks for failed requests */
+  'errors.copyLinkFailed': 'Could not copy link to clipboard.',
+  'errors.invalidEmail': 'Enter a valid email address.',
+  'errors.createInviteFailed': 'Could not create the invitation.',
+  'errors.changeRoleFailed': 'Could not change that role.',
+  'errors.removeMemberFailed': 'Could not remove that member.',
+  'errors.revokeInviteFailed': 'Could not revoke that invitation.',
+  'errors.checkoutFailed': 'Could not start the checkout session. Is Stripe configured?',
+  'errors.portalFailed': 'Could not open the billing portal.',
+  'errors.apiUnreachable': 'Cannot reach the API. Is `bun run dev:api` running?',
+  'errors.loadWorkspaceFailed': 'Could not load the workspace settings.',
+  'errors.saveWorkspaceFailed': 'Could not save the workspace settings.',
+  'errors.savePreferenceFailed': 'Could not save the preference.',
+  'errors.saveLocaleFailed': 'Could not save the language preference.',
+  'errors.deleteWorkspaceFailed': 'Could not delete the workspace.',
+  'errors.switchWorkspaceFailed': 'Could not switch workspace.',
+  'errors.createWorkspaceFailed': 'Could not create the workspace.',
+
   /* Shared */
   'common.loading': 'Loading…',
   'common.dismiss': 'Dismiss',
@@ -324,4 +384,5 @@ export const EN = {
   'common.edit': 'Edit',
   'common.close': 'Close',
   'common.error': 'Something went wrong',
+  'common.justNow': 'just now',
 } as const;

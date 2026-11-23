@@ -1,4 +1,4 @@
-import { customElement, resolve } from 'aurelia';
+import { customElement, resolve, IEventAggregator } from 'aurelia';
 import { IRouter } from '@aurelia/router';
 import template from './settings-page.html';
 import { ThemeService } from '@/services/theme';
@@ -15,6 +15,7 @@ export class SettingsPage {
   private readonly auth = resolve(AuthService);
   private readonly router = resolve(IRouter);
   private readonly toast = resolve(ToastService);
+  private readonly ea = resolve(IEventAggregator);
 
   /** The workspace row, loaded from the API. */
   current: CurrentWorkspace | null = null;
@@ -82,19 +83,19 @@ export class SettingsPage {
         this.i18n.setLocale(current.settings.locale);
       }
     } catch (cause) {
-      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not load the workspace settings.');
+      this.toast.error(
+        cause instanceof ApiError ? cause.message : this.i18n.t('errors.loadWorkspaceFailed'),
+      );
     } finally {
       this.isLoading = false;
     }
   }
 
   /**
-   * Persist the workspace name, slug and preferences.
-   *
-   * The locale is written to the workspace as well as to localStorage, so a
-   * teammate on the same workspace gets the same language.
+   * Persist the workspace name and slug.
+   * Scoped strictly to the Workspace card form.
    */
-  async save(): Promise<void> {
+  async saveWorkspace(): Promise<void> {
     const name = this.workspace.name.trim();
     const slug = this.workspace.slug.trim();
 
@@ -112,21 +113,48 @@ export class SettingsPage {
       const updated = await api.updateWorkspace({
         name,
         slug,
-        settings: { locale: this.i18n.locale, weeklyDigest: this.weeklyDigest },
       });
 
       this.current = updated;
       this.workspace = { name: updated.name, slug: updated.slug };
-      this.weeklyDigest = updated.settings.weeklyDigest;
 
-      // The sidebar shows the workspace name, so the shell has to catch up.
+      // Update auth and broadcast workspace update across entire SPA
       await this.auth.refresh();
+      this.ea.publish('workspace:updated', updated);
 
       this.toast.success(this.i18n.t('settings.saved'));
     } catch (cause) {
-      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not save the workspace settings.');
+      this.toast.error(
+        cause instanceof ApiError ? cause.message : this.i18n.t('errors.saveWorkspaceFailed'),
+      );
     } finally {
       this.saving = false;
+    }
+  }
+
+  /** Backwards compatibility alias for saveWorkspace */
+  async save(): Promise<void> {
+    return this.saveWorkspace();
+  }
+
+  /**
+   * Persist the weekly digest toggle immediately and independently.
+   * Does NOT touch, re-validate, or trigger saving state on the Workspace form.
+   */
+  async onWeeklyDigestChange(): Promise<void> {
+    try {
+      const updated = await api.updateWorkspace({
+        settings: { locale: this.i18n.locale, weeklyDigest: this.weeklyDigest },
+      });
+      this.current = updated;
+      this.weeklyDigest = updated.settings.weeklyDigest;
+      this.ea.publish('workspace:updated', updated);
+      this.toast.success(this.i18n.t('settings.saved'));
+    } catch (cause) {
+      this.weeklyDigest = !this.weeklyDigest;
+      this.toast.error(
+        cause instanceof ApiError ? cause.message : this.i18n.t('errors.savePreferenceFailed'),
+      );
     }
   }
 
@@ -146,8 +174,11 @@ export class SettingsPage {
         settings: { locale, weeklyDigest: this.weeklyDigest },
       });
       this.current = updated;
+      this.ea.publish('workspace:updated', updated);
     } catch (cause) {
-      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not save the language preference.');
+      this.toast.error(
+        cause instanceof ApiError ? cause.message : this.i18n.t('errors.saveLocaleFailed'),
+      );
     }
   }
 
@@ -168,7 +199,9 @@ export class SettingsPage {
       await this.auth.logout();
       await this.router.load('login');
     } catch (cause) {
-      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not delete the workspace.');
+      this.toast.error(
+        cause instanceof ApiError ? cause.message : this.i18n.t('errors.deleteWorkspaceFailed'),
+      );
     } finally {
       this.deleting = false;
     }

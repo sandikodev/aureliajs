@@ -89,9 +89,9 @@ Whenever preparing a release, refactor, or major PR, execute this sequential aud
 ```mermaid
 flowchart TD
     A["Step 1: Submodule Check\n(packages/hono-aurelia)"] --> B["Step 2: TypeScript Build\n(All 4 packages)"]
-    B --> C["Step 3: Monorepo Test Suite\n(205+ tests, 0 fails)"]
+    B --> C["Step 3: Monorepo Quality Gates\n(229+ unit tests, 47 E2E, 14 workspaces typecheck, 0 fails)"]
     C --> D["Step 4: Oxlint Verification\n(0 errors, 0 warnings)"]
-    D --> E["Step 5: Headless Server Probe\n(examples/fullstack-ssr)"]
+    D --> E["Step 5: Headless Server Probe\n(packages/hono-aurelia/example)"]
     E --> F["Step 6: Playground Verification\n(Port 4700 UI invariants)"]
     F --> G["Step 7: Two-Stage Git Commit\n(Submodule first, Root second)"]
 ```
@@ -126,8 +126,9 @@ bun x oxlint
 
 ### Step 5: Headless Server Probe
 ```bash
-cd examples/fullstack-ssr
-bun scripts/build.ts
+cd packages/hono-aurelia/example
+bun run build
+bun run test
 # Verify SSR 200 OK, JSON content negotiation, and auth guards headlessly
 ```
 

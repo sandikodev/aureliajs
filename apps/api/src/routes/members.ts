@@ -1,9 +1,10 @@
 import { Hono } from 'hono';
-import { and, count, eq, isNull } from 'drizzle-orm';
+import { and, count, eq, ne } from 'drizzle-orm';
 import { zValidator } from '@hono/zod-validator';
 import { updateMemberRoleSchema } from '@aurelia-ops/shared';
 import { getDb, schema } from '../db/client';
-import { badRequest, conflict, forbidden, issuesFromZod, notFound } from '../lib/errors';
+import { badRequest, forbidden, issuesFromZod, notFound } from '../lib/errors';
+import { activeInviteWhere, assertAnotherOwnerExists } from '../lib/membership-policy';
 import { limitsFor } from '../lib/plan-limits';
 import { requireRole, tenantOf } from '../middleware/tenant';
 
@@ -32,15 +33,13 @@ memberRoutes.get('/members', async (c) => {
 
   const seatLimit = limitsFor(tenant.plan).seats;
 
-  // An open invitation already reserves a seat, so it counts towards the
-  // usage. Showing "4 of 10" while six invitations are outstanding would
-  // make the limit look further away than it is.
+  // A usable invitation reserves a seat, so it counts towards the usage.
+  // Expired links do not: they can no longer be redeemed, and counting them
+  // would permanently consume seats seven days after every invite was sent.
   const [pendingRow] = await db
     .select({ value: count() })
     .from(schema.invites)
-    .where(
-      and(eq(schema.invites.workspaceId, tenant.workspaceId), isNull(schema.invites.acceptedAt)),
-    );
+    .where(and(eq(schema.invites.workspaceId, tenant.workspaceId), activeInviteWhere()));
 
   return c.json({
     members: rows.map((row) => ({
@@ -102,22 +101,23 @@ memberRoutes.patch(
 
     if (!membership) throw notFound('That person is not a member of this workspace');
 
-    // A workspace needs exactly one owner.
+    // A workspace needs exactly one owner. The target must be excluded from
+    // the lookup: if they are the only owner, finding *themselves* must not
+    // satisfy the guard. That is the self-demotion lockout bug.
     if (membership.role === 'owner' && role !== 'owner') {
-      const [otherOwner] = await db
+      const otherOwners = await db
         .select({ userId: schema.memberships.userId })
         .from(schema.memberships)
         .where(
           and(
             eq(schema.memberships.workspaceId, tenant.workspaceId),
             eq(schema.memberships.role, 'owner'),
+            ne(schema.memberships.userId, targetId),
           ),
         )
         .limit(1);
 
-      if (!otherOwner) {
-        throw conflict('A workspace must keep at least one owner');
-      }
+      assertAnotherOwnerExists(otherOwners.map((row) => row.userId));
     }
 
     await db

@@ -10,7 +10,9 @@
       role="status"
       data-testid="toast"
     >
-      <ui-icon name.bind="iconName(toast.tone)" size="16" class.bind="iconColor(toast.tone)"></ui-icon>
+      <span class.bind="iconColor(toast.tone)">
+        <ui-icon name.bind="iconName(toast.tone)" size="16"></ui-icon>
+      </span>
       <span class="flex-1 leading-snug">${toast.message}</span>
       <button
         type="button"

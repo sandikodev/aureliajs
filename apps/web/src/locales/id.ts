@@ -35,6 +35,14 @@ export const ID: Record<keyof typeof EN, string> = {
   'app.workspaceFallback': 'Ruang kerja',
   'app.signedOut': 'Belum masuk',
   'app.noWorkspaces': 'Belum ada ruang kerja',
+  'app.noActivity': 'Belum ada aktivitas terbaru',
+  'app.initializing': 'Menyiapkan…',
+  'app.tagline': 'Starter dasbor SaaS',
+  'app.activeWorkspace': 'aktif',
+  'app.changeLanguage': 'Ubah bahasa',
+  'app.toggleLightTheme': 'Beralih ke tema terang',
+  'app.toggleDarkTheme': 'Beralih ke tema gelap',
+  'app.workspaceNamePlaceholder': 'mis. Acme Corp',
 
   /* Navigation labels */
   'nav.overview': 'Ringkasan',
@@ -110,6 +118,9 @@ export const ID: Record<keyof typeof EN, string> = {
   'projects.create': 'Buat proyek',
   'projects.next': 'Berikutnya',
   'projects.previous': 'Sebelumnya',
+  'projects.namePlaceholder': 'Perombakan penagihan',
+  'projects.ownerPlaceholder': 'Ayu Prameswari',
+  'projects.budgetPlaceholder': '12000',
 
   /* Status labels */
   'status.planning': 'Direncanakan',
@@ -173,6 +184,14 @@ export const ID: Record<keyof typeof EN, string> = {
   'members.roleChanged': '{name} sekarang berperan sebagai {role}.',
   'members.memberRemoved': '{name} telah dihapus dari ruang kerja.',
   'members.emailRequired': 'Masukkan alamat email yang valid.',
+  'members.joinedToday': 'bergabung hari ini',
+  'members.joinedYesterday': 'bergabung kemarin',
+  'members.joinedDaysAgo': 'bergabung {count} hari lalu',
+  'members.joinedOneMonthAgo': 'bergabung {count} bulan lalu',
+  'members.joinedMonthsAgo': 'bergabung {count} bulan lalu',
+  'members.inviteExpiredNow': 'kedaluwarsa',
+  'members.expiresInHours': 'kedaluwarsa dalam {count} jam',
+  'members.expiresInDays': 'kedaluwarsa dalam {count} hari',
 
   /* Roles */
   'role.owner': 'Pemilik',
@@ -289,6 +308,27 @@ export const ID: Record<keyof typeof EN, string> = {
     'Ini satu-satunya ruang kerja Anda. Alihkan kepemilikan ke orang lain sebelum menghapus.',
   'settings.workspaceCreated': 'Ruang kerja “{name}” berhasil dibuat.',
 
+  /* Auth */
+  'auth.signInTitle': 'Masuk',
+
+  /* Activity feed — kata kerja yang sama dengan jejak audit API */
+  'activity.projectCreated': 'membuat proyek',
+  'activity.projectUpdated': 'memperbarui proyek',
+  'activity.projectDeleted': 'menghapus proyek',
+  'activity.projectStatusChanged': 'mengubah status',
+  'activity.memberInvited': 'mengundang rekan tim',
+  'activity.memberInviteAccepted': 'menerima undangan',
+  'activity.memberInviteRevoked': 'membatalkan undangan',
+  'activity.memberRoleChanged': 'mengubah peran',
+  'activity.memberRemoved': 'menghapus anggota',
+  'activity.billingCheckoutStarted': 'memulai checkout',
+  'activity.billingPlanActivated': 'mengaktifkan paket',
+  'activity.billingPlanChanged': 'mengubah paket',
+  'activity.billingInvoicePaid': 'membayar invoice',
+  'activity.billingInvoiceFailed': 'invoice gagal dibayar',
+  'activity.workspaceUpdated': 'memperbarui ruang kerja',
+  'activity.workspaceCreated': 'membuat ruang kerja',
+
   /* Login */
   'login.title': 'Masuk ke Aurelia Ops',
   'login.subtitle': 'Dasbor multi-tenant untuk tim pengerjaan.',
@@ -298,6 +338,8 @@ export const ID: Record<keyof typeof EN, string> = {
   'login.submitting': 'Sedang masuk…',
   'login.failed': 'Email atau kata sandi salah.',
   'login.demoHint': 'Akun contoh: demo@aureliajs.dev / demo-password-123',
+  'login.emailPlaceholder': 'nama@perusahaan.com',
+  'login.passwordPlaceholder': '••••••••••••',
 
   /* Invite */
   'invite.title': 'Undangan ruang kerja',
@@ -315,6 +357,24 @@ export const ID: Record<keyof typeof EN, string> = {
   'notFound.description': 'Halaman yang Anda cari tidak ada atau sudah dipindahkan.',
   'notFound.back': 'Kembali ke dasbor',
 
+  /* Errors — fallback lokal untuk permintaan yang gagal */
+  'errors.copyLinkFailed': 'Gagal menyalin tautan ke papan klip.',
+  'errors.invalidEmail': 'Masukkan alamat email yang valid.',
+  'errors.createInviteFailed': 'Gagal membuat undangan.',
+  'errors.changeRoleFailed': 'Gagal mengubah peran tersebut.',
+  'errors.removeMemberFailed': 'Gagal menghapus anggota tersebut.',
+  'errors.revokeInviteFailed': 'Gagal membatalkan undangan tersebut.',
+  'errors.checkoutFailed': 'Gagal memulai sesi checkout. Apakah Stripe sudah dikonfigurasi?',
+  'errors.portalFailed': 'Gagal membuka portal penagihan.',
+  'errors.apiUnreachable': 'API tidak dapat dijangkau. Apakah `bun run dev:api` berjalan?',
+  'errors.loadWorkspaceFailed': 'Gagal memuat pengaturan ruang kerja.',
+  'errors.saveWorkspaceFailed': 'Gagal menyimpan pengaturan ruang kerja.',
+  'errors.savePreferenceFailed': 'Gagal menyimpan preferensi.',
+  'errors.saveLocaleFailed': 'Gagal menyimpan preferensi bahasa.',
+  'errors.deleteWorkspaceFailed': 'Gagal menghapus ruang kerja.',
+  'errors.switchWorkspaceFailed': 'Gagal mengganti ruang kerja.',
+  'errors.createWorkspaceFailed': 'Gagal membuat ruang kerja.',
+
   /* Shared */
   'common.loading': 'Memuat…',
   'common.dismiss': 'Tutup',
@@ -325,4 +385,5 @@ export const ID: Record<keyof typeof EN, string> = {
   'common.edit': 'Ubah',
   'common.close': 'Tutup',
   'common.error': 'Terjadi kesalahan',
+  'common.justNow': 'baru saja',
 };

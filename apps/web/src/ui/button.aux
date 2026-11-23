@@ -33,7 +33,7 @@ export type ButtonVariant =
 export type ButtonSize = 'default' | 'sm' | 'lg' | 'icon';
 
 const BASE_BUTTON =
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium outline-none transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background aria-invalid:ring-destructive/20';
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium outline-none transition-all cursor-pointer select-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background aria-invalid:ring-destructive/20';
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   default: 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90',

@@ -23,6 +23,18 @@ export function setDb(customDb?: PostgresJsDatabase<typeof schema>): void {
   database = customDb;
 }
 
+/**
+ * The Drizzle surface used by handlers that may run inside a transaction.
+ *
+ * Drizzle's transaction object and the top-level database share these methods,
+ * so accepting this small slice lets the same code run both ways without a
+ * cast to `any` or a second implementation (Pillar 2 & 4).
+ */
+export type DbClient = Pick<
+  PostgresJsDatabase<typeof schema>,
+  'select' | 'insert' | 'update' | 'delete'
+>;
+
 export async function pingDb(): Promise<boolean> {
   try {
     const client = sql ?? postgres(env.DATABASE_URL, { max: 1, onnotice: () => {} });

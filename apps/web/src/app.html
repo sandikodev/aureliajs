@@ -17,7 +17,7 @@
 <div if.bind="loadingAuth" class="fixed inset-0 z-50 flex items-center justify-center bg-background">
   <div class="flex flex-col items-center gap-3">
     <div class="size-8 animate-spin rounded-full border-2 border-primary border-r-transparent"></div>
-    <p class="text-sm text-muted-foreground">Initializing...</p>
+    <p class="text-sm text-muted-foreground" role="status">${copy['app.initializing']}</p>
   </div>
 </div>
 
@@ -31,7 +31,7 @@
     class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"
     click.trigger="skipToContent($event)"
   >
-    Skip to content
+    ${copy['app.skipToContent']}
   </a>
 
   <!-- Mobile backdrop -->
@@ -46,7 +46,7 @@
   <aside
     if.bind="showShell"
     class="fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-200 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}"
-    aria-label="Primary"
+    aria-label.bind="copy['app.primaryNav']"
   >
     <!-- Brand header -->
     <div class="flex h-14 items-center gap-2.5 border-b border-sidebar-border px-4">
@@ -55,7 +55,7 @@
       </span>
       <div class="min-w-0 leading-tight">
         <p class="truncate text-sm font-semibold">Aurelia Ops</p>
-        <p class="truncate text-[11px] text-muted-foreground">SaaS admin starter</p>
+        <p class="truncate text-[11px] text-muted-foreground">${copy['app.tagline']}</p>
       </div>
     </div>
 
@@ -63,16 +63,16 @@
     <div class="p-3">
       <details ref="workspaceDetailsEl" class="group relative">
         <summary
-          class="flex cursor-pointer list-none items-center gap-2.5 rounded-lg border border-sidebar-border bg-background/60 px-2.5 py-2 text-left transition-colors hover:bg-sidebar-accent"
+          class="flex cursor-pointer list-none items-center gap-2.5 rounded-lg border border-sidebar-border bg-background/60 px-2.5 py-2 text-left transition-colors hover:bg-sidebar-accent select-none"
           data-testid="workspace-switcher"
         >
           <span class="grid size-8 shrink-0 place-items-center rounded-md bg-foreground text-[11px] font-semibold text-background">
             ${auth.workspaceInitials}
           </span>
           <span class="min-w-0 flex-1">
-            <span class="block truncate text-[13px] font-medium">${auth.workspace?.name ?? 'Workspace'}</span>
-            <span class="block truncate text-[11px] text-muted-foreground">${auth.workspace?.plan === 'pro' ? 'Pro' : 'Free'}</span>
-            <span class="sr-only">— switch workspace</span>
+            <span class="block truncate text-[13px] font-medium">${auth.workspace?.name ?? copy['app.workspaceFallback']}</span>
+            <span class="block truncate text-[11px] text-muted-foreground">${auth.workspace?.plan === 'pro' ? copy['billing.planPro'] : copy['billing.planFree']}</span>
+            <span class="sr-only">— ${copy['app.switchWorkspace']}</span>
           </span>
           <ui-icon name="chevronDown" size="14"></ui-icon>
         </summary>
@@ -89,7 +89,7 @@
           >
             <span class="block truncate font-medium">${workspace.name}</span>
             <span class="block truncate text-[11px] text-muted-foreground capitalize">${workspace.plan} · ${workspace.role}</span>
-            <span if.bind="workspace.isActive" class="sr-only">(active)</span>
+            <span if.bind="workspace.isActive" class="sr-only">(${copy['app.activeWorkspace']})</span>
           </button>
           <div class="my-1 border-t"></div>
           <button
@@ -135,27 +135,23 @@
     <div class="border-t border-sidebar-border p-3">
       <details ref="accountDetailsEl" class="group relative">
         <summary
-          class="flex cursor-pointer list-none items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] transition-colors hover:bg-sidebar-accent"
+          class="flex cursor-pointer list-none items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] transition-colors hover:bg-sidebar-accent select-none"
           data-testid="account-menu"
         >
           <ui-avatar name.bind="auth.user?.name ?? '?'" size="sm" class="shrink-0"></ui-avatar>
           <span class="min-w-0 flex-1">
-            <span class="block truncate font-medium">${auth.user?.name ?? 'Account'}</span>
+            <span class="block truncate font-medium">${auth.user?.name ?? copy['app.signedOut']}</span>
             <span class="block truncate text-[11px] text-muted-foreground">${auth.user?.email ?? ''}</span>
           </span>
           <ui-icon name="chevronDown" size="14"></ui-icon>
         </summary>
         <div class="absolute inset-x-0 bottom-full z-20 mb-1 rounded-lg border bg-popover p-1 text-popover-foreground shadow-md">
-          <a
-            load="settings"
-            class="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] transition-colors hover:bg-accent hover:text-accent-foreground"
-          >
-            <ui-icon name="settings" size="14"></ui-icon>
-            ${copy['app.settings']}
-          </a>
-          <div class="my-1 border-t"></div>
+          <div class="border-b px-2.5 py-1.5 mb-1">
+            <p class="truncate text-[12px] font-medium">${auth.user?.name ?? copy['app.signedOut']}</p>
+            <p class="truncate text-[11px] text-muted-foreground">${auth.user?.email ?? ''}</p>
+          </div>
           <button
-            class="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-[13px] transition-colors hover:bg-accent hover:text-accent-foreground"
+            class="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-[13px] text-destructive transition-colors hover:bg-destructive/10"
             click.trigger="signOut()"
           >
             <ui-icon name="logOut" size="14"></ui-icon>
@@ -176,19 +172,20 @@
       <!-- Mobile sidebar toggle -->
       <button
         class="rounded-lg p-2 transition-colors hover:bg-accent lg:hidden"
-        aria-label="Toggle sidebar"
+        aria-label.bind="copy['app.openNavigation']"
         click.trigger="toggleSidebar()"
       >
         <ui-icon name="menu" size="20"></ui-icon>
       </button>
 
       <!-- Search -->
-      <form class="flex flex-1 items-center" submit.trigger="submitSearch()">
-        <div class="flex flex-1 items-center gap-2 rounded-lg border border-input bg-input px-3 py-2 transition-colors focus-within:border-ring focus-within:ring-1 focus-within:ring-ring">
+      <form class="flex min-w-0 flex-1 items-center" submit.trigger="submitSearch()">
+        <div class="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-input bg-input px-3 py-2 transition-colors focus-within:border-ring focus-within:ring-1 focus-within:ring-ring">
           <ui-icon name="search" size="16" class="shrink-0 text-muted-foreground"></ui-icon>
           <input
             type="text"
             placeholder="${copy['app.searchAllProjects']}"
+            aria-label="${copy['projects.search']}"
             value.bind="search"
             class="min-w-0 flex-1 bg-transparent text-[13px] placeholder:text-muted-foreground outline-none"
           />
@@ -200,8 +197,8 @@
         <!-- Notifications -->
         <details ref="notificationDetailsEl" class="relative">
           <summary
-            class="relative flex cursor-pointer list-none items-center justify-center rounded-lg p-2 transition-colors hover:bg-accent"
-            aria-label="Notifications"
+            class="relative flex cursor-pointer list-none items-center justify-center rounded-lg p-2 transition-colors hover:bg-accent select-none"
+            aria-label.bind="copy['app.notifications']"
             data-testid="notification-bell"
           >
             <ui-icon name="bell" size="20"></ui-icon>
@@ -211,17 +208,17 @@
               aria-hidden="true"
             ></span>
           </summary>
-          <div class="absolute right-0 top-full z-50 mt-2 max-h-80 w-72 overflow-y-auto rounded-lg border bg-popover p-3 text-popover-foreground shadow-md">
-            <p if.bind="activity.length === 0" class="text-center text-sm text-muted-foreground">
+          <div class="absolute right-0 top-full z-50 mt-2 max-h-80 w-72 overflow-y-auto rounded-lg border bg-popover p-2 text-popover-foreground shadow-md select-none">
+            <p if.bind="activity.length === 0" class="py-6 text-center text-sm text-muted-foreground select-none">
               ${copy['app.noActivity']}
             </p>
-            <ul if.bind="activity.length > 0">
-              <li repeat.for="item of activity" class="space-y-0.5 border-b py-2 last:border-b-0 first:pt-0 last:pb-0">
-                <p class="text-[13px]">
+            <ul if.bind="activity.length > 0" class="divide-y divide-border/50">
+              <li repeat.for="item of activity" class="group rounded-md px-2.5 py-2 transition-colors hover:bg-accent/60 cursor-default select-none">
+                <p class="text-[13px] leading-snug">
                   <span class="font-medium">${item.actorName}</span>
                   <span class="text-muted-foreground"> ${actionLabel(item.action)}</span>
                 </p>
-                <p class="text-[11px] text-muted-foreground">${relativeTime(item.createdAt)}</p>
+                <p class="mt-0.5 text-[11px] text-muted-foreground">${relativeTime(item.createdAt)}</p>
               </li>
             </ul>
           </div>
@@ -229,8 +226,8 @@
 
         <!-- Theme toggle -->
         <button
-          class="rounded-lg p-2 transition-colors hover:bg-accent"
-          aria-label="${theme.isDark ? 'Switch to light theme' : 'Switch to dark theme'}"
+          class="rounded-lg p-2 transition-colors hover:bg-accent cursor-pointer select-none"
+          aria-label="${theme.isDark ? copy['app.toggleLightTheme'] : copy['app.toggleDarkTheme']}"
           click.trigger="theme.toggle()"
         >
           <ui-icon name="${theme.isDark ? 'sun' : 'moon'}" size="20"></ui-icon>
@@ -239,8 +236,9 @@
         <!-- Language -->
         <details ref="languageDetailsEl" class="relative">
           <summary
-            class="flex cursor-pointer list-none items-center justify-center rounded-lg p-2 transition-colors hover:bg-accent"
-            aria-label="Change language"
+            class="flex cursor-pointer list-none items-center justify-center rounded-lg p-2 transition-colors hover:bg-accent select-none"
+            aria-label.bind="copy['app.changeLanguage']"
+            data-testid="language-menu"
           >
             <ui-icon name="globe" size="20"></ui-icon>
           </summary>
@@ -259,9 +257,9 @@
     </header>
 
     <!-- Page content — single <au-viewport> stays mounted across all states -->
-    <main id="main-content" ref="mainContentEl" tabindex="-1" class="flex-1 outline-none ${showShell ? 'overflow-y-auto' : ''}">
-      <div class="${showShell ? 'mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8' : ''}">
-        <au-viewport class="block w-full"></au-viewport>
+    <main id="main-content" ref="mainContentEl" tabindex="-1" class="flex-1 min-w-0 outline-none overflow-x-hidden ${showShell ? 'overflow-y-auto' : ''}">
+      <div class="${showShell ? 'mx-auto max-w-7xl min-w-0 px-4 py-6 sm:px-6 lg:px-8' : ''}">
+        <au-viewport class="block w-full min-w-0"></au-viewport>
       </div>
     </main>
   </div>
@@ -275,7 +273,7 @@
       <h2 class="text-base font-semibold">${copy['app.createWorkspace']}</h2>
       <button
         class="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        aria-label="Close"
+        aria-label="${copy['common.close']}"
         click.trigger="workspaceDialogEl.close()"
       >
         <ui-icon name="x" size="16"></ui-icon>
@@ -289,7 +287,7 @@
           id="new-workspace-name"
           type="text"
           value.two-way="newWorkspace.name"
-          placeholder="e.g. Acme Corp"
+          placeholder="${copy['app.workspaceNamePlaceholder']}"
           autocomplete="off"
         ></ui-input>
         <p if.bind="workspaceError" class="text-xs text-destructive">${workspaceError}</p>

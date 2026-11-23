@@ -1,6 +1,6 @@
 # RFC: Purge Precompiled Binary VSIX (`aurelia-aux-0.1.0.vsix`) from Git and Automate CI Release Packaging
 
-**Status:** 📝 Proposed / Under Community Review  
+**Status:** ✅ Implemented — no `.vsix` file is tracked under `packages/vscode-aux/` (verified with `git ls-files` on 2026-11-23).  
 **Area:** `packages/vscode-aux`  
 **Tags:** `git-hygiene`, `delete`, `ci-cd`
 

@@ -1,6 +1,6 @@
 # RFC: Migrate Default SSR DOM Emulation from `jsdom` to `linkedom` / `happy-dom`
 
-**Status:** 📝 Proposed / Under Community Review  
+**Status:** 🟡 Partially implemented — `linkedom` is a dependency and `packages/aurelia-ssr/src/render.ts` auto-selects it on edge/workerd, but the Node/Bun test suites in `packages/*/test` still import `jsdom`. Keep this open until those tests migrate or the dual-engine policy is formally accepted.  
 **Area:** `packages/aurelia-ssr`, `packages/aurelia-islands`, `packages/ssr-playground`  
 **Tags:** `native`, `performance`, `edge-readiness`
 

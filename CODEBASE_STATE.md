@@ -1,7 +1,7 @@
 # Codebase State
 
-> **Last Verified**: 2026-11-22 (verified against running code & automated test runners)  
-> **Quality Gate**: ✅ 148 Tests Passing (100% Green, 999 Assertions) • 9 Workspaces Typecheck Clean (0 Errors)
+> **Last Verified**: 2026-11-23 (verified against running code & automated test runners)  
+> **Quality Gate**: ✅ 229 Tests Passing (100% Green, 1367 Assertions) • 14 Workspaces Typecheck Clean (0 Errors)
 
 ## Structure
 
@@ -18,9 +18,8 @@ aureliajs/
 │   ├── aurelia-bridge/       # Polyglot Multi-Frontend Interop (<au-react>, <au-vue>, etc. + au-htmx)
 │   ├── vite-plugin-aux/      # .aux Single-File Component Compiler (Vite, Bun, esbuild)
 │   ├── vscode-aux/           # VS Code Language Extension for .aux SFCs
-│   └── ssr-playground/       # Interactive Web GUI & Headless SSR Inspector (port 4700)
-├── examples/
-│   └── fullstack-ssr/        # Live Reference App (Hono + Aurelia 2 SSR + Zero-JS /islands route)
+│   ├── ssr-playground/       # Interactive Web GUI & Headless SSR Inspector (port 4700)
+│   └── */example/            # Live reference apps live inside each package workspace
 ├── docs/                     # Architectural Manifestos & 5-Tier Document System
 └── e2e/                      # Playwright E2E Test Suite (Accessibility & Workflows)
 ```
@@ -53,8 +52,8 @@ aureliajs/
 ## Verified Quality
 
 ```bash
-bun run typecheck   # ✅ PASSING (all 9 workspaces: shared, web, api, hono, ssr, islands, bridge, aux, playground)
-bun test            # ✅ PASSING (148 tests across 27 files, 999 assertions, 0 failures)
+bun run typecheck   # ✅ PASSING (all 14 workspaces incl. shared, web, api, package examples)
+bun test            # ✅ PASSING (229 tests across 39 files, 1367 assertions, 0 failures)
 bunx oxlint .       # ✅ PASSING (0 errors)
 ```
 
@@ -63,6 +62,6 @@ bunx oxlint .       # ✅ PASSING (0 errors)
 ```bash
 bun dev             # Start web + api dev servers concurrently
 bun test            # Run all unit and integration tests across monorepo
-bun run typecheck   # Typecheck all 9 workspaces with tsc --noEmit
+bun run typecheck   # Typecheck all 14 workspaces with tsc --noEmit
 bun run build       # Build all packages and applications
 ```

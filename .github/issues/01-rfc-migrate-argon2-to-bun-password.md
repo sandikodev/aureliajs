@@ -1,6 +1,6 @@
 # RFC: Migrate Password Hashing from `@node-rs/argon2` to Native `Bun.password`
 
-**Status:** 📝 Proposed / Under Community Review  
+**Status:** ✅ Implemented — `apps/api/src/lib/password.ts` uses native `Bun.password` (argon2id), with a dynamic `@node-rs/argon2` fallback for plain Node. Verified 2026-11-23; `@node-rs/argon2` is no longer a declared dependency.  
 **Area:** `apps/api`  
 **Tags:** `native`, `shrink`, `performance`
 

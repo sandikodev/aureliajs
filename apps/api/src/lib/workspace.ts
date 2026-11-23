@@ -2,7 +2,12 @@ import type { AuthSession, Role } from '@aurelia-ops/shared';
 import { eq } from 'drizzle-orm';
 import { getDb, schema } from '../db/client';
 
-export type WorkspaceContext = NonNullable<AuthSession['workspace']> & { role: Role };
+/** The public session shape plus the fields needed to derive entitlement. */
+export type WorkspaceContext = NonNullable<AuthSession['workspace']> & {
+  role: Role;
+  subscriptionStatus: string;
+  stripeCustomerId: string | null;
+};
 
 /**
  * Pick the workspace for this user: the session's active one if the user is
@@ -20,6 +25,8 @@ export async function resolveWorkspace(
       name: schema.workspaces.name,
       slug: schema.workspaces.slug,
       plan: schema.workspaces.plan,
+      stripeCustomerId: schema.workspaces.stripeCustomerId,
+      subscriptionStatus: schema.workspaces.subscriptionStatus,
       trialEndsAt: schema.workspaces.trialEndsAt,
       role: schema.memberships.role,
     })
@@ -38,6 +45,8 @@ export async function resolveWorkspace(
     name: row.name,
     slug: row.slug,
     plan: row.plan,
+    stripeCustomerId: row.stripeCustomerId,
+    subscriptionStatus: row.subscriptionStatus,
     trialEndsAt: row.trialEndsAt ? row.trialEndsAt.toISOString() : null,
     role: row.role,
   };

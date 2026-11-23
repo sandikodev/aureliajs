@@ -14,7 +14,7 @@
       <button
         type="button"
         class="shrink-0 rounded-md p-1 hover:bg-amber-500/20 text-amber-800 dark:text-amber-200 transition-colors"
-        aria-label="Dismiss"
+        aria-label="${copy['common.dismiss']}"
         click.trigger="dismissResult()"
       >
         <ui-icon name="x" size="14"></ui-icon>
@@ -33,7 +33,7 @@
       <button
         type="button"
         class="shrink-0 rounded-md p-1 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-200 transition-colors"
-        aria-label="Dismiss"
+        aria-label="${copy['common.dismiss']}"
         click.trigger="dismissResult()"
       >
         <ui-icon name="x" size="14"></ui-icon>
@@ -42,7 +42,7 @@
   </ui-alert>
 </div>
 
-<div if.bind="isLoading" class="mt-5 grid gap-4 lg:grid-cols-3">
+<div if.bind="isLoading" role="status" aria-busy="true" aria-label="${copy['common.loading']}" class="mt-5 grid gap-4 lg:grid-cols-3">
   <div class="lg:col-span-2">
     <ui-skeleton width="100%" height="14rem" rounded="rounded-xl"></ui-skeleton>
   </div>

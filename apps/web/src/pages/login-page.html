@@ -9,7 +9,7 @@
       </span>
       <div class="leading-tight">
         <p class="text-sm font-semibold">Aurelia Ops</p>
-        <p class="text-[11px] text-zinc-400">SaaS admin starter</p>
+        <p class="text-[11px] text-zinc-400">${copy['app.tagline']}</p>
       </div>
     </div>
 
@@ -59,7 +59,7 @@
             id="login-email"
             type="email"
             autocomplete="username"
-            placeholder="you@company.com"
+            placeholder="${copy['login.emailPlaceholder']}"
             value.two-way="email"
             invalid.bind="!!fieldErrors['email']"
           ></ui-input>
@@ -72,7 +72,7 @@
             id="login-password"
             type="password"
             autocomplete="current-password"
-            placeholder="••••••••••••"
+            placeholder="${copy['login.passwordPlaceholder']}"
             value.two-way="password"
             invalid.bind="!!fieldErrors['password']"
           ></ui-input>

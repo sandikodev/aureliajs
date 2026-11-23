@@ -151,7 +151,7 @@ Naming these is part of the work sample:
 
 There are no invented metrics here. What is verified directly from production compiler outputs:
 
-- **Strict Typecheck**: 100% green across all 9 workspaces (`tsc --noEmit`).
+- **Strict Typecheck**: 100% green across all 14 workspaces (`tsc --noEmit`).
 - **Production Asset Measurements (`apps/web` via Vite 8)**:
   - Aurelia 2 Core Runtime chunk: **24.27 kB gzipped** (80.95 kB raw)
   - Zod Domain Contracts chunk: **24.08 kB gzipped** (84.35 kB raw)
@@ -167,8 +167,8 @@ There are no invented metrics here. What is verified directly from production co
   - A new user can be invited, receive an email (or preview magic link), accept, and be signed in against the real API.
   - Stripe webhooks verify idempotency via `stripe_events.id`: duplicate events answer 200 without side effects.
 - **Automated Regression Suite**:
-  - **154 unit & integration tests** pass across 29 test files (1 032 assertions, 0 failures in 3.0s).
-  - 17 Playwright E2E specs verify real browser navigation, modal creation, and theme toggling.
+  - **229 unit & integration tests** pass across 39 test files (1 367 assertions, 0 failures in ~3.5s).
+  - 47 Playwright E2E tests across 6 spec files verify real browser navigation, modal creation, theme toggling, team/billing flows, role changes through the UI and accessibility.
 
 ---
 

@@ -1,13 +1,16 @@
 import { describe, expect, it, beforeEach, afterEach } from 'bun:test';
 import { DI, Registration, CustomElement } from 'aurelia';
-import { IRouter } from '@aurelia/router';
+import { IRouter, IRouterEvents } from '@aurelia/router';
 import { JSDOM } from 'jsdom';
+import { App } from '../src/app';
 import { AuthService } from '../src/services/auth';
 import { I18nService, MESSAGES } from '../src/services/i18n';
 import { ToastService } from '../src/services/toast';
 import { ThemeService } from '../src/services/theme';
 import { ProjectsPage } from '../src/pages/projects-page';
 import { OverviewPage } from '../src/pages/overview-page';
+import { MembersPage } from '../src/pages/members-page';
+import { SettingsPage } from '../src/pages/settings-page';
 import {
   UiCard,
   UiCardContent,
@@ -119,9 +122,24 @@ describe('apps/web — Component & Logic Architecture Rigor', () => {
 
       page.loading({ q: 'SearchQuery', new: 'true' });
       expect(page.q).toBe('SearchQuery');
+      expect((page as any).shouldOpenNew).toBe(true);
 
-      // shouldOpenNew is private, verified via openCreate trigger behavior
       expect(page.page).toBe(1);
+    });
+
+    it('triggers openCreate when attached with new=true in query or router instruction', async () => {
+      const page = createProjectsPageHarness();
+      let createCalled = false;
+      page.dialog = {
+        dialogEl: { showModal: () => {}, close: () => {}, open: false } as any,
+        openCreate: () => {
+          createCalled = true;
+        },
+      } as any;
+
+      dom.reconfigure({ url: 'http://localhost:4600/projects?new=true' });
+      await page.attached();
+      expect(createCalled).toBe(true);
     });
 
     it('calculates pagination boundary conditions and page ranges accurately', () => {
@@ -251,6 +269,232 @@ describe('apps/web — Component & Logic Architecture Rigor', () => {
       // Sum of percentages should be approximately 100% (within rounding)
       expect(totalPercent).toBeGreaterThanOrEqual(95);
       expect(totalPercent).toBeLessThanOrEqual(105);
+    });
+  });
+
+  describe('MembersPage (Aurelia 2 Route ViewModel & Business Logic)', () => {
+    function createMembersPageHarness() {
+      const container = DI.createContainer();
+      container.register(AuthService, I18nService, ToastService);
+      return container.get(MembersPage);
+    }
+
+    it('calculates seats, roles, and relative joined dates accurately', async () => {
+      const page = createMembersPageHarness();
+      await page.load();
+
+      expect(page.members.length).toBeGreaterThan(0);
+      expect(page.roleLabel('owner')).toBeDefined();
+      expect(page.roleVariant('owner')).toBe('default');
+      expect(page.roleVariant('admin')).toBe('secondary');
+      expect(page.roleVariant('member')).toBe('outline');
+
+      const mockMember = {
+        id: 'm1',
+        name: 'Ada Lovelace',
+        email: 'ada@example.com',
+        role: 'owner' as const,
+        joinedAt: new Date(Date.now() - 5 * 86_400_000).toISOString(),
+      };
+      expect(page.joined(mockMember)).toBe('joined 5 days ago');
+      expect(page.seatsPercent).toBeGreaterThanOrEqual(0);
+      expect(page.seatsPercent).toBeLessThanOrEqual(100);
+
+      // Verify reactive localization in Indonesian
+      page.i18n.setLocale('id');
+      expect(page.joined(mockMember)).toBe('bergabung 5 hari lalu');
+      expect(page.roleOptions).toEqual([
+        { value: 'member', label: 'Anggota' },
+        { value: 'admin', label: 'Admin' },
+        { value: 'owner', label: 'Pemilik' },
+      ]);
+    });
+
+    it('optimistically mutates member role in-place without reload', async () => {
+      const page = createMembersPageHarness();
+      const member = {
+        id: 'm-opt',
+        name: 'Ada Lovelace',
+        email: 'ada@example.com',
+        role: 'member' as const,
+        joinedAt: new Date().toISOString(),
+      };
+      page.members = [member];
+
+      // Trigger changeRole
+      void page.changeRole(member, 'admin');
+
+      // Optimistic mutation MUST be instant in-place
+      expect(page.members[0].role).toBe('admin');
+    });
+  });
+
+  describe('App Shell Layout State Machine (Prevent Half-Rendered Glitches)', () => {
+    function createAppHarness(path = '/overview') {
+      dom.reconfigure({ url: `http://localhost:4600${path}` });
+      const container = DI.createContainer();
+      const mockRouter = {
+        load: async () => true,
+      };
+      const mockEvents = {
+        subscribe: () => ({ dispose: () => {} }),
+      };
+      container.register(
+        AuthService,
+        I18nService,
+        ToastService,
+        ThemeService,
+        Registration.instance(IRouter, mockRouter as unknown as IRouter),
+        Registration.instance(IRouterEvents, mockEvents as unknown as IRouterEvents),
+      );
+      return container.get(App);
+    }
+
+    it('updates auth.workspace and syncs workspaces on workspace:updated event', async () => {
+      const app = createAppHarness('/overview');
+      await app.attached();
+      app.auth.workspace = {
+        id: 'ws-1',
+        name: 'Initial Name',
+        slug: 'initial-name',
+        plan: 'free',
+        trialEndsAt: null,
+      };
+
+      const ea = (app as any).ea;
+      ea.publish('workspace:updated', {
+        id: 'ws-1',
+        name: 'Northwind fdgf',
+        slug: 'hfgdh',
+        plan: 'free',
+        role: 'owner',
+        settings: { locale: 'id', weeklyDigest: true },
+      });
+
+      expect(app.auth.workspace?.name).toBe('Northwind fdgf');
+      expect(app.auth.workspace?.slug).toBe('hfgdh');
+    });
+
+    it('updates document title reactively on navigation and locale changes', async () => {
+      const app = createAppHarness('/members');
+      await app.attached();
+
+      // On /members with EN locale
+      (app as any).updateDocumentTitle();
+      expect(document.title).toBe('Members · Aurelia Ops');
+
+      // Switch to ID locale
+      app.i18n.setLocale('id');
+      expect(document.title).toBe('Anggota · Aurelia Ops');
+    });
+
+    it('always enables shell for protected dashboard routes (even without prior login)', () => {
+      const appBilling = createAppHarness('/billing');
+      expect(appBilling.showShell).toBe(true);
+
+      const appProjects = createAppHarness('/projects');
+      expect(appProjects.showShell).toBe(true);
+
+      const appMembers = createAppHarness('/members');
+      expect(appMembers.showShell).toBe(true);
+    });
+
+    it('disables shell for standalone public routes', () => {
+      const appLanding = createAppHarness('/');
+      expect(appLanding.showShell).toBe(false);
+
+      const appLogin = createAppHarness('/login');
+      expect(appLogin.showShell).toBe(false);
+
+      const appInvite = createAppHarness('/invite');
+      expect(appInvite.showShell).toBe(false);
+    });
+
+    it('transitions shell immediately when navigating from login to overview on navigation-start', async () => {
+      const callbacks: Record<string, (event: unknown) => void> = {};
+      const mockEvents = {
+        subscribe: (name: string, cb: (event: unknown) => void) => {
+          callbacks[name] = cb;
+          return { dispose: () => {} };
+        },
+      };
+
+      dom.reconfigure({ url: 'http://localhost:4600/login' });
+      const container = DI.createContainer();
+      container.register(
+        AuthService,
+        I18nService,
+        ToastService,
+        ThemeService,
+        Registration.instance(IRouter, { load: async () => true } as unknown as IRouter),
+        Registration.instance(IRouterEvents, mockEvents as unknown as IRouterEvents),
+      );
+      const app = container.get(App);
+      await app.attached();
+
+      // On /login initially:
+      expect(app.showShell).toBe(false);
+
+      // Simulate router navigation-start event towards overview (user clicked login)
+      const mockStartEvent = {
+        instructions: {
+          toPath: () => 'overview',
+        },
+      };
+      callbacks['au:router:navigation-start']?.(mockStartEvent);
+
+      // Shell MUST be enabled immediately at navigation start — before viewport finishes!
+      expect(app.showShell).toBe(true);
+    });
+
+    it('strips query parameters when evaluating route path', () => {
+      const appQuery = createAppHarness('/billing?period=last-30');
+      expect(appQuery.showShell).toBe(true);
+
+      const appLoginQuery = createAppHarness('/login?returnUrl=%2Fbilling');
+      expect(appLoginQuery.showShell).toBe(false);
+    });
+  });
+
+  describe('SettingsPage (Independent Submissions & Preferences UX Isolation)', () => {
+    function createSettingsHarness() {
+      const container = DI.createContainer();
+      container.register(
+        AuthService,
+        I18nService,
+        ToastService,
+        ThemeService,
+        Registration.instance(IRouter, { load: async () => true } as unknown as IRouter),
+      );
+      return container.get(SettingsPage);
+    }
+
+    it('keeps workspace saving state false when weeklyDigest toggle is triggered', async () => {
+      const page = createSettingsHarness();
+      page.workspace = { name: 'Northwind Detail', slug: 'northwind' };
+      page.weeklyDigest = true;
+
+      expect(page.saving).toBe(false);
+
+      // Simulate toggling checkbox in preferences card
+      page.weeklyDigest = false;
+      // Trigger independent handler
+      const promise = page.onWeeklyDigestChange();
+
+      // Workspace saving button loading state MUST remain false!
+      expect(page.saving).toBe(false);
+
+      await promise;
+      expect(page.saving).toBe(false);
+    });
+
+    it('validates workspace name and slug strictly inside saveWorkspace without preference interference', async () => {
+      const page = createSettingsHarness();
+      page.workspace = { name: 'A', slug: 'invalid slug with spaces!' };
+
+      // Should fail validation early without setting saving=true permanently
+      await page.saveWorkspace();
+      expect(page.saving).toBe(false);
     });
   });
 

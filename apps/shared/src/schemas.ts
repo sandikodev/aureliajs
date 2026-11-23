@@ -288,6 +288,9 @@ export const apiErrorSchema = z.object({
     message: z.string(),
     issues: z.array(z.object({ path: z.string(), message: z.string() })).optional(),
   }),
+  // Every real API error carries a request id for support tickets. It is
+  // optional here because older/mocked responses may omit it.
+  requestId: z.string().optional(),
 });
 export type ApiError = z.infer<typeof apiErrorSchema>;
 

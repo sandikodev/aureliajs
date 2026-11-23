@@ -38,7 +38,7 @@ export function initials(name: string): string {
     .join('');
 }
 
-export function relativeTime(iso: string, locale = 'en'): string {
+export function relativeTime(iso: string, locale = 'en', justNow = 'just now'): string {
   const diff = new Date(iso).getTime() - Date.now();
   const abs = Math.abs(diff);
   const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
@@ -53,7 +53,7 @@ export function relativeTime(iso: string, locale = 'en'): string {
   for (const [unit, ms] of units) {
     if (abs >= ms) return formatter.format(Math.round(diff / ms), unit);
   }
-  return 'just now';
+  return justNow;
 }
 
 export function formatDate(iso: string | null, locale = 'en-US'): string {

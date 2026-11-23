@@ -81,7 +81,7 @@ export class LoginPage implements IRouteViewModel {
           cause.status === 401
             ? this.i18n.t('login.failed')
             : cause.status === 0
-              ? 'Cannot reach the API. Is `bun run dev:api` running?'
+              ? this.i18n.t('errors.apiUnreachable')
               : cause.message;
       } else {
         this.error = this.i18n.t('common.error');

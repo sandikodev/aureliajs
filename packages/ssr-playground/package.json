@@ -9,7 +9,9 @@
     "ssr-inspect": "./dist/cli/index.js"
   },
   "scripts": {
+    "dev": "tsc -w --preserveWatchOutput",
     "build": "tsc",
+    "clean": "rm -rf dist",
     "inspect": "bun src/cli/index.ts",
     "serve": "bun --watch src/cli/index.ts --serve",
     "test": "bun test",
