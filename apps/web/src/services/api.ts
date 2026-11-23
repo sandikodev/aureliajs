@@ -199,6 +199,9 @@ export const api = {
 
   listInvites: () => request<Invite[]>('/api/invites'),
 
+  revokeInvite: (id: string) =>
+    request<void>(`/api/invites?id=${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
   acceptInvite: (token: string) =>
     request<AuthSession>('/api/invites/accept', {
       method: 'POST',

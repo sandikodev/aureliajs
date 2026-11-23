@@ -147,6 +147,8 @@ export const EN = {
   'members.inviteSubmitting': 'Creating…',
   'members.inviteOnlyOwner': 'Only the workspace owner can invite new teammates.',
   'members.inviteCreated': 'Invitation created for {email}.',
+  'members.inviteRevoked': 'Invitation for {email} was revoked.',
+  'members.revokeInvite': 'Revoke invitation for {email}',
   'members.inviteCopied': 'The accept link was copied to your clipboard.',
   'members.inviteLink': 'Accept link',
   'members.copy': 'Copy',

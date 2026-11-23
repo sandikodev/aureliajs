@@ -145,6 +145,7 @@ authRoutes.post('/auth/logout', async (c) => {
     path: '/',
     secure: isProd,
     sameSite: 'lax',
+    httpOnly: true,
   });
   return c.body(null, 204);
 });

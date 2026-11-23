@@ -99,7 +99,18 @@
               <p class="truncate text-[13px] font-medium">${invite.email}</p>
               <p class="text-[11px] text-muted-foreground">${roleLabel(invite.role)} · ${expiresIn(invite)}</p>
             </div>
-            <ui-badge variant.bind="inviteStateVariant(invite.state)"> ${inviteStateLabel(invite.state)} </ui-badge>
+            <div class="flex items-center gap-2 shrink-0">
+              <ui-badge variant.bind="inviteStateVariant(invite.state)"> ${inviteStateLabel(invite.state)} </ui-badge>
+              <button
+                if.bind="canInvite"
+                type="button"
+                aria-label.bind="revokeInviteLabel(invite.email)"
+                click.trigger="revokeInvite(invite)"
+                class="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+              >
+                <ui-icon name="trash" size="14"></ui-icon>
+              </button>
+            </div>
           </li>
         </ul>
       </ui-card-content>

@@ -1,6 +1,7 @@
 import { formatCents, PLAN_LIMITS, type Plan } from '@aurelia-ops/shared/utils';
 import type { BillingOverview } from '@aurelia-ops/shared';
 import { customElement, resolve } from 'aurelia';
+import type { IRouteViewModel, Params } from '@aurelia/router';
 import template from './billing-page.html';
 import { DEMO_BILLING } from '@/lib/demo-data';
 import { api, ApiError } from '@/services/api';
@@ -37,7 +38,7 @@ const PLAN_TIERS: readonly PlanTier[] = [
 ];
 
 @customElement({ name: 'billing-page', template })
-export class BillingPage {
+export class BillingPage implements IRouteViewModel {
   readonly i18n = resolve(I18nService);
   readonly toast = resolve(ToastService);
   readonly auth = resolve(AuthService);
@@ -71,21 +72,31 @@ export class BillingPage {
     this.selectedInterval = interval;
   }
 
-  async attached(): Promise<void> {
-    const params = new URLSearchParams(window.location.search);
-    const checkout = params.get('checkout');
+  loading(params: Params): void {
+    const checkout = params?.checkout ? String(params.checkout) : null;
     if (checkout === 'success') {
       this.checkoutResult = 'success';
-      const cleanUrl = new URL(window.location.href);
-      cleanUrl.searchParams.delete('checkout');
-      cleanUrl.searchParams.delete('session_id');
-      window.history.replaceState({}, '', cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ''));
     } else if (checkout === 'cancelled') {
       this.checkoutResult = 'cancelled';
-      const cleanUrl = new URL(window.location.href);
-      cleanUrl.searchParams.delete('checkout');
-      cleanUrl.searchParams.delete('session_id');
-      window.history.replaceState({}, '', cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ''));
+    }
+  }
+
+  async attached(): Promise<void> {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const checkout = params.get('checkout');
+      if (checkout === 'success') {
+        this.checkoutResult = 'success';
+      } else if (checkout === 'cancelled') {
+        this.checkoutResult = 'cancelled';
+      }
+
+      if (this.checkoutResult) {
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete('checkout');
+        cleanUrl.searchParams.delete('session_id');
+        window.history.replaceState({}, '', cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ''));
+      }
     }
     await this.load();
   }

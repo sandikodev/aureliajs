@@ -257,6 +257,23 @@ export class MembersPage {
     }
   }
 
+  revokeInviteLabel(email: string): string {
+    this.i18n.track();
+    return this.i18n.t('members.revokeInvite', { email });
+  }
+
+  async revokeInvite(invite: Invite): Promise<void> {
+    if (!confirm(`Revoke invitation for ${invite.email}?`)) return;
+
+    try {
+      await api.revokeInvite(invite.id);
+      this.toast.success(this.i18n.t('members.inviteRevoked', { email: invite.email }));
+      await this.load();
+    } catch (cause) {
+      this.toast.error(cause instanceof ApiError ? cause.message : 'Could not revoke that invitation.');
+    }
+  }
+
   roleLabel(role: Role): string {
     this.i18n.track();
     const key = role === 'owner' ? 'role.owner' : role === 'admin' ? 'role.admin' : 'role.member';

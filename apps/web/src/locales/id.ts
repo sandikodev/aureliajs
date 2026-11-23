@@ -147,6 +147,8 @@ export const ID: Record<keyof typeof EN, string> = {
   'members.inviteSubmitting': 'Membuat…',
   'members.inviteOnlyOwner': 'Hanya pemilik ruang kerja yang dapat mengundang rekan baru.',
   'members.inviteCreated': 'Undangan untuk {email} berhasil dibuat.',
+  'members.inviteRevoked': 'Undangan untuk {email} berhasil dibatalkan.',
+  'members.revokeInvite': 'Batalkan undangan untuk {email}',
   'members.inviteCopied': 'Tautan penerimaan disalin ke papan klip Anda.',
   'members.inviteLink': 'Tautan penerimaan',
   'members.copy': 'Salin',

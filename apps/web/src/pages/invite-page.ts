@@ -1,12 +1,13 @@
 import { customElement, resolve } from 'aurelia';
 import { IRouter } from '@aurelia/router';
+import type { IRouteViewModel, Params } from '@aurelia/router';
 import template from './invite-page.html';
 import { api, ApiError } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { I18nService } from '@/services/i18n';
 
 @customElement({ name: 'invite-page', template })
-export class InvitePage {
+export class InvitePage implements IRouteViewModel {
   private readonly router = resolve(IRouter);
   private readonly auth = resolve(AuthService);
   readonly i18n = resolve(I18nService);
@@ -26,9 +27,20 @@ export class InvitePage {
   state: 'working' | 'accepted' | 'failed' = 'working';
   error = '';
   workspaceName = '';
+  token = '';
+
+  loading(params: Params): void {
+    if (params?.token) {
+      this.token = String(params.token);
+    }
+  }
 
   async attached(): Promise<void> {
-    const token = new URLSearchParams(window.location.search).get('token');
+    const token =
+      this.token ||
+      (typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('token')
+        : null);
     if (!token) {
       this.state = 'failed';
       this.error = this.i18n.t('invite.failed');

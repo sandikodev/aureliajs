@@ -1,6 +1,7 @@
 import { customElement, resolve } from 'aurelia';
 import template from './login-page.html';
 import { IRouter } from '@aurelia/router';
+import type { IRouteViewModel, Params } from '@aurelia/router';
 import { loginSchema } from '@aurelia-ops/shared/schemas';
 import { ApiError } from '@/services/api';
 import { AuthService } from '@/services/auth';
@@ -10,7 +11,7 @@ const DEMO_EMAIL = 'demo@aureliajs.dev';
 const DEMO_PASSWORD = 'demo-password-123';
 
 @customElement({ name: 'login-page', template })
-export class LoginPage {
+export class LoginPage implements IRouteViewModel {
   private readonly auth = resolve(AuthService);
   private readonly router = resolve(IRouter);
   readonly i18n = resolve(I18nService);
@@ -20,6 +21,13 @@ export class LoginPage {
   submitting = false;
   error = '';
   fieldErrors: Record<string, string> = {};
+  returnUrl = '';
+
+  loading(params: Params): void {
+    if (params?.returnUrl) {
+      this.returnUrl = String(params.returnUrl);
+    }
+  }
 
   get copy() {
     this.i18n.track();
@@ -31,8 +39,11 @@ export class LoginPage {
    * Falls back to 'overview' if not present or unsafe.
    */
   private getReturnRoute(): string {
-    const params = new URLSearchParams(window.location.search);
-    const returnUrl = params.get('returnUrl') ?? '';
+    const returnUrl =
+      this.returnUrl ||
+      (typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('returnUrl') ?? ''
+        : '');
     // Strip leading slashes to prevent protocol-relative redirects (e.g. //attacker.com)
     const route = returnUrl.replace(/^\/+/, '');
     // Safety: only allow relative alphanumeric routes with query params, no protocols or double-slashes
