@@ -12,10 +12,30 @@ let database: PostgresJsDatabase<typeof schema> | undefined;
  */
 export function getDb(): PostgresJsDatabase<typeof schema> {
   if (!database) {
-    sql = postgres(env.DATABASE_URL, { max: 10, onnotice: () => {} });
+    sql = postgres(env.DATABASE_URL, connectionOptions());
     database = drizzle(sql, { schema });
   }
   return database;
+}
+
+/**
+ * Neon's pooled endpoint runs PgBouncer in transaction mode, which cannot
+ * reuse named prepared statements across physical connections. `prepare:
+ * false` keeps postgres.js on the simple protocol; it is harmless locally, so
+ * the rest of the pool is tuned only when running inside a Vercel Function.
+ */
+function connectionOptions(): Parameters<typeof postgres>[1] {
+  const onVercel = Boolean(process.env.VERCEL);
+
+  return {
+    // A Function instance is short-lived and may be replaced at any time.
+    // Keep the per-instance pool small so a traffic spike cannot exhaust Neon.
+    max: onVercel ? 3 : 10,
+    idle_timeout: onVercel ? 20 : undefined,
+    connect_timeout: onVercel ? 10 : undefined,
+    prepare: false,
+    onnotice: () => {},
+  };
 }
 
 /** Set or override the database instance (e.g. for unit testing / mocking - Pillar 5). */
@@ -37,7 +57,7 @@ export type DbClient = Pick<
 
 export async function pingDb(): Promise<boolean> {
   try {
-    const client = sql ?? postgres(env.DATABASE_URL, { max: 1, onnotice: () => {} });
+    const client = sql ?? postgres(env.DATABASE_URL, { ...connectionOptions(), max: 1 });
     sql = client;
     await client`select 1`;
     return true;

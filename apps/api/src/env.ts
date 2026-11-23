@@ -3,7 +3,10 @@ import { z } from 'zod';
 
 // Load the repo-root .env for local development without pulling in dotenv.
 const rootEnvFile = new URL('../../../.env', import.meta.url);
-if (existsSync(rootEnvFile)) {
+// Some hosted runtimes (including Vercel's Bun Functions) do not expose
+// `process.loadEnvFile`. On those platforms env vars are injected directly,
+// so skipping the local dev file is the correct behavior.
+if (typeof process.loadEnvFile === 'function' && existsSync(rootEnvFile)) {
   process.loadEnvFile(rootEnvFile.pathname);
 }
 

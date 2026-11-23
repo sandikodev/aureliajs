@@ -53,7 +53,12 @@ export function createApp() {
     }),
   );
 
+  // Local/container deployments expose `/health` and `/ready` at the root.
+  // On Vercel only `/api/:path*` reaches the Hono Function, so mirror them
+  // under `/api` as well. Registration order keeps them ahead of the tenant
+  // middleware and of the catch-all API router below.
   app.route('/', healthRoutes);
+  app.route('/api', healthRoutes);
 
   const api = new Hono();
   // Auth routes are registered before the tenant middleware on purpose: a

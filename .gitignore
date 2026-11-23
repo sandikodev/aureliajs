@@ -15,6 +15,7 @@ test-results/
 Thumbs.db
 *.log
 .vite/
+.vercel/
 .vscode/
 .idea/
 

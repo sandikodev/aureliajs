@@ -292,6 +292,34 @@ bun run dev           # Web on :4600, API on :4601
 * **API Health Check**: [`http://localhost:4601/health`](http://localhost:4601/health)
 * **Demo Credentials**: `demo@aureliajs.dev` / `demo-password-123`
 
+### Deploying `apps/` to Vercel + Neon
+
+The SaaS app is deployed as **one Vercel project**: the Vite SPA is served statically from
+`apps/web/dist`, while `api/index.ts` runs the whole Hono app as a single Bun Function against Neon
+Postgres. The browser only ever talks to one origin, so the session
+cookie stays first-party.
+
+```bash
+vercel link --scope sandikodev --project aureliajs
+vercel install neon --name aureliajs-db          # injects DATABASE_URL
+DATABASE_URL='<direct-neon-url>' bun run --filter @aureliajs/api db:migrate:prod
+vercel --prod
+```
+
+Project settings: **Root Directory** `.`, **Install** `bun install --frozen-lockfile`,
+**Build** `bun run build`, **Output** `apps/web/dist`. Set `WEB_ORIGIN`, `NODE_ENV=production`,
+`TRUST_PROXY=1`, `APP_VERSION`, and the Stripe secrets/price IDs in the Vercel dashboard.
+Register `https://<project>.vercel.app/api/billing/webhook` in Stripe for webhooks.
+
+**Live deployment:** [https://aureliajs.vercel.app](https://aureliajs.vercel.app)
+(demo login: `demo@aureliajs.dev` / `demo-password-123`).
+
+Full details — including the pooled-vs-direct connection strings, env table, and smoke tests —
+are in [`docs/architecture.md`](docs/architecture.md#deploying-it-vercel-functions--neon).
+
+> The Cloudflare Worker example (`aurelia-hono-ssr`) is a separate SSR reference app under
+> `packages/hono-aurelia/example`, not the deployment target for `apps/`.
+
 ### Option B: Launching the Framework SSR Playground (`packages/`)
 ```bash
 # Launch the interactive SSR Playground web dashboard

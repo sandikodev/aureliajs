@@ -255,6 +255,114 @@ bun run dev                      # web :4600, api :4601
 
 For Stripe, see the setup section in the README.
 
+## Deploying it (Vercel Functions + Neon)
+
+`apps/` keeps the same architecture in production: one origin serves the Vite SPA and one
+Bun Function runs the entire Hono app. Nothing is rewritten to SSR, and the API never
+talks to the browser through a second domain.
+
+```
+              Vercel project (sandikodev)
+ ┌────────────────────────────────────────────────┐
+ │  /             → static  apps/web/dist         │
+ │  /api/:path*   → api/index.ts → app.fetch      │
+ │  /api/health   → same Function (healthRoutes)  │
+ └───────────────────────┬────────────────────────┘
+                         │ pooled connection
+                         ▼
+                  Neon Postgres (Marketplace)
+```
+
+### Project settings
+
+| Setting | Value |
+| --- | --- |
+| Root Directory | repository root (`.`) |
+| Install Command | `bun install --frozen-lockfile` |
+| Build Command | `bun run build` |
+| Output Directory | `apps/web/dist` |
+| Framework Preset | Other / none |
+| Function runtime | Bun (`"bunVersion": "1.x"` in `vercel.json`) |
+
+Bun is deliberate: `hashPassword()` uses `Bun.password` (Argon2id) directly, so the
+Function has no native N-API addon to bundle. `vercel.json` rewrites every `/api/:path*`
+request to the single `api/index.ts` Function and adds the SPA fallback for every other
+path. API routes always win over the rewrite, so `/api/auth/me` reaches Hono while a deep
+link such as `/projects` returns `index.html`.
+
+The live deployment is **https://aureliajs.vercel.app** (production alias). Its Stripe
+webhook endpoint is `https://aureliajs.vercel.app/api/billing/webhook` with the five
+events handled in `routes/billing.ts`; the signing secret is a Vercel Secret named
+`STRIPE_WEBHOOK_SECRET`.
+
+### Database
+
+Provision through the Vercel Marketplace so environment variables are injected automatically:
+
+```bash
+vercel link --scope sandikodev --project aureliajs
+vercel install neon --name aureliajs-db
+vercel env ls                      # confirm DATABASE_URL is present
+```
+
+Runtime uses the **pooled** Neon string. `db/client.ts` detects `VERCEL=1` and uses a small
+pool with `prepare: false`, required because Neon's pooler runs PgBouncer in transaction
+mode (named prepared statements cannot be reused across physical connections).
+
+Migrations and seed data are one-off commands that must use the **direct** Neon string:
+
+```bash
+DATABASE_URL='<direct-url>' bun run --filter @aureliajs/api db:migrate:prod
+# The live demo is seeded with the standard demo account:
+DATABASE_URL='<direct-url>' bun run --filter @aureliajs/api db:seed:prod
+```
+
+### Environment variables
+
+| Name | Type | Purpose |
+| --- | --- | --- |
+| `DATABASE_URL` | injected | Neon pooled connection string |
+| `WEB_ORIGIN` | Config | Public URL, used for invite links and CORS |
+| `NODE_ENV` | Config | `production` |
+| `TRUST_PROXY` | Config | `1` — Vercel overwrites `x-forwarded-for` |
+| `APP_VERSION` | Config | Reported by `/api/health` |
+| `STRIPE_SECRET_KEY` | Secret | Stripe test/live key |
+| `STRIPE_WEBHOOK_SECRET` | Secret | Signing secret for the deployed endpoint |
+| `STRIPE_PRICE_MONTHLY` | Secret | Monthly Pro price ID (set in the live deployment) |
+| `STRIPE_PRICE_YEARLY` / `STRIPE_PRICE_SCALE` | Secret | Optional; the checkout route reports a clear error when a plan's price ID is absent |
+
+`VITE_API_BASE_URL` stays empty: the client calls relative `/api/*` paths on the same origin,
+so the session cookie remains first-party.
+
+### Stripe webhook and smoke tests
+
+Register `https://<project>.vercel.app/api/billing/webhook` in Stripe and set its signing
+secret as `STRIPE_WEBHOOK_SECRET`. Then deploy and verify:
+
+```bash
+vercel --prod
+curl https://<project>.vercel.app/api/health                 # {"ok":true,...}
+curl https://<project>.vercel.app/api/ready                  # {"db":"up",...}
+curl https://<project>.vercel.app/api/auth/me                # 200, null user (no session)
+curl -i https://<project>.vercel.app/api/overview            # 401 unauthorized
+curl https://<project>.vercel.app/                           # SPA index.html
+curl https://<project>.vercel.app/projects                   # SPA deep link → index.html
+```
+
+Both API signals matter: a JSON response from `/api/auth/me` (rather than a 404) proves the
+rewrite reached the Function, and a `401` from `/api/overview` proves the tenant/auth
+middleware ran. A full login + checkout smoke test against the live deployment passed:
+
+```bash
+curl -c cookies.txt -H 'content-type: application/json' \
+  -d '{"email":"demo@aureliajs.dev","password":"demo-password-123"}' \
+  https://<project>.vercel.app/api/auth/login
+curl -b cookies.txt https://<project>.vercel.app/api/overview                # 200
+curl -b cookies.txt -H 'content-type: application/json' \
+  -d '{"plan":"pro","interval":"monthly"}' \
+  https://<project>.vercel.app/api/billing/checkout                          # 201 + Stripe URL
+```
+
 ## Roadmap (and where each milestone lands)
 
 | Milestone | Scope                                                                      | Primary files                                                |
