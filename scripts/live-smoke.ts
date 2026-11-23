@@ -12,8 +12,9 @@
  *   LIVE_EMAIL=demo@aureliajs.dev LIVE_PASSWORD=... \
  *   bun scripts/live-smoke.ts
  *
- *   # Full suite, including writes and signed webhook events (cleans up after itself):
+ *   # Full suite, including writes, Resend email delivery and signed webhooks:
  *   NEON_DIRECT_URL='postgresql://...' STRIPE_WEBHOOK_SECRET='whsec_...' \
+ *   RESEND_API_KEY='re_...' LIVE_RESEND_TEST_EMAIL='owner@example.com' \
  *   LIVE_WRITE=1 bun scripts/live-smoke.ts
  *
  * NEVER put credentials in this file. Read them from the environment (for
@@ -29,6 +30,8 @@ const PASSWORD = process.env.LIVE_PASSWORD ?? 'demo-password-123';
 const WRITE = process.env.LIVE_WRITE === '1';
 const DIRECT_URL = process.env.NEON_DIRECT_URL;
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const RESEND_TEST_EMAIL = process.env.LIVE_RESEND_TEST_EMAIL;
 const RUN = Date.now().toString(36);
 
 type Status = 'PASS' | 'FAIL' | 'SKIP';
@@ -309,38 +312,34 @@ await check('billing overview exposes plan, limits, usage and price flags', asyn
   assert.ok(['free', 'pro', 'scale'].includes(res.json.plan));
   assert.ok(Array.isArray(res.json.invoices));
   assert.equal(res.json.availablePrices.monthly, true, 'monthly price must be configured in prod');
+  assert.equal(res.json.availablePrices.yearly, true, 'yearly price must be configured in prod');
+  assert.equal(res.json.availablePrices.scale, true, 'scale price must be configured in prod');
   return `plan=${res.json.plan}, ${res.json.usage.projects} projects, ${res.json.usage.seats} seats`;
 });
 
 await check('Stripe portal creates a real billing-portal session', async () => {
   const res = await owner.request('/api/billing/portal', { method: 'POST' });
-  if (res.status === 503) {
-    assert.equal(res.json.error?.code, 'stripe_error', '503 must carry an actionable error');
-    return 'documented 503 (customer id not present in this Stripe account)';
-  }
   expectStatus(res, 200, 'portal');
   assert.match(res.json.url, /^https:\/\/billing\.stripe\.com/);
   return 'https://billing.stripe.com session';
 });
 
-await check('an unconfigured price degrades to a clear 400 (no crash)', async () => {
-  const res = await owner.request('/api/billing/checkout', {
-    method: 'POST',
-    body: { plan: 'pro', interval: 'yearly' },
+for (const [plan, interval] of [
+  ['pro', 'monthly'],
+  ['pro', 'yearly'],
+  ['scale', 'monthly'],
+  ['scale', 'yearly'],
+] as const) {
+  await check(`a real Stripe Checkout Session is created for ${plan}/${interval}`, async () => {
+    const res = await owner.request('/api/billing/checkout', {
+      method: 'POST',
+      body: { plan, interval },
+    });
+    expectStatus(res, 201, `checkout ${plan}/${interval}`);
+    assert.match(res.json.url, /^https:\/\/checkout\.stripe\.com/);
+    return 'https://checkout.stripe.com session';
   });
-  expectStatus(res, 400, 'missing yearly price');
-  assert.ok(res.json.error?.message?.length > 0);
-});
-
-await check('a real Stripe Checkout Session is created for pro/monthly', async () => {
-  const res = await owner.request('/api/billing/checkout', {
-    method: 'POST',
-    body: { plan: 'pro', interval: 'monthly' },
-  });
-  expectStatus(res, 201, 'checkout');
-  assert.match(res.json.url, /^https:\/\/checkout\.stripe\.com/);
-  return 'https://checkout.stripe.com session';
-});
+}
 
 await check('webhook rejects missing and invalid signatures with 400', async () => {
   const missing = await owner.request('/api/billing/webhook', { method: 'POST', body: {} });
@@ -404,6 +403,7 @@ if (!WRITE) {
   for (const name of [
     'project create/update/delete + audit log',
     'invite create/list/accept/revoke + email provider',
+    'Resend email delivery confirmation',
     'role enforcement (member → admin → removal)',
     'workspace settings update/revert',
     'signed Stripe webhook events + idempotency',
@@ -498,7 +498,10 @@ if (!WRITE) {
       assert.equal(revert.json.settings.locale, 'en');
     });
 
-    const inviteEmail = `smoke-${RUN}@example.com`;
+    // Resend's onboarding sender may only mail the account owner, so when a
+    // real inbox is provided use it for the delivered-invite check. The other
+    // flows keep unique addresses so they never collide with an existing member.
+    const inviteEmail = RESEND_TEST_EMAIL ?? `smoke-${RUN}@example.com`;
     const revokeEmail = `revoke-${RUN}@example.com`;
     const rbacEmail = `rbac-${RUN}@example.com`;
     created.invites.push(inviteEmail, revokeEmail, rbacEmail);
@@ -512,8 +515,13 @@ if (!WRITE) {
       });
       expectStatus(invited, 201, 'create invite');
       assert.ok(invited.json.invite?.id);
-      assert.equal(invited.json.emailSent, true, 'email dispatch must not throw');
       assert.ok(['resend', 'console', 'memory'].includes(invited.json.emailProvider));
+      if (RESEND_TEST_EMAIL) {
+        assert.equal(invited.json.emailProvider, 'resend', 'Resend must be active in prod');
+        assert.equal(invited.json.emailSent, true, 'Resend must accept the invitation email');
+      } else {
+        assert.equal(invited.json.emailSent, invited.json.emailProvider !== 'resend');
+      }
 
       const acceptUrl = new URL(invited.json.acceptUrl);
       inviteToken = acceptUrl.searchParams.get('token') ?? undefined;
@@ -563,6 +571,43 @@ if (!WRITE) {
 
       return `emailProvider=${invited.json.emailProvider}`;
     });
+
+    if (RESEND_API_KEY && RESEND_TEST_EMAIL) {
+      await check('Resend API confirms the invitation email was accepted', async () => {
+        const res = await fetch('https://api.resend.com/emails?limit=20', {
+          headers: { Authorization: `Bearer ${RESEND_API_KEY}` },
+        });
+        assert.equal(res.status, 200, `Resend list: HTTP ${res.status}`);
+        const data = (await res.json()) as {
+          data: Array<{ id: string; to: string[]; subject: string }>;
+        };
+        const match = data.data.find(
+          (mail) => mail.to?.includes(RESEND_TEST_EMAIL) && (mail.subject ?? '').startsWith('Join '),
+        );
+        assert.ok(match, `no invitation email to ${RESEND_TEST_EMAIL} in the last 20 Resend emails`);
+
+        const detail = await fetch(`https://api.resend.com/emails/${match.id}`, {
+          headers: { Authorization: `Bearer ${RESEND_API_KEY}` },
+        });
+        assert.equal(detail.status, 200, `Resend detail: HTTP ${detail.status}`);
+        const mail = (await detail.json()) as {
+          id: string;
+          to: string[];
+          last_event?: string;
+        };
+        assert.ok(mail.to?.includes(RESEND_TEST_EMAIL), 'email recipient must match');
+        assert.ok(
+          ['delivered', 'sent'].includes(mail.last_event ?? ''),
+          `Resend delivery event was ${mail.last_event ?? 'missing'}`,
+        );
+        return `${mail.id} · last_event=${mail.last_event}`;
+      });
+    } else {
+      skip(
+        'Resend API delivery confirmation',
+        'set RESEND_API_KEY and LIVE_RESEND_TEST_EMAIL',
+      );
+    }
 
     await check('RBAC: member cannot delete a project; admin can; owner removes member', async () => {
       assert.ok(invitedUserId, 'need the invited member from the previous check');

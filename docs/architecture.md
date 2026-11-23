@@ -365,15 +365,16 @@ curl -b cookies.txt -H 'content-type: application/json' \
 
 ### Full live smoke suite
 
-The committed runner covers all 39 checks (SPA routes, auth/RBAC, projects CRUD, team/invites,
+The committed runner covers all 42 checks (SPA routes, auth/RBAC, projects CRUD, team/invites,
 workspace settings, billing, third-party calls and cleanup):
 
 ```bash
 # Read-only — safe on production:
 bun run smoke:live
 
-# Full suite, including write flows and signed webhook events:
+# Full suite, including writes, Resend delivery and signed webhook events:
 NEON_DIRECT_URL='<direct-neon-url>' STRIPE_WEBHOOK_SECRET='<current webhook secret>' \
+  RESEND_API_KEY='<current Resend key>' LIVE_RESEND_TEST_EMAIL='owner@example.com' \
   LIVE_WRITE=1 bun run smoke:live
 ```
 
@@ -389,8 +390,8 @@ redacts Secret variables to `[SENSITIVE]`, so keep it outside the repo.
 | --- | --- | --- |
 | Neon Postgres | Live | API totals match direct SQL row counts; runtime uses the pooled endpoint, migrations use the direct one |
 | Stripe (test mode) | Live | Real Checkout and Billing Portal sessions; signed webhooks apply once, dedupe redeliveries and keep `pro` on `past_due` |
-| Stripe yearly / scale prices | Not configured | Checkout returns a clear 400 naming the missing price; add `STRIPE_PRICE_YEARLY` / `STRIPE_PRICE_SCALE` to enable them |
-| Resend email | Not configured | Without `RESEND_API_KEY` the invite route returns `emailProvider: "console"` — the invite is created but no mail is delivered; set `RESEND_API_KEY` and `EMAIL_FROM` in Vercel for real delivery |
+| Stripe yearly / scale prices | Live | `STRIPE_PRICE_YEARLY` ($490/yr) and `STRIPE_PRICE_SCALE` ($990/yr) are configured; all four plan/interval checkout combinations return real Stripe URLs |
+| Resend email | Live (test mode) | `RESEND_API_KEY` + `EMAIL_FROM=onboarding@resend.dev` configured; invite delivery is confirmed through the Resend API. The free onboarding sender only mails the account owner — verify a domain in Resend before sending to arbitrary recipients |
 
 ## Roadmap (and where each milestone lands)
 

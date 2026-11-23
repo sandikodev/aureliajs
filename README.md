@@ -315,8 +315,9 @@ Register `https://<project>.vercel.app/api/billing/webhook` in Stripe for webhoo
 (demo login: `demo@aureliajs.dev` / `demo-password-123`).
 
 Verify the live deployment with `bun run smoke:live` (read-only) or, with
-`NEON_DIRECT_URL`, `STRIPE_WEBHOOK_SECRET` and `LIVE_WRITE=1`, the full 39-check suite that also
-exercises writes and signed Stripe webhooks and cleans up after itself.
+`NEON_DIRECT_URL`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `LIVE_RESEND_TEST_EMAIL` and
+`LIVE_WRITE=1`, the full 42-check suite that also exercises writes, real Resend delivery and
+signed Stripe webhooks, then cleans up after itself.
 
 Full details — including the pooled-vs-direct connection strings, env table, third-party status
 and smoke tests — are in
