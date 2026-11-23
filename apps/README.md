@@ -84,14 +84,18 @@ bun run --filter @aureliajs/web dev   # :4600 only (mock mode)
 
 ```
 aureliajs/
-├── packages/                # Shared deps & types
-│   ├── shared/              # Zod schemas, PLAN_LIMITS, API types
-│   └── hono-aurelia/    # SSR adapter (future unification)
-├── apps/                    # ← This directory
-│   ├── api/                 # Backend (Hono + Drizzle)
-│   └── web/                 # Frontend (Aurelia 2 + Vite)
-├── examples/                # R&D / reference projects
-│   └── fullstack-ssr/       # Hono + Aurelia SSR demo
+├── packages/                # Decoupled Open-Source Framework Contributions
+│   ├── aurelia-ssr/         # Aurelia 2 SSR & Hydration Engine (@aureliajs/ssr)
+│   ├── hono-aurelia/        # Web-Standards Hono SSR Adapter (@hono/aurelia)
+│   ├── aurelia-islands/     # Zero-JS Selective Hydration (@aureliajs/islands)
+│   ├── aurelia-bridge/      # Polyglot Interop (<au-bridge> + au-htmx)
+│   └── vite-plugin-aux/     # .aux SFC Compiler (@aureliajs/vite-plugin-aux)
+├── apps/                    # Production Fullstack Showcase Application
+│   ├── api/                 # Enterprise REST API (Hono + Drizzle + Postgres + Bun.password)
+│   ├── web/                 # Multi-Tenant Client SPA (Aurelia 2 + Tailwind 4 + .aux)
+│   └── shared/              # SaaS Domain Schemas, DTOs & Entitlements (@aurelia-ops/shared)
+├── examples/                # Live Reference Implementations
+│   └── fullstack-ssr/       # Fullstack Edge SSR Reference
 ├── docker-compose.prod.yml  # Production deployment
 ├── Dockerfile               # Single-container build
 ├── .env.example             # Dev values (safe defaults)
@@ -100,7 +104,7 @@ aureliajs/
 ```
 
 **Key conventions:**
-- `packages/shared` — **Contract** between API and Web (types, schemas). Import via `@aureliajs/shared`.
+- `apps/shared` — **Contract** between API and Web (Zod types, DTOs, PLAN_LIMITS). Import via `@aurelia-ops/shared`.
 - `apps/api/src/env.ts` — Env vars (`STRIPE_*`, `DATABASE_URL`, etc.). Never hardcode.
 - `apps/web/src/app.html` — Shell controls `loadingAuth` → `showShell` → layout.
 - `bun run --workspaces` — Run scripts across all workspace packages (e.g., `bun run typecheck`).
@@ -117,6 +121,7 @@ aureliajs/
 | Format all | `bun run format` |
 | Build all | `bun run build` |
 | Run e2e tests | `bun run test:e2e` |
+| Run emulation | `bun run emulate` |
 | API dev only | `bun run --filter @aureliajs/api dev` |
 | Web dev only | `bun run --filter @aureliajs/web dev` |
 | DB up (Docker) | `bun run db:up` |
@@ -136,7 +141,7 @@ aureliajs/
 5. `bun run db:migrate && bun run db:seed`
 6. `bun run dev` — opens both web (:4600) and api (:4601)
 7. Log in with: `demo@aureliajs.dev` / `demo-password-123`
-8. Read `packages/shared/src/index.ts` (lines 72–77) — the `PLAN_LIMITS` contract
+8. Read `apps/shared/src/schemas.ts` and `apps/shared/src/utils.ts` — the `PLAN_LIMITS` and DTO contract
 9. Run `bun run typecheck` to verify your changes don't break types
 10. If adding a new route: edit `apps/api/src/routes/`, then `apps/web/src/pages/`, then update `config/routes.ts`
 
@@ -162,8 +167,8 @@ See `Dockerfile` and `docker-compose.prod.yml` for the multi-stage build.
 
 | Path | Purpose |
 |------|---------|
-| `packages/shared/` | Shared Zod schemas, PLAN_LIMITS, API types |
-| `packages/hono-aurelia/` | SSR adapter (WIP — enables future unification) |
+| `apps/shared/` | Shared Zod schemas, PLAN_LIMITS, API types (@aurelia-ops/shared) |
+| `packages/hono-aurelia/` | SSR adapter (Web-Standards Hono SSR) |
 | `examples/fullstack-ssr/` | Reference: Hono + Aurelia SSR (standalone) |
 | `docker-compose.prod.yml` | Production deployment config |
 

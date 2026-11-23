@@ -155,6 +155,9 @@ export class ProjectsPage implements IRouteViewModel {
   private shouldOpenNew = false;
 
   loading(params: Params): void {
+    if (params?.q) {
+      this.q = String(params.q);
+    }
     const isNew = params?.new === 'true' || params?.new === '1';
     if (isNew) {
       this.shouldOpenNew = true;
@@ -162,15 +165,21 @@ export class ProjectsPage implements IRouteViewModel {
   }
 
   async attached(): Promise<void> {
-    const params = new URLSearchParams(window.location.search);
-    const q = params.get('q');
-    if (q) this.q = q;
-    if (this.shouldOpenNew || params.get('new') === 'true' || params.get('new') === '1') {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (!this.q && params.get('q')) {
+        this.q = params.get('q')!;
+      }
+      if (this.shouldOpenNew || params.get('new') === 'true' || params.get('new') === '1') {
+        this.shouldOpenNew = false;
+        this.openCreate();
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete('new');
+        window.history.replaceState({}, '', cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ''));
+      }
+    } else if (this.shouldOpenNew) {
       this.shouldOpenNew = false;
       this.openCreate();
-      const cleanUrl = new URL(window.location.href);
-      cleanUrl.searchParams.delete('new');
-      window.history.replaceState({}, '', cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ''));
     }
     await this.load();
   }
