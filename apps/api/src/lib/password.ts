@@ -8,7 +8,7 @@ declare const Bun:
       password?: {
         hash(
           password: string,
-          options?: { algorithm?: 'argon2id' | 'bcrypt'; memoryCost?: number; timeCost?: number }
+          options?: { algorithm?: 'argon2id' | 'bcrypt'; memoryCost?: number; timeCost?: number },
         ): Promise<string>;
         verify(password: string, hash: string): Promise<boolean>;
       };

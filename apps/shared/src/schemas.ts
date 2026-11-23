@@ -294,11 +294,4 @@ export const apiErrorSchema = z.object({
 });
 export type ApiError = z.infer<typeof apiErrorSchema>;
 
-export type {
-  BillingInterval,
-  Locale,
-  Plan,
-  ProjectStatus,
-  Role,
-  SubscriptionStatus,
-};
+export type { BillingInterval, Locale, Plan, ProjectStatus, Role, SubscriptionStatus };

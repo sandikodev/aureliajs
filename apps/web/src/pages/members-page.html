@@ -38,7 +38,9 @@
               <th class="px-3 py-2.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase">
                 ${copy['members.role']}
               </th>
-              <th class="hidden sm:table-cell px-3 py-2.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              <th
+                class="hidden sm:table-cell px-3 py-2.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase"
+              >
                 ${copy['members.joined']}
               </th>
               <th class="px-3 py-2.5 text-right text-xs font-medium tracking-wide text-muted-foreground uppercase">
@@ -165,7 +167,10 @@
           <ui-icon name="alert" size="15" class="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"></ui-icon>
           <div class="leading-relaxed">
             <span>${copy['members.seatsFull']}</span>
-            <a load="billing" class="ml-1 inline-flex items-center gap-0.5 font-medium underline underline-offset-2 hover:text-amber-900 dark:hover:text-amber-100">
+            <a
+              load="billing"
+              class="ml-1 inline-flex items-center gap-0.5 font-medium underline underline-offset-2 hover:text-amber-900 dark:hover:text-amber-100"
+            >
               ${copy['nav.billing']} &rarr;
             </a>
           </div>
@@ -229,9 +234,7 @@
   </div>
 
   <div class="flex flex-col gap-4 px-5 py-5">
-    <p class="text-sm text-muted-foreground">
-      ${inviteModalDescription}
-    </p>
+    <p class="text-sm text-muted-foreground">${inviteModalDescription}</p>
 
     <div class="flex items-center gap-2">
       <ui-input
@@ -242,25 +245,14 @@
         class="font-mono text-xs flex-1 min-w-0 select-all"
         click.trigger="selectInput($event)"
       ></ui-input>
-      <ui-button
-        type="button"
-        variant.bind="copied ? 'default' : 'outline'"
-        size="sm"
-        click.trigger="copyInviteLink()"
-      >
+      <ui-button type="button" variant.bind="copied ? 'default' : 'outline'" size="sm" click.trigger="copyInviteLink()">
         <ui-icon name.bind="copied ? 'check' : 'copy'" size="14"></ui-icon>
         ${copyButtonLabel}
       </ui-button>
     </div>
 
     <div class="flex items-center justify-end gap-2 pt-2 border-t">
-      <ui-button
-        type="button"
-        size="sm"
-        click.trigger="closeInviteModal()"
-      >
-        ${modalCloseLabel}
-      </ui-button>
+      <ui-button type="button" size="sm" click.trigger="closeInviteModal()"> ${modalCloseLabel} </ui-button>
     </div>
   </div>
 </dialog>

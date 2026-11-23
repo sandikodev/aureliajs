@@ -42,7 +42,13 @@
   </ui-alert>
 </div>
 
-<div if.bind="isLoading" role="status" aria-busy="true" aria-label="${copy['common.loading']}" class="mt-5 grid gap-4 lg:grid-cols-3">
+<div
+  if.bind="isLoading"
+  role="status"
+  aria-busy="true"
+  aria-label="${copy['common.loading']}"
+  class="mt-5 grid gap-4 lg:grid-cols-3"
+>
   <div class="lg:col-span-2">
     <ui-skeleton width="100%" height="14rem" rounded="rounded-xl"></ui-skeleton>
   </div>
@@ -222,7 +228,9 @@
                 <p class="text-[13px] font-medium">${tierLabel(tier)}</p>
                 <p class="text-[11px] text-muted-foreground">
                   ${tierPrice(tier)}
-                  <span if.bind="selectedInterval === 'yearly' && tier.id !== 'free'" class="text-[10px]">(${copy['billing.billedYearlyNote']})</span>
+                  <span if.bind="selectedInterval === 'yearly' && tier.id !== 'free'" class="text-[10px]"
+                    >(${copy['billing.billedYearlyNote']})</span
+                  >
                 </p>
               </div>
               <ui-button

@@ -45,95 +45,96 @@ overviewRoutes.get(
 
     const { period } = c.req.valid('query');
     const days = PERIODS[period];
-  const since = new Date(Date.now() - days * 86_400_000);
+    const since = new Date(Date.now() - days * 86_400_000);
 
-  const scope = eq(schema.projects.workspaceId, workspaceId);
+    const scope = eq(schema.projects.workspaceId, workspaceId);
 
-  // Everything created inside the reporting window.
-  const inWindow = and(scope, gte(schema.projects.createdAt, since));
+    // Everything created inside the reporting window.
+    const inWindow = and(scope, gte(schema.projects.createdAt, since));
 
-  const [byStatus, budgetRow, overdueRow, memberRow, recent, windowed] = await Promise.all([
-    db
-      .select({ status: schema.projects.status, value: count() })
-      .from(schema.projects)
-      .where(inWindow)
-      .groupBy(schema.projects.status),
-    db
-      .select({ value: sum(schema.projects.budgetCents) })
-      .from(schema.projects)
-      .where(and(inWindow, isNotNull(schema.projects.budgetCents))),
-    db
-      .select({ value: count() })
-      .from(schema.projects)
-      .where(
-        and(
-          inWindow,
-          isNotNull(schema.projects.dueDate),
-          lt(schema.projects.dueDate, today),
-          sql`${schema.projects.status} <> 'done'`,
+    const [byStatus, budgetRow, overdueRow, memberRow, recent, windowed] = await Promise.all([
+      db
+        .select({ status: schema.projects.status, value: count() })
+        .from(schema.projects)
+        .where(inWindow)
+        .groupBy(schema.projects.status),
+      db
+        .select({ value: sum(schema.projects.budgetCents) })
+        .from(schema.projects)
+        .where(and(inWindow, isNotNull(schema.projects.budgetCents))),
+      db
+        .select({ value: count() })
+        .from(schema.projects)
+        .where(
+          and(
+            inWindow,
+            isNotNull(schema.projects.dueDate),
+            lt(schema.projects.dueDate, today),
+            sql`${schema.projects.status} <> 'done'`,
+          ),
         ),
-      ),
-    db
-      .select({ value: count() })
-      .from(schema.memberships)
-      .where(eq(schema.memberships.workspaceId, workspaceId)),
-    db
-      .select()
-      .from(schema.auditLogs)
-      .where(eq(schema.auditLogs.workspaceId, workspaceId))
-      .orderBy(desc(schema.auditLogs.createdAt))
-      .limit(8),
-    db.select({ value: count() }).from(schema.projects).where(scope),
-  ]);
+      db
+        .select({ value: count() })
+        .from(schema.memberships)
+        .where(eq(schema.memberships.workspaceId, workspaceId)),
+      db
+        .select()
+        .from(schema.auditLogs)
+        .where(eq(schema.auditLogs.workspaceId, workspaceId))
+        .orderBy(desc(schema.auditLogs.createdAt))
+        .limit(8),
+      db.select({ value: count() }).from(schema.projects).where(scope),
+    ]);
 
-  const statuses = Object.fromEntries(
-    byStatus.map((row) => [row.status, Number(row.value)]),
-  ) as Record<string, number>;
+    const statuses = Object.fromEntries(
+      byStatus.map((row) => [row.status, Number(row.value)]),
+    ) as Record<string, number>;
 
-  // Delivery throughput: projects created per month over the last 12 months.
-  // This is a real query against the projects table, not a hardcoded array.
-  const trend = await db
-    .select({
-      month: sql<string>`to_char(date_trunc('month', ${schema.projects.createdAt}), 'YYYY-MM')`,
-      value: count(),
-    })
-    .from(schema.projects)
-    .where(and(scope, gte(schema.projects.createdAt, new Date(Date.now() - 365 * 86_400_000))))
-    .groupBy(sql`date_trunc('month', ${schema.projects.createdAt})`)
-    .orderBy(sql`date_trunc('month', ${schema.projects.createdAt})`);
+    // Delivery throughput: projects created per month over the last 12 months.
+    // This is a real query against the projects table, not a hardcoded array.
+    const trend = await db
+      .select({
+        month: sql<string>`to_char(date_trunc('month', ${schema.projects.createdAt}), 'YYYY-MM')`,
+        value: count(),
+      })
+      .from(schema.projects)
+      .where(and(scope, gte(schema.projects.createdAt, new Date(Date.now() - 365 * 86_400_000))))
+      .groupBy(sql`date_trunc('month', ${schema.projects.createdAt})`)
+      .orderBy(sql`date_trunc('month', ${schema.projects.createdAt})`);
 
-  const trendByMonth = new Map(trend.map((row) => [row.month, Number(row.value)]));
+    const trendByMonth = new Map(trend.map((row) => [row.month, Number(row.value)]));
 
-  const months: { month: string; value: number }[] = [];
-  for (let i = 11; i >= 0; i -= 1) {
-    const date = new Date();
-    date.setUTCDate(1);
-    date.setUTCHours(0, 0, 0, 0);
-    date.setUTCMonth(date.getUTCMonth() - i);
-    const key = date.toISOString().slice(0, 7);
-    months.push({ month: key, value: trendByMonth.get(key) ?? 0 });
-  }
+    const months: { month: string; value: number }[] = [];
+    for (let i = 11; i >= 0; i -= 1) {
+      const date = new Date();
+      date.setUTCDate(1);
+      date.setUTCHours(0, 0, 0, 0);
+      date.setUTCMonth(date.getUTCMonth() - i);
+      const key = date.toISOString().slice(0, 7);
+      months.push({ month: key, value: trendByMonth.get(key) ?? 0 });
+    }
 
-  return c.json({
-    period,
-    periodDays: days,
-    stats: {
-      total: Number(windowed[0]?.value ?? 0),
-      active: statuses.active ?? 0,
-      planning: statuses.planning ?? 0,
-      paused: statuses.paused ?? 0,
-      done: statuses.done ?? 0,
-      overdue: Number(overdueRow[0]?.value ?? 0),
-      members: Number(memberRow[0]?.value ?? 0),
-      budgetCents: Number(budgetRow[0]?.value ?? 0),
-    },
-    trend: months,
-    activity: recent.map((row) => ({
-      id: row.id,
-      actorName: row.actorName,
-      action: row.action,
-      target: row.target,
-      createdAt: row.createdAt.toISOString(),
-    })),
-  });
-});
+    return c.json({
+      period,
+      periodDays: days,
+      stats: {
+        total: Number(windowed[0]?.value ?? 0),
+        active: statuses.active ?? 0,
+        planning: statuses.planning ?? 0,
+        paused: statuses.paused ?? 0,
+        done: statuses.done ?? 0,
+        overdue: Number(overdueRow[0]?.value ?? 0),
+        members: Number(memberRow[0]?.value ?? 0),
+        budgetCents: Number(budgetRow[0]?.value ?? 0),
+      },
+      trend: months,
+      activity: recent.map((row) => ({
+        id: row.id,
+        actorName: row.actorName,
+        action: row.action,
+        target: row.target,
+        createdAt: row.createdAt.toISOString(),
+      })),
+    });
+  },
+);

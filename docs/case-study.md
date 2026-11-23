@@ -1,7 +1,7 @@
 # Case study — Aurelia Ops (Production SaaS Reference App)
 
 > **Scope Dokumen:** Studi Kasus Rekayasa Aplikasi Multi-Tenant SaaS (`apps/`).  
-> Ditulis sebagai *work sample* produksi nyata yang mendampingi monorepo framework ini.
+> Ditulis sebagai _work sample_ produksi nyata yang mendampingi monorepo framework ini.
 
 _A multi-tenant SaaS admin dashboard built with Aurelia 2, TypeScript, Tailwind CSS 4, Hono and
 Stripe. Written as a work sample: this is the honest version, including what is not finished._
@@ -33,7 +33,7 @@ This project answers those questions in runnable code, not in a blog post.
 | Aurelia is `2.0.0-rc.2`                      | Exact version pins; decorator config must match stage-3 semantics.        |
 | No official shadcn/ui for Aurelia            | Port the tokens and the component anatomy; write the primitives natively. |
 | Must be demoable without a backend           | Deterministic sample data + an explicit "Demo data" banner.               |
-| Must be readable by a reviewer in 10 minutes | One `bun run dev`, one README, one architecture doc.                    |
+| Must be readable by a reviewer in 10 minutes | One `bun run dev`, one README, one architecture doc.                      |
 | Realistic data volume                        | Seed 1 000 projects so pagination/filtering are proven, not imagined.     |
 | Payments must not create PCI scope           | Stripe-hosted Checkout; card data never reaches the server.               |
 
@@ -167,8 +167,8 @@ There are no invented metrics here. What is verified directly from production co
   - A new user can be invited, receive an email (or preview magic link), accept, and be signed in against the real API.
   - Stripe webhooks verify idempotency via `stripe_events.id`: duplicate events answer 200 without side effects.
 - **Automated Regression Suite**:
-  - **229 unit & integration tests** pass across 39 test files (1 367 assertions, 0 failures in ~3.5s).
-  - 47 Playwright E2E tests across 6 spec files verify real browser navigation, modal creation, theme toggling, team/billing flows, role changes through the UI and accessibility.
+  - **262 unit & integration tests** pass across 39 test files (1 615 assertions, 0 failures in ~3.7s).
+  - 49 Playwright E2E tests across 6 spec files verify real browser navigation, modal creation, theme toggling, team/billing flows, role changes through the UI, concurrent slug races and accessibility.
 
 ---
 

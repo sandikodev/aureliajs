@@ -1,7 +1,7 @@
 # Codebase State
 
 > **Last Verified**: 2026-11-23 (verified against running code & automated test runners)  
-> **Quality Gate**: ✅ 229 Tests Passing (100% Green, 1367 Assertions) • 14 Workspaces Typecheck Clean (0 Errors)
+> **Quality Gate**: ✅ 262 Tests Passing (100% Green, 1615 Assertions) • 14 Workspaces Typecheck Clean (0 Errors)
 
 ## Structure
 
@@ -26,25 +26,27 @@ aureliajs/
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
-| `docs/ARCHITECTURAL-STUDY.md` | Master Architectural Blueprint (4-Tier Decoupled Suite) |
-| `docs/AURELIA_CLEAN_NATIVE_ROADMAP.md` | 21 Refactoring Execution Phases (100% Green) |
-| `apps/api/src/middleware/tenant.ts` | **THE SEAM** — session + workspace resolution in SaaS backend |
-| `packages/hono-aurelia/src/client.ts` | `./client` subpath export for zero-server client hydration |
-| `packages/aurelia-ssr/src/document.ts` | Unified 1-step `renderDocument()` API combining render + serialize + HTML shell |
-| `packages/aurelia-bridge/src/index.ts` | Polyglot bridge components (`<au-react>`, `<au-vue>`, `<au-svelte>`, etc.) |
+| File                                    | Purpose                                                                            |
+| --------------------------------------- | ---------------------------------------------------------------------------------- |
+| `docs/ARCHITECTURAL-STUDY.md`           | Master Architectural Blueprint (4-Tier Decoupled Suite)                            |
+| `docs/AURELIA_CLEAN_NATIVE_ROADMAP.md`  | 21 Refactoring Execution Phases (100% Green)                                       |
+| `apps/api/src/middleware/tenant.ts`     | **THE SEAM** — session + workspace resolution in SaaS backend                      |
+| `packages/hono-aurelia/src/client.ts`   | `./client` subpath export for zero-server client hydration                         |
+| `packages/aurelia-ssr/src/document.ts`  | Unified 1-step `renderDocument()` API combining render + serialize + HTML shell    |
+| `packages/aurelia-bridge/src/index.ts`  | Polyglot bridge components (`<au-react>`, `<au-vue>`, `<au-svelte>`, etc.)         |
 | `packages/aurelia-islands/src/index.ts` | Selective hydration scheduler (`island="visible"`, `idle`, `interaction`, `media`) |
 
 ## Architecture Decisions
 
 ### ✅ 4-Tier Decoupled Framework Suite
+
 1. **WHAT (`@aureliajs/bridge`)**: Dedicated Custom Elements mounting foreign UI runtimes without reconciler collision.
 2. **WHEN (`@aureliajs/islands`)**: Template Controller scheduling selective hydration using Synthetic Views.
 3. **WHERE (`@aureliajs/ssr`)**: Headless request-scoped server rendering without `globalThis` leaks or mutex bottlenecks.
 4. **HOW (`@hono/aurelia`)**: Thin Web-Standards HTTP adapter with streaming and direct `./client` hydration export.
 
 ### ✅ SaaS Production App (SPA + API)
+
 - `apps/web` — Aurelia 2 Direct-DOM SPA with Tailwind 4.
 - `apps/api` — Hono JSON API with Drizzle ORM, PostgreSQL, and Stripe Billing.
 - `apps/shared` — Zod schemas and plan entitlements shared across apps.
@@ -53,7 +55,7 @@ aureliajs/
 
 ```bash
 bun run typecheck   # ✅ PASSING (all 14 workspaces incl. shared, web, api, package examples)
-bun test            # ✅ PASSING (229 tests across 39 files, 1367 assertions, 0 failures)
+bun test            # ✅ PASSING (262 tests across 39 files, 1615 assertions, 0 failures)
 bunx oxlint .       # ✅ PASSING (0 errors)
 ```
 

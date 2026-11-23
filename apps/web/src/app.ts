@@ -142,11 +142,7 @@ export class App {
    * '' (landing), 'login', 'invite'.
    */
   private isPublicPath(pathname: string): boolean {
-    const path = pathname
-      .replace(/^\//, '')
-      .split('?')[0]!
-      .split('#')[0]!
-      .replace(/\/$/, '');
+    const path = pathname.replace(/^\//, '').split('?')[0]!.split('#')[0]!.replace(/\/$/, '');
     return PUBLIC_ROUTE_PATHS.has(path) || path === '';
   }
 
@@ -208,16 +204,19 @@ export class App {
     this.updateDocumentTitle();
     this.subscriptions.push(
       { dispose: this.i18n.onChange(() => this.updateDocumentTitle()) },
-      this.ea.subscribe('workspace:updated', (updated: { id: string; name: string; slug: string }) => {
-        if (this.auth.workspace && this.auth.workspace.id === updated.id) {
-          this.auth.workspace = {
-            ...this.auth.workspace,
-            name: updated.name,
-            slug: updated.slug,
-          };
-        }
-        void this.loadWorkspaces();
-      }),
+      this.ea.subscribe(
+        'workspace:updated',
+        (updated: { id: string; name: string; slug: string }) => {
+          if (this.auth.workspace && this.auth.workspace.id === updated.id) {
+            this.auth.workspace = {
+              ...this.auth.workspace,
+              name: updated.name,
+              slug: updated.slug,
+            };
+          }
+          void this.loadWorkspaces();
+        },
+      ),
       // 1. Navigation Start: Immediately toggle shell state to target route before viewport mounts
       this.events.subscribe('au:router:navigation-start', (event: NavigationStartEvent) => {
         try {

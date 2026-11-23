@@ -93,7 +93,10 @@ test('creates and deletes a project end to end', async ({ page }) => {
   const row = page.getByRole('row').filter({ hasText: name });
   await expect(row).toHaveCount(1);
 
-  await row.getByRole('group', { name: 'Project actions' }).getByRole('button', { name: 'Delete' }).click();
+  await row
+    .getByRole('group', { name: 'Project actions' })
+    .getByRole('button', { name: 'Delete' })
+    .click();
   await expect(page.getByText(`Deleted "${name}"`)).toBeVisible();
   await expect(page.getByRole('row').filter({ hasText: name })).toHaveCount(0);
 });

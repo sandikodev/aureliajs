@@ -171,7 +171,13 @@ await check('GET /api/auth/me without a session returns null user', async () => 
   assert.equal(res.json.workspace, null);
 });
 
-for (const path of ['/api/overview', '/api/projects', '/api/members', '/api/billing', '/api/workspaces/current']) {
+for (const path of [
+  '/api/overview',
+  '/api/projects',
+  '/api/members',
+  '/api/billing',
+  '/api/workspaces/current',
+]) {
   await check(`GET ${path} is 401 without a session`, async () => {
     const anonymous = client();
     const res = await anonymous.request(path);
@@ -288,7 +294,11 @@ await check('projects pagination, sorting, filtering and search', async () => {
   assert.ok(page.json.total > 0, 'expected seeded projects in Neon');
   assert.ok(page.json.items.length <= 5);
   const budgets = page.json.items.map((p: { budgetCents: number }) => p.budgetCents);
-  assert.deepEqual(budgets, [...budgets].sort((a, b) => b - a), 'budget sort must be descending');
+  assert.deepEqual(
+    budgets,
+    [...budgets].sort((a, b) => b - a),
+    'budget sort must be descending',
+  );
 
   const active = await owner.request('/api/projects?status=active&pageSize=100');
   expectStatus(active, 200, 'status filter');
@@ -374,9 +384,14 @@ if (DIRECT_URL) {
         (select count(*) from memberships)::int as memberships,
         (select count(*) from stripe_events)::int as stripe_events
     `;
-    const [scoped] = await direct`select count(*)::int as n from projects where workspace_id = ${workspaceId}`;
+    const [scoped] =
+      await direct`select count(*)::int as n from projects where workspace_id = ${workspaceId}`;
     const api = await owner.request('/api/projects?pageSize=1');
-    assert.equal(Number(scoped.n), Number(api.json.total), 'API total must equal the Neon row count');
+    assert.equal(
+      Number(scoped.n),
+      Number(api.json.total),
+      'API total must equal the Neon row count',
+    );
     assert.ok(counts.workspaces >= 1 && counts.users >= 1 && counts.projects >= 1);
     const host = new URL(DIRECT_URL).hostname;
     assert.match(host, /neon\.tech$/, 'direct URL must point at Neon');
@@ -582,9 +597,13 @@ if (!WRITE) {
           data: Array<{ id: string; to: string[]; subject: string }>;
         };
         const match = data.data.find(
-          (mail) => mail.to?.includes(RESEND_TEST_EMAIL) && (mail.subject ?? '').startsWith('Join '),
+          (mail) =>
+            mail.to?.includes(RESEND_TEST_EMAIL) && (mail.subject ?? '').startsWith('Join '),
         );
-        assert.ok(match, `no invitation email to ${RESEND_TEST_EMAIL} in the last 20 Resend emails`);
+        assert.ok(
+          match,
+          `no invitation email to ${RESEND_TEST_EMAIL} in the last 20 Resend emails`,
+        );
 
         const detail = await fetch(`https://api.resend.com/emails/${match.id}`, {
           headers: { Authorization: `Bearer ${RESEND_API_KEY}` },
@@ -603,64 +622,64 @@ if (!WRITE) {
         return `${mail.id} · last_event=${mail.last_event}`;
       });
     } else {
-      skip(
-        'Resend API delivery confirmation',
-        'set RESEND_API_KEY and LIVE_RESEND_TEST_EMAIL',
-      );
+      skip('Resend API delivery confirmation', 'set RESEND_API_KEY and LIVE_RESEND_TEST_EMAIL');
     }
 
-    await check('RBAC: member cannot delete a project; admin can; owner removes member', async () => {
-      assert.ok(invitedUserId, 'need the invited member from the previous check');
-      // Invited users get a random password, so use the magic-link session
-      // from a fresh invite instead of logging in.
-      const member = client();
-      const fresh = await owner.request('/api/invites', {
-        method: 'POST',
-        body: { email: rbacEmail, role: 'member' },
-      });
-      expectStatus(fresh, 201, 'RBAC invite');
-      const token = new URL(fresh.json.acceptUrl).searchParams.get('token');
-      const accepted = await member.request('/api/invites/accept', {
-        method: 'POST',
-        body: { token },
-      });
-      expectStatus(accepted, 200, 'RBAC accept');
-      const rbacUser: string = accepted.json.user.id;
-      created.users.push(rbacUser);
+    await check(
+      'RBAC: member cannot delete a project; admin can; owner removes member',
+      async () => {
+        assert.ok(invitedUserId, 'need the invited member from the previous check');
+        // Invited users get a random password, so use the magic-link session
+        // from a fresh invite instead of logging in.
+        const member = client();
+        const fresh = await owner.request('/api/invites', {
+          method: 'POST',
+          body: { email: rbacEmail, role: 'member' },
+        });
+        expectStatus(fresh, 201, 'RBAC invite');
+        const token = new URL(fresh.json.acceptUrl).searchParams.get('token');
+        const accepted = await member.request('/api/invites/accept', {
+          method: 'POST',
+          body: { token },
+        });
+        expectStatus(accepted, 200, 'RBAC accept');
+        const rbacUser: string = accepted.json.user.id;
+        created.users.push(rbacUser);
 
-      const target = await owner.request('/api/projects', {
-        method: 'POST',
-        body: {
-          name: `RBAC Target ${RUN}`,
-          status: 'planning',
-          budgetCents: 100,
-          dueDate: null,
-          ownerName: 'Smoke Tester',
-        },
-      });
-      expectStatus(target, 201, 'RBAC target project');
-      const targetId: string = target.json.project.id;
+        const target = await owner.request('/api/projects', {
+          method: 'POST',
+          body: {
+            name: `RBAC Target ${RUN}`,
+            status: 'planning',
+            budgetCents: 100,
+            dueDate: null,
+            ownerName: 'Smoke Tester',
+          },
+        });
+        expectStatus(target, 201, 'RBAC target project');
+        const targetId: string = target.json.project.id;
 
-      const denied = await member.request(`/api/projects/${targetId}`, { method: 'DELETE' });
-      expectStatus(denied, 403, 'member delete must be forbidden');
+        const denied = await member.request(`/api/projects/${targetId}`, { method: 'DELETE' });
+        expectStatus(denied, 403, 'member delete must be forbidden');
 
-      const promoted = await owner.request(`/api/members/${rbacUser}`, {
-        method: 'PATCH',
-        body: { role: 'admin' },
-      });
-      expectStatus(promoted, 200, 'promote to admin');
-      assert.equal(promoted.json.role, 'admin');
+        const promoted = await owner.request(`/api/members/${rbacUser}`, {
+          method: 'PATCH',
+          body: { role: 'admin' },
+        });
+        expectStatus(promoted, 200, 'promote to admin');
+        assert.equal(promoted.json.role, 'admin');
 
-      // The member's existing session picks up the new role on the next request.
-      const adminDelete = await member.request(`/api/projects/${targetId}`, { method: 'DELETE' });
-      expectStatus(adminDelete, 204, 'admin delete');
+        // The member's existing session picks up the new role on the next request.
+        const adminDelete = await member.request(`/api/projects/${targetId}`, { method: 'DELETE' });
+        expectStatus(adminDelete, 204, 'admin delete');
 
-      const removed = await owner.request(`/api/members/${rbacUser}`, { method: 'DELETE' });
-      expectStatus(removed, 204, 'remove member');
-      const after = await member.request('/api/auth/me');
-      assert.equal(after.json.user, null, 'removed member session must be revoked');
-      return '403 → admin 204 → member removed';
-    });
+        const removed = await owner.request(`/api/members/${rbacUser}`, { method: 'DELETE' });
+        expectStatus(removed, 204, 'remove member');
+        const after = await member.request('/api/auth/me');
+        assert.equal(after.json.user, null, 'removed member session must be revoked');
+        return '403 → admin 204 → member removed';
+      },
+    );
 
     if (WEBHOOK_SECRET && tempWorkspaceId) {
       await check('signed Stripe webhooks apply once and keep the plan entitlement', async () => {
@@ -768,7 +787,9 @@ if (!WRITE) {
         assert.equal(billing.json.plan, 'pro', 'past_due must not downgrade entitlement');
         const overview = await owner.request('/api/overview?period=last-7');
         assert.ok(
-          overview.json.activity?.some((a: { action: string }) => a.action === 'billing.invoice_paid'),
+          overview.json.activity?.some(
+            (a: { action: string }) => a.action === 'billing.invoice_paid',
+          ),
           'invoice.paid audit entry must be visible',
         );
         await owner.request('/api/auth/switch-workspace', {

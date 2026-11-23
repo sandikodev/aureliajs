@@ -358,7 +358,7 @@ ui-card {
 
   button,
   summary,
-  [role="button"],
+  [role='button'],
   a {
     cursor: pointer;
     user-select: none;
@@ -366,7 +366,7 @@ ui-card {
   }
 
   button:disabled,
-  [role="button"][aria-disabled="true"] {
+  [role='button'][aria-disabled='true'] {
     cursor: not-allowed;
   }
 

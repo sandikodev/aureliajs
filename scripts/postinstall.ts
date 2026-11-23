@@ -35,8 +35,10 @@ function fixSymlinks(dir: string): void {
             fs.symlinkSync(properRel, fullPath);
           }
         }
-      } catch {
-        // Ignore unreadable links
+      } catch (error) {
+        // A broken symlink is usually harmless, but silence here made "bun install"
+        // look healthy while silently skipping the workaround. surface it.
+        console.warn(`[postinstall] could not repair symlink ${fullPath}:`, error);
       }
     } else if (entry.isDirectory() && entry.name.startsWith('@')) {
       fixSymlinks(fullPath);
@@ -63,7 +65,9 @@ function fixTypeDeclarations(nmDir: string): void {
           const rel = path.relative(typesDir, candidate);
           try {
             fs.symlinkSync(rel, targetSymlink);
-          } catch {}
+          } catch (error) {
+            console.warn(`[postinstall] could not link @types/${typePkgName}:`, error);
+          }
         }
       }
     }

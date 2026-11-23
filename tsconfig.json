@@ -4,8 +4,5 @@
     "types": ["bun-types", "node"],
     "noImplicitAny": false
   },
-  "include": [
-    "scripts/**/*",
-    "playwright.config.ts"
-  ]
+  "include": ["scripts/**/*", "playwright.config.ts"]
 }

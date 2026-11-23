@@ -19,7 +19,11 @@ const browser = await chromium.launch({
   args: ['--no-sandbox', '--disable-setuid-sandbox'],
 });
 
-async function shot(name, path, { theme = 'light', width = 1440, height = 960, act, checkSelector } = {}) {
+async function shot(
+  name,
+  path,
+  { theme = 'light', width = 1440, height = 960, act, checkSelector } = {},
+) {
   const context = await browser.newContext({
     viewport: { width, height },
     deviceScaleFactor: 1,
@@ -52,7 +56,9 @@ async function shot(name, path, { theme = 'light', width = 1440, height = 960, a
   if (act) await act(page);
   await page.screenshot({ path: `${OUT}${name}.png`, fullPage: false });
   await context.close();
-  console.log(`[OK] docs/screenshots/${name}.png (URL: ${path}, theme: ${theme}, viewport: ${width}x${height})`);
+  console.log(
+    `[OK] docs/screenshots/${name}.png (URL: ${path}, theme: ${theme}, viewport: ${width}x${height})`,
+  );
 }
 
 console.log('Capturing verified portfolio screenshots from', BASE, 'to', OUT);
@@ -74,7 +80,9 @@ await shot('project-dialog-light', '/projects?new=true', {
   theme: 'light',
   checkSelector: 'dialog[open]',
   act: async (page) => {
-    await page.waitForSelector('dialog[open]', { state: 'attached', timeout: 5000 }).catch(() => {});
+    await page
+      .waitForSelector('dialog[open]', { state: 'attached', timeout: 5000 })
+      .catch(() => {});
     await page.waitForTimeout(500);
   },
 });

@@ -3,7 +3,13 @@
   <p class="mt-1 text-sm text-muted-foreground">${copy['settings.subtitle']}</p>
 </div>
 
-<div if.bind="isLoading" role="status" aria-busy="true" aria-label="${copy['common.loading']}" class="mt-5 grid gap-4 lg:grid-cols-3">
+<div
+  if.bind="isLoading"
+  role="status"
+  aria-busy="true"
+  aria-label="${copy['common.loading']}"
+  class="mt-5 grid gap-4 lg:grid-cols-3"
+>
   <div class="space-y-4 lg:col-span-2">
     <ui-card>
       <ui-card-header>

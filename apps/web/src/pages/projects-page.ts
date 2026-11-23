@@ -72,10 +72,7 @@ export class ProjectsPage implements IRouteViewModel {
     return Object.fromEntries(
       (Object.keys(STATUS_META) as ProjectStatus[]).map((status) => {
         const key: StatusKey = `status.${status}`;
-        return [
-          status,
-          { ...STATUS_META[status], label: this.i18n.t(key) },
-        ];
+        return [status, { ...STATUS_META[status], label: this.i18n.t(key) }];
       }),
     ) as Record<ProjectStatus, { label: string; variant: string; dot: string }>;
   }

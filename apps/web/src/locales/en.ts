@@ -166,7 +166,8 @@ export const EN = {
   'members.copied': 'Copied!',
   'members.close': 'Done',
   'members.inviteFor': 'Share this invite link with',
-  'members.inviteModalDesc': 'Share this invite link with your teammate. Anyone with this link can join your workspace.',
+  'members.inviteModalDesc':
+    'Share this invite link with your teammate. Anyone with this link can join your workspace.',
   'members.inviteModalSubtitle': 'Teammate invitation created',
   'members.pendingInvites': 'Pending invitations',
   'members.pendingInvitesDescription': 'Links expire after 7 days',

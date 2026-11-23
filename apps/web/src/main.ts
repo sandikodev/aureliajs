@@ -22,8 +22,14 @@ import './styles/main.css';
  * custom-element name. Without this, navigation fails with AUR3174.
  */
 const PAGES = [
-  LandingPage, LoginPage, InvitePage,
-  OverviewPage, ProjectsPage, MembersPage, BillingPage, SettingsPage,
+  LandingPage,
+  LoginPage,
+  InvitePage,
+  OverviewPage,
+  ProjectsPage,
+  MembersPage,
+  BillingPage,
+  SettingsPage,
   NotFoundPage,
 ];
 

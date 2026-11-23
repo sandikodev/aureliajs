@@ -110,10 +110,12 @@ test.describe('team', () => {
       // the guard for that ordering bug.
       await row.locator('select').selectOption('admin');
 
-      await expect.poll(async () => {
-        const fresh = await (await page.request.get('/api/members')).json();
-        return fresh.members.find((m: { id: string }) => m.id === target.id)?.role;
-      }).toBe('admin');
+      await expect
+        .poll(async () => {
+          const fresh = await (await page.request.get('/api/members')).json();
+          return fresh.members.find((m: { id: string }) => m.id === target.id)?.role;
+        })
+        .toBe('admin');
     } finally {
       // Leave the seeded state intact for the rest of the suite.
       await page.request.patch(`/api/members/${target.id}`, {
@@ -123,7 +125,9 @@ test.describe('team', () => {
     }
   });
 
-  test('members page on mobile viewport has no horizontal scroll or layout overflow', async ({ page }) => {
+  test('members page on mobile viewport has no horizontal scroll or layout overflow', async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await login(page);
     await page.goto('/members');
@@ -211,6 +215,28 @@ test.describe('team', () => {
 
     const after = await (await page.request.get('/api/members')).json();
     expect(after.members.find((m: { id: string }) => m.id === self.id).role).toBe('owner');
+  });
+
+  test('the members page refuses an owner self-demotion and rolls back the select', async ({
+    page,
+  }) => {
+    await login(page);
+    await page.goto('/members');
+    await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
+
+    const session = await (await page.request.get('/api/auth/me')).json();
+    const selfRow = page.getByRole('row').filter({ hasText: 'demo@aureliajs.dev' });
+    const select = selfRow.locator('select');
+    await expect(select).toHaveValue('owner');
+
+    await select.selectOption('member');
+    await expect(page.getByText(/at least one owner/i)).toBeVisible();
+    await expect(select).toHaveValue('owner');
+
+    const members = await (await page.request.get('/api/members')).json();
+    expect(members.members.find((m: { id: string }) => m.id === session.user.id).role).toBe(
+      'owner',
+    );
   });
 
   test('a member can be demoted and removed by the owner', async ({ page }) => {

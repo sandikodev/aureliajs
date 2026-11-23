@@ -30,7 +30,13 @@ describe('apps/web unit tests', () => {
 
       auth.apply({
         user: { id: 'u1', email: 'owner@example.com', name: 'Ada Lovelace' },
-        workspace: { id: 'w1', name: 'Analytical Engine', slug: 'analytical', plan: 'pro', role: 'owner' },
+        workspace: {
+          id: 'w1',
+          name: 'Analytical Engine',
+          slug: 'analytical',
+          plan: 'pro',
+          role: 'owner',
+        },
         role: 'owner',
       });
 
@@ -87,7 +93,8 @@ describe('apps/web unit tests', () => {
     it('sanitizes returnUrl and rejects protocol-relative or external URLs', () => {
       function getReturnRoute(returnUrl: string): string {
         const route = returnUrl.replace(/^\/+/, '');
-        const safe = /^[a-z0-9-/?=&]+$/i.test(route) && !route.includes('//') && !route.includes(':');
+        const safe =
+          /^[a-z0-9-/?=&]+$/i.test(route) && !route.includes('//') && !route.includes(':');
         return safe && route ? route : 'overview';
       }
 

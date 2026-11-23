@@ -154,12 +154,12 @@ next to the "Upgrade" button. One table, two consumers — they cannot disagree.
 
 **Which plan a workspace gets** is decided in `apps/api/src/lib/plan-limits.ts`:
 
-| Situation                                         | Entitlement                    |
-| ------------------------------------------------- | ------------------------------ |
-| No Stripe customer yet (seeded / admin-set plan)  | keep the stored plan           |
-| Subscription `active` or `trialing`               | `pro`                          |
-| Subscription `past_due`                           | keep the plan (Stripe retries) |
-| Subscription `unpaid` / `incomplete` / `canceled` / `paused` / `incomplete_expired` | `free` |
+| Situation                                                                           | Entitlement                    |
+| ----------------------------------------------------------------------------------- | ------------------------------ |
+| No Stripe customer yet (seeded / admin-set plan)                                    | keep the stored plan           |
+| Subscription `active` or `trialing`                                                 | `pro`                          |
+| Subscription `past_due`                                                             | keep the plan (Stripe retries) |
+| Subscription `unpaid` / `incomplete` / `canceled` / `paused` / `incomplete_expired` | `free`                         |
 
 ## Billing
 
@@ -275,13 +275,13 @@ talks to the browser through a second domain.
 
 ### Project settings
 
-| Setting | Value |
-| --- | --- |
-| Root Directory | repository root (`.`) |
-| Install Command | `bun install --frozen-lockfile` |
-| Build Command | `bun run build` |
-| Output Directory | `apps/web/dist` |
-| Framework Preset | Other / none |
+| Setting          | Value                                        |
+| ---------------- | -------------------------------------------- |
+| Root Directory   | repository root (`.`)                        |
+| Install Command  | `bun install --frozen-lockfile`              |
+| Build Command    | `bun run build`                              |
+| Output Directory | `apps/web/dist`                              |
+| Framework Preset | Other / none                                 |
 | Function runtime | Bun (`"bunVersion": "1.x"` in `vercel.json`) |
 
 Bun is deliberate: `hashPassword()` uses `Bun.password` (Argon2id) directly, so the
@@ -319,20 +319,25 @@ DATABASE_URL='<direct-url>' bun run --filter @aureliajs/api db:seed:prod
 
 ### Environment variables
 
-| Name | Type | Purpose |
-| --- | --- | --- |
-| `DATABASE_URL` | injected | Neon pooled connection string |
-| `WEB_ORIGIN` | Config | Public URL, used for invite links and CORS |
-| `NODE_ENV` | Config | `production` |
-| `TRUST_PROXY` | Config | `1` — Vercel overwrites `x-forwarded-for` |
-| `APP_VERSION` | Config | Reported by `/api/health` |
-| `STRIPE_SECRET_KEY` | Secret | Stripe test/live key |
-| `STRIPE_WEBHOOK_SECRET` | Secret | Signing secret for the deployed endpoint |
-| `STRIPE_PRICE_MONTHLY` | Secret | Monthly Pro price ID (set in the live deployment) |
-| `STRIPE_PRICE_YEARLY` / `STRIPE_PRICE_SCALE` | Secret | Optional; the checkout route reports a clear error when a plan's price ID is absent |
+| Name                                         | Type     | Purpose                                                                             |
+| -------------------------------------------- | -------- | ----------------------------------------------------------------------------------- |
+| `DATABASE_URL`                               | injected | Neon pooled connection string                                                       |
+| `WEB_ORIGIN`                                 | Config   | Public URL, used for invite links and CORS                                          |
+| `NODE_ENV`                                   | Config   | `production`                                                                        |
+| `TRUST_PROXY`                                | Config   | `1` — Vercel overwrites `x-forwarded-for`                                           |
+| `APP_VERSION`                                | Config   | Reported by `/api/health`                                                           |
+| `STRIPE_SECRET_KEY`                          | Secret   | Stripe test/live key                                                                |
+| `STRIPE_WEBHOOK_SECRET`                      | Secret   | Signing secret for the deployed endpoint                                            |
+| `STRIPE_PRICE_MONTHLY`                       | Secret   | Monthly Pro price ID (set in the live deployment)                                   |
+| `STRIPE_PRICE_YEARLY` / `STRIPE_PRICE_SCALE` | Secret   | Optional; the checkout route reports a clear error when a plan's price ID is absent |
 
 `VITE_API_BASE_URL` stays empty: the client calls relative `/api/*` paths on the same origin,
 so the session cookie remains first-party.
+
+`TRUST_PROXY` is opt-in for a reason: `x-forwarded-for` is client-controlled unless a proxy
+**overwrites** it. When enabled, `clientIp()` reads the **last** hop, not the first — the first can
+be forged by the caller even behind a trusted proxy. Leaving it `0` locally means rate limits use
+`cf-connecting-ip` or a harmless `local` fallback.
 
 ### Stripe webhook and smoke tests
 
@@ -386,12 +391,12 @@ redacts Secret variables to `[SENSITIVE]`, so keep it outside the repo.
 
 **Third-party status on the live deployment:**
 
-| Service | Status | Notes |
-| --- | --- | --- |
-| Neon Postgres | Live | API totals match direct SQL row counts; runtime uses the pooled endpoint, migrations use the direct one |
-| Stripe (test mode) | Live | Real Checkout and Billing Portal sessions; signed webhooks apply once, dedupe redeliveries and keep `pro` on `past_due` |
-| Stripe yearly / scale prices | Live | `STRIPE_PRICE_YEARLY` ($490/yr) and `STRIPE_PRICE_SCALE` ($990/yr) are configured; all four plan/interval checkout combinations return real Stripe URLs |
-| Resend email | Live (test mode) | `RESEND_API_KEY` + `EMAIL_FROM=onboarding@resend.dev` configured; invite delivery is confirmed through the Resend API. The free onboarding sender only mails the account owner — verify a domain in Resend before sending to arbitrary recipients |
+| Service                      | Status           | Notes                                                                                                                                                                                                                                             |
+| ---------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Neon Postgres                | Live             | API totals match direct SQL row counts; runtime uses the pooled endpoint, migrations use the direct one                                                                                                                                           |
+| Stripe (test mode)           | Live             | Real Checkout and Billing Portal sessions; signed webhooks apply once, dedupe redeliveries and keep `pro` on `past_due`                                                                                                                           |
+| Stripe yearly / scale prices | Live             | `STRIPE_PRICE_YEARLY` ($490/yr) and `STRIPE_PRICE_SCALE` ($990/yr) are configured; all four plan/interval checkout combinations return real Stripe URLs                                                                                           |
+| Resend email                 | Live (test mode) | `RESEND_API_KEY` + `EMAIL_FROM=onboarding@resend.dev` configured; invite delivery is confirmed through the Resend API. The free onboarding sender only mails the account owner — verify a domain in Resend before sending to arbitrary recipients |
 
 ## Roadmap (and where each milestone lands)
 

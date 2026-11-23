@@ -2,9 +2,9 @@
 
 ## 🎯 Executive Summary & Context
 
-As part of our commitment to **Convention over Configuration (CoC)**, architectural simplicity, and native platform ergonomics, this initiative audits and tracks candidate migrations across the `@aureliajs` monorepo. 
+As part of our commitment to **Convention over Configuration (CoC)**, architectural simplicity, and native platform ergonomics, this initiative audits and tracks candidate migrations across the `@aureliajs` monorepo.
 
-Our goal is to **strip accidental complexity, eliminate redundant transitive dependencies, and adopt the cleanest possible native conventions** matching Bun, Vite, Hono, and Aurelia 2. 
+Our goal is to **strip accidental complexity, eliminate redundant transitive dependencies, and adopt the cleanest possible native conventions** matching Bun, Vite, Hono, and Aurelia 2.
 
 Every proposal below is isolated into its own GitHub Issue so the community can evaluate, discuss, debate, and verify trade-offs. If a migration ever causes unforeseen regressions, each issue contains an explicit rollback plan.
 

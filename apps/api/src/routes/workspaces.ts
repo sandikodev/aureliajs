@@ -5,7 +5,7 @@ import {
   type WorkspaceSettings,
   type WorkspaceSummary,
 } from '@aurelia-ops/shared';
-import { and, eq, ne } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { getDb, schema } from '../db/client';
@@ -14,6 +14,21 @@ import { slugify } from '@aurelia-ops/shared';
 import { tenantOf } from '../middleware/tenant';
 
 export const workspaceRoutes = new Hono();
+
+/**
+ * A pre-check gives a friendly 409, but two concurrent requests can both pass
+ * it. The unique index is the actual guarantee, so translate its violation
+ * (Postgres 23505) into the same 409 instead of leaking a 500.
+ */
+function isUniqueViolation(error: unknown): boolean {
+  // Drizzle 0.45 wraps driver errors in DrizzleQueryError; the Postgres code
+  // lives on `.cause`, so check both levels.
+  for (let current = error; current && typeof current === 'object'; ) {
+    if ('code' in current && (current as { code?: unknown }).code === '23505') return true;
+    current = (current as { cause?: unknown }).cause;
+  }
+  return false;
+}
 
 /**
  * `GET /api/workspaces` — every workspace the signed-in user belongs to.
@@ -144,21 +159,30 @@ workspaceRoutes.patch(
       ...input.settings,
     };
 
-    await db
-      .update(schema.workspaces)
-      .set({
-        name: input.name ?? row.name,
-        slug,
-        settings,
-      })
-      .where(eq(schema.workspaces.id, tenant.workspaceId));
+    try {
+      await db.transaction(async (tx) => {
+        await tx
+          .update(schema.workspaces)
+          .set({
+            name: input.name ?? row.name,
+            slug,
+            settings,
+          })
+          .where(eq(schema.workspaces.id, tenant.workspaceId));
 
-    await db.insert(schema.auditLogs).values({
-      workspaceId: tenant.workspaceId,
-      actorName: tenant.actorName,
-      action: 'workspace.updated',
-      target: input.name ?? row.name,
-    });
+        await tx.insert(schema.auditLogs).values({
+          workspaceId: tenant.workspaceId,
+          actorName: tenant.actorName,
+          action: 'workspace.updated',
+          target: input.name ?? row.name,
+        });
+      });
+    } catch (error) {
+      // Lost the race: another request claimed this slug between our check and
+      // the update. Report the business rule, not a raw constraint error.
+      if (isUniqueViolation(error)) throw conflict('That workspace slug is already taken');
+      throw error;
+    }
 
     return c.json({
       id: row.id,
@@ -218,15 +242,35 @@ workspaceRoutes.post(
       slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
     }
 
-    const [workspace] = await db
-      .insert(schema.workspaces)
-      .values({
-        name: input.name,
-        slug,
-        plan: 'free',
-        settings: { locale: 'en', weeklyDigest: true },
-      })
-      .returning();
+    const insert = (candidate: string) =>
+      db
+        .insert(schema.workspaces)
+        .values({
+          name: input.name,
+          slug: candidate,
+          plan: 'free',
+          settings: { locale: 'en', weeklyDigest: true },
+        })
+        .returning();
+
+    const hasGeneratedSuffix = slug !== (input.slug ?? slugify(input.name));
+    let workspace: typeof schema.workspaces.$inferSelect | undefined;
+    try {
+      [workspace] = await insert(slug);
+    } catch (error) {
+      if (!isUniqueViolation(error)) throw error;
+      // Two creations with the same name can both pick the same suffix. An
+      // explicit slug is a user decision — report the conflict; a generated
+      // one is internal, so retry once with a fresh suffix before giving up.
+      if (!hasGeneratedSuffix) throw conflict('That workspace slug is already taken');
+      const retry = `${slugify(input.name)}-${Math.random().toString(36).slice(2, 8)}`;
+      try {
+        [workspace] = await insert(retry);
+      } catch (retryError) {
+        if (!isUniqueViolation(retryError)) throw retryError;
+        throw conflict('That workspace slug is already taken');
+      }
+    }
 
     if (!workspace) {
       throw new HttpError(500, 'database_error', 'Failed to create workspace');
@@ -291,29 +335,39 @@ workspaceRoutes.delete('/workspaces/current', async (c) => {
     );
   }
 
-  const [otherWorkspace] = await db
-    .select({ workspaceId: schema.memberships.workspaceId })
-    .from(schema.memberships)
-    .where(
-      and(
-        eq(schema.memberships.userId, tenant.userId),
-        ne(schema.memberships.workspaceId, tenant.workspaceId),
-      ),
-    )
-    .limit(1);
+  await db.transaction(async (tx) => {
+    // Serialize deletes for this user. Two concurrent requests could both pass
+    // the "only workspace" check and leave the account with no workspace.
+    const memberships = await tx
+      .select({ workspaceId: schema.memberships.workspaceId })
+      .from(schema.memberships)
+      .where(eq(schema.memberships.userId, tenant.userId))
+      .for('update');
 
-  if (!otherWorkspace) {
-    throw conflict(
-      'This is your only workspace. Create another workspace before deleting it.',
-    );
-  }
+    const otherWorkspace = memberships.find((m) => m.workspaceId !== tenant.workspaceId);
+    if (!otherWorkspace) {
+      throw conflict('This is your only workspace. Create another workspace before deleting it.');
+    }
 
-  await db
-    .update(schema.sessions)
-    .set({ activeWorkspaceId: otherWorkspace.workspaceId })
-    .where(eq(schema.sessions.activeWorkspaceId, tenant.workspaceId));
+    // The subscription can also change between the early check and the delete.
+    const [locked] = await tx
+      .select({ stripeSubscriptionId: schema.workspaces.stripeSubscriptionId })
+      .from(schema.workspaces)
+      .where(eq(schema.workspaces.id, tenant.workspaceId))
+      .for('update');
+    if (locked?.stripeSubscriptionId) {
+      throw badRequest(
+        'Cancel the Stripe subscription first — deleting the workspace now would keep billing you.',
+      );
+    }
 
-  await db.delete(schema.workspaces).where(eq(schema.workspaces.id, tenant.workspaceId));
+    await tx
+      .update(schema.sessions)
+      .set({ activeWorkspaceId: otherWorkspace.workspaceId })
+      .where(eq(schema.sessions.activeWorkspaceId, tenant.workspaceId));
+
+    await tx.delete(schema.workspaces).where(eq(schema.workspaces.id, tenant.workspaceId));
+  });
 
   return c.body(null, 204);
 });

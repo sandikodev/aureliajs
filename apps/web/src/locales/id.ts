@@ -166,7 +166,8 @@ export const ID: Record<keyof typeof EN, string> = {
   'members.copied': 'Tersalin!',
   'members.close': 'Selesai',
   'members.inviteFor': 'Bagikan tautan undangan ini ke',
-  'members.inviteModalDesc': 'Bagikan tautan undangan ini ke rekan tim Anda. Siapa pun dengan tautan ini dapat bergabung ke ruang kerja.',
+  'members.inviteModalDesc':
+    'Bagikan tautan undangan ini ke rekan tim Anda. Siapa pun dengan tautan ini dapat bergabung ke ruang kerja.',
   'members.inviteModalSubtitle': 'Undangan rekan tim berhasil dibuat',
   'members.pendingInvites': 'Undangan tertunda',
   'members.pendingInvitesDescription': 'Tautan kedaluwarsa setelah 7 hari',
@@ -255,7 +256,8 @@ export const ID: Record<keyof typeof EN, string> = {
     'Checkout dibatalkan. Tidak ada biaya yang dikenakan. Anda dapat meningkatkan paket kapan saja.',
   'billing.bannerSuccess':
     'Langganan berhasil diperbarui! Fitur dan batas paket baru Anda kini aktif.',
-  'billing.freePlanBlurb': 'Paket Gratis — tingkatkan kapan saja untuk membuka kapasitas lebih besar',
+  'billing.freePlanBlurb':
+    'Paket Gratis — tingkatkan kapan saja untuk membuka kapasitas lebih besar',
   'billing.checkoutSuccess': 'Pembayaran diterima — paket Anda sedang diaktifkan.',
   'billing.checkoutCancelled': 'Checkout dibatalkan. Tidak ada biaya yang dikenakan.',
   'billing.checkoutUnavailable': 'Tingkat ini belum tersedia.',

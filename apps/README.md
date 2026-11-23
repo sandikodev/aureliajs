@@ -2,10 +2,10 @@
 
 This directory contains the two runtime packages that make up the production application:
 
-| Package | Purpose | Tech Stack |
-|---------|---------|------------|
+| Package     | Purpose            | Tech Stack                                  |
+| ----------- | ------------------ | ------------------------------------------- |
 | `apps/api/` | Backend API server | Hono, Drizzle ORM, Postgres, Argon2, Stripe |
-| `apps/web/` | Frontend SPA | Aurelia 2, Vite, Tailwind CSS 4 |
+| `apps/web/` | Frontend SPA       | Aurelia 2, Vite, Tailwind CSS 4             |
 
 Together they form a **fullstack SaaS dashboard** — single-container Docker serves both.
 
@@ -14,6 +14,7 @@ Together they form a **fullstack SaaS dashboard** — single-container Docker se
 ## 📦 Packages at a Glance
 
 ### `apps/api/`
+
 - **Entry**: `src/index.ts` — Hono app listening on `:4601`
 - **Build**: `bun run build` → `dist/server.js`
 - **Run**: `bun run dev` (watch) or `bun run start` (built output, via Bun — same as the production Dockerfile)
@@ -29,6 +30,7 @@ Together they form a **fullstack SaaS dashboard** — single-container Docker se
   - `bun run db:migrate` / `bun run db:seed` — Postgres setup
 
 ### `apps/web/`
+
 - **Entry**: `src/app.html` + `src/main.ts` — Aurelia 2 SPA
 - **Build**: `bun run build` → `dist/` (static assets)
 - **Run**: `bun run dev` — Vite dev server on `:4600`
@@ -47,6 +49,7 @@ Together they form a **fullstack SaaS dashboard** — single-container Docker se
 ## 🔄 Development Workflow
 
 ### 1. Full Stack (both packages)
+
 ```bash
 cd /home/dev/project/aureliajs
 cp .env.example .env          # copy, edit as needed
@@ -60,6 +63,7 @@ bun run dev                       # web :4600, api :4601
 Then open <http://localhost:4600>. The API health check is at <http://localhost:4601/health>.
 
 ### 2. API Only
+
 ```bash
 cd /home/dev/project/aureliajs
 bun install
@@ -70,6 +74,7 @@ bun run --filter @aureliajs/api dev   # :4601 only
 ```
 
 ### 3. Web Only (without API)
+
 The UI falls back to deterministic sample data and shows a **Demo data** banner. It never silently pretends to be live.
 
 ```bash
@@ -102,6 +107,7 @@ aureliajs/
 ```
 
 **Key conventions:**
+
 - `apps/shared` — **Contract** between API and Web (Zod types, DTOs, PLAN_LIMITS). Import via `@aurelia-ops/shared`.
 - `apps/api/src/env.ts` — Env vars (`STRIPE_*`, `DATABASE_URL`, etc.). Never hardcode.
 - `apps/web/src/app.html` — Shell controls `loadingAuth` → `showShell` → layout.
@@ -111,20 +117,20 @@ aureliajs/
 
 ## 🛠️ Common Commands (from repo root)
 
-| Goal | Command |
-|------|---------|
-| Install all | `bun install` |
-| Typecheck all | `bun run typecheck` |
-| Lint all | `bun run lint` |
-| Format all | `bun run format` |
-| Build all | `bun run build` |
-| Run e2e tests | `bun run test:e2e` |
-| Run emulation | `bun run emulate` |
-| API dev only | `bun run --filter @aureliajs/api dev` |
-| Web dev only | `bun run --filter @aureliajs/web dev` |
-| DB up (Docker) | `bun run db:up` |
-| DB migrate | `bun run --filter @aureliajs/api db:migrate` |
-| DB seed | `bun run --filter @aureliajs/api db:seed` |
+| Goal           | Command                                      |
+| -------------- | -------------------------------------------- |
+| Install all    | `bun install`                                |
+| Typecheck all  | `bun run typecheck`                          |
+| Lint all       | `bun run lint`                               |
+| Format all     | `bun run format`                             |
+| Build all      | `bun run build`                              |
+| Run e2e tests  | `bun run test:e2e`                           |
+| Run emulation  | `bun run emulate`                            |
+| API dev only   | `bun run --filter @aureliajs/api dev`        |
+| Web dev only   | `bun run --filter @aureliajs/web dev`        |
+| DB up (Docker) | `bun run db:up`                              |
+| DB migrate     | `bun run --filter @aureliajs/api db:migrate` |
+| DB seed        | `bun run --filter @aureliajs/api db:seed`    |
 
 > **Note**: `bun run test:e2e` runs Playwright tests. On some systems you may need `LD_LIBRARY_PATH` set for Chromium accessibility libraries. See the project's CI config for details.
 
@@ -163,12 +169,12 @@ See `Dockerfile` and `docker-compose.prod.yml` for the multi-stage build.
 
 ## 🔗 Related Repos / Packages
 
-| Path | Purpose |
-|------|---------|
-| `apps/shared/` | Shared Zod schemas, PLAN_LIMITS, API types (@aurelia-ops/shared) |
-| `packages/hono-aurelia/` | SSR adapter (Web-Standards Hono SSR) |
-| `packages/*/example/` | Live references colocated with each package workspace |
-| `docker-compose.prod.yml` | Production deployment config |
+| Path                      | Purpose                                                          |
+| ------------------------- | ---------------------------------------------------------------- |
+| `apps/shared/`            | Shared Zod schemas, PLAN_LIMITS, API types (@aurelia-ops/shared) |
+| `packages/hono-aurelia/`  | SSR adapter (Web-Standards Hono SSR)                             |
+| `packages/*/example/`     | Live references colocated with each package workspace            |
+| `docker-compose.prod.yml` | Production deployment config                                     |
 
 ---
 

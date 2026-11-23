@@ -51,9 +51,13 @@ async function runEmulation(): Promise<void> {
     consoleRecords.push({ level: 'error', message: args.map(String).join(' ') });
   };
 
-  console.log('==========================================================================================');
+  console.log(
+    '==========================================================================================',
+  );
   console.log('  AURELIA 2 + AUX SFC — TERMINAL DEVTOOLS & RUNTIME EMULATOR');
-  console.log('==========================================================================================\n');
+  console.log(
+    '==========================================================================================\n',
+  );
 
   // -------------------------------------------------------------------------
   // PANEL 1: Vite Module Graph & Waterfall Inspector
@@ -127,7 +131,9 @@ async function runEmulation(): Promise<void> {
   }
   const totalBytes = rows.reduce((acc, r) => acc + r.bytes, 0);
   console.log('-'.repeat(100));
-  console.log(`Total inspected modules: ${rows.length} | Combined transformed source size: ${formatBytes(totalBytes)}\n`);
+  console.log(
+    `Total inspected modules: ${rows.length} | Combined transformed source size: ${formatBytes(totalBytes)}\n`,
+  );
 
   // -------------------------------------------------------------------------
   // PANEL 2: Aurelia 2 Runtime DI & CustomElement Registry Verifier
@@ -142,10 +148,7 @@ async function runEmulation(): Promise<void> {
 
   const helperPath = resolveId.call({}, '@swc/helpers/_/_apply_decs_2311')!;
   const aureliaUrl = path.resolve(webRoot, 'node_modules/aurelia/dist/esm/index.mjs');
-  const cvaUrl = path.resolve(
-    webRoot,
-    'node_modules/class-variance-authority/dist/index.mjs',
-  );
+  const cvaUrl = path.resolve(webRoot, 'node_modules/class-variance-authority/dist/index.mjs');
   const utilsUrl = path.resolve(webRoot, 'src/lib/utils.ts');
   const iconsUrl = path.resolve(webRoot, 'src/lib/icons.ts');
   const toastUrl = path.resolve(webRoot, 'src/services/toast.ts');
@@ -273,10 +276,16 @@ async function runEmulation(): Promise<void> {
   console.log(`   - <ui-alert> textContent          : "${alertEl.textContent?.trim()}"`);
   console.log(`   - <ui-badge> textContent          : "${badgeEl.textContent?.trim()}"`);
   console.log(`   - <ui-avatar> computed initials   : "${avatarEl.textContent?.trim()}"`);
-  console.log(`   - <ui-icon> rendered SVG children : ${svgEl.innerHTML.length} bytes of SVG path data`);
+  console.log(
+    `   - <ui-icon> rendered SVG children : ${svgEl.innerHTML.length} bytes of SVG path data`,
+  );
   console.log(`   - <ui-input> bound value          : "${inputEl.value}"`);
-  console.log(`   - <ui-select> bound value         : "${selectEl.value}" (${selectEl.options.length} options)`);
-  console.log(`   - <ui-button> disabled / busy     : disabled=${buttonEl.disabled}, aria-busy=${buttonEl.getAttribute('aria-busy')}`);
+  console.log(
+    `   - <ui-select> bound value         : "${selectEl.value}" (${selectEl.options.length} options)`,
+  );
+  console.log(
+    `   - <ui-button> disabled / busy     : disabled=${buttonEl.disabled}, aria-busy=${buttonEl.getAttribute('aria-busy')}`,
+  );
 
   // Mutate ViewModel and verify two-way binding + reactive DOM updates
   const vm = au.root.controller.viewModel as HarnessApp;
@@ -290,10 +299,14 @@ async function runEmulation(): Promise<void> {
   runTasks();
 
   console.log('\n2. After Reactive State & Two-Way Input Mutation:');
-  console.log(`   - <ui-alert> updated tone classes : ${alertEl.className.includes('text-destructive') ? '✓ text-destructive applied' : '✗ missing'}`);
+  console.log(
+    `   - <ui-alert> updated tone classes : ${alertEl.className.includes('text-destructive') ? '✓ text-destructive applied' : '✗ missing'}`,
+  );
   console.log(`   - <ui-alert> updated textContent  : "${alertEl.textContent?.trim()}"`);
   console.log(`   - <ui-input> -> VM two-way sync   : vm.projectName = "${vm.projectName}"`);
-  console.log(`   - <ui-button> loading state       : disabled=${buttonEl.disabled}, aria-busy="${buttonEl.getAttribute('aria-busy')}", spinnerSvg=${Boolean(buttonEl.querySelector('svg.animate-spin'))}`);
+  console.log(
+    `   - <ui-button> loading state       : disabled=${buttonEl.disabled}, aria-busy="${buttonEl.getAttribute('aria-busy')}", spinnerSvg=${Boolean(buttonEl.querySelector('svg.animate-spin'))}`,
+  );
 
   await au.stop();
 
@@ -311,7 +324,9 @@ async function runEmulation(): Promise<void> {
       console.log(`[${rec.level.toUpperCase()}] ${rec.message}`);
     }
   }
-  console.log('==========================================================================================');
+  console.log(
+    '==========================================================================================',
+  );
 }
 
 await runEmulation();

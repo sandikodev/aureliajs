@@ -1,9 +1,21 @@
+# Generated / installed
 bun.lock
 dist
 node_modules
 playwright-report
 test-results
-docs/screenshots
 apps/web/dist
 apps/shared/dist
-examples/fullstack-ssr/public
+docs/screenshots
+
+# Git submodules — each owns its own repo, CI and formatter config
+packages/
+
+# Historical snapshots — do not rewrite dated narrative
+docs/archive/
+docs/AURELIA_CLEAN_NATIVE_ROADMAP.md
+docs/AURELIA_HONO_MASTER_MANIFESTO.md
+docs/AURELIA_REFORM_AND_DISCIPLINE_MANIFESTO.md
+docs/ARCHITECTURAL-STUDY.md
+docs/essays/
+.agents/

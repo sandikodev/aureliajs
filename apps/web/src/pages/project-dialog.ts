@@ -117,7 +117,11 @@ export class ProjectDialog {
     if (typeof window !== 'undefined' && window.location.search.includes('new=')) {
       const cleanUrl = new URL(window.location.href);
       cleanUrl.searchParams.delete('new');
-      window.history.replaceState({}, '', cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ''));
+      window.history.replaceState(
+        {},
+        '',
+        cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ''),
+      );
     }
   }
 
@@ -179,10 +183,7 @@ export class ProjectDialog {
     );
   }
 
-  private notifySuccess(
-    key: 'projects.created' | 'projects.updated',
-    name: string,
-  ): void {
+  private notifySuccess(key: 'projects.created' | 'projects.updated', name: string): void {
     this.i18n.track();
     this.toast.success(this.i18n.t(key, { name }));
   }

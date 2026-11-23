@@ -119,7 +119,9 @@ test.describe('workspaces', () => {
     await page.locator('#ws-slug').fill(slug);
     await page.getByRole('button', { name: /Save changes/ }).click();
 
-    await expect(page.getByRole('status').filter({ hasText: /saved/i })).toBeVisible({ timeout: 7000 });
+    await expect(page.getByRole('status').filter({ hasText: /saved/i })).toBeVisible({
+      timeout: 7000,
+    });
 
     const after = await (await page.request.get('/api/workspaces/current')).json();
     expect(after.slug).toBe(slug);
@@ -149,6 +151,65 @@ test.describe('workspaces', () => {
 
     expect(after7).toBeLessThanOrEqual(afterQuarter);
     expect(after7).toBeLessThanOrEqual(before + 1);
+  });
+
+  test('two workspaces cannot claim the same slug in a race', async ({ page, browser }) => {
+    await login(page);
+    const a = page.request;
+    const original = await (await a.get('/api/workspaces/current')).json();
+    const stamp = Date.now();
+    const resA = await a.post('/api/workspaces', { data: { name: `Race A ${stamp}` } });
+    const resB = await a.post('/api/workspaces', { data: { name: `Race B ${stamp}` } });
+    const wa = await resA.json();
+    const wb = await resB.json();
+    expect([resA.status(), resB.status()]).toEqual([201, 201]);
+    const workspaceA = wa.workspace as { id: string };
+    const workspaceB = wb.workspace as { id: string };
+
+    // Two sessions (and therefore two active workspaces) are needed: the
+    // interesting race is two different rows claiming the same slug, not one
+    // row being renamed twice to the same value.
+    const contextB = await browser.newContext({ baseURL: 'http://localhost:4600' });
+    const b = contextB.request;
+
+    try {
+      expect(
+        (
+          await b.post('/api/auth/login', {
+            data: { email: 'demo@aureliajs.dev', password: 'demo-password-123' },
+          })
+        ).ok(),
+      ).toBeTruthy();
+
+      await Promise.all([
+        a.post('/api/auth/switch-workspace', { data: { workspaceId: workspaceA.id } }),
+        b.post('/api/auth/switch-workspace', { data: { workspaceId: workspaceB.id } }),
+      ]);
+
+      const meA = await (await a.get('/api/auth/me')).json();
+      const meB = await (await b.get('/api/auth/me')).json();
+      expect(
+        meA.workspace.id !== meB.workspace.id,
+        `sessions must differ: A=${meA.workspace.id} B=${meB.workspace.id} wa=${workspaceA.id} wb=${workspaceB.id}`,
+      ).toBeTruthy();
+
+      const target = `race-target-${stamp}`;
+      const [ra, rb] = await Promise.all([
+        a.patch('/api/workspaces/current', { data: { slug: target } }),
+        b.patch('/api/workspaces/current', { data: { slug: target } }),
+      ]);
+
+      expect([ra.status(), rb.status()].sort()).toEqual([200, 409]);
+    } finally {
+      // Remove both temporary workspaces so later tests still see clean seed data.
+      await a.post('/api/auth/switch-workspace', { data: { workspaceId: original.id } });
+      await a.post('/api/auth/switch-workspace', { data: { workspaceId: workspaceA.id } });
+      await a.delete('/api/workspaces/current');
+      await a.post('/api/auth/switch-workspace', { data: { workspaceId: workspaceB.id } });
+      await a.delete('/api/workspaces/current');
+      await a.post('/api/auth/switch-workspace', { data: { workspaceId: original.id } });
+      await contextB.close();
+    }
   });
 
   test('the seat limit is enforced when inviting', async ({ page }) => {

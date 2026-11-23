@@ -13,7 +13,12 @@
       <ui-alert tone="destructive">
         <div class="flex items-center justify-between gap-3 w-full min-w-0">
           <span class="truncate text-xs font-medium" title.bind="formError">${formError}</span>
-          <a if.bind="isPlanLimit" load="billing" click.trigger="close()" class="shrink-0 inline-flex items-center gap-1 text-xs font-semibold underline underline-offset-2 hover:opacity-80">
+          <a
+            if.bind="isPlanLimit"
+            load="billing"
+            click.trigger="close()"
+            class="shrink-0 inline-flex items-center gap-1 text-xs font-semibold underline underline-offset-2 hover:opacity-80"
+          >
             ${copy['nav.billing']} &rarr;
           </a>
         </div>

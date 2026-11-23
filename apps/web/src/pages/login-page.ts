@@ -42,7 +42,7 @@ export class LoginPage implements IRouteViewModel {
     const returnUrl =
       this.returnUrl ||
       (typeof window !== 'undefined'
-        ? new URLSearchParams(window.location.search).get('returnUrl') ?? ''
+        ? (new URLSearchParams(window.location.search).get('returnUrl') ?? '')
         : '');
     // Strip leading slashes to prevent protocol-relative redirects (e.g. //attacker.com)
     const route = returnUrl.replace(/^\/+/, '');

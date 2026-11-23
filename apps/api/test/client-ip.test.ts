@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { clientIp } from '../src/lib/client-ip';
 
 const probe = new Hono();
-probe.get('/', (c) => c.text(clientIp(c, (c.req.query('trust') === '1'))));
+probe.get('/', (c) => c.text(clientIp(c, c.req.query('trust') === '1')));
 
 describe('Client IP for rate limits (apps/api)', () => {
   it('ignores a forged header when the proxy is not trusted', async () => {

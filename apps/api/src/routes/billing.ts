@@ -121,7 +121,8 @@ billingRoutes.get('/billing', async (c) => {
   // Skip if customer ID looks like seed placeholder data.
   let invoices: BillingOverview['invoices'] = [];
   const customerId = workspace.stripeCustomerId;
-  const hasRealCustomer = customerId && customerId.startsWith('cus_') && !customerId.includes('test_123');
+  const hasRealCustomer =
+    customerId && customerId.startsWith('cus_') && !customerId.includes('test_123');
   if (hasRealCustomer && env.STRIPE_SECRET_KEY) {
     try {
       const stripe = getStripe();

@@ -5,7 +5,9 @@ describe('Membership & Seat Policy (apps/api)', () => {
   describe('owner invariant', () => {
     it('refuses to demote the only owner', () => {
       // The old route found the target itself and treated it as "another" owner.
-      expect(() => assertAnotherOwnerExists([])).toThrow('A workspace must keep at least one owner');
+      expect(() => assertAnotherOwnerExists([])).toThrow(
+        'A workspace must keep at least one owner',
+      );
     });
 
     it('allows handing over ownership when a second owner exists', () => {

@@ -34,7 +34,9 @@ describe('API Route Security & Validation Machine (apps/api)', () => {
       });
 
       expect(res.status).toBe(422);
-      const body = (await res.json()) as { error: { code: string; issues: Array<{ path: string }> } };
+      const body = (await res.json()) as {
+        error: { code: string; issues: Array<{ path: string }> };
+      };
       expect(body.error.code).toBe('validation_failed');
       expect(body.error.issues.some((i) => i.path === 'email')).toBe(true);
     });
@@ -47,7 +49,9 @@ describe('API Route Security & Validation Machine (apps/api)', () => {
       });
 
       expect(res.status).toBe(422);
-      const body = (await res.json()) as { error: { code: string; issues: Array<{ path: string }> } };
+      const body = (await res.json()) as {
+        error: { code: string; issues: Array<{ path: string }> };
+      };
       expect(body.error.code).toBe('validation_failed');
       expect(body.error.issues.length).toBeGreaterThan(0);
     });

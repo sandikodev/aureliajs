@@ -23,17 +23,17 @@ import { NotFoundPage } from '@/pages/not-found-page';
  */
 
 export const PUBLIC_ROUTES = [
-  { path: '',        component: LandingPage,  title: 'Aurelia Ops — SaaS Admin Dashboard' },
-  { path: 'login',   component: LoginPage,    title: 'Sign in'                            },
-  { path: 'invite',  component: InvitePage,   title: 'Accept invitation'                  },
+  { path: '', component: LandingPage, title: 'Aurelia Ops — SaaS Admin Dashboard' },
+  { path: 'login', component: LoginPage, title: 'Sign in' },
+  { path: 'invite', component: InvitePage, title: 'Accept invitation' },
 ] as const;
 
 export const PROTECTED_ROUTES = [
-  { path: 'overview', component: OverviewPage, title: 'Overview'  },
-  { path: 'projects', component: ProjectsPage, title: 'Projects'  },
-  { path: 'members',  component: MembersPage,  title: 'Team'      },
-  { path: 'billing',  component: BillingPage,  title: 'Billing'   },
-  { path: 'settings', component: SettingsPage, title: 'Settings'  },
+  { path: 'overview', component: OverviewPage, title: 'Overview' },
+  { path: 'projects', component: ProjectsPage, title: 'Projects' },
+  { path: 'members', component: MembersPage, title: 'Team' },
+  { path: 'billing', component: BillingPage, title: 'Billing' },
+  { path: 'settings', component: SettingsPage, title: 'Settings' },
 ] as const;
 
 /**
@@ -41,9 +41,7 @@ export const PROTECTED_ROUTES = [
  * Used by app.ts to determine shell visibility.
  * '' covers both '/' and the root path.
  */
-export const PUBLIC_ROUTE_PATHS = new Set<string>(
-  PUBLIC_ROUTES.map((r) => r.path)
-);
+export const PUBLIC_ROUTE_PATHS = new Set<string>(PUBLIC_ROUTES.map((r) => r.path));
 
 /** Full route list for the Aurelia @route decorator. */
 export function getRouterConfig() {

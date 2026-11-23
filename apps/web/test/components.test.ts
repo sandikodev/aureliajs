@@ -210,7 +210,13 @@ describe('apps/web — Component & Logic Architecture Rigor', () => {
       await page.onProjectSaved({
         isEdit: true,
         project: updated,
-        input: { name: 'Renamed Project', status: 'active', budgetCents: 500000, dueDate: null, ownerName: 'Ada' },
+        input: {
+          name: 'Renamed Project',
+          status: 'active',
+          budgetCents: 500000,
+          dueDate: null,
+          ownerName: 'Ada',
+        },
       });
 
       expect(page.items.length).toBe(1);

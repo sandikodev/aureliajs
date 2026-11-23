@@ -5,6 +5,7 @@ Dokumen ini berisi draf lengkap publikasi, artikel teknis, dan pesan komunitas y
 ---
 
 ## Daftar Kanal
+
 1. [Dev.to (Artikel Teknis Mendalam — Bahasa Inggris)](#1-devto-artikel-teknis-mendalam)
 2. [LinkedIn (Posting Profesional & Engineering Leadership)](#2-linkedin-engineering-leadership--dx)
 3. [Facebook (Narasi Komunitas & Storytelling — Bahasa Indonesia)](#3-facebook-komunitas-developer-indonesia)
@@ -17,16 +18,17 @@ Dokumen ini berisi draf lengkap publikasi, artikel teknis, dan pesan komunitas y
 > **Kategori:** Article / Tutorial  
 > **Tags:** `#aurelia`, `#hono`, `#typescript`, `#webdev`, `#javascript`  
 > **Judul Usulan:**  
-> *Rethinking Aurelia 2 in the Modern Meta-Framework Era: Zero-JS Islands, Web Streams SSR on Hono, and Polyglot Architecture*
+> _Rethinking Aurelia 2 in the Modern Meta-Framework Era: Zero-JS Islands, Web Streams SSR on Hono, and Polyglot Architecture_
 
 ### Draf Konten Dev.to
 
-```markdown
+````markdown
 # Rethinking Aurelia 2 in the Modern Meta-Framework Era: Zero-JS Islands, Web Streams SSR on Hono, and Polyglot Architecture
 
-For over a decade, frontend development has oscillated between bulky Virtual DOMs, complex compiler reactivity, and bloated hydration rituals. 
+For over a decade, frontend development has oscillated between bulky Virtual DOMs, complex compiler reactivity, and bloated hydration rituals.
 
 Aurelia has always possessed one of the cleanest Direct-DOM reactive engines in JavaScript history—binding directly to native DOM nodes with standard ES classes, decorators, and clean Inversion of Control (IoC). However, in today's era of Meta-Frameworks (Next.js, Astro, Nuxt, SvelteKit), developer expectations have fundamentally changed:
+
 1. **Convention over Configuration (CoC)** must eliminate boilerplate.
 2. **Selective Hydration & Zero-JS Islands** are mandatory for Core Web Vitals.
 3. **Web Standards & Edge Runtimes (Cloudflare Workers, Bun, Deno)** have displaced heavyweight legacy server setups.
@@ -51,9 +53,11 @@ The architecture consists of four tightly-scoped, framework-level libraries:
 ## 1. Eliminating the 3-Step SSR Ritual (Convention over Configuration)
 
 ### The Problem
+
 Traditional SSR setups force developers into a verbose 3-step ceremony: render HTML string $\to$ serialize hydration state $\to$ construct an HTML5 document shell. Developers end up repeating component names, page titles, and asset paths across multiple plumbing functions.
 
 ### The Solution: 1-Step `renderDocument()`
+
 In `@aureliajs/ssr`, we wrapped this entire lifecycle into a single cohesive, type-checked function:
 
 ```ts
@@ -66,8 +70,10 @@ const html = await renderDocument(ProfilePage, {
   title: 'Profile — Aurelia 2 SSR',
 });
 ```
+````
 
 **Automatic Conventions Under the Hood:**
+
 - **Component Identifier:** Auto-inferred from Custom Element tag definition or PascalCase class name (`ProfilePage` $\to$ `'profile-page'`).
 - **Root Element:** Automatically wrapped in `<profile-page>` or `<app-root>`.
 - **Assets:** Resolves `/style.css` and `/client.js` by convention (customizable or disablable with `false`).
@@ -93,6 +99,7 @@ const islandHtml = await renderIsland(PricingCalculator, {
 ```
 
 By convention:
+
 - `src` defaults automatically to `/islands/pricing-calculator.js`.
 - `trigger` defaults to `'visible'` via `IntersectionObserver`.
 - The client-side loader auto-discovers default exports, named exports, and PascalCase element definitions without manual hydration glue code.
@@ -129,7 +136,7 @@ When `streaming: true` is enabled, `@hono/aurelia` flushes `<head>` and CSS link
 
 ## 4. Goodbye "Phantom .js" Imports: Pure Bundler Resolution
 
-A major friction point across modern TypeScript monorepos has been the legacy Node16 requirement of writing `import './foo.js'` inside `.ts` files. 
+A major friction point across modern TypeScript monorepos has been the legacy Node16 requirement of writing `import './foo.js'` inside `.ts` files.
 
 In this monorepo, we standardized on `"moduleResolution": "bundler"`. All 150+ relative imports across the ecosystem are now clean, idiomatic, extensionless TypeScript:
 
@@ -147,11 +154,13 @@ import type { UserProfile } from './types';
 Building meta-framework primitives on top of Aurelia 2 has been an exhilarating engineering journey. The code is tested across 158 automated integration and unit tests.
 
 I am actively seeking:
+
 - **Architectural critiques**: Are there edge cases in request isolation or streaming SSR you foresee?
 - **DX feedback**: Does the 1-step CoC API match your expectations as an application developer?
 - **Community contributions**: Testing edge runtime adapters, form progressive enhancement, and compiler optimizations.
 
 Check out the repositories on GitHub:
+
 - Monorepo: [github.com/sandikodev/aureliajs](https://github.com/sandikodev/aureliajs)
 - Core SSR: [github.com/sandikodev/aurelia-ssr](https://github.com/sandikodev/aurelia-ssr)
 - Islands: [github.com/sandikodev/aurelia-islands](https://github.com/sandikodev/aurelia-islands)
@@ -159,14 +168,15 @@ Check out the repositories on GitHub:
 - Polyglot Bridge: [github.com/sandikodev/aurelia-bridge](https://github.com/sandikodev/aurelia-bridge)
 
 Drop your thoughts, critiques, or questions in the comments below! 🚀
-```
+
+````
 
 ---
 
 ## 2. LinkedIn (Engineering Leadership & DX)
 
-> **Audience:** Software Engineers, Tech Leads, Engineering Managers, Fullstack Developers  
-> **Format:** Post + Code Snippet / Slide / Image  
+> **Audience:** Software Engineers, Tech Leads, Engineering Managers, Fullstack Developers
+> **Format:** Post + Code Snippet / Slide / Image
 > **Tone:** Professional, vision-driven, humble, inviting peer review.
 
 ### Draf Konten LinkedIn
@@ -174,12 +184,12 @@ Drop your thoughts, critiques, or questions in the comments below! 🚀
 ```text
 Can we have the elegance of clean Direct-DOM reactivity without the boilerplate of legacy web frameworks?
 
-Over the past months, I’ve been researching and engineering a fullstack meta-framework ecosystem for Aurelia 2, designed to meet the demands of modern cloud-native web development. 
+Over the past months, I’ve been researching and engineering a fullstack meta-framework ecosystem for Aurelia 2, designed to meet the demands of modern cloud-native web development.
 
 Today, I’m excited to share the core libraries and open them up for community feedback, technical review, and critique:
 
 🔹 1. @aureliajs/ssr — Zero-Global SSR Engine
-Instead of monkey-patching `globalThis` (which causes state pollution under concurrent server traffic), it uses request-isolated DI containers and native ISSRContext. 
+Instead of monkey-patching `globalThis` (which causes state pollution under concurrent server traffic), it uses request-isolated DI containers and native ISSRContext.
 We introduced `renderDocument()`: a 1-step Convention-over-Configuration API that handles component rendering, state transfer, and HTML5 shell assembly in a single clean call.
 
 🔹 2. @aureliajs/islands — Zero-JS Selective Hydration
@@ -208,14 +218,14 @@ Architecture without peer review is incomplete. I would deeply appreciate feedba
 What are your thoughts on Direct-DOM architectures vs Virtual DOM in the modern SSR/Edge era? Let’s discuss in the comments! 👇
 
 #SoftwareEngineering #OpenSource #TypeScript #WebDevelopment #Architecture #AureliaJS #Hono #Fullstack #DevCommunity
-```
+````
 
 ---
 
 ## 3. Facebook (Komunitas Developer Indonesia)
 
 > **Audience:** Grup Komunitas Web Programming Indonesia, Frontend Developer Indonesia, JavaScript Indonesia  
-> **Tone:** Hangat, bersahabat, bercerita (*storytelling*), menginspirasi, dan terbuka atas masukan.
+> **Tone:** Hangat, bersahabat, bercerita (_storytelling_), menginspirasi, dan terbuka atas masukan.
 
 ### Draf Konten Facebook
 
@@ -265,6 +275,7 @@ Kira-kira menurut teman-teman, tantangan terbesar apa yang sering kalian hadapi 
 ## 4. Discord (Server Pesan Peer-to-Peer)
 
 Gunakan draf ini untuk dibagikan di:
+
 - Discord **Aurelia Official** (`#showcase`, `#general`, atau `#v2-feedback`)
 - Discord **Hono** (`#showcase` atau `#ecosystem`)
 - Discord Komunitas Frontend / Web Dev
@@ -272,11 +283,12 @@ Gunakan draf ini untuk dibagikan di:
 ### A. Untuk Discord Aurelia (Official / Community)
 
 ```markdown
-Hey everyone! 👋 
+Hey everyone! 👋
 
 I've been working on modernizing the fullstack developer experience for Aurelia 2, especially around SSR, Edge runtimes, and Zero-JS architectures. Today I pushed a major refinement across our open-source monorepo packages and would love your feedback and critique:
 
 🚀 **What’s new & ready for review:**
+
 1. **`@aureliajs/ssr`**: Added a 1-step `renderDocument(Component, { props, title })` Convention-over-Configuration API. It wraps isolated SSR rendering, inert JSON state serialization, and HTML5 shell assembly into a single clean call (no more 3-step manual plumbing).
 2. **`@aureliajs/islands`**: Zero-JS selective hydration with shorthand overloads (`renderIsland(Component, props)`). Automatically infers element tags, bundle assets, and triggers (`visible`, `idle`, `interaction`, `media`).
 3. **`@hono/aurelia`**: Zero-config `aureliaRenderer()` middleware with full `c.render(Component)` support and true Web Streams streaming SSR (`ReadableStream`).
@@ -284,6 +296,7 @@ I've been working on modernizing the fullstack developer experience for Aurelia 
 5. **Clean Bundler Standards**: Eradicated all phantom `.js` import extensions across all `.ts` files in the monorepo via `"moduleResolution": "bundler"`. All 158 unit and integration tests are passing green.
 
 🔗 **Repos for review:**
+
 - Monorepo: https://github.com/sandikodev/aureliajs
 - SSR: https://github.com/sandikodev/aurelia-ssr
 - Islands: https://github.com/sandikodev/aurelia-islands
@@ -294,23 +307,29 @@ I'd really appreciate your thoughts, code reviews, and architectural critiques. 
 
 ### B. Untuk Discord Hono Community (`#showcase` / `#ecosystem`)
 
-```markdown
-Hi all! 👋 
+````markdown
+Hi all! 👋
 
 Sharing `@hono/aurelia`, a lightweight, Edge-safe Aurelia 2 SSR & Server Actions adapter for Hono following the idiomatic Hono renderer philosophy (similar to `@hono/react-renderer`):
 
 ✨ **Highlights:**
+
 - **Zero `c.var` pollution**: Stores request-scoped defaults in `WeakMap<Request>`.
 - **True Web Streams streaming**: Flushes `<head>` and CSS immediately via `ReadableStream` while SSR renders the body.
-- **Idiomatic DX**: 
+- **Idiomatic DX**:
   ```ts
   app.use('*', aureliaRenderer());
   app.get('/', aurelia(HomePage));
   app.get('/dashboard', (c) => c.render(DashboardPage, { props: { user } }));
   ```
+````
+
 - **Co-located Server Actions**: Type-safe mutations via `aureliaAction()`.
 - **Edge Compatible**: Zero `node:fs` / `node:path` imports.
 
 GitHub: https://github.com/sandikodev/hono-aurelia
 Any feedback, edge runtime tests, or critiques are welcome! 🙌
+
+```
+
 ```

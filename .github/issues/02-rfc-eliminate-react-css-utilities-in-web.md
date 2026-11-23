@@ -9,6 +9,7 @@
 ## 1. Problem Statement
 
 In `apps/web`, three external packages are installed:
+
 - `class-variance-authority` (cva)
 - `clsx`
 - `tailwind-merge`
@@ -21,6 +22,7 @@ import { cn } from '@/lib/utils'; // twMerge(clsx(inputs))
 ```
 
 ### Why is this an anti-pattern in Aurelia 2?
+
 1. **React Mental Model Leaking into Aurelia**: `clsx` and `cva` were invented to compensate for React's lack of first-class template class binding directives.
 2. **Tailwind v4 Native Capabilities**: In Tailwind CSS v4 (`@tailwindcss/vite: 4.3.5`), utilities cascade cleanly, reducing the need for class conflict resolution engines like `tailwind-merge`.
 3. **Runtime Overhead**: Every component render parses arrays of strings, builds ASTs of class names, and compares them with regex, wasting CPU cycles on simple static buttons and badges.
@@ -30,6 +32,7 @@ import { cn } from '@/lib/utils'; // twMerge(clsx(inputs))
 ## 2. Proposed Migration
 
 ### A. Component ViewModels: Use Clean TypeScript Dictionaries
+
 Instead of `cva(...)`:
 
 ```ts
@@ -51,6 +54,7 @@ get classes(): string {
 ```
 
 ### B. Template Binding: Leverage Aurelia Directives
+
 In Aurelia templates, class binding is native and declarative:
 
 ```html
@@ -76,14 +80,15 @@ In Aurelia templates, class binding is native and declarative:
   - Authentic Aurelia 2 syntax without shadcn/React boilerplate.
   - Zero dependencies for simple design tokens.
 - **Potential Concerns:**
-  - *What about developers accustomed to copy-pasting components from shadcn/ui?*
-    - *Resolution*: Aurelia's syntax is simpler and more legible than JSX string gymnastics. Documenting clean `.aux` component recipes gives Aurelia developers far better ergonomics.
+  - _What about developers accustomed to copy-pasting components from shadcn/ui?_
+    - _Resolution_: Aurelia's syntax is simpler and more legible than JSX string gymnastics. Documenting clean `.aux` component recipes gives Aurelia developers far better ergonomics.
 
 ---
 
 ## 5. Rollback Plan
 
 If developers strongly prefer the shadcn/cva DX:
+
 1. Retain a lightweight pure-JS `cn(...classes)` helper without `tailwind-merge`:
    ```ts
    export const cn = (...classes: unknown[]) => classes.flat().filter(Boolean).join(' ');

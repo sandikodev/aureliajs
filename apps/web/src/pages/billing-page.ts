@@ -95,7 +95,11 @@ export class BillingPage implements IRouteViewModel {
         const cleanUrl = new URL(window.location.href);
         cleanUrl.searchParams.delete('checkout');
         cleanUrl.searchParams.delete('session_id');
-        window.history.replaceState({}, '', cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ''));
+        window.history.replaceState(
+          {},
+          '',
+          cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ''),
+        );
       }
     }
     await this.load();
@@ -237,7 +241,9 @@ export class BillingPage implements IRouteViewModel {
     if (tier.id === this.plan) return this.i18n.t('billing.current');
     if (this.plan === 'free') return this.i18n.t('billing.upgrade');
     if (this.plan === 'pro') {
-      return tier.id === 'scale' ? this.i18n.t('billing.upgrade') : this.i18n.t('billing.downgrade');
+      return tier.id === 'scale'
+        ? this.i18n.t('billing.upgrade')
+        : this.i18n.t('billing.downgrade');
     }
     return this.i18n.t('billing.downgrade');
   }

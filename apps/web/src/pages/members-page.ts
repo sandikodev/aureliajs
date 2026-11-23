@@ -249,7 +249,9 @@ export class MembersPage {
       );
       await this.load();
     } catch (cause) {
-      this.members = this.members.map((m) => (m.id === member.id ? { ...m, role: previousRole } : m));
+      this.members = this.members.map((m) =>
+        m.id === member.id ? { ...m, role: previousRole } : m,
+      );
       this.toast.error(
         cause instanceof ApiError ? cause.message : this.i18n.t('errors.changeRoleFailed'),
       );
@@ -268,9 +270,7 @@ export class MembersPage {
 
     try {
       await api.removeMember(member.id);
-      this.toast.success(
-        this.i18n.t('members.memberRemoved', { name: member.name }),
-      );
+      this.toast.success(this.i18n.t('members.memberRemoved', { name: member.name }));
       await this.load();
     } catch (cause) {
       this.members = previousMembers;
