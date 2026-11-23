@@ -1,4 +1,5 @@
 import { env } from '../env';
+import { log } from '../lib/log';
 
 export interface SendEmailOptions {
   to: string;
@@ -24,8 +25,20 @@ export interface InviteEmailOptions {
   expiresAt: Date;
 }
 
+export type OutboxItem = SendEmailOptions & { sentAt: Date; provider: string };
+
+/** Maximum in-memory outbox size to prevent unbounded memory growth (Pillar 1, 7 & 10) */
+export const MAX_OUTBOX_SIZE = 100;
+
 /** In-memory outbox for testing, local verification, and audit */
-export const outbox: Array<SendEmailOptions & { sentAt: Date; provider: string }> = [];
+export const outbox: OutboxItem[] = [];
+
+export function recordToOutbox(item: OutboxItem): void {
+  if (outbox.length >= MAX_OUTBOX_SIZE) {
+    outbox.shift();
+  }
+  outbox.push(item);
+}
 
 export function clearOutbox(): void {
   outbox.length = 0;
@@ -100,12 +113,26 @@ export function createInviteEmailText(opts: InviteEmailOptions): string {
   ].join('\n');
 }
 
+/** Custom email transport for dependency injection / mocking in tests */
+export type EmailDispatcher = (opts: SendEmailOptions) => Promise<SendEmailResult>;
+
+let customDispatcher: EmailDispatcher | null = null;
+
+export function setEmailDispatcher(dispatcher: EmailDispatcher | null): void {
+  customDispatcher = dispatcher;
+}
+
 /**
  * Universal email dispatcher:
+ * - If a custom dispatcher is injected, delegates to it (Pillar 5).
  * - When RESEND_API_KEY is present, dispatches via Resend API (fetch-based, zero extra deps).
- * - Otherwise, safely logs and records in memory outbox (zero disruption in dev/test/demo).
+ * - Otherwise, safely logs via structured logger and records into bounded memory outbox.
  */
 export async function sendEmail(opts: SendEmailOptions): Promise<SendEmailResult> {
+  if (customDispatcher) {
+    return customDispatcher(opts);
+  }
+
   const apiKey = process.env.RESEND_API_KEY;
   const from = opts.from ?? process.env.EMAIL_FROM ?? 'Aurelia Ops <noreply@aureliajs.dev>';
 
@@ -128,26 +155,26 @@ export async function sendEmail(opts: SendEmailOptions): Promise<SendEmailResult
 
       if (!res.ok) {
         const errText = await res.text();
-        console.error(`[email] Resend API error (${res.status}): ${errText}`);
+        log.error('Resend API error', { status: res.status, error: errText, to: opts.to });
         return { success: false, error: errText, provider: 'resend' };
       }
 
       const data = (await res.json()) as { id: string };
-      outbox.push({ ...opts, from, sentAt: new Date(), provider: 'resend' });
+      recordToOutbox({ ...opts, from, sentAt: new Date(), provider: 'resend' });
       return { success: true, id: data.id, provider: 'resend' };
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : String(err);
-      console.error(`[email] Network error sending to ${opts.to}:`, errorMsg);
+      log.error('Network error sending email', { error: errorMsg, to: opts.to });
       return { success: false, error: errorMsg, provider: 'resend' };
     }
   }
 
   // Fallback: memory + log provider
   const provider = env.NODE_ENV === 'test' ? 'memory' : 'console';
-  outbox.push({ ...opts, from, sentAt: new Date(), provider });
+  recordToOutbox({ ...opts, from, sentAt: new Date(), provider });
 
   if (env.NODE_ENV !== 'test') {
-    console.log(`[email:${provider}] Sent to <${opts.to}> | Subject: "${opts.subject}"`);
+    log.info('email sent (mock)', { to: opts.to, subject: opts.subject, provider });
   }
 
   return {

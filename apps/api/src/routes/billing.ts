@@ -3,10 +3,11 @@ import { count, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import Stripe from 'stripe';
 import { zValidator } from '@hono/zod-validator';
-import { env } from '../env';
+import { env, isProd } from '../env';
 import { getDb, schema } from '../db/client';
 import { badRequest, HttpError, notFound } from '../lib/errors';
 import { limitsFor, planFromSubscription } from '../lib/plan-limits';
+import { log } from '../lib/log';
 import { getStripe, getWebhookSecret } from '../lib/stripe';
 import { requireRole, tenantOf } from '../middleware/tenant';
 
@@ -48,8 +49,15 @@ const PRICE_ENV_NAME: Record<`${PaidPlan}:${BillingInterval}`, string> = {
 function resolvePriceId(plan: PaidPlan, interval: BillingInterval): string {
   const value = PRICE_ENV[`${plan}:${interval}`];
   if (!value) {
+    log.error('Stripe price not configured', {
+      plan,
+      interval,
+      envVar: PRICE_ENV_NAME[`${plan}:${interval}`],
+    });
     throw badRequest(
-      `The ${plan} plan is not available for ${interval} billing yet. Set ${PRICE_ENV_NAME[`${plan}:${interval}`]} in .env.`,
+      isProd
+        ? `The ${plan} plan is not currently available for ${interval} billing.`
+        : `The ${plan} plan is not available for ${interval} billing yet. Set ${PRICE_ENV_NAME[`${plan}:${interval}`]} in .env.`,
     );
   }
   return value;
@@ -131,7 +139,9 @@ billingRoutes.get('/billing', async (c) => {
     } catch (error) {
       // A Stripe outage must not take down the billing page — show the
       // subscription state we already have and an empty invoice list.
-      console.error('[billing] invoice fetch failed', error);
+      log.error('invoice fetch failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
@@ -272,13 +282,14 @@ billingRoutes.post('/billing/portal', async (c) => {
       return_url: `${env.WEB_ORIGIN}/billing`,
     });
     return c.json({ url: session.url });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Stripe customer ID in seed data may not exist in this Stripe account.
     // Return a clear 503 instead of crashing with 500.
+    const err = error as { code?: string; message?: string } | null;
     const message =
-      error?.code === 'resource_missing'
+      err?.code === 'resource_missing'
         ? 'Stripe customer not found. Configure STRIPE_SECRET_KEY with the correct account or run a fresh checkout.'
-        : (error?.message ?? 'Stripe portal unavailable');
+        : (err?.message ?? 'Stripe portal unavailable');
     return c.json({ error: { code: 'stripe_error', message } }, 503);
   }
 });
@@ -306,7 +317,9 @@ publicBillingRoutes.post('/billing/webhook', async (c) => {
   try {
     event = stripe.webhooks.constructEvent(payload, signature, getWebhookSecret());
   } catch (error) {
-    console.error('[billing] webhook signature verification failed', error);
+    log.error('webhook signature verification failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     // 4xx: Stripe will not retry a request we reject as malformed.
     return c.json(
       { error: { code: 'invalid_signature', message: 'Signature verification failed' } },
@@ -332,7 +345,10 @@ publicBillingRoutes.post('/billing/webhook', async (c) => {
     await applyEvent(event);
     return c.json({ received: true, duplicate: false });
   } catch (error) {
-    console.error(`[billing] failed to handle ${event.type}`, error);
+    log.error('failed to handle stripe event', {
+      type: event.type,
+      error: error instanceof Error ? error.message : String(error),
+    });
     // Remove the ledger row so Stripe's retry can process it again.
     await db.delete(schema.stripeEvents).where(eq(schema.stripeEvents.id, event.id));
     // 5xx: Stripe retries, which is what we want for a transient failure.

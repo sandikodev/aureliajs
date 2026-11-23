@@ -9,7 +9,7 @@ import { and, eq, ne } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { getDb, schema } from '../db/client';
-import { badRequest, conflict, forbidden, notFound } from '../lib/errors';
+import { HttpError, badRequest, conflict, forbidden, notFound } from '../lib/errors';
 import { slugify } from '@aurelia-ops/shared';
 import { tenantOf } from '../middleware/tenant';
 
@@ -228,26 +228,30 @@ workspaceRoutes.post(
       })
       .returning();
 
+    if (!workspace) {
+      throw new HttpError(500, 'database_error', 'Failed to create workspace');
+    }
+
     await db.insert(schema.memberships).values({
-      workspaceId: workspace!.id,
+      workspaceId: workspace.id,
       userId: tenant.userId,
       role: 'owner',
     });
 
     await db.insert(schema.auditLogs).values({
-      workspaceId: workspace!.id,
+      workspaceId: workspace.id,
       actorName: tenant.actorName,
       action: 'workspace.created',
-      target: workspace!.name,
+      target: workspace.name,
     });
 
     return c.json(
       {
         workspace: {
-          id: workspace!.id,
-          name: workspace!.name,
-          slug: workspace!.slug,
-          plan: workspace!.plan,
+          id: workspace.id,
+          name: workspace.name,
+          slug: workspace.slug,
+          plan: workspace.plan,
           role: 'owner' as const,
           isActive: false,
         },

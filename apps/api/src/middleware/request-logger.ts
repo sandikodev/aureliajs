@@ -1,6 +1,12 @@
 import type { MiddlewareHandler } from 'hono';
 import { log, requestId } from '../lib/log';
 
+declare module 'hono' {
+  interface ContextVariableMap {
+    requestId: string;
+  }
+}
+
 /**
  * Request logging.
  *

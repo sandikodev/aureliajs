@@ -1,7 +1,9 @@
 import type { Plan, Role } from '@aurelia-ops/shared';
 import type { Context, MiddlewareHandler } from 'hono';
 import { getCookie } from 'hono/cookie';
+import { isProd } from '../env';
 import { HttpError, forbidden, unauthorized, unavailable } from '../lib/errors';
+import { log } from '../lib/log';
 import { SESSION_COOKIE, loadSession } from '../lib/session';
 import { resolveWorkspace } from '../lib/workspace';
 
@@ -33,9 +35,14 @@ export const tenant = (): MiddlewareHandler => async (c, next) => {
   try {
     session = await loadSession(getCookie(c, SESSION_COOKIE));
   } catch (error) {
-    console.error('[api] session lookup failed', error);
+    log.error('session lookup failed', {
+      requestId: c.get('requestId'),
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw unavailable(
-      'Database is not reachable. Run `bun run db:up && bun run db:migrate && bun run db:seed`.',
+      isProd
+        ? 'Service is temporarily unavailable'
+        : 'Database is not reachable. Run `bun run db:up && bun run db:migrate && bun run db:seed`.',
     );
   }
 
@@ -46,7 +53,10 @@ export const tenant = (): MiddlewareHandler => async (c, next) => {
     workspace = await resolveWorkspace(session.userId, session.activeWorkspaceId);
   } catch (error) {
     if (error instanceof HttpError) throw error;
-    console.error('[api] workspace resolution failed', error);
+    log.error('workspace resolution failed', {
+      requestId: c.get('requestId'),
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw unavailable('Could not load the workspace');
   }
 
