@@ -3,33 +3,31 @@
 </template>
 
 <script setup lang="ts">
-import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '@/lib/utils';
+export type BadgeVariant =
+  | 'default'
+  | 'secondary'
+  | 'destructive'
+  | 'outline'
+  | 'success'
+  | 'warning';
 
-export const badgeVariants = cva(
-  'inline-flex items-center justify-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3',
-  {
-    variants: {
-      variant: {
-        default: 'border-transparent bg-primary text-primary-foreground',
-        secondary: 'border-transparent bg-secondary text-secondary-foreground',
-        destructive: 'border-transparent bg-destructive/10 text-destructive dark:bg-destructive/20',
-        outline: 'text-foreground',
-        success:
-          'border-transparent bg-success/10 text-success dark:bg-success/20 dark:text-emerald-300',
-        warning:
-          'border-transparent bg-warning/15 text-amber-800 dark:bg-warning/20 dark:text-amber-200',
-      },
-    },
-    defaultVariants: { variant: 'default' },
-  },
-);
+const BASE_BADGE =
+  'inline-flex items-center justify-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3';
 
-export type BadgeVariant = VariantProps<typeof badgeVariants>['variant'];
+const VARIANT_CLASSES: Record<BadgeVariant, string> = {
+  default: 'border-transparent bg-primary text-primary-foreground',
+  secondary: 'border-transparent bg-secondary text-secondary-foreground',
+  destructive: 'border-transparent bg-destructive/10 text-destructive dark:bg-destructive/20',
+  outline: 'text-foreground',
+  success:
+    'border-transparent bg-success/10 text-success dark:bg-success/20 dark:text-emerald-300',
+  warning:
+    'border-transparent bg-warning/15 text-amber-800 dark:bg-warning/20 dark:text-amber-200',
+};
 
 let variant: BadgeVariant = 'default';
 
 get classes(): string {
-  return cn(badgeVariants({ variant: this.variant }));
+  return `${BASE_BADGE} ${VARIANT_CLASSES[this.variant] ?? VARIANT_CLASSES.default}`;
 }
 </script>

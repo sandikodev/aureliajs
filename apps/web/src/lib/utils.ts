@@ -1,9 +1,32 @@
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+/**
+ * Lightweight, zero-dependency class name joining utility.
+ * Replaces external clsx and tailwind-merge packages with native array flattening.
+ */
+export type ClassValue =
+  | string
+  | number
+  | boolean
+  | undefined
+  | null
+  | { [key: string]: unknown }
+  | ClassValue[];
 
-/** Merge conditional class names the same way shadcn/ui does. */
 export function cn(...inputs: ClassValue[]): string {
-  return twMerge(clsx(inputs));
+  const classes: string[] = [];
+  for (const input of inputs) {
+    if (!input) continue;
+    if (typeof input === 'string') {
+      classes.push(input);
+    } else if (Array.isArray(input)) {
+      const nested = cn(...input);
+      if (nested) classes.push(nested);
+    } else if (typeof input === 'object') {
+      for (const [key, val] of Object.entries(input)) {
+        if (val) classes.push(key);
+      }
+    }
+  }
+  return classes.join(' ');
 }
 
 export function initials(name: string): string {

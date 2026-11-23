@@ -1,4 +1,4 @@
-import { hash } from '@node-rs/argon2';
+import { hashPassword } from '../lib/password';
 import { eq } from 'drizzle-orm';
 import { getDb, closeDb, schema } from './client';
 
@@ -75,11 +75,7 @@ const userExisting = await db
 let userId = userExisting[0]?.id;
 
 if (!userId) {
-  const passwordHash = await hash(DEMO_PASSWORD, {
-    memoryCost: 19456,
-    timeCost: 2,
-    parallelism: 1,
-  });
+  const passwordHash = await hashPassword(DEMO_PASSWORD);
   const [user] = await db
     .insert(schema.users)
     .values({ email: DEMO_EMAIL, name: 'Demo Operator', passwordHash })
@@ -106,7 +102,7 @@ for (const person of invited) {
     .limit(1);
   let id = found[0]?.id;
   if (!id) {
-    const passwordHash = await hash('demo-password-123', { memoryCost: 19456, timeCost: 2 });
+    const passwordHash = await hashPassword('demo-password-123');
     const [created] = await db
       .insert(schema.users)
       .values({ email: person.email, name: person.name, passwordHash })

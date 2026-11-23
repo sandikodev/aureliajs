@@ -3,29 +3,21 @@
 </template>
 
 <script setup lang="ts">
-import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '@/lib/utils';
+export type AlertTone = 'info' | 'warning' | 'success' | 'destructive';
 
-export const alertVariants = cva(
-  'relative flex items-start gap-2.5 rounded-lg border px-3.5 py-3 text-sm [&>svg]:mt-0.5 [&>svg]:size-4',
-  {
-    variants: {
-      tone: {
-        info: 'border-sky-500/25 bg-sky-500/8 text-sky-900 dark:text-sky-200',
-        warning: 'border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-200',
-        success: 'border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200',
-        destructive: 'border-destructive/25 bg-destructive/10 text-destructive',
-      },
-    },
-    defaultVariants: { tone: 'info' },
-  },
-);
+const BASE_ALERT =
+  'relative flex items-start gap-2.5 rounded-lg border px-3.5 py-3 text-sm [&>svg]:mt-0.5 [&>svg]:size-4';
 
-export type AlertTone = VariantProps<typeof alertVariants>['tone'];
+const TONE_CLASSES: Record<AlertTone, string> = {
+  info: 'border-sky-500/25 bg-sky-500/8 text-sky-900 dark:text-sky-200',
+  warning: 'border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-200',
+  success: 'border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200',
+  destructive: 'border-destructive/25 bg-destructive/10 text-destructive',
+};
 
 let tone: AlertTone = 'info';
 
 get classes(): string {
-  return cn(alertVariants({ tone: this.tone }));
+  return `${BASE_ALERT} ${TONE_CLASSES[this.tone] ?? TONE_CLASSES.info}`;
 }
 </script>

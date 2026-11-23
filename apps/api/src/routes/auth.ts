@@ -4,7 +4,7 @@ import {
   switchWorkspaceSchema,
   type AuthSession,
 } from '@aurelia-ops/shared';
-import { verify } from '@node-rs/argon2';
+import { verifyPassword } from '../lib/password';
 import { and, eq, lt } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
@@ -107,7 +107,7 @@ authRoutes.post(
       .limit(1);
 
     // Same response for unknown email and wrong password: do not enumerate users.
-    const passwordOk = user ? await verify(user.passwordHash, password) : false;
+    const passwordOk = user ? await verifyPassword(password, user.passwordHash) : false;
     if (!user || !passwordOk) {
       throw unauthorized('Email or password is incorrect');
     }

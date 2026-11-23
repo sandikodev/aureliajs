@@ -21,7 +21,6 @@
     "@aurelia-ops/shared": "workspace:*",
     "@hono/node-server": "2.1.7",
     "@hono/zod-validator": "0.9.1",
-    "@node-rs/argon2": "2.2.2",
     "drizzle-orm": "0.45.4",
     "hono": "4.13.18",
     "postgres": "4.1.1",

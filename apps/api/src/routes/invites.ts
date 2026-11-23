@@ -10,7 +10,7 @@ import { getDb, schema } from '../db/client';
 import { HttpError, badRequest, conflict, issuesFromZod, notFound } from '../lib/errors';
 import { limitsFor } from '../lib/plan-limits';
 import { env } from '../env';
-import { hash } from '@node-rs/argon2';
+import { hashPassword } from '../lib/password';
 import { createHash, randomBytes } from 'node:crypto';
 import { setCookie } from 'hono/cookie';
 import { SESSION_COOKIE, sessionCookie } from '../lib/session';
@@ -327,11 +327,7 @@ publicInviteRoutes.post(
 
     if (!user) {
       const randomPassword = randomBytes(32).toString('base64url');
-      const passwordHash = await hash(randomPassword, {
-        memoryCost: 19456,
-        timeCost: 2,
-        parallelism: 1,
-      });
+      const passwordHash = await hashPassword(randomPassword);
 
       // Derive a readable display name from the email local part.
       const localPart = invite.email.split('@')[0] ?? 'User';

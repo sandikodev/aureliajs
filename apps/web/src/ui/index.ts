@@ -1,7 +1,7 @@
 import UiAlert from './alert.aux';
 import UiAvatar from './avatar.aux';
-import UiBadge, { badgeVariants } from './badge.aux';
-import UiButton, { buttonVariants } from './button.aux';
+import UiBadge from './badge.aux';
+import UiButton from './button.aux';
 import {
   UiCard,
   UiCardContent,
@@ -23,9 +23,7 @@ export {
   UiAlert,
   UiAvatar,
   UiBadge,
-  badgeVariants,
   UiButton,
-  buttonVariants,
   UiCard,
   UiCardContent,
   UiCardDescription,

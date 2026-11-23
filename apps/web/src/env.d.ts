@@ -11,8 +11,6 @@ declare module '*.aux' {
   import type { Constructable } from '@aurelia/kernel';
   const component: Constructable;
   export default component;
-  export const badgeVariants: (props?: Record<string, unknown>) => string;
-  export const buttonVariants: (props?: Record<string, unknown>) => string;
   export const UiAlert: Constructable;
   export const UiAvatar: Constructable;
   export const UiBadge: Constructable;
