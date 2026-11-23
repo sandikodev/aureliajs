@@ -88,6 +88,44 @@ export class MembersPage {
     return this.i18n.t('members.seatsTotal', { limit: this.seatLimit });
   }
 
+  get seatsStyle(): string {
+    return `width: ${this.seatsPercent}%`;
+  }
+
+  get inviteModalSubtitle(): string {
+    this.i18n.track();
+    return this.copy['members.inviteModalSubtitle'] || 'Teammate invitation created';
+  }
+
+  get inviteModalDescription(): string {
+    this.i18n.track();
+    if (this.invitedEmail) {
+      const prefix = this.copy['members.inviteFor'] || 'Share this link with';
+      return `${prefix} ${this.invitedEmail}`;
+    }
+    return (
+      this.copy['members.inviteModalDesc'] ||
+      'Share this link with your teammate. Anyone with this link can join your workspace.'
+    );
+  }
+
+  get copyButtonLabel(): string {
+    this.i18n.track();
+    return this.copied
+      ? this.copy['members.copied'] || 'Copied'
+      : this.copy['members.copy'] || 'Copy';
+  }
+
+  get modalCloseLabel(): string {
+    this.i18n.track();
+    return this.copy['members.close'] || 'Done';
+  }
+
+  selectInput(event: MouseEvent): void {
+    const target = event.target as HTMLInputElement | null;
+    target?.select();
+  }
+
   /** The accessible name of a member's role dropdown. */
   changeRoleLabel(name: string): string {
     this.i18n.track();

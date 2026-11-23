@@ -10,6 +10,24 @@ import { AuthService } from '@/services/auth';
 import { I18nService } from '@/services/i18n';
 import { ToastService } from '@/services/toast';
 
+const ACTION_LABELS: Readonly<Record<string, string>> = {
+  'project.created': 'created a project',
+  'project.updated': 'updated a project',
+  'project.deleted': 'deleted a project',
+  'project.status_changed': 'changed a status',
+  'member.invited': 'invited a teammate',
+  'member.invite_accepted': 'accepted an invitation',
+  'member.role_changed': 'changed a role',
+  'member.removed': 'removed a member',
+  'billing.checkout_started': 'started a checkout',
+  'billing.plan_activated': 'activated a plan',
+  'billing.plan_changed': 'changed the plan',
+  'billing.invoice_paid': 'paid an invoice',
+  'billing.invoice_failed': 'had a failed invoice',
+  'workspace.updated': 'updated the workspace',
+  'workspace.created': 'created a workspace',
+};
+
 /**
  * Overview Page
  * ============
@@ -93,12 +111,18 @@ export class OverviewPage {
       paused: 'bg-amber-500',
       done: 'bg-muted-foreground/60',
     };
-    return rows.map((row) => ({
-      ...row,
-      label: statusMeta(row.key).label,
-      color: colors[row.key],
-      percent: Math.round((row.value / total) * 100),
-    }));
+    return rows.map((row) => {
+      const meta = statusMeta(row.key);
+      const percent = Math.round((row.value / total) * 100);
+      return {
+        ...row,
+        label: meta.label,
+        color: colors[row.key] ?? 'bg-muted',
+        percent,
+        style: `width: ${percent}%`,
+        tooltip: `${meta.label}: ${row.value} (${percent}%)`,
+      };
+    });
   }
 
   /**
@@ -130,7 +154,8 @@ export class OverviewPage {
   get trendArea(): string {
     const points = this.trendPoints;
     if (points.length === 0) return '';
-    const last = points[points.length - 1]!;
+    const last = points[points.length - 1];
+    if (!last) return '';
     return `${this.trendLine} L${last.x} 160 L0 160 Z`;
   }
 
@@ -171,23 +196,6 @@ export class OverviewPage {
   }
 
   actionLabel(action: string): string {
-    const map: Record<string, string> = {
-      'project.created': 'created a project',
-      'project.updated': 'updated a project',
-      'project.deleted': 'deleted a project',
-      'project.status_changed': 'changed a status',
-      'member.invited': 'invited a teammate',
-      'member.invite_accepted': 'accepted an invitation',
-      'member.role_changed': 'changed a role',
-      'member.removed': 'removed a member',
-      'billing.checkout_started': 'started a checkout',
-      'billing.plan_activated': 'activated a plan',
-      'billing.plan_changed': 'changed the plan',
-      'billing.invoice_paid': 'paid an invoice',
-      'billing.invoice_failed': 'had a failed invoice',
-      'workspace.updated': 'updated the workspace',
-      'workspace.created': 'created a workspace',
-    };
-    return map[action] ?? action;
+    return ACTION_LABELS[action] ?? action;
   }
 }

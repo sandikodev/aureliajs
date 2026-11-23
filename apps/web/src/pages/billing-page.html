@@ -108,7 +108,7 @@
             <div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
               <div
                 class="h-full rounded-full transition-all duration-300 ${isProjectsAtLimit ? 'bg-destructive' : 'bg-primary'}"
-                style="width: ${projectsPercent}%"
+                style.bind="projectsProgressStyle"
               ></div>
             </div>
           </div>
@@ -125,7 +125,7 @@
             <div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
               <div
                 class="h-full rounded-full transition-all duration-300 ${isSeatsAtLimit ? 'bg-destructive' : 'bg-primary'}"
-                style="width: ${seatsPercent}%"
+                style.bind="seatsProgressStyle"
               ></div>
             </div>
           </div>

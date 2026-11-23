@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 let padded: boolean | string = false;
 
 get classes(): string {
-  const isPadded = this.padded === '' || this.padded === true || (this.padded as unknown) === 'true';
+  const isPadded = this.padded === '' || this.padded === true || this.padded === 'true';
   return cn('rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden', isPadded ? 'p-5' : '');
 }
 </script>

@@ -10,7 +10,7 @@
       role="status"
       data-testid="toast"
     >
-      <span class="mt-0.5 shrink-0" inner-html.bind="icon(toast.tone)" aria-hidden="true"></span>
+      <ui-icon name.bind="iconName(toast.tone)" size="16" class.bind="iconColor(toast.tone)"></ui-icon>
       <span class="flex-1 leading-snug">${toast.message}</span>
       <button
         type="button"
@@ -28,12 +28,13 @@
 
 <script lang="ts">
 import { resolve } from 'aurelia';
-import { ToastService } from '@/services/toast';
+import { ToastService, type ToastTone } from '@/services/toast';
+import type { IconName } from '@/lib/icons';
 
 export class UiToaster {
   readonly toastSvc = resolve(ToastService);
 
-  toneClasses(tone: string): string {
+  toneClasses(tone: ToastTone): string {
     switch (tone) {
       case 'success':
         return 'bg-card border-success/30 text-foreground';
@@ -47,17 +48,30 @@ export class UiToaster {
     }
   }
 
-  icon(tone: string): string {
+  iconName(tone: ToastTone): IconName {
     switch (tone) {
       case 'success':
-        return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+        return 'check';
       case 'error':
-        return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--destructive)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>`;
       case 'warning':
-        return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4m0 4h.01"/></svg>`;
+        return 'alert';
       case 'info':
       default:
-        return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" 16v-4m0-4h.01"/></svg>`;
+        return 'alert';
+    }
+  }
+
+  iconColor(tone: ToastTone): string {
+    switch (tone) {
+      case 'success':
+        return 'mt-0.5 text-emerald-500';
+      case 'error':
+        return 'mt-0.5 text-destructive';
+      case 'warning':
+        return 'mt-0.5 text-amber-500';
+      case 'info':
+      default:
+        return 'mt-0.5 text-muted-foreground';
     }
   }
 }

@@ -33,10 +33,10 @@ export class LoginPage {
   private getReturnRoute(): string {
     const params = new URLSearchParams(window.location.search);
     const returnUrl = params.get('returnUrl') ?? '';
-    // Strip leading slash — Aurelia router.load() takes route name or relative path
-    const route = returnUrl.replace(/^\//, '');
-    // Safety: only allow known safe routes (no external redirects)
-    const safe = /^[a-z0-9-/?=&]+$/i.test(route);
+    // Strip leading slashes to prevent protocol-relative redirects (e.g. //attacker.com)
+    const route = returnUrl.replace(/^\/+/, '');
+    // Safety: only allow relative alphanumeric routes with query params, no protocols or double-slashes
+    const safe = /^[a-z0-9-/?=&]+$/i.test(route) && !route.includes('//') && !route.includes(':');
     return safe && route ? route : 'overview';
   }
 

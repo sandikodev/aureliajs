@@ -26,6 +26,8 @@ export type ProjectSavedDetail = {
   };
 };
 
+type StatusKey = `status.${ProjectStatus}`;
+
 const emptyForm = (): ProjectFormState => ({
   name: '',
   ownerName: '',
@@ -71,10 +73,13 @@ export class ProjectDialog {
 
   get statusOptions(): { value: ProjectStatus; label: string }[] {
     this.i18n.track();
-    return (['planning', 'active', 'paused', 'done'] as ProjectStatus[]).map((value) => ({
-      value,
-      label: this.i18n.t(`status.${value}` as never),
-    }));
+    return (['planning', 'active', 'paused', 'done'] as ProjectStatus[]).map((value) => {
+      const key: StatusKey = `status.${value}`;
+      return {
+        value,
+        label: this.i18n.t(key),
+      };
+    });
   }
 
   openCreate(): void {

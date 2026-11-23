@@ -18,6 +18,25 @@ export type NavItem = {
   badge?: string;
 };
 
+const ACTION_LABELS: Readonly<Record<string, string>> = {
+  'project.created': 'created a project',
+  'project.updated': 'updated a project',
+  'project.deleted': 'deleted a project',
+  'project.status_changed': 'changed a status',
+  'member.invited': 'invited a teammate',
+  'member.invite_accepted': 'accepted an invitation',
+  'member.invite_revoked': 'revoked an invitation',
+  'member.role_changed': 'changed a role',
+  'member.removed': 'removed a member',
+  'billing.checkout_started': 'started a checkout',
+  'billing.plan_activated': 'activated a plan',
+  'billing.plan_changed': 'changed the plan',
+  'billing.invoice_paid': 'paid an invoice',
+  'billing.invoice_failed': 'had a failed invoice',
+  'workspace.updated': 'updated the workspace',
+  'workspace.created': 'created a workspace',
+};
+
 const config = getRouterConfig();
 
 @route(config)
@@ -31,6 +50,13 @@ export class App {
   readonly i18n = resolve(I18nService);
   readonly toast = resolve(ToastService);
   readonly theme = resolve(ThemeService);
+
+  workspaceDetailsEl?: HTMLDetailsElement;
+  accountDetailsEl?: HTMLDetailsElement;
+  notificationDetailsEl?: HTMLDetailsElement;
+  languageDetailsEl?: HTMLDetailsElement;
+  mainContentEl?: HTMLElement;
+  workspaceDialogEl!: HTMLDialogElement;
 
   /**
    * True while the initial auth check is in flight.
@@ -56,22 +82,23 @@ export class App {
 
   readonly localeOptions = LOCALES;
 
+  closeAllMenus(): void {
+    this.workspaceDetailsEl?.removeAttribute('open');
+    this.accountDetailsEl?.removeAttribute('open');
+    this.notificationDetailsEl?.removeAttribute('open');
+    this.languageDetailsEl?.removeAttribute('open');
+  }
+
   private readonly handleDocumentClick = (event: MouseEvent): void => {
     const target = event.target as HTMLElement | null;
     if (!target) return;
     if (!target.closest('details')) {
-      const openMenus = document.querySelectorAll('details[open]');
-      for (const menu of openMenus) {
-        menu.removeAttribute('open');
-      }
+      this.closeAllMenus();
     }
   };
 
   async changeLocale(locale: Locale): Promise<void> {
-    const openMenus = document.querySelectorAll('details[open]');
-    for (const menu of openMenus) {
-      menu.removeAttribute('open');
-    }
+    this.closeAllMenus();
     if (locale === this.i18n.locale) return;
     this.i18n.setLocale(locale);
     try {
@@ -100,7 +127,6 @@ export class App {
   creatingWorkspace = false;
   workspaceError = '';
   newWorkspace = { name: '' };
-  workspaceDialogEl!: HTMLDialogElement;
 
   /**
    * Whether the authenticated shell (sidebar + header) should render.
@@ -208,7 +234,7 @@ export class App {
   createWorkspace(): void {
     this.workspaceError = '';
     this.newWorkspace = { name: '' };
-    document.querySelector('aside details[open]')?.removeAttribute('open');
+    this.workspaceDetailsEl?.removeAttribute('open');
     this.workspaceDialogEl.showModal();
   }
 
@@ -271,7 +297,7 @@ export class App {
   skipToContent(event: MouseEvent): void {
     if (event.currentTarget !== event.target) return;
     event.preventDefault();
-    (document.getElementById('main-content') as HTMLElement | null)?.focus();
+    this.mainContentEl?.focus();
   }
 
   toggleSidebar(): void {
@@ -293,24 +319,6 @@ export class App {
   }
 
   actionLabel(action: string): string {
-    const map: Record<string, string> = {
-      'project.created': 'created a project',
-      'project.updated': 'updated a project',
-      'project.deleted': 'deleted a project',
-      'project.status_changed': 'changed a status',
-      'member.invited': 'invited a teammate',
-      'member.invite_accepted': 'accepted an invitation',
-      'member.invite_revoked': 'revoked an invitation',
-      'member.role_changed': 'changed a role',
-      'member.removed': 'removed a member',
-      'billing.checkout_started': 'started a checkout',
-      'billing.plan_activated': 'activated a plan',
-      'billing.plan_changed': 'changed the plan',
-      'billing.invoice_paid': 'paid an invoice',
-      'billing.invoice_failed': 'had a failed invoice',
-      'workspace.updated': 'updated the workspace',
-      'workspace.created': 'created a workspace',
-    };
-    return map[action] ?? action;
+    return ACTION_LABELS[action] ?? action;
   }
 }

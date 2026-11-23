@@ -71,6 +71,14 @@ export class ToastService {
   private add(message: string, tone: ToastTone, duration: number): void {
     const key = `${tone}:${message}`;
     const now = Date.now();
+
+    // Prune stale dedup entries to prevent unbounded memory leak
+    for (const [k, time] of this.lastAdded.entries()) {
+      if (now - time > DEDUP_WINDOW_MS * 4) {
+        this.lastAdded.delete(k);
+      }
+    }
+
     const prevTime = this.lastAdded.get(key);
 
     if (prevTime && now - prevTime < DEDUP_WINDOW_MS) {

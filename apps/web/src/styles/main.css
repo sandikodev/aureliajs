@@ -291,6 +291,12 @@ ui-card {
   dialog[open] {
     animation: slide-up 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
+
+  .login-ambient-gradient {
+    background:
+      radial-gradient(60rem 40rem at -10% -10%, oklch(0.55 0.19 265 / 0.45), transparent 60%),
+      radial-gradient(40rem 30rem at 110% 110%, oklch(0.6 0.16 175 / 0.35), transparent 60%);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
