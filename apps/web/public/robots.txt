@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# The admin UI is behind a session and carries no indexable content.
+Disallow: /login
+Disallow: /invite
+Disallow: /overview
+Disallow: /projects
+Disallow: /members
+Disallow: /billing
+Disallow: /settings
+Disallow: /api/
+
+Sitemap: https://aureliajs.vercel.app/sitemap.xml

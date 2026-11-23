@@ -10,7 +10,7 @@ import { actionLabel as translateAction } from '@/lib/activity';
 import { ToastService } from '@/services/toast';
 import { relativeTime } from '@/lib/utils';
 import type { Locale, WorkspaceSummary } from '@aurelia-ops/shared';
-import { getRouterConfig, PUBLIC_ROUTE_PATHS } from '@/config/routes';
+import { getRouterConfig, PUBLIC_ROUTE_PATHS, ROUTE_DESCRIPTIONS } from '@/config/routes';
 import { ThemeService } from '@/services/theme';
 
 export type NavItem = {
@@ -381,6 +381,24 @@ export class App {
     };
     const key = titleKeys[path];
     const title = key ? this.i18n.t(key) : 'Aurelia Ops';
-    document.title = title === 'Aurelia Ops' ? title : `${title} · Aurelia Ops`;
+    const fullTitle = title === 'Aurelia Ops' ? title : `${title} · Aurelia Ops`;
+    document.title = fullTitle;
+
+    // Keep social/canonical tags in sync with SPA navigation. Non-JS crawlers
+    // still get the shell values (landing copy), which is what we want for `/`.
+    const description =
+      ROUTE_DESCRIPTIONS[path] ?? ROUTE_DESCRIPTIONS[''] ?? 'Aurelia Ops admin dashboard';
+    const canonical = `${window.location.origin}${window.location.pathname}`;
+    const setMeta = (selector: string, value: string) => {
+      const el = document.querySelector(selector);
+      if (el) el.setAttribute('content', value);
+    };
+    setMeta('meta[name="description"]', description);
+    setMeta('meta[property="og:title"]', fullTitle);
+    setMeta('meta[property="og:description"]', description);
+    setMeta('meta[property="og:url"]', canonical);
+    setMeta('meta[name="twitter:title"]', fullTitle);
+    setMeta('meta[name="twitter:description"]', description);
+    document.querySelector('link[rel="canonical"]')?.setAttribute('href', canonical);
   }
 }

@@ -1,7 +1,7 @@
 # Codebase State
 
 > **Last Verified**: 2026-11-23 (verified against running code & automated test runners)  
-> **Quality Gate**: ✅ 262 Tests Passing (100% Green, 1615 Assertions) • 14 Workspaces Typecheck Clean (0 Errors)
+> **Quality Gate**: ✅ 266 Tests Passing (100% Green, 1644 Assertions) • 14 Workspaces Typecheck Clean (0 Errors)
 
 ## Structure
 
@@ -55,7 +55,7 @@ aureliajs/
 
 ```bash
 bun run typecheck   # ✅ PASSING (all 14 workspaces incl. shared, web, api, package examples)
-bun test            # ✅ PASSING (262 tests across 39 files, 1615 assertions, 0 failures)
+bun test            # ✅ PASSING (266 tests across 40 files, 1644 assertions, 0 failures)
 bunx oxlint .       # ✅ PASSING (0 errors)
 ```
 

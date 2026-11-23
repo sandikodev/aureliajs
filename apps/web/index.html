@@ -9,6 +9,36 @@
       content="A production-shaped SaaS admin dashboard built with Aurelia 2, TypeScript, Tailwind CSS and Hono."
     />
     <meta name="theme-color" content="#0a0a0a" />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="https://aureliajs.vercel.app/" />
+    <!-- Social previews: crawlers do not execute the SPA, so these live in the
+         shell HTML rather than being set from JavaScript. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Aurelia Ops" />
+    <meta property="og:url" content="https://aureliajs.vercel.app/" />
+    <meta property="og:title" content="Aurelia Ops — SaaS Admin Dashboard" />
+    <meta
+      property="og:description"
+      content="A production-shaped SaaS admin dashboard built with Aurelia 2, TypeScript, Tailwind CSS and Hono."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Aurelia Ops — SaaS Admin Dashboard" />
+    <meta
+      name="twitter:description"
+      content="Session auth, team invitations, Stripe billing and a real Hono API. Built with Aurelia 2."
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Aurelia Ops",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "description": "Production-shaped SaaS admin dashboard with session auth, team invitations, Stripe billing and a Hono API.",
+        "url": "https://aureliajs.vercel.app/",
+        "codeRepository": "https://github.com/sandikodev/aureliajs"
+      }
+    </script>
     <!-- The router resolves routes relative to <base>; without it, deep links
          (e.g. /projects) are treated as the root path on a hard reload. -->
     <base href="/" />

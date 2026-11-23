@@ -36,7 +36,10 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
-    sourcemap: true,
+    // Production source maps are not uploaded anywhere: they only add ~2 MB of
+    // deploy output (Vercel already blocks /assets/*.map with a 403). Enable
+    // with SOURCEMAPS=1 for a debugging build.
+    sourcemap: process.env.SOURCEMAPS === '1',
     rolldownOptions: {
       output: {
         manualChunks(id) {

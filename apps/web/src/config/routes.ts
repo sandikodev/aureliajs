@@ -1,12 +1,4 @@
 import { LandingPage } from '@/pages/landing-page';
-import { LoginPage } from '@/pages/login-page';
-import { InvitePage } from '@/pages/invite-page';
-import { OverviewPage } from '@/pages/overview-page';
-import { ProjectsPage } from '@/pages/projects-page';
-import { MembersPage } from '@/pages/members-page';
-import { BillingPage } from '@/pages/billing-page';
-import { SettingsPage } from '@/pages/settings-page';
-import { NotFoundPage } from '@/pages/not-found-page';
 
 /**
  * Route definitions
@@ -15,25 +7,54 @@ import { NotFoundPage } from '@/pages/not-found-page';
  *
  * PUBLIC_ROUTES — no auth required. Most redirect authenticated users to /overview,
  * but /invite is intentionally accessible to authenticated users so they can accept
- * invitations without logging out first.
+ * invitations without log out first.
  * PROTECTED_ROUTES — auth required, unauthenticated users redirected to /login
  *
- * The app shell (app.ts) uses PUBLIC_ROUTE_PATHS to decide whether to show
- * the sidebar+header layout. No guards, no data metadata — just paths.
+ * The landing page is the only eager page: it is the initial route for most
+ * visitors and is also server-rendered at build time. Every other page is a
+ * dynamic import so the router fetches it only when visited.
  */
 
 export const PUBLIC_ROUTES = [
   { path: '', component: LandingPage, title: 'Aurelia Ops — SaaS Admin Dashboard' },
-  { path: 'login', component: LoginPage, title: 'Sign in' },
-  { path: 'invite', component: InvitePage, title: 'Accept invitation' },
+  {
+    path: 'login',
+    component: () => import('@/pages/login-page').then((m) => m.LoginPage),
+    title: 'Sign in',
+  },
+  {
+    path: 'invite',
+    component: () => import('@/pages/invite-page').then((m) => m.InvitePage),
+    title: 'Accept invitation',
+  },
 ] as const;
 
 export const PROTECTED_ROUTES = [
-  { path: 'overview', component: OverviewPage, title: 'Overview' },
-  { path: 'projects', component: ProjectsPage, title: 'Projects' },
-  { path: 'members', component: MembersPage, title: 'Team' },
-  { path: 'billing', component: BillingPage, title: 'Billing' },
-  { path: 'settings', component: SettingsPage, title: 'Settings' },
+  {
+    path: 'overview',
+    component: () => import('@/pages/overview-page').then((m) => m.OverviewPage),
+    title: 'Overview',
+  },
+  {
+    path: 'projects',
+    component: () => import('@/pages/projects-page').then((m) => m.ProjectsPage),
+    title: 'Projects',
+  },
+  {
+    path: 'members',
+    component: () => import('@/pages/members-page').then((m) => m.MembersPage),
+    title: 'Team',
+  },
+  {
+    path: 'billing',
+    component: () => import('@/pages/billing-page').then((m) => m.BillingPage),
+    title: 'Billing',
+  },
+  {
+    path: 'settings',
+    component: () => import('@/pages/settings-page').then((m) => m.SettingsPage),
+    title: 'Settings',
+  },
 ] as const;
 
 /**
@@ -43,13 +64,33 @@ export const PROTECTED_ROUTES = [
  */
 export const PUBLIC_ROUTE_PATHS = new Set<string>(PUBLIC_ROUTES.map((r) => r.path));
 
+/**
+ * Per-route description used by `app.ts` when the router settles. Crawlers
+ * that do not run JavaScript only ever see the landing copy from index.html.
+ */
+export const ROUTE_DESCRIPTIONS: Readonly<Record<string, string>> = {
+  '': 'A production-shaped SaaS admin dashboard built with Aurelia 2, TypeScript, Tailwind CSS and Hono.',
+  login:
+    'Sign in to Aurelia Ops, a production-shaped SaaS admin dashboard with team workspaces and billing.',
+  invite: 'Accept your Aurelia Ops workspace invitation.',
+  overview: 'Workspace overview: KPIs, throughput charts and recent activity.',
+  projects: 'Browse, search and manage projects in your Aurelia Ops workspace.',
+  members: 'Manage team members, invitations and roles in your workspace.',
+  billing: 'Manage your Aurelia Ops plan, invoices and payment method.',
+  settings: 'Workspace preferences and account settings.',
+};
+
 /** Full route list for the Aurelia @route decorator. */
 export function getRouterConfig() {
   return {
     routes: [
       ...PUBLIC_ROUTES,
       ...PROTECTED_ROUTES,
-      { path: 'not-found', component: NotFoundPage, title: 'Not found' },
+      {
+        path: 'not-found',
+        component: () => import('@/pages/not-found-page').then((m) => m.NotFoundPage),
+        title: 'Not found',
+      },
     ],
     fallback: 'not-found',
   };

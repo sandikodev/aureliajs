@@ -1,4 +1,17 @@
-@import '@fontsource-variable/inter';
+/*
+ * Load only the Latin subset. The package root CSS pulls cyrillic, greek and
+ * latin-ext faces as well — five woff2 files in the deploy output even though
+ * this UI is English/Indonesian (both Latin script).
+ */
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fontsource-variable/inter/files/inter-latin-wght-normal.woff2')
+    format('woff2-variations');
+}
+
 @import 'tailwindcss';
 
 @custom-variant dark (&:is(.dark *));

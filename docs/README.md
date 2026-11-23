@@ -25,6 +25,7 @@ docs/
 ├── [Tier 3] Production SaaS Reference Architecture (Aurelia Ops)
 │   ├── architecture.md                            # Spesifikasi teknis SaaS multi-tenant: Session auth, DB, Stripe
 │   ├── case-study.md                              # Studi kasus migrasi, audit tenant seam, dan testing
+│   ├── seo-performance.md                         # SEO/SEM, metadata, cache headers, landing prerender
 │   └── EXAMPLES.md                                # Panduan implementasi contoh di setiap package
 │
 ├── [Tier 4] Theoretical Foundations & Philosophy (Cikal Bakal Kursus)
@@ -78,6 +79,8 @@ docs/
   - `apps/shared`: Kontrak tipe Zod dan DTO bersama.
 - **[`case-study.md`](case-study.md)**:
   Studi kasus dunia nyata mengenai pemisahan _Tenant Seam_ (`apps/api/src/middleware/tenant.ts`), penanganan multi-tenancy, dan pengujian end-to-end.
+- **[`seo-performance.md`](seo-performance.md)**:
+  Panduan operator untuk SEO vs SEM, metadata, `robots.txt`/`sitemap.xml`, cache headers, Analytics/Speed Insights, dan landing prerender via `@aureliajs/ssr`.
 - **[`EXAMPLES.md`](EXAMPLES.md)**:
   Panduan praktis untuk menjalankan seluruh contoh di `packages/*/example`.
 

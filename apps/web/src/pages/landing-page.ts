@@ -1,29 +1,26 @@
-import { customElement, resolve } from 'aurelia';
-import { IRouter } from '@aurelia/router';
+import { customElement } from 'aurelia';
 import template from './landing-page.html';
 
 /**
  * Landing page — public, unauthenticated route.
  * Hero section, feature showcase, CTA to sign in or GitHub.
  * Renders in minimal layout (no sidebar, no admin chrome).
+ *
+ * Deliberately has no DI dependencies: the build-time prerender renders this
+ * same component through `@aureliajs/ssr`, so there is only one source of
+ * truth for the landing markup.
  */
 @customElement({ name: 'landing-page', template })
 export class LandingPage {
-  private readonly router = resolve(IRouter);
-
   /**
-   * Navigate to login page.
-   * Uses router.load() instead of href so navigation works
-   * within the routed context.
+   * A full navigation to /login is intentional: the landing page is also
+   * shipped as static HTML for crawlers, where no router is running.
    */
   signIn(): void {
-    void this.router.load('login');
+    window.location.assign('/login');
   }
 
-  /**
-   * Get started — same as sign in (could redirect to signup if available).
-   */
   getStarted(): void {
-    void this.router.load('login');
+    window.location.assign('/login');
   }
 }

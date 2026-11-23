@@ -89,7 +89,7 @@ Whenever preparing a release, refactor, or major PR, execute this sequential aud
 ```mermaid
 flowchart TD
     A["Step 1: Submodule Check\n(packages/hono-aurelia)"] --> B["Step 2: TypeScript Build\n(All 4 packages)"]
-    B --> C["Step 3: Monorepo Quality Gates\n(262+ unit tests, 49 E2E, 14 workspaces typecheck, 0 fails)"]
+    B --> C["Step 3: Monorepo Quality Gates\n(266+ unit tests, 49 E2E, 14 workspaces typecheck, 0 fails)"]
     C --> D["Step 4: Oxlint Verification\n(0 errors, 0 warnings)"]
     D --> E["Step 5: Headless Server Probe\n(packages/hono-aurelia/example)"]
     E --> F["Step 6: Playground Verification\n(Port 4700 UI invariants)"]
