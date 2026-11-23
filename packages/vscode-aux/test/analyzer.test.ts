@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { analyzeAuxDocument } from '../src/analyzer.js';
+import { analyzeAuxDocument } from '../src/analyzer';
 
 describe('Aurelia AUX Analyzer', () => {
   it('analyzes script ViewModel members and template bindings', () => {

@@ -3,7 +3,7 @@
  * Terminal UI (TUI) Formatter with colors, tables, and inspection cards
  */
 
-import type { InspectionReport } from '../types.js';
+import type { InspectionReport } from '../types';
 
 const RESET = '\x1b[0m';
 const BOLD = '\x1b[1m';

@@ -5,15 +5,15 @@
 
 import { performance } from 'node:perf_hooks';
 import { renderAurelia, serializeState, stringifyPayload, createHtmlDocument } from '@aureliajs/ssr';
-import { calculateNetworkMetrics } from './network.js';
-import { auditSsrOutput } from './audit.js';
-import { simulateClientHydration } from './client-simulator.js';
+import { calculateNetworkMetrics } from './network';
+import { auditSsrOutput } from './audit';
+import { simulateClientHydration } from './client-simulator';
 import type {
   InspectionOptions,
   InspectionReport,
   ServerRenderMetrics,
   LighthouseSimulation,
-} from '../types.js';
+} from '../types';
 
 export async function inspectAureliaSsr(
   options: InspectionOptions

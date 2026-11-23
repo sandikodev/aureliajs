@@ -3,10 +3,10 @@
  */
 
 import type { AureliaComponent } from '@aureliajs/ssr';
-import { CounterCard } from './counter-card.js';
-import { UserProfile } from './user-profile.js';
-import { DataTable } from './data-table.js';
-import { HelloWorld } from './hello-world.js';
+import { CounterCard } from './counter-card';
+import { UserProfile } from './user-profile';
+import { DataTable } from './data-table';
+import { HelloWorld } from './hello-world';
 
 export { HelloWorld, CounterCard, UserProfile, DataTable };
 

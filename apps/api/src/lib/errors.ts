@@ -1,6 +1,6 @@
 import type { Context } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
-import { log } from './log.js';
+import { log } from './log';
 
 export type FieldIssue = { path: string; message: string };
 

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import ts from 'typescript';
-import type { AuxDocumentAnalysis } from './types.js';
-import { AURELIA_COMMANDS, AURELIA_CONTEXT_VARIABLES } from './constants.js';
+import type { AuxDocumentAnalysis } from './types';
+import { AURELIA_COMMANDS, AURELIA_CONTEXT_VARIABLES } from './constants';
 
 const GLOBAL_IDENTIFIERS = new Set([
   'true',

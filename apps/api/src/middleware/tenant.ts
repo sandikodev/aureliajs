@@ -1,9 +1,9 @@
 import type { Plan, Role } from '@aurelia-ops/shared';
 import type { Context, MiddlewareHandler } from 'hono';
 import { getCookie } from 'hono/cookie';
-import { HttpError, forbidden, unauthorized, unavailable } from '../lib/errors.js';
-import { SESSION_COOKIE, loadSession } from '../lib/session.js';
-import { resolveWorkspace } from '../lib/workspace.js';
+import { HttpError, forbidden, unauthorized, unavailable } from '../lib/errors';
+import { SESSION_COOKIE, loadSession } from '../lib/session';
+import { resolveWorkspace } from '../lib/workspace';
 
 export type TenantScope = {
   workspaceId: string;

@@ -4,10 +4,10 @@ import { and, eq, lt } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
-import { getDb, schema } from '../db/client.js';
-import { HttpError, unauthorized } from '../lib/errors.js';
-import { resolveWorkspace, type WorkspaceContext } from '../lib/workspace.js';
-import * as rateLimit from '../lib/rate-limit.js';
+import { getDb, schema } from '../db/client';
+import { HttpError, unauthorized } from '../lib/errors';
+import { resolveWorkspace, type WorkspaceContext } from '../lib/workspace';
+import * as rateLimit from '../lib/rate-limit';
 import {
   SESSION_COOKIE,
   SESSION_TTL_SECONDS,
@@ -15,7 +15,7 @@ import {
   hashSessionToken,
   loadSession,
   sessionCookie,
-} from '../lib/session.js';
+} from '../lib/session';
 
 const emptySession: AuthSession = { user: null, workspace: null, role: null };
 

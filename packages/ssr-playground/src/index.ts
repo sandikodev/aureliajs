@@ -3,11 +3,11 @@
  * Public API
  */
 
-export * from './types.js';
-export { inspectAureliaSsr } from './engine/inspector.js';
-export { calculateNetworkMetrics } from './engine/network.js';
-export { auditSsrOutput } from './engine/audit.js';
-export { simulateClientHydration } from './engine/client-simulator.js';
-export { createPlaygroundApp } from './server/app.js';
-export { formatTerminalReport } from './cli/formatter.js';
-export { FIXTURES, CounterCard, UserProfile, DataTable } from './fixtures/index.js';
+export * from './types';
+export { inspectAureliaSsr } from './engine/inspector';
+export { calculateNetworkMetrics } from './engine/network';
+export { auditSsrOutput } from './engine/audit';
+export { simulateClientHydration } from './engine/client-simulator';
+export { createPlaygroundApp } from './server/app';
+export { formatTerminalReport } from './cli/formatter';
+export { FIXTURES, CounterCard, UserProfile, DataTable } from './fixtures/index';

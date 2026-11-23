@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { and, count, eq, isNull } from 'drizzle-orm';
-import { getDb, schema } from '../db/client.js';
-import { badRequest, conflict, forbidden, notFound } from '../lib/errors.js';
-import { limitsFor } from '../lib/plan-limits.js';
-import { tenantOf } from '../middleware/tenant.js';
+import { getDb, schema } from '../db/client';
+import { badRequest, conflict, forbidden, notFound } from '../lib/errors';
+import { limitsFor } from '../lib/plan-limits';
+import { tenantOf } from '../middleware/tenant';
 
 export const memberRoutes = new Hono();
 

@@ -4,10 +4,10 @@
  * CLI & TUI Entrypoint
  */
 
-import { FIXTURES } from '../fixtures/index.js';
-import { inspectAureliaSsr } from '../engine/inspector.js';
-import { formatTerminalReport } from './formatter.js';
-import { createPlaygroundApp } from '../server/app.js';
+import { FIXTURES } from '../fixtures/index';
+import { inspectAureliaSsr } from '../engine/inspector';
+import { formatTerminalReport } from './formatter';
+import { createPlaygroundApp } from '../server/app';
 
 async function main() {
   const args = process.argv.slice(2);

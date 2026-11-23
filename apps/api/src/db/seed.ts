@@ -1,6 +1,6 @@
 import { hash } from '@node-rs/argon2';
 import { eq } from 'drizzle-orm';
-import { getDb, closeDb, schema } from './client.js';
+import { getDb, closeDb, schema } from './client';
 
 const DEMO_EMAIL = process.env.SEED_EMAIL ?? 'demo@aureliajs.dev';
 const DEMO_PASSWORD = process.env.SEED_PASSWORD ?? 'demo-password-123';

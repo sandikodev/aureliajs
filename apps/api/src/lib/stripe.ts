@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
-import { env } from '../env.js';
-import { HttpError, unavailable } from './errors.js';
+import { env } from '../env';
+import { HttpError, unavailable } from './errors';
 
 /**
  * Pinned so a Stripe SDK upgrade can never silently change the API contract

@@ -6,7 +6,7 @@ import type {
   ProjectStatus,
   Role,
   SubscriptionStatus,
-} from './utils.js';
+} from './utils';
 
 /* ------------------------------------------------------------------ */
 /* Primitives                                                          */

@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'bun:test';
-import { compilePlaygroundExample } from '../src/engine/compiler.js';
-import { loadAllExamples } from '../src/examples/loader.js';
+import { compilePlaygroundExample } from '../src/engine/compiler';
+import { loadAllExamples } from '../src/examples/loader';
 
 describe('All Real Aurelia 2 Playground Examples SSR Verification', () => {
   const examples = loadAllExamples();

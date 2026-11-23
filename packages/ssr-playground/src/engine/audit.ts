@@ -3,7 +3,7 @@
  * Hydration marker integrity and security whitelist auditor
  */
 
-import type { HydrationPayload, HydrationAudit, AuditFinding } from '../types.js';
+import type { HydrationPayload, HydrationAudit, AuditFinding } from '../types';
 
 const FORBIDDEN_SECRET_KEYS = [
   'password',

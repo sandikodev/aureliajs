@@ -9,10 +9,10 @@ import { and, count, desc, eq, ilike, or } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { getDb, schema } from '../db/client.js';
-import { issuesFromZod, notFound } from '../lib/errors.js';
-import { limitsFor } from '../lib/plan-limits.js';
-import { requireRole, tenantOf } from '../middleware/tenant.js';
+import { getDb, schema } from '../db/client';
+import { issuesFromZod, notFound } from '../lib/errors';
+import { limitsFor } from '../lib/plan-limits';
+import { requireRole, tenantOf } from '../middleware/tenant';
 
 const toIso = (value: Date | string | null) =>
   value === null ? null : value instanceof Date ? value.toISOString() : value;

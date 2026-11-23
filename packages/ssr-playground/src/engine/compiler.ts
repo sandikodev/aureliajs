@@ -6,11 +6,11 @@
 import zlib from 'node:zlib';
 import ts from 'typescript';
 import { CustomElement } from 'aurelia';
-import { inspectAureliaSsr } from './inspector.js';
+import { inspectAureliaSsr } from './inspector';
 import { parseAux, compileAux } from '@aureliajs/vite-plugin-aux';
-import { lintAureliaFiles, type LintDiagnostic } from './linter.js';
-import { getPreviewStylesheet } from '../server/assets.js';
-import { loadAllExamples } from '../examples/loader.js';
+import { lintAureliaFiles, type LintDiagnostic } from './linter';
+import { getPreviewStylesheet } from '../server/assets';
+import { loadAllExamples } from '../examples/loader';
 import type { RenderContext } from '@aureliajs/ssr';
 
 export interface CompileRequest {

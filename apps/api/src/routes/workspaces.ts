@@ -8,10 +8,10 @@ import {
 import { and, eq, ne } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { getDb, schema } from '../db/client.js';
-import { badRequest, conflict, forbidden, notFound } from '../lib/errors.js';
+import { getDb, schema } from '../db/client';
+import { badRequest, conflict, forbidden, notFound } from '../lib/errors';
 import { slugify } from '@aurelia-ops/shared';
-import { tenantOf } from '../middleware/tenant.js';
+import { tenantOf } from '../middleware/tenant';
 
 export const workspaceRoutes = new Hono();
 

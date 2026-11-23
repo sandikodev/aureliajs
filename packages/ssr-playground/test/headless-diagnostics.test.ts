@@ -13,9 +13,9 @@
 import { describe, it, expect } from 'bun:test';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { renderAurelia, serializeState, createHtmlDocument } from '@aureliajs/ssr';
-import { createPlaygroundApp } from '../src/server/app.js';
-import { loadAllExamples } from '../src/examples/loader.js';
-import { compilePlaygroundExample } from '../src/engine/compiler.js';
+import { createPlaygroundApp } from '../src/server/app';
+import { loadAllExamples } from '../src/examples/loader';
+import { compilePlaygroundExample } from '../src/engine/compiler';
 
 describe('Headless Reversing & Diagnostics Suite', () => {
   const app = createPlaygroundApp();

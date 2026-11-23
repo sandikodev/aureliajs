@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { analyzeAuxDocument } from './analyzer.js';
-import type { AuxDocumentAnalysis } from './types.js';
-import { lintAuxDocument } from './linter.js';
-import { AuxCompletionItemProvider } from './completion.js';
-import { AuxHoverProvider } from './hover.js';
-import { AuxDefinitionProvider } from './definition.js';
+import { analyzeAuxDocument } from './analyzer';
+import type { AuxDocumentAnalysis } from './types';
+import { lintAuxDocument } from './linter';
+import { AuxCompletionItemProvider } from './completion';
+import { AuxHoverProvider } from './hover';
+import { AuxDefinitionProvider } from './definition';
 
 export function activate(context: vscode.ExtensionContext) {
   // Document analysis cache

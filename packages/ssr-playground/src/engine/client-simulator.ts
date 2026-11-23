@@ -5,7 +5,7 @@
 
 import { performance } from 'node:perf_hooks';
 import { JSDOM } from 'jsdom';
-import type { ClientHydrationSimulation, HydrationPayload } from '../types.js';
+import type { ClientHydrationSimulation, HydrationPayload } from '../types';
 
 export async function simulateClientHydration(
   fullDocumentHtml: string,

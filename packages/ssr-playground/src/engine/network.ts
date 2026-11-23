@@ -5,7 +5,7 @@
 
 import { Buffer } from 'node:buffer';
 import zlib from 'node:zlib';
-import type { NetworkMetrics } from '../types.js';
+import type { NetworkMetrics } from '../types';
 
 export function calculateNetworkMetrics(
   htmlOutput: string,

@@ -3,7 +3,7 @@
  * Enables on-the-fly .aux Single File Component, HTML template, and polyglot framework compilation in Bun
  */
 import { plugin } from 'bun';
-import { auxBunPlugin } from './packages/vite-plugin-aux/src/bun.js';
+import { auxBunPlugin } from './packages/vite-plugin-aux/src/bun';
 
 plugin(auxBunPlugin({ isServer: true }));
 

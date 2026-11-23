@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import type { AuxDocumentAnalysis, ViewModelMember } from './types.js';
-import { AURELIA_COMMANDS, AURELIA_CONTEXT_VARIABLES, AURELIA_DIRECTIVES, MDN_HTML_ATTRIBUTES } from './constants.js';
+import type { AuxDocumentAnalysis, ViewModelMember } from './types';
+import { AURELIA_COMMANDS, AURELIA_CONTEXT_VARIABLES, AURELIA_DIRECTIVES, MDN_HTML_ATTRIBUTES } from './constants';
 
 export class AuxCompletionItemProvider implements vscode.CompletionItemProvider {
   constructor(private getAnalysis: (doc: vscode.TextDocument) => AuxDocumentAnalysis) {}

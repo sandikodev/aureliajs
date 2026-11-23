@@ -6,7 +6,7 @@ import {
   createInviteEmailText,
   outbox,
   clearOutbox,
-} from '../src/services/email.js';
+} from '../src/services/email';
 
 describe('Transactional Email Service (apps/api)', () => {
   beforeEach(() => {

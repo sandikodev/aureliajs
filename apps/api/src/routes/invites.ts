@@ -1,15 +1,15 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { and, count, eq, isNull } from 'drizzle-orm';
-import { getDb, schema } from '../db/client.js';
-import { HttpError, badRequest, conflict, notFound } from '../lib/errors.js';
-import { limitsFor } from '../lib/plan-limits.js';
-import { env } from '../env.js';
+import { getDb, schema } from '../db/client';
+import { HttpError, badRequest, conflict, notFound } from '../lib/errors';
+import { limitsFor } from '../lib/plan-limits';
+import { env } from '../env';
 import { hash } from '@node-rs/argon2';
 import { createHash, randomBytes } from 'node:crypto';
 import { setCookie } from 'hono/cookie';
-import { SESSION_COOKIE, sessionCookie } from '../lib/session.js';
-import { sendInviteEmail } from '../services/email.js';
+import { SESSION_COOKIE, sessionCookie } from '../lib/session';
+import { sendInviteEmail } from '../services/email';
 
 const invitesRoutes = new Hono();
 

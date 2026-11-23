@@ -1,18 +1,18 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
-import { env, isProd } from './env.js';
-import { errorResponse } from './lib/errors.js';
-import { requestLogger } from './middleware/request-logger.js';
-import { tenant } from './middleware/tenant.js';
-import { authRoutes } from './routes/auth.js';
-import { billingRoutes, publicBillingRoutes } from './routes/billing.js';
-import { invitesRoutes, publicInviteRoutes } from './routes/invites.js';
-import { membersRoutes } from './routes/members.js';
-import { healthRoutes } from './routes/health.js';
-import { overviewRoutes } from './routes/overview.js';
-import { projectRoutes } from './routes/projects.js';
-import { workspaceRoutes } from './routes/workspaces.js';
+import { env, isProd } from './env';
+import { errorResponse } from './lib/errors';
+import { requestLogger } from './middleware/request-logger';
+import { tenant } from './middleware/tenant';
+import { authRoutes } from './routes/auth';
+import { billingRoutes, publicBillingRoutes } from './routes/billing';
+import { invitesRoutes, publicInviteRoutes } from './routes/invites';
+import { membersRoutes } from './routes/members';
+import { healthRoutes } from './routes/health';
+import { overviewRoutes } from './routes/overview';
+import { projectRoutes } from './routes/projects';
+import { workspaceRoutes } from './routes/workspaces';
 
 export function createApp() {
   const app = new Hono();

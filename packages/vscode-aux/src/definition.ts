@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import type { AuxDocumentAnalysis } from './types.js';
+import type { AuxDocumentAnalysis } from './types';
 
 export class AuxDefinitionProvider implements vscode.DefinitionProvider {
   constructor(private getAnalysis: (doc: vscode.TextDocument) => AuxDocumentAnalysis) {}

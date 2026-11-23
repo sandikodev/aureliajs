@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { and, eq, gt } from 'drizzle-orm';
-import { getDb, schema } from '../db/client.js';
-import { isProd } from '../env.js';
+import { getDb, schema } from '../db/client';
+import { isProd } from '../env';
 
 export const SESSION_COOKIE = 'aurelia_session';
 export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;

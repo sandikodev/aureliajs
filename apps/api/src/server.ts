@@ -2,9 +2,9 @@ import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { app } from './app.js';
-import { env } from './env.js';
-import { log, serviceInfo } from './lib/log.js';
+import { app } from './app';
+import { env } from './env';
+import { log, serviceInfo } from './lib/log';
 
 /**
  * The production entry point.

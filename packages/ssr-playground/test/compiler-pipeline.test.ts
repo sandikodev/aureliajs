@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'bun:test';
-import { compilePlaygroundExample } from '../src/engine/compiler.js';
+import { compilePlaygroundExample } from '../src/engine/compiler';
 
 describe('Aurelia 2 Playground Dynamic Compiler & Execution Pipeline', () => {
   test('1. Compiles paired convention (.html + .ts) with custom user code and metrics', async () => {

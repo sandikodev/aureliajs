@@ -3,12 +3,12 @@ import { count, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import Stripe from 'stripe';
 import { zValidator } from '@hono/zod-validator';
-import { env } from '../env.js';
-import { getDb, schema } from '../db/client.js';
-import { badRequest, HttpError, notFound } from '../lib/errors.js';
-import { limitsFor, planFromSubscription } from '../lib/plan-limits.js';
-import { getStripe, getWebhookSecret } from '../lib/stripe.js';
-import { requireRole, tenantOf } from '../middleware/tenant.js';
+import { env } from '../env';
+import { getDb, schema } from '../db/client';
+import { badRequest, HttpError, notFound } from '../lib/errors';
+import { limitsFor, planFromSubscription } from '../lib/plan-limits';
+import { getStripe, getWebhookSecret } from '../lib/stripe';
+import { requireRole, tenantOf } from '../middleware/tenant';
 
 export const billingRoutes = new Hono();
 

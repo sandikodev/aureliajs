@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import type { AuxDocumentAnalysis } from './types.js';
-import { AURELIA_COMMANDS, AURELIA_CONTEXT_VARIABLES } from './constants.js';
+import type { AuxDocumentAnalysis } from './types';
+import { AURELIA_COMMANDS, AURELIA_CONTEXT_VARIABLES } from './constants';
 
 export class AuxHoverProvider implements vscode.HoverProvider {
   constructor(private getAnalysis: (doc: vscode.TextDocument) => AuxDocumentAnalysis) {}

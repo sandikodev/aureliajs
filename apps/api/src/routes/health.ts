@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { pingDb } from '../db/client.js';
-import { serviceInfo } from '../lib/log.js';
+import { pingDb } from '../db/client';
+import { serviceInfo } from '../lib/log';
 
 export const healthRoutes = new Hono();
 

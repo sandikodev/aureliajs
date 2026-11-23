@@ -1,6 +1,6 @@
 import type { AuthSession, Role } from '@aurelia-ops/shared';
 import { eq } from 'drizzle-orm';
-import { getDb, schema } from '../db/client.js';
+import { getDb, schema } from '../db/client';
 
 export type WorkspaceContext = NonNullable<AuthSession['workspace']> & { role: Role };
 

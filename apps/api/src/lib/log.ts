@@ -1,4 +1,4 @@
-import { env, isProd } from '../env.js';
+import { env, isProd } from '../env';
 
 /**
  * Structured logging.

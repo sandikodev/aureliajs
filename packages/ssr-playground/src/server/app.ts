@@ -4,9 +4,9 @@
  */
 
 import { Hono } from 'hono';
-import { FIXTURES, CounterCard } from '../fixtures/index.js';
-import { inspectAureliaSsr } from '../engine/inspector.js';
-import { compilePlaygroundExample, type CompileRequest } from '../engine/compiler.js';
+import { FIXTURES, CounterCard } from '../fixtures/index';
+import { inspectAureliaSsr } from '../engine/inspector';
+import { compilePlaygroundExample, type CompileRequest } from '../engine/compiler';
 import { renderAurelia, serializeState, createHtmlDocument, type RenderContext } from '@aureliajs/ssr';
 import {
   getFaviconSvg,
@@ -14,9 +14,9 @@ import {
   getPreviewStylesheet,
   getPrismBundleScript,
   getPrismStylesheet,
-} from './assets.js';
-import { renderDashboardHtml } from './dashboard.js';
-import { loadAllExamples } from '../examples/loader.js';
+} from './assets';
+import { renderDashboardHtml } from './dashboard';
+import { loadAllExamples } from '../examples/loader';
 
 export function createPlaygroundApp(): Hono {
   const app = new Hono();

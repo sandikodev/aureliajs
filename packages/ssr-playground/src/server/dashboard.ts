@@ -4,7 +4,7 @@
  * Compact UI/UX, Independent Resizable Panes, Offline Prism Syntax Highlighting, and Per-Example Profiling
  */
 
-import type { ExampleMeta } from '../examples/loader.js';
+import type { ExampleMeta } from '../examples/loader';
 
 export function renderDashboardHtml(examplesRegistry: Record<string, ExampleMeta> = {}): string {
   const serializedExamples = JSON.stringify(examplesRegistry);

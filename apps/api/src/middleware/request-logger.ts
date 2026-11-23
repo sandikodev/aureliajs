@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from 'hono';
-import { log, requestId } from '../lib/log.js';
+import { log, requestId } from '../lib/log';
 
 /**
  * Request logging.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { limitsFor, planFromSubscription } from '../src/lib/plan-limits.js';
+import { limitsFor, planFromSubscription } from '../src/lib/plan-limits';
 
 describe('Plan Limits & Subscription Policy (apps/api)', () => {
   it('returns appropriate limits for free, pro, and scale plans', () => {

@@ -6,8 +6,8 @@ import type {
   TemplateBinding,
   TemplateInterpolation,
   ViewModelMember,
-} from './types.js';
-import { parseAuxBlocks } from './parser.js';
+} from './types';
+import { parseAuxBlocks } from './parser';
 
 /**
  * Analyzes an .aux file document: parses script block with TypeScript AST

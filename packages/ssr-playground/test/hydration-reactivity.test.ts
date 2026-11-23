@@ -9,8 +9,8 @@
 import { describe, it, expect } from 'bun:test';
 import { JSDOM } from 'jsdom';
 import { renderAurelia, serializeState, createHtmlDocument } from '@aureliajs/ssr';
-import { CounterCard } from '../src/fixtures/counter-card.js';
-import { getClientHydrationScript, getPreviewStylesheet } from '../src/server/assets.js';
+import { CounterCard } from '../src/fixtures/counter-card';
+import { getClientHydrationScript, getPreviewStylesheet } from '../src/server/assets';
 
 describe('Aurelia 2 SSR Hydration & Reactivity Verification', () => {
   it('1. Server pre-renders initial state correctly with preserved attributes', async () => {

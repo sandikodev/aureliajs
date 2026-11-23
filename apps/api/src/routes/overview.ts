@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 import { and, count, desc, eq, gte, isNotNull, lt, sql, sum } from 'drizzle-orm';
 import { z } from 'zod';
-import { getDb, schema } from '../db/client.js';
-import { tenantOf } from '../middleware/tenant.js';
+import { getDb, schema } from '../db/client';
+import { tenantOf } from '../middleware/tenant';
 
 export const overviewRoutes = new Hono();
 
