@@ -68,17 +68,55 @@ recommended. Fix the technical SEO first, then measure.
   written to `dist/landing.html`. `vercel.json` rewrites `/` to that file.
   A full Vercel Function would add cold starts to a page whose content never
   changes, so static prerender is the right form of SSR here.
-- `main.ts` removes `[data-ssr-landing]` before mounting the SPA, so users
-  never see a duplicate page. Crawlers get complete HTML without executing JS.
-- All other route components are dynamic imports in `config/routes.ts`. They
-  are downloaded on first visit instead of in the initial bundle. The
-  `vendor-zod` chunk is no longer preloaded on first paint.
+- The prerendered file is **static-first**: the SPA entry script and its
+  modulepreloads are stripped, leaving only the stylesheet plus a tiny inline
+  bootstrap (~20 lines) for the two CTA buttons and the signed-in redirect.
+  This matters — an earlier version kept the SPA script and removed the SSR
+  DOM before mounting, which made Lighthouse measure the _re-rendered_ text at
+  ~5.4 s on throttled mobile. Now there is no re-render at all.
+- Signed-in visitors never see the marketing copy. The API sets a non-HttpOnly
+  `aurelia_ops_authed=1` hint cookie alongside the real HttpOnly session;
+  the inline bootstrap reads it in `<head>` and redirects to `/overview`
+  before first paint. The hint grants no access — every API route still checks
+  the HttpOnly cookie.
+- All non-landing route components are dynamic imports in `config/routes.ts`.
+  They are downloaded on first visit instead of in the initial bundle. Landing
+  stays eager in the SPA because the router needs the default route to resolve
+  its `fallback` (AUR3174 otherwise) — but static `/` never loads that bundle.
+
+## Headless Lighthouse audit
+
+Run against a local static server serving `apps/web/dist` with the same
+`/ → landing.html` rewrite as production (the API only needs to be up for the
+signed-in path; the anonymous landing makes no API calls):
+
+```bash
+CHROME_PATH=/home/dev/.cache/ms-playwright/chromium-1254/chrome-linux64/chrome \
+LD_LIBRARY_PATH=/home/dev/.local/lib/chrome-deps/usr/lib/x86_64-linux-gnu \
+bunx lighthouse http://localhost:5098/ --headless --no-sandbox \
+  --only-categories=performance,accessibility,best-practices,seo \
+  --output=json --output-path=/tmp/lh.json \
+  --chrome-flags="--headless=new --no-sandbox --disable-dev-shm-usage"
+```
+
+Add `--preset=desktop` for the desktop profile. Results on 23 Nov 2026:
+
+| Profile                       | Performance | Accessibility | Best practices | SEO     | LCP   | CLS   |
+| ----------------------------- | ----------- | ------------- | -------------- | ------- | ----- | ----- |
+| Mobile (simulated throttling) | **100**     | **100**       | **100**        | **100** | 1.1 s | 0     |
+| Desktop                       | **100**     | **100**       | **100**        | **100** | 0.3 s | 0.052 |
+
+The live production baseline before this work scored 96 / 100 / 100 / 91;
+the only SEO failure was the invalid `robots.txt`, now fixed. Remaining
+non-scoring audit notes are unused CSS (~10 KiB), render-blocking CSS and
+document latency — all small on this page and not worth regressing the design
+for.
 
 ## How to verify
 
 ```bash
 bun run build                       # produces apps/web/dist/landing.html
-bun test                            # 266 tests, including 4 SEO-output checks
+bun test                            # 268 tests, including 4 SEO-output checks and 2 session-cookie checks
 bun run typecheck && bun run lint
 vercel build                        # inspect .vercel/output/config.json locally
 ```
@@ -102,13 +140,16 @@ The `scripts/live-smoke.ts` suite already checks `/` and `/api/health`.
 
 ## What to do after deployment
 
-1. Enable Vercel Analytics and Speed Insights in the dashboard.
+1. Enable Vercel Analytics and Speed Insights in the dashboard. The landing
+   page ships no framework JS, so its pageviews only appear if platform-level
+   injection is enabled there; the SPA routes are covered by `main.ts`.
 2. Wait 24–48 h, then read **LCP**, **INP**, **CLS** and the top referrers.
 3. Submit `https://aureliajs.vercel.app/sitemap.xml` in Google Search Console
    and check Coverage → "Indexed".
-4. Add a 1200×630 PNG `og:image` (and `twitter:image`) when a social card
-   exists. Most crawlers ignore SVG here, so it was deliberately not faked
-   with the favicon.
-5. Only then consider further bundle work. Optimising without measurements is
+4. Only then consider further bundle work. Optimising without measurements is
    guesswork; the current initial JS is ~120 kB gzipped and the largest single
    chunk (`ui-primitives`) is ~72 kB gzipped.
+
+The 1200×630 social card is `apps/web/public/og-image.png` (generated with the
+host's Antigravity `image-generator` subagent, then quantised from 707 kB to
+318 kB with `pngquant`). Both `og:image` and `twitter:image` point at it.

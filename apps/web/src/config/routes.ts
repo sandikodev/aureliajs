@@ -10,9 +10,10 @@ import { LandingPage } from '@/pages/landing-page';
  * invitations without log out first.
  * PROTECTED_ROUTES — auth required, unauthenticated users redirected to /login
  *
- * The landing page is the only eager page: it is the initial route for most
- * visitors and is also server-rendered at build time. Every other page is a
- * dynamic import so the router fetches it only when visited.
+ * The landing page is the only eager page: it is the default route used to
+ * resolve `fallback`, and it is also prerendered as static HTML for `/` (which
+ * does not boot the SPA at all). Every other page is a dynamic import so the
+ * router fetches it only when visited.
  */
 
 export const PUBLIC_ROUTES = [

@@ -16,6 +16,7 @@
           <a href="#stats" external class="text-sm text-muted-foreground hover:text-foreground">Stats</a>
           <button
             click.trigger="signIn()"
+            data-ssr-login
             class="rounded-md bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer"
           >
             Sign in
@@ -43,6 +44,7 @@
         <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
             click.trigger="getStarted()"
+            data-ssr-login
             class="rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm hover:shadow-md cursor-pointer"
           >
             Get started

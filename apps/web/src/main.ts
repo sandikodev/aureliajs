@@ -18,15 +18,12 @@ if (import.meta.env.PROD) {
   injectSpeedInsights();
 }
 
-// `/` ships build-time-rendered landing markup so crawlers and social
-// previews see real content. The SPA mounts into the same host; drop the
-// static copy first so there is never a duplicate page in the DOM.
-document.querySelector('[data-ssr-landing]')?.remove();
-
 /**
- * Only the landing page is eager. The router registers lazy route components
- * itself when it resolves their dynamic imports; registering them here would
- * pull every page back into the initial bundle.
+ * Landing stays eager: the router uses the default (`''`) route to resolve the
+ * `fallback` page, and making it lazy breaks that resolution with AUR3174.
+ * The static `/` never loads this entry at all — its prerendered HTML has no
+ * SPA script, only a tiny inline CTA/bootstrap — so this costs nothing there.
+ * Every other route component is a dynamic import in config/routes.ts.
  */
 void Aurelia.register(
   RouterConfiguration.customize({

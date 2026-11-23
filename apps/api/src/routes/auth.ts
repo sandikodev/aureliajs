@@ -18,11 +18,13 @@ import { resolveWorkspace, type WorkspaceContext } from '../lib/workspace';
 import * as rateLimit from '../lib/rate-limit';
 import {
   SESSION_COOKIE,
+  SESSION_HINT_COOKIE,
   SESSION_TTL_SECONDS,
   createSessionToken,
   hashSessionToken,
   loadSession,
   sessionCookie,
+  sessionHintCookie,
 } from '../lib/session';
 
 const emptySession: AuthSession = { user: null, workspace: null, role: null };
@@ -137,6 +139,7 @@ authRoutes.post(
       .where(and(eq(schema.sessions.userId, user.id), lt(schema.sessions.expiresAt, new Date())));
 
     setCookie(c, SESSION_COOKIE, token, sessionCookie());
+    setCookie(c, SESSION_HINT_COOKIE, '1', sessionHintCookie());
     return c.json(toSession(user, workspace));
   },
 );
@@ -152,6 +155,12 @@ authRoutes.post('/auth/logout', async (c) => {
     secure: isProd,
     sameSite: 'lax',
     httpOnly: true,
+  });
+  deleteCookie(c, SESSION_HINT_COOKIE, {
+    path: '/',
+    secure: isProd,
+    sameSite: 'lax',
+    httpOnly: false,
   });
   return c.body(null, 204);
 });

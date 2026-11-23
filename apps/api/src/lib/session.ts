@@ -4,6 +4,13 @@ import { getDb, schema } from '../db/client';
 import { isProd } from '../env';
 
 export const SESSION_COOKIE = 'aurelia_session';
+/**
+ * Non-secret, JS-readable mirror of the session state. The static landing page
+ * uses it to send signed-in visitors straight to /overview without booting the
+ * SPA first. It grants no access on its own — every API route still checks the
+ * HttpOnly `aurelia_session` cookie.
+ */
+export const SESSION_HINT_COOKIE = 'aurelia_ops_authed';
 export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
 
 /** 32 random bytes, base64url — the only time the raw token exists client-side. */
@@ -22,6 +29,17 @@ export function hashSessionToken(token: string): string {
 export function sessionCookie() {
   return {
     httpOnly: true,
+    sameSite: 'lax' as const,
+    secure: isProd,
+    path: '/',
+    maxAge: SESSION_TTL_SECONDS,
+  };
+}
+
+/** Deliberately readable by the static landing page's inline bootstrap. */
+export function sessionHintCookie() {
+  return {
+    httpOnly: false,
     sameSite: 'lax' as const,
     secure: isProd,
     path: '/',

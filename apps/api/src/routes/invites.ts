@@ -15,7 +15,12 @@ import { env } from '../env';
 import { hashPassword } from '../lib/password';
 import { createHash, randomBytes } from 'node:crypto';
 import { setCookie } from 'hono/cookie';
-import { SESSION_COOKIE, sessionCookie } from '../lib/session';
+import {
+  SESSION_COOKIE,
+  SESSION_HINT_COOKIE,
+  sessionCookie,
+  sessionHintCookie,
+} from '../lib/session';
 import { sendInviteEmail } from '../services/email';
 import * as rateLimit from '../lib/rate-limit';
 import { requireRole, tenantOf } from '../middleware/tenant';
@@ -414,6 +419,7 @@ publicInviteRoutes.post(
 
     // Cookies can only be set on the real response, after the commit.
     setCookie(c, SESSION_COOKIE, accepted.sessionToken, sessionCookie());
+    setCookie(c, SESSION_HINT_COOKIE, '1', sessionHintCookie());
 
     return c.json({
       user: {

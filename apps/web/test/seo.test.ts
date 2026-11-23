@@ -16,20 +16,30 @@ describe.skipIf(!built)('production SEO output', () => {
   const index = readFileSync(new URL('index.html', dist), 'utf8');
 
   test('landing.html contains real, server-rendered landing content', () => {
+    // The app shell normally supplies <main>; the standalone static page needs
+    // its own so axe/Lighthouse do not report a missing landmark.
+    expect(landing).toContain('<main id="main-content">');
     expect(landing).toContain('<div data-ssr-landing>');
     expect(landing).toContain('SaaS Admin Dashboard');
     expect(landing).toContain('Team Management');
     expect(landing).toContain('Stripe Billing');
     // Framework markers are useless without a hydration pass on the static copy.
     expect(landing).not.toContain('<!--au-->');
-    // Built from the same shell, so it still boots the SPA in a real browser.
-    expect(landing).toContain('/assets/index-');
+    // Static-first: the landing page never downloads or mounts the SPA.
+    expect(landing).not.toContain('type="module"');
+    expect(landing).not.toContain('rel="modulepreload"');
+    expect(landing).toContain('rel="stylesheet"');
+    // Its two CTAs and the signed-in redirect are wired by a tiny inline script.
+    expect(landing).toContain('data-ssr-login');
+    expect(landing).toContain('aurelia_ops_authed=1');
   });
 
   test('the shell exposes canonical, Open Graph and structured data', () => {
     for (const html of [index, landing]) {
       expect(html).toContain('rel="canonical"');
       expect(html).toContain('property="og:title"');
+      expect(html).toContain('property="og:image"');
+      expect(html).toContain('name="twitter:image"');
       expect(html).toContain('name="twitter:card"');
       expect(html).toContain('application/ld+json');
       expect(html).toContain('github.com/sandikodev/aureliajs');
@@ -37,6 +47,12 @@ describe.skipIf(!built)('production SEO output', () => {
   });
 
   test('robots.txt and sitemap.xml are real files, not the SPA fallback', () => {
+    const ogImage = readFileSync(new URL('og-image.png', dist));
+    // PNG signature and IHDR width/height (1200 x 630).
+    expect([...ogImage.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
+    expect(ogImage.readUInt32BE(16)).toBe(1200);
+    expect(ogImage.readUInt32BE(20)).toBe(630);
+
     const robots = readFileSync(new URL('robots.txt', dist), 'utf8');
     const sitemap = readFileSync(new URL('sitemap.xml', dist), 'utf8');
     expect(robots).toMatch(/^User-agent: \*/);

@@ -1,15 +1,17 @@
 /**
  * Build-time SSR for the public landing page.
  *
- * The landing markup has no runtime data, so serving it from a Vercel
- * Function would add cold starts for nothing. Instead we render the real
- * Aurelia component through @aureliajs/ssr once, at build time, and write the
- * result to `dist/landing.html`. `vercel.json` rewrites `/` to that file, so
- * crawlers and link previews get complete HTML without executing JavaScript.
+ * The landing markup has no runtime data, so neither a Vercel Function nor the
+ * Aurelia SPA needs to run for it. We render the real component through
+ * @aureliajs/ssr once, at build time, and write `dist/landing.html`. That file:
  *
- * The SPA still boots on `/` and replaces the static copy (main.ts removes
- * `[data-ssr-landing]` before mounting), so there is one component definition
- * for both worlds.
+ * - contains the complete hero/features/footer HTML for crawlers and previews;
+ * - keeps only the stylesheet (no framework JS), so LCP is not gated on JS;
+ * - carries a ~20-line bootstrap for the two CTA buttons and the signed-in
+ *   redirect, which are the only interactive behaviours the page needs.
+ *
+ * `vercel.json` rewrites `/` to this file. Other routes still serve index.html
+ * and boot the SPA normally.
  */
 import { readFile, writeFile } from 'node:fs/promises';
 // Relative import: this script lives at the workspace root, while the SSR
@@ -33,6 +35,34 @@ const markup = await renderAurelia({
 if (!markup || !markup.includes('SaaS Admin Dashboard')) {
   throw new Error('Landing prerender produced unexpected HTML — refusing to publish it');
 }
+if (!markup.includes('data-ssr-login')) {
+  throw new Error('Landing CTAs lost their data-ssr-login hook during SSR');
+}
+
+/**
+ * Runs in <head>, before first paint. The hint cookie is deliberately not
+ * HttpOnly so this can happen without a network round-trip. It is only a UX
+ * shortcut — API routes still authorise against the HttpOnly session cookie.
+ */
+const bootstrap = `<script>
+  (function () {
+    var signedIn = document.cookie.split('; ').some(function (c) {
+      return c.indexOf('aurelia_ops_authed=1') === 0;
+    });
+    if (signedIn) {
+      location.replace('/overview');
+      return;
+    }
+    document.addEventListener('click', function (event) {
+      var target = event.target;
+      var cta = target && target.closest ? target.closest('[data-ssr-login]') : null;
+      if (cta) {
+        event.preventDefault();
+        location.assign('/login');
+      }
+    });
+  })();
+</script>`;
 
 const shell = await readFile(shellPath, 'utf8');
 const host = '<app-root></app-root>';
@@ -40,9 +70,23 @@ if (!shell.includes(host)) {
   throw new Error(`Expected ${host} in apps/web/dist/index.html`);
 }
 
-const landing = shell.replace(host, `<app-root><div data-ssr-landing>${markup}</div></app-root>`);
+// The SPA entry and its preloads are useless on a page that never mounts the
+// app. Dropping them keeps the static landing free of framework JavaScript.
+const stripped = shell
+  .replace(/<script type="module"[^>]*><\/script>\s*/g, '')
+  .replace(/<link rel="modulepreload"[^>]*>\s*/g, '');
+if (stripped.includes('type="module"')) {
+  throw new Error('Failed to strip SPA entry script from the static landing page');
+}
+
+const landing = stripped
+  .replace(
+    host,
+    `<app-root><main id="main-content"><div data-ssr-landing>${markup}</div></main></app-root>`,
+  )
+  .replace('</head>', `  ${bootstrap}\n  </head>`);
 
 await writeFile(landingPath, landing);
 console.log(
-  `[prerender] ${landingPath.pathname.split('/dist/')[1] ?? 'landing.html'} (${landing.length} bytes)`,
+  `[prerender] ${landingPath.pathname.split('/dist/')[1] ?? 'landing.html'} (${landing.length} bytes, static)`,
 );
