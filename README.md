@@ -12,7 +12,7 @@ _A production-grade Multi-Tenant SaaS showcase, Edge SSR engines, `.aux` Single-
 [![Vite](https://img.shields.io/badge/Vite-v8-646CFF.svg?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev)
 [![Tailwind CSS 4](https://img.shields.io/badge/Tailwind_CSS-v4_oklch-06B6D4.svg?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Runtime](https://img.shields.io/badge/Runtime-Bun_%7C_Node_%7C_Edge-fbf0df.svg?style=flat-square&logo=bun&logoColor=black)](https://bun.sh)
-[![Tests](https://img.shields.io/badge/Tests-268_Passed-success.svg?style=flat-square)](apps/web/test)
+[![Tests](https://img.shields.io/badge/Tests-275_Passed-success.svg?style=flat-square)](apps/web/test)
 [![Linter](https://img.shields.io/badge/Linter-Oxlint_Clean-10b981.svg?style=flat-square)](https://oxc.rs)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
