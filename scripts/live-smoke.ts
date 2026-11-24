@@ -358,11 +358,14 @@ await check('billing overview exposes plan, limits, usage and price flags', asyn
   return `plan=${res.json.plan}, ${res.json.usage.projects} projects, ${res.json.usage.seats} seats`;
 });
 
-await check('Stripe portal creates a real billing-portal session', async () => {
+await check('Stripe portal refuses a free workspace with no billing account', async () => {
+  // A brand-new signup starts on the free plan with no Stripe customer. The
+  // portal must refuse it instead of manufacturing a billing account. Once a
+  // subscription exists (LIVE_WRITE webhook flow), a real session is created.
   const res = await owner.request('/api/billing/portal', { method: 'POST' });
-  expectStatus(res, 200, 'portal');
-  assert.match(res.json.url, /^https:\/\/billing\.stripe\.com/);
-  return 'https://billing.stripe.com session';
+  expectStatus(res, 400, 'portal without billing account');
+  assert.equal(res.json.error?.code, 'billing_not_configured');
+  return 'billing_not_configured for the fresh free workspace';
 });
 
 for (const [plan, interval] of [
