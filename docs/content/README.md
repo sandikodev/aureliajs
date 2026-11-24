@@ -1,16 +1,17 @@
 # Content kit: Sandikodev, Aurelia 2, and production engineering
 
-This folder holds publish-ready drafts for five channels. Each file stands on its own. Read this index first so every channel quotes the same numbers and the same source of truth.
+This folder holds the publish-ready drafts and the earlier community launch kit. Each file stands on its own. Read this index first so every channel quotes the same numbers and the same source of truth.
 
 ## Channel map
 
-| File                           | Channel             | Language   | Job                                                              |
-| ------------------------------ | ------------------- | ---------- | ---------------------------------------------------------------- |
-| `website-anatomy-of-a-seam.md` | Personal website    | English    | Canonical long-form piece. Every other channel points here.      |
-| `devto-articles.md`            | dev.to              | English    | Three technical articles. Invites architecture review.           |
-| `reddit-post.md`               | r/aurelia, r/webdev | English    | Non-promotional discussion post. Link goes in the first comment. |
-| `facebook-post.md`             | Facebook            | Indonesian | Community storytelling in Bahasa Indonesia.                      |
-| `linkedin-post.md`             | LinkedIn            | English    | Engineering leadership and developer experience angle.           |
+| File                           | Channel                             | Language   | Job                                                              |
+| ------------------------------ | ----------------------------------- | ---------- | ---------------------------------------------------------------- |
+| `website-anatomy-of-a-seam.md` | Personal website                    | English    | Canonical long-form piece. Every other channel points here.      |
+| `devto-articles.md`            | dev.to                              | English    | Three technical articles. Invites architecture review.           |
+| `reddit-post.md`               | r/aurelia, r/webdev                 | English    | Non-promotional discussion post. Link goes in the first comment. |
+| `facebook-post.md`             | Facebook                            | Indonesian | Community storytelling in Bahasa Indonesia.                      |
+| `linkedin-post.md`             | LinkedIn                            | English    | Engineering leadership and developer experience angle.           |
+| `community-launch-posts.md`    | dev.to, LinkedIn, Facebook, Discord | Mixed      | Earlier launch kit. Kept as a separate set of drafts.            |
 
 ## Proof points and where they come from
 
