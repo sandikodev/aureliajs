@@ -14,6 +14,9 @@ packages/
 # Web templates are kept exactly as committed during the responsive pass
 apps/web/src/**/*.html
 
+# Local content drafts
+docs/content/
+
 # Historical snapshots — do not rewrite dated narrative
 docs/archive/
 docs/AURELIA_CLEAN_NATIVE_ROADMAP.md

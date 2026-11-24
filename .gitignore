@@ -38,3 +38,6 @@ packages/*/example/dist/
 
 # Reference benchmark apps
 benchmarks/
+
+# Local content drafts. Written here, published manually, not part of the repo.
+docs/content/
