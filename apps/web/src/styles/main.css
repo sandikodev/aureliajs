@@ -48,6 +48,9 @@ overview-page,
 members-page,
 billing-page,
 settings-page,
+login-page,
+signup-page,
+invite-page,
 not-found-page {
   display: block;
   width: 100%;

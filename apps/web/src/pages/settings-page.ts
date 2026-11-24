@@ -20,8 +20,11 @@ export class SettingsPage {
   /** The workspace row, loaded from the API. */
   current: CurrentWorkspace | null = null;
 
-  /** Editable copy of the fields. */
-  workspace = { name: '', slug: '' };
+  /** Editable copy of the fields, seeded immediately from auth session. */
+  workspace = {
+    name: this.auth.workspace?.name ?? '',
+    slug: this.auth.workspace?.slug ?? '',
+  };
   weeklyDigest = true;
 
   isLoading = true;
@@ -59,11 +62,11 @@ export class SettingsPage {
   }
 
   get canRename(): boolean {
-    return this.current?.role === 'owner';
+    return (this.current?.role ?? this.auth.role) === 'owner';
   }
 
   get canDelete(): boolean {
-    return this.current?.role === 'owner';
+    return (this.current?.role ?? this.auth.role) === 'owner';
   }
 
   async attached(): Promise<void> {
@@ -73,6 +76,10 @@ export class SettingsPage {
   async load(): Promise<void> {
     this.isLoading = true;
     try {
+      if (this.auth.workspace) {
+        this.workspace.name = this.auth.workspace.name;
+        this.workspace.slug = this.auth.workspace.slug;
+      }
       const current = await api.currentWorkspace();
       this.current = current;
       this.workspace = { name: current.name, slug: current.slug };
@@ -83,6 +90,10 @@ export class SettingsPage {
         this.i18n.setLocale(current.settings.locale);
       }
     } catch (cause) {
+      if (this.auth.workspace) {
+        this.workspace.name = this.auth.workspace.name;
+        this.workspace.slug = this.auth.workspace.slug;
+      }
       this.toast.error(
         cause instanceof ApiError ? cause.message : this.i18n.t('errors.loadWorkspaceFailed'),
       );
