@@ -82,7 +82,8 @@ export class SettingsPage {
       }
       const current = await api.currentWorkspace();
       this.current = current;
-      this.workspace = { name: current.name, slug: current.slug };
+      this.workspace.name = current.name;
+      this.workspace.slug = current.slug;
       this.weeklyDigest = current.settings.weeklyDigest;
 
       // The workspace owns the locale, so it wins over the browser guess.

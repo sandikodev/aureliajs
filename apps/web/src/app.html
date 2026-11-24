@@ -22,7 +22,7 @@
 </div>
 
 <!-- 2. UNIFIED LAYOUT — single <au-viewport> always mounted in DOM -->
-<div class="flex min-h-dvh bg-background">
+<div class="flex min-h-dvh w-full bg-background">
   <!-- Skip link -->
   <a
     if.bind="showShell"
@@ -180,15 +180,15 @@
   </aside>
 
   <!-- Main area: header + content -->
-  <div class="flex min-w-0 flex-1 flex-col">
+  <div class="flex min-w-0 flex-1 w-full flex-col">
     <!-- Header -->
     <header
       if.bind="showShell"
-      class="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      class="sticky top-0 z-20 flex h-14 w-full items-center gap-2 sm:gap-3 border-b border-border bg-background/95 px-3 sm:px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60"
     >
       <!-- Mobile sidebar toggle -->
       <button
-        class="rounded-lg p-2 transition-colors hover:bg-accent lg:hidden"
+        class="shrink-0 rounded-lg p-2 transition-colors hover:bg-accent lg:hidden"
         aria-label.bind="copy['app.openNavigation']"
         click.trigger="toggleSidebar()"
       >
@@ -198,7 +198,7 @@
       <!-- Search -->
       <form class="flex min-w-0 flex-1 items-center" submit.trigger="submitSearch()">
         <div
-          class="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-input bg-input px-3 py-2 transition-colors focus-within:border-ring focus-within:ring-1 focus-within:ring-ring"
+          class="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-input bg-input px-2.5 py-1.5 sm:px-3 sm:py-2 transition-colors focus-within:border-ring focus-within:ring-1 focus-within:ring-ring"
         >
           <ui-icon name="search" size="16" class="shrink-0 text-muted-foreground"></ui-icon>
           <input
@@ -212,7 +212,7 @@
       </form>
 
       <!-- Actions -->
-      <div class="flex items-center gap-1">
+      <div class="flex shrink-0 items-center gap-0.5 sm:gap-1">
         <!-- Notifications -->
         <details ref="notificationDetailsEl" class="relative">
           <summary
@@ -287,9 +287,9 @@
       id="main-content"
       ref="mainContentEl"
       tabindex="-1"
-      class="flex-1 min-w-0 outline-none overflow-x-hidden ${showShell ? 'overflow-y-auto' : ''}"
+      class="flex-1 min-w-0 w-full outline-none overflow-x-hidden ${showShell ? 'overflow-y-auto' : ''}"
     >
-      <div class="${showShell ? 'mx-auto max-w-7xl min-w-0 px-4 py-6 sm:px-6 lg:px-8' : ''}">
+      <div class="w-full ${showShell ? 'mx-auto max-w-7xl min-w-0 px-4 py-6 sm:px-6 lg:px-8' : ''}">
         <au-viewport class="block w-full min-w-0"></au-viewport>
       </div>
     </main>
