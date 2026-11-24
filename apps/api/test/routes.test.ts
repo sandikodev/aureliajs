@@ -55,6 +55,42 @@ describe('API Route Security & Validation Machine (apps/api)', () => {
       expect(body.error.code).toBe('validation_failed');
       expect(body.error.issues.length).toBeGreaterThan(0);
     });
+
+    it('rejects signup without a name or workspace name', async () => {
+      const res = await app.request('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'new@example.com', password: 'password123' }),
+      });
+
+      expect(res.status).toBe(422);
+      const body = (await res.json()) as {
+        error: { code: string; issues: Array<{ path: string }> };
+      };
+      expect(body.error.code).toBe('validation_failed');
+      const paths = body.error.issues.map((issue) => issue.path);
+      expect(paths).toContain('name');
+      expect(paths).toContain('workspaceName');
+    });
+
+    it('rejects signup with a short password', async () => {
+      const res = await app.request('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'new@example.com',
+          password: 'short',
+          name: 'New User',
+          workspaceName: 'New Workspace',
+        }),
+      });
+
+      expect(res.status).toBe(422);
+      const body = (await res.json()) as {
+        error: { code: string; issues: Array<{ path: string }> };
+      };
+      expect(body.error.issues.some((issue) => issue.path === 'password')).toBe(true);
+    });
   });
 
   describe('Role-Based Access Control (RBAC)', () => {

@@ -3,15 +3,21 @@ import { expect, test } from '@playwright/test';
 /**
  * Smoke coverage for the shell + routing + the design system.
  * These are the checks that break first when framework conventions drift.
+ *
+ * Every test signs up through the public UI, so the flow also guards the real
+ * bootstrap path a brand-new visitor uses in production.
  */
 
 const consoleErrors: string[] = [];
 
-async function loginAsDemo(page: any) {
-  await page.goto('/login');
-  await page.getByLabel('Work email').fill('demo@aureliajs.dev');
-  await page.getByLabel('Password').fill('demo-password-123');
-  await page.getByRole('button', { name: 'Sign in' }).click();
+async function signUpInUi(page: any) {
+  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  await page.goto('/signup');
+  await page.getByLabel('Your name').fill('E2E Owner');
+  await page.getByLabel('Workspace name').fill(`E2E Workspace ${stamp}`);
+  await page.getByLabel('Work email').fill(`e2e-ui-${stamp}@example.invalid`);
+  await page.getByLabel('Password').fill(`E2e-${stamp}-Aa1!`);
+  await page.getByRole('button', { name: 'Create account' }).click();
   await expect(page).toHaveURL(/\/overview/);
   // Wait for the overview page to fully render
   await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible({ timeout: 10000 });
@@ -24,7 +30,7 @@ test.beforeEach(async ({ page }) => {
   });
   page.on('pageerror', (error) => consoleErrors.push(error.message));
 
-  await loginAsDemo(page);
+  await signUpInUi(page);
 });
 
 test.afterEach(() => {

@@ -4,7 +4,6 @@ import { customElement, resolve } from 'aurelia';
 import type { IRouteViewModel, Params } from '@aurelia/router';
 import template from './projects-page.html';
 import { ProjectDialog, type ProjectSavedDetail } from './project-dialog';
-import { DEMO_PROJECTS } from '@/lib/demo-data';
 import { STATUS_META } from '@/lib/status';
 import { formatDate, relativeTime } from '@/lib/utils';
 import { api } from '@/services/api';
@@ -109,11 +108,9 @@ export class ProjectsPage implements IRouteViewModel {
     this.toast.success(this.i18n.t(key, { name }));
   }
 
-  private notifySuccessLocal(
-    key: 'projects.createdLocal' | 'projects.updatedLocal' | 'projects.deletedLocal',
-  ): void {
+  private notifyError(): void {
     this.i18n.track();
-    this.toast.success(this.i18n.t(key));
+    this.toast.error(this.i18n.t('errors.loadFailed'));
   }
 
   items: Project[] = [];
@@ -127,7 +124,7 @@ export class ProjectsPage implements IRouteViewModel {
   sort: 'updated' | 'budget' | 'name' = 'updated';
 
   isLoading = true;
-  demo = false;
+  loadError = false;
 
   get totalPages(): number {
     return Math.max(1, Math.ceil(this.total / this.pageSize));
@@ -208,33 +205,14 @@ export class ProjectsPage implements IRouteViewModel {
       });
       this.items = result.items;
       this.total = result.total;
-      this.demo = false;
+      this.loadError = false;
     } catch {
-      this.loadLocal();
-      this.demo = true;
+      this.items = [];
+      this.total = 0;
+      this.loadError = true;
     } finally {
       this.isLoading = false;
     }
-  }
-
-  private loadLocal(): void {
-    let rows = [...DEMO_PROJECTS];
-    if (this.q) {
-      const needle = this.q.toLowerCase();
-      rows = rows.filter(
-        (p) => p.name.toLowerCase().includes(needle) || p.ownerName.toLowerCase().includes(needle),
-      );
-    }
-    if (this.status) rows = rows.filter((p) => p.status === this.status);
-    rows.sort((a, b) => {
-      if (this.sort === 'budget') return b.budgetCents - a.budgetCents;
-      if (this.sort === 'name') return a.name.localeCompare(b.name);
-      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-    });
-    this.total = rows.length;
-    const maxPage = Math.max(1, Math.ceil(rows.length / this.pageSize));
-    if (this.page > maxPage) this.page = maxPage;
-    this.items = rows.slice((this.page - 1) * this.pageSize, this.page * this.pageSize);
   }
 
   onSearchInput(): void {
@@ -293,38 +271,9 @@ export class ProjectsPage implements IRouteViewModel {
         await this.load();
       }
     } else {
-      // Local fallback for demo or offline mode
-      this.applyLocalMutation(detail.input, detail.isEdit);
-      this.notifySuccessLocal(detail.isEdit ? 'projects.updatedLocal' : 'projects.createdLocal');
-    }
-  }
-
-  private applyLocalMutation(
-    input: {
-      name: string;
-      status: ProjectStatus;
-      budgetCents: number;
-      dueDate: string | null;
-      ownerName: string;
-    },
-    isEdit: boolean,
-  ): void {
-    const now = new Date().toISOString();
-    if (isEdit && this.dialog.editingId) {
-      const editId = this.dialog.editingId;
-      this.items = this.items.map((row) =>
-        row.id === editId ? { ...row, ...input, updatedAt: now } : row,
-      );
-    } else {
-      const project: Project = {
-        id: `local-${Date.now()}`,
-        workspaceId: 'demo-workspace',
-        createdAt: now,
-        updatedAt: now,
-        ...input,
-      };
-      this.items = [project, ...this.items].slice(0, this.pageSize);
-      this.total += 1;
+      // The API is the only writer. Never invent a row locally.
+      this.loadError = true;
+      this.notifyError();
     }
   }
 
@@ -335,10 +284,8 @@ export class ProjectsPage implements IRouteViewModel {
       this.notifySuccess('projects.deleted', project.name);
       await this.load();
     } catch {
-      this.items = this.items.filter((row) => row.id !== project.id);
-      this.total = Math.max(0, this.total - 1);
-      this.demo = true;
-      this.notifySuccessLocal('projects.deletedLocal');
+      this.loadError = true;
+      this.notifyError();
     }
   }
 

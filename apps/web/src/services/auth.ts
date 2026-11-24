@@ -1,4 +1,4 @@
-import type { AuthSession, Role, User, Workspace } from '@aurelia-ops/shared';
+import type { AuthSession, RegisterInput, Role, User, Workspace } from '@aurelia-ops/shared';
 import { observable } from 'aurelia';
 import { initials } from '@/lib/utils';
 import { api } from './api';
@@ -65,6 +65,11 @@ export class AuthService {
 
   async login(email: string, password: string): Promise<void> {
     const session = await api.login({ email, password });
+    this.apply(session);
+  }
+
+  async signup(input: RegisterInput): Promise<void> {
+    const session = await api.signup(input);
     this.apply(session);
   }
 

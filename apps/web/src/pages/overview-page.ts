@@ -2,10 +2,10 @@ import { customElement, resolve } from 'aurelia';
 import { IRouter } from '@aurelia/router';
 import template from './overview-page.html';
 import { formatCents } from '@aurelia-ops/shared/utils';
-import { DEMO_OVERVIEW } from '@/lib/demo-data';
+
 import { statusMeta } from '@/lib/status';
 import { relativeTime } from '@/lib/utils';
-import { api, type Overview, type Period } from '@/services/api';
+import { api, emptyOverview, type Overview, type Period } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { I18nService } from '@/services/i18n';
 import { ToastService } from '@/services/toast';
@@ -60,8 +60,8 @@ export class OverviewPage {
   }
 
   isLoading = true;
-  demo = false;
-  overview: Overview = DEMO_OVERVIEW;
+  loadError = false;
+  overview: Overview = emptyOverview();
 
   /** The reporting window. Changing it re-queries the API. */
   period: Period = 'last-30';
@@ -108,14 +108,9 @@ export class OverviewPage {
     });
   }
 
-  /**
-   * The throughput series comes from the API — projects created per month.
-   * The demo fallback keeps the same shape so the chart renders either way.
-   */
+  /** The throughput series comes from the API — projects created per month. */
   get trend(): number[] {
-    const series = this.overview.trend;
-    if (!series || series.length === 0) return DEMO_OVERVIEW.trend.map((point) => point.value);
-    return series.map((point) => point.value);
+    return this.overview.trend.map((point) => point.value);
   }
 
   get trendPoints(): Array<{ x: number; y: number }> {
@@ -158,10 +153,10 @@ export class OverviewPage {
     this.isLoading = true;
     try {
       this.overview = await api.overview(this.period);
-      this.demo = false;
+      this.loadError = false;
     } catch {
-      this.overview = DEMO_OVERVIEW;
-      this.demo = true;
+      this.overview = emptyOverview(this.period);
+      this.loadError = true;
     } finally {
       this.isLoading = false;
     }

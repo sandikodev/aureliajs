@@ -115,7 +115,7 @@ export class App {
   }
 
   sidebarOpen = false;
-  apiState: 'checking' | 'live' | 'demo' = 'checking';
+  apiState: 'checking' | 'live' | 'offline' = 'checking';
   search = '';
   activity: ActivityItem[] = [];
   workspaces: WorkspaceSummary[] = [];
@@ -128,7 +128,7 @@ export class App {
    * Whether the authenticated shell (sidebar + header) should render.
    * Determined strictly by the route: public routes (landing, login, invite) render
    * their own minimal/hero layouts, while all dashboard routes always render within
-   * the persistent App Shell (sidebar + header), with live or demo data.
+   * the persistent App Shell (sidebar + header), with live data only.
    */
   showShell = typeof window !== 'undefined' ? !this.isPublicPath(window.location.pathname) : false;
 
@@ -324,7 +324,7 @@ export class App {
       await api.health();
       this.apiState = 'live';
     } catch {
-      this.apiState = 'demo';
+      this.apiState = 'offline';
     }
   }
 

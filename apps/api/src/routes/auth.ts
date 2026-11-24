@@ -1,17 +1,21 @@
 import {
   authSessionSchema,
   loginSchema,
+  registerSchema,
+  slugify,
   switchWorkspaceSchema,
   type AuthSession,
 } from '@aurelia-ops/shared';
-import { verifyPassword } from '../lib/password';
+import { hashPassword, verifyPassword } from '../lib/password';
+import { randomBytes } from 'node:crypto';
 import { and, eq, lt } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { zValidator } from '@hono/zod-validator';
 import { getDb, schema } from '../db/client';
 import { isProd } from '../env';
-import { HttpError, issuesFromZod, unauthorized } from '../lib/errors';
+import { isUniqueViolation } from '../lib/db-errors';
+import { HttpError, conflict, issuesFromZod, unauthorized } from '../lib/errors';
 import { clientIp } from '../lib/client-ip';
 import { planFromSubscription } from '../lib/plan-limits';
 import { resolveWorkspace, type WorkspaceContext } from '../lib/workspace';
@@ -79,6 +83,142 @@ authRoutes.get('/auth/me', async (c) => {
     ),
   );
 });
+
+/**
+ * `POST /api/auth/signup` — create the first (owner) account of a workspace.
+ *
+ * This is the only way to provision a real account in production: there is no
+ * seeded demo user. User, workspace, owner membership, audit entry and session
+ * are written in one transaction, so a failure can never leave an account
+ * without a workspace (or a workspace without an owner).
+ */
+authRoutes.post(
+  '/auth/signup',
+  zValidator('json', registerSchema, (result, c) => {
+    if (!result.success) {
+      return c.json(
+        {
+          error: {
+            code: 'validation_failed',
+            message: 'Check the form',
+            issues: issuesFromZod(result.error),
+          },
+        },
+        422,
+      );
+    }
+  }),
+  async (c) => {
+    const { email, password, name, workspaceName } = c.req.valid('json');
+
+    const ip = clientIp(c);
+    const key = `signup:${ip}`;
+    const limit = rateLimit.hit(key, 5, 60 * 60);
+    if (!limit.allowed) {
+      c.header('Retry-After', String(limit.retryAfter));
+      throw new HttpError(429, 'rate_limited', 'Too many sign-ups. Try again later.');
+    }
+
+    const db = getDb();
+    const [existing] = await db
+      .select({ id: schema.users.id })
+      .from(schema.users)
+      .where(eq(schema.users.email, email))
+      .limit(1);
+
+    if (existing) throw conflict('An account with that email already exists');
+
+    const passwordHash = await hashPassword(password);
+    const token = createSessionToken();
+    const expiresAt = new Date(Date.now() + SESSION_TTL_SECONDS * 1000);
+    const baseSlug = slugify(workspaceName) || `workspace-${randomBytes(4).toString('hex')}`;
+
+    let created: {
+      user: typeof schema.users.$inferSelect;
+      workspace: typeof schema.workspaces.$inferSelect;
+    };
+    try {
+      created = await db.transaction(async (tx) => {
+        const [user] = await tx
+          .insert(schema.users)
+          .values({ email, name, passwordHash })
+          .returning();
+
+        if (!user) throw new HttpError(500, 'database_error', 'Failed to create account');
+
+        const [taken] = await tx
+          .select({ id: schema.workspaces.id })
+          .from(schema.workspaces)
+          .where(eq(schema.workspaces.slug, baseSlug))
+          .limit(1);
+
+        const slug = taken ? `${baseSlug}-${randomBytes(4).toString('hex')}` : baseSlug;
+        const [workspace] = await tx
+          .insert(schema.workspaces)
+          .values({
+            name: workspaceName,
+            slug,
+            plan: 'free',
+            settings: { locale: 'en', weeklyDigest: true },
+          })
+          .returning();
+
+        if (!workspace) throw new HttpError(500, 'database_error', 'Failed to create workspace');
+
+        await tx.insert(schema.memberships).values({
+          workspaceId: workspace.id,
+          userId: user.id,
+          role: 'owner',
+        });
+
+        await tx.insert(schema.auditLogs).values({
+          workspaceId: workspace.id,
+          actorName: name,
+          action: 'workspace.created',
+          target: workspaceName,
+        });
+
+        await tx.insert(schema.sessions).values({
+          tokenHash: hashSessionToken(token),
+          userId: user.id,
+          activeWorkspaceId: workspace.id,
+          expiresAt,
+        });
+
+        return { user, workspace };
+      });
+    } catch (error) {
+      if (!isUniqueViolation(error)) throw error;
+
+      // The unique index is the source of truth. Distinguish the two conflicts
+      // so the form can point at the right field.
+      const [raced] = await db
+        .select({ id: schema.users.id })
+        .from(schema.users)
+        .where(eq(schema.users.email, email))
+        .limit(1);
+      if (raced) throw conflict('An account with that email already exists');
+      throw conflict('That workspace name is already taken');
+    }
+
+    rateLimit.reset(key);
+    setCookie(c, SESSION_COOKIE, token, sessionCookie());
+    setCookie(c, SESSION_HINT_COOKIE, '1', sessionHintCookie());
+
+    const context: WorkspaceContext = {
+      id: created.workspace.id,
+      name: created.workspace.name,
+      slug: created.workspace.slug,
+      plan: created.workspace.plan,
+      stripeCustomerId: null,
+      subscriptionStatus: 'none',
+      trialEndsAt: null,
+      role: 'owner',
+    };
+
+    return c.json(toSession(created.user, context), 201);
+  },
+);
 
 authRoutes.post(
   '/auth/login',

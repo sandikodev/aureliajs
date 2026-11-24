@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { signupOwner } from './helpers/auth';
 
 /**
  * Accessibility audit.
@@ -22,14 +23,6 @@ const PAGES = [
   { path: '/login', name: 'login' },
 ];
 
-async function login(page: Page) {
-  const response = await page.request.post('/api/auth/login', {
-    data: { email: 'demo@aureliajs.dev', password: 'demo-password-123' },
-    headers: { 'content-type': 'application/json' },
-  });
-  expect(response.ok()).toBeTruthy();
-}
-
 /** Collect every violation in a readable form so a failure explains itself. */
 function describe(violations: Awaited<ReturnType<AxeBuilder['analyze']>>['violations']) {
   return violations
@@ -46,7 +39,7 @@ function describe(violations: Awaited<ReturnType<AxeBuilder['analyze']>>['violat
 test.describe('accessibility', () => {
   for (const target of PAGES) {
     test(`${target.name} page has no WCAG A/AA violations`, async ({ page }) => {
-      await login(page);
+      await signupOwner(page);
       await page.goto(target.path);
       // Let the page settle so lazily rendered rows are in the DOM.
       await page.waitForLoadState('networkidle');
@@ -62,7 +55,7 @@ test.describe('accessibility', () => {
 
   for (const target of PAGES) {
     test(`${target.name} page has no WCAG A/AA violations in dark mode`, async ({ page }) => {
-      await login(page);
+      await signupOwner(page);
       await page.goto(target.path);
       await page.waitForLoadState('networkidle');
 
@@ -81,7 +74,7 @@ test.describe('accessibility', () => {
   }
 
   test('the create-project dialog has no violations while open', async ({ page }) => {
-    await login(page);
+    await signupOwner(page);
     await page.goto('/projects');
     await page.getByRole('button', { name: 'New project' }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
@@ -94,7 +87,7 @@ test.describe('accessibility', () => {
   });
 
   test('keyboard alone can reach the main navigation and the page content', async ({ page }) => {
-    await login(page);
+    await signupOwner(page);
     await page.goto('/projects');
 
     // The first Tab must land on the skip link, which is the only way a
@@ -121,7 +114,7 @@ test.describe('accessibility', () => {
   });
 
   test('the create-project dialog traps focus and closes on Escape', async ({ page }) => {
-    await login(page);
+    await signupOwner(page);
     await page.goto('/projects');
     await page.getByRole('button', { name: 'New project' }).click();
 

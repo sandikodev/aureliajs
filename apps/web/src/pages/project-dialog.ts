@@ -164,9 +164,9 @@ export class ProjectDialog {
           this.fieldErrors = Object.fromEntries(error.issues.map((i) => [i.path, i.message]));
         }
       } else {
-        // Fallback for demo/offline: dispatch to parent to apply local mutation
-        this.dispatchSaved({ isEdit: this.isEditing, input: parsed.data });
-        this.close();
+        // No local write path: a failed save must leave the database and the
+        // table untouched. Keep the dialog open so the user can retry.
+        this.formError = this.i18n.t('errors.loadFailed');
       }
     } finally {
       this.saving = false;

@@ -29,12 +29,18 @@ async function shot(
     deviceScaleFactor: 1,
   });
 
-  // Authenticate the session context
-  const loginRes = await context.request.post(`${BASE}/api/auth/login`, {
-    data: { email: 'demo@aureliajs.dev', password: 'demo-password-123' },
+  // Bootstrap a real (throwaway) account — production has no demo login.
+  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const signupRes = await context.request.post(`${BASE}/api/auth/signup`, {
+    data: {
+      email: `shot-${stamp}@example.invalid`,
+      password: `Shot-${stamp}-Aa1!`,
+      name: 'Screenshot Owner',
+      workspaceName: `Screenshot ${stamp}`,
+    },
   });
-  if (!loginRes.ok()) {
-    console.warn(`[shot] Login endpoint failed with status ${loginRes.status()}`);
+  if (!signupRes.ok()) {
+    console.warn(`[shot] Signup endpoint failed with status ${signupRes.status()}`);
   }
 
   await context.addInitScript((theme) => {

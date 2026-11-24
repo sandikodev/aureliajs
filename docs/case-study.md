@@ -32,16 +32,18 @@ This project answers those questions in runnable code, not in a blog post.
 | -------------------------------------------- | ------------------------------------------------------------------------- |
 | Aurelia is `2.0.0-rc.2`                      | Exact version pins; decorator config must match stage-3 semantics.        |
 | No official shadcn/ui for Aurelia            | Port the tokens and the component anatomy; write the primitives natively. |
-| Must be demoable without a backend           | Deterministic sample data + an explicit "Demo data" banner.               |
+| Must be honest when the backend is down      | Explicit empty/error states; never fabricate live-looking data.           |
 | Must be readable by a reviewer in 10 minutes | One `bun run dev`, one README, one architecture doc.                      |
-| Realistic data volume                        | Seed 1 000 projects so pagination/filtering are proven, not imagined.     |
+| Realistic data volume                        | Local-only seed of 1 000 projects proves pagination/filtering in dev.     |
 | Payments must not create PCI scope           | Stripe-hosted Checkout; card data never reaches the server.               |
 
 ## What was built
 
 **Data layer** — Postgres 16 + Drizzle with eight tables: `users`, `workspaces`, `memberships`,
 `sessions`, `projects`, `invites`, `audit_logs`, `stripe_events`. Migrations are generated and
-committed; the seed creates one workspace, four members, a demo owner account, and 1 000 projects.
+committed; a **local-only** seed can create one workspace, four members, a demo owner and
+1 000 projects for development. Production starts empty: the only bootstrap is the public
+`/signup` route, and the loader refuses to run against a Neon host.
 
 **API** — Hono with a typed error contract, Zod validation at the boundary, offset pagination,
 server-side search + filter + sort, and one deliberately isolated tenancy middleware. Plan limits
@@ -115,8 +117,9 @@ have been simpler and would have lost every guarantee the moment the API restart
 it considers malformed, but it does retry a server error. Getting this backwards means either
 losing events or hammering Stripe with payloads we will never accept.
 
-**Honest fallback instead of a fake backend.** When the API is down, the UI shows demo data with
-a banner. A demo that silently pretends to be live is a liability in a sales conversation.
+**Honest empty states instead of a fake backend.** When the API is down or a workspace is new, the
+UI says so and renders nothing rather than inventing rows. A dashboard that silently pretends to
+be live is a liability in a sales conversation.
 
 **Native `<dialog>` instead of a modal library.** Focus handling and the backdrop come for free,
 the bundle stays smaller, and the code is short enough to audit.
@@ -138,7 +141,7 @@ Naming these is part of the work sample:
 | If you care about…            | Read                                                               |
 | ----------------------------- | ------------------------------------------------------------------ |
 | Isolation and multi-tenancy   | `apps/api/src/middleware/tenant.ts`                                |
-| Query shape at 1 000 rows     | `apps/api/src/routes/projects.ts`                                  |
+| Query shape at 1 000 rows     | `apps/api/src/routes/projects.ts` (local seed only)                |
 | One source of truth for types | `apps/shared/src/index.ts`                                         |
 | Payments done properly        | `apps/api/src/routes/billing.ts`                                   |
 | Webhook idempotency           | `apps/api/src/routes/billing.ts` + `apps/api/src/db/schema.ts`     |
@@ -163,7 +166,7 @@ There are no invented metrics here. What is verified directly from production co
   - Fullstack SSR Client (`packages/hono-aurelia/example`): **87.7 kB gzipped** total client bundle (25 modules bundled in 14ms via Bun).
   - Zero-JS Islands Micro-Loader (`@aureliajs/islands/loader`): **2.3 kB gzipped** runtime.
 - **Data & Concurrency**:
-  - The projects endpoint filters, sorts, and paginates 1 000 seeded rows server-side in SQL.
+  - The projects endpoint filters, sorts, and paginates 1 000 locally seeded rows server-side in SQL.
   - A new user can be invited, receive an email (or preview magic link), accept, and be signed in against the real API.
   - Stripe webhooks verify idempotency via `stripe_events.id`: duplicate events answer 200 without side effects.
 - **Automated Regression Suite**:

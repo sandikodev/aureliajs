@@ -5,17 +5,22 @@
  * the two external services the app depends on (Neon Postgres via a direct
  * connection check, and Stripe via checkout/portal/webhook).
  *
- * Read-only checks always run. Mutating checks are opt-in so a casual run can
- * never change production data:
+ * Production starts empty: there is no demo account and no seeded project.
+ * By default the suite signs up a unique throwaway owner account, runs every
+ * read-only check against that account, then deletes it with a direct Neon
+ * query. Mutating checks remain opt-in:
  *
+ *   # Read-only suite with automatic signup + cleanup:
  *   LIVE_BASE_URL=https://aureliajs.vercel.app \
- *   LIVE_EMAIL=demo@aureliajs.dev LIVE_PASSWORD=... \
- *   bun scripts/live-smoke.ts
+ *   NEON_DIRECT_URL='postgresql://...' bun scripts/live-smoke.ts
  *
  *   # Full suite, including writes, Resend email delivery and signed webhooks:
  *   NEON_DIRECT_URL='postgresql://...' STRIPE_WEBHOOK_SECRET='whsec_...' \
  *   RESEND_API_KEY='re_...' LIVE_RESEND_TEST_EMAIL='owner@example.com' \
  *   LIVE_WRITE=1 bun scripts/live-smoke.ts
+ *
+ * To exercise an existing account instead, set LIVE_EMAIL and LIVE_PASSWORD.
+ * That account is never deleted by cleanup.
  *
  * NEVER put credentials in this file. Read them from the environment (for
  * example `vercel env pull` into a temp file, then `set -a; source ...`).
@@ -25,14 +30,17 @@ import { createHmac } from 'node:crypto';
 import postgres from 'postgres';
 
 const BASE = (process.env.LIVE_BASE_URL ?? 'https://aureliajs.vercel.app').replace(/\/$/, '');
-const EMAIL = process.env.LIVE_EMAIL ?? 'demo@aureliajs.dev';
-const PASSWORD = process.env.LIVE_PASSWORD ?? 'demo-password-123';
+const RUN = Date.now().toString(36);
+const PROVIDED_ACCOUNT = Boolean(process.env.LIVE_EMAIL && process.env.LIVE_PASSWORD);
+const EMAIL = process.env.LIVE_EMAIL ?? `smoke-${RUN}@example.invalid`;
+const PASSWORD = process.env.LIVE_PASSWORD ?? `Smoke-${RUN}-Aa1!`;
+const NAME = process.env.LIVE_NAME ?? 'Live Smoke';
+const WORKSPACE_NAME = process.env.LIVE_WORKSPACE ?? `Live Smoke ${RUN}`;
 const WRITE = process.env.LIVE_WRITE === '1';
 const DIRECT_URL = process.env.NEON_DIRECT_URL;
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_TEST_EMAIL = process.env.LIVE_RESEND_TEST_EMAIL;
-const RUN = Date.now().toString(36);
 
 type Status = 'PASS' | 'FAIL' | 'SKIP';
 type Result = { name: string; status: Status; detail?: string };
@@ -41,7 +49,7 @@ const results: Result[] = [];
 async function check(name: string, fn: () => Promise<string | void>): Promise<void> {
   try {
     const detail = await fn();
-    results.push({ name, status: 'PASS', detail });
+    results.push({ name, status: 'PASS', detail: typeof detail === 'string' ? detail : undefined });
     console.log(`  PASS  ${name}${detail ? ` — ${detail}` : ''}`);
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
@@ -214,24 +222,46 @@ await check('wrong password and unknown email return the same 401', async () => 
   );
 });
 
-await check('demo login succeeds and sets a hardened session cookie', async () => {
-  const res = await owner.request('/api/auth/login', {
+await check('POST /api/auth/signup validates its payload (422)', async () => {
+  if (PROVIDED_ACCOUNT) return 'skipped: using LIVE_EMAIL';
+  const res = await owner.request('/api/auth/signup', {
     method: 'POST',
     body: { email: EMAIL, password: PASSWORD },
   });
-  expectStatus(res, 200, 'login');
-  assert.equal(res.json.user?.email, EMAIL);
-  assert.ok(res.json.workspace, 'login must resolve a workspace');
-  assert.equal(res.json.role, 'owner');
-  const raw = res.headers.getSetCookie?.().join('; ') ?? '';
-  assert.match(raw, /HttpOnly/i, 'cookie must be HttpOnly');
-  assert.match(raw, /Secure/i, 'cookie must be Secure in production');
-  assert.match(raw, /SameSite=Lax/i, 'cookie should be SameSite=Lax');
-  return `workspace ${res.json.workspace.slug} as ${res.json.role}`;
+  expectStatus(res, 422, 'invalid signup');
+  assert.equal(res.json.error?.code, 'validation_failed');
 });
 
-const workspaceId: string = (await owner.request('/api/auth/me')).json.workspace?.id;
-assert.ok(workspaceId, 'login did not yield a workspace id');
+const session: { userId?: string; workspaceId?: string } = {};
+
+await check(
+  PROVIDED_ACCOUNT
+    ? 'existing account login succeeds and sets a hardened session cookie'
+    : 'signup creates a real owner account and sets a hardened session cookie',
+  async () => {
+    const res = await owner.request(PROVIDED_ACCOUNT ? '/api/auth/login' : '/api/auth/signup', {
+      method: 'POST',
+      body: PROVIDED_ACCOUNT
+        ? { email: EMAIL, password: PASSWORD }
+        : { email: EMAIL, password: PASSWORD, name: NAME, workspaceName: WORKSPACE_NAME },
+    });
+    expectStatus(res, PROVIDED_ACCOUNT ? 200 : 201, PROVIDED_ACCOUNT ? 'login' : 'signup');
+    assert.equal(res.json.user?.email, EMAIL);
+    assert.ok(res.json.workspace, 'authentication must resolve a workspace');
+    assert.equal(res.json.role, 'owner');
+    if (!PROVIDED_ACCOUNT) session.userId = res.json.user?.id;
+    session.workspaceId = res.json.workspace?.id;
+    const raw = res.headers.getSetCookie?.().join('; ') ?? '';
+    assert.match(raw, /HttpOnly/i, 'cookie must be HttpOnly');
+    assert.match(raw, /Secure/i, 'cookie must be Secure in production');
+    assert.match(raw, /SameSite=Lax/i, 'cookie should be SameSite=Lax');
+    return `workspace ${res.json.workspace.slug} as ${res.json.role}`;
+  },
+);
+
+const workspaceId = session.workspaceId;
+assert.ok(workspaceId, 'authentication did not yield a workspace id');
+const smokeUserId = session.userId;
 
 await check('GET /api/auth/me with the session returns the signed-in user', async () => {
   const res = await owner.request('/api/auth/me');
@@ -291,7 +321,6 @@ await check('projects pagination, sorting, filtering and search', async () => {
   const page = await owner.request('/api/projects?page=1&pageSize=5&sort=budget');
   expectStatus(page, 200, 'projects page');
   assert.equal(page.json.pageSize, 5);
-  assert.ok(page.json.total > 0, 'expected seeded projects in Neon');
   assert.ok(page.json.items.length <= 5);
   const budgets = page.json.items.map((p: { budgetCents: number }) => p.budgetCents);
   assert.deepEqual(
@@ -307,13 +336,15 @@ await check('projects pagination, sorting, filtering and search', async () => {
     'status filter leaked other statuses',
   );
 
-  const searched = await owner.request('/api/projects?q=Billing');
+  // A fresh workspace is legitimately empty. Search must still work and must
+  // never manufacture rows from a fixture.
+  const searched = await owner.request('/api/projects?q=definitely-not-a-real-project-name');
   expectStatus(searched, 200, 'search');
-  assert.ok(searched.json.items.length > 0, 'search should match the seeded "Billing revamp"');
+  assert.equal(searched.json.total, 0, 'search must not return seeded fixtures');
 
   const bad = await owner.request('/api/projects?page=0');
   expectStatus(bad, 422, 'invalid page');
-  return `${page.json.total} projects total`;
+  return `${page.json.total} projects total (organic only)`;
 });
 
 await check('billing overview exposes plan, limits, usage and price flags', async () => {
@@ -386,13 +417,14 @@ if (DIRECT_URL) {
     `;
     const [scoped] =
       await direct`select count(*)::int as n from projects where workspace_id = ${workspaceId}`;
+    assert.ok(info && counts && scoped, 'Neon returned no rows for the smoke queries');
     const api = await owner.request('/api/projects?pageSize=1');
     assert.equal(
       Number(scoped.n),
       Number(api.json.total),
       'API total must equal the Neon row count',
     );
-    assert.ok(counts.workspaces >= 1 && counts.users >= 1 && counts.projects >= 1);
+    assert.ok(counts.workspaces >= 1 && counts.users >= 1, 'the smoke account must exist');
     const host = new URL(DIRECT_URL).hostname;
     assert.match(host, /neon\.tech$/, 'direct URL must point at Neon');
     return `${host.replace(/^ep-[^-]+-/, 'ep-***-')} · ${info.db} · ${counts.projects} projects · ${counts.users} users`;
@@ -436,7 +468,7 @@ if (!WRITE) {
       });
       expectStatus(createdRes, 201, 'create workspace');
       tempWorkspaceId = createdRes.json.workspace.id;
-      created.workspaces.push(tempWorkspaceId);
+      created.workspaces.push(tempWorkspaceId!);
 
       const switched = await owner.request('/api/auth/switch-workspace', {
         method: 'POST',
@@ -687,7 +719,7 @@ if (!WRITE) {
           `evt_smoke_${RUN}_checkout`,
           `evt_smoke_${RUN}_subscription`,
           `evt_smoke_${RUN}_invoice`,
-        ];
+        ] as const;
         created.eventIds.push(...eventIds);
 
         async function deliver(event: unknown, id: string) {
@@ -839,9 +871,49 @@ if (!WRITE) {
     ) {
       skip('cleanup of created rows', 'set NEON_DIRECT_URL — production data was left behind');
     }
-    await direct?.end();
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* 6. Remove the throwaway account created for this run                 */
+/* ------------------------------------------------------------------ */
+
+console.log('\n[6] Smoke account cleanup');
+
+if (smokeUserId && workspaceId) {
+  if (DIRECT_URL) {
+    await check('cleanup: delete the smoke account and its workspace', async () => {
+      const cleanupUrl = DIRECT_URL;
+      const sql = postgres(cleanupUrl, { prepare: false, max: 1, connect_timeout: 10 });
+      try {
+        // Workspaces cascade memberships, projects, invites and audit logs;
+        // users cascade sessions. No seeded account is ever touched here.
+        await sql`delete from workspaces where id = ${workspaceId}`;
+        await sql`delete from users where id = ${smokeUserId}`;
+        const [left] = await sql`
+          select
+            (select count(*) from users where id = ${smokeUserId})::int as users,
+            (select count(*) from workspaces where id = ${workspaceId})::int as workspaces
+        `;
+        assert.ok(left, 'Neon returned no row for the cleanup verification query');
+        assert.equal(Number(left.users), 0, 'smoke user was not deleted');
+        assert.equal(Number(left.workspaces), 0, 'smoke workspace was not deleted');
+      } finally {
+        await sql.end();
+      }
+      return `user ${smokeUserId}, workspace ${workspaceId}`;
+    });
+  } else {
+    skip(
+      'cleanup of the smoke account',
+      'set NEON_DIRECT_URL — the throwaway account was left in production',
+    );
+  }
+} else {
+  skip('cleanup of the smoke account', 'using LIVE_EMAIL — the account is owned by the operator');
+}
+
+await direct?.end();
 
 /* ------------------------------------------------------------------ */
 /* Summary                                                             */

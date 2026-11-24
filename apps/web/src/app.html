@@ -136,13 +136,13 @@
       </ul>
     </nav>
 
-    <!-- Demo banner -->
-    <div if.bind="apiState === 'demo'" class="border-t border-sidebar-border p-3">
+    <!-- Offline banner: no sample data is substituted when the API is down -->
+    <div if.bind="apiState === 'offline'" class="border-t border-sidebar-border p-3">
       <div
         class="flex items-center gap-2 rounded-lg bg-amber-500/10 px-3 py-2 text-[12px] text-amber-700 dark:text-amber-400"
       >
         <ui-icon name="alert" size="13" class="shrink-0"></ui-icon>
-        ${copy['app.demoModeBanner']}
+        ${copy['app.offlineBanner']}
       </div>
     </div>
 
@@ -295,8 +295,9 @@
     </main>
   </div>
 
-  <!-- Create workspace dialog -->
+  <!-- Create workspace dialog — only exists while the app shell is visible -->
   <dialog
+    if.bind="showShell"
     ref="workspaceDialogEl"
     class="m-auto w-full max-w-sm rounded-xl border bg-background p-0 text-foreground shadow-xl backdrop:bg-black/50 open:flex open:flex-col"
   >

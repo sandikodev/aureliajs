@@ -24,6 +24,32 @@
           "value": "public, max-age=86400"
         }
       ]
+    },
+    {
+      "source": "/.well-known/(.*)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json; charset=utf-8"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
+      "source": "/llms.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -32,11 +58,27 @@
       "destination": "/api/index"
     },
     {
+      "source": "/.well-known/:path*",
+      "destination": "/.well-known/:path*"
+    },
+    {
+      "source": "/llms.txt",
+      "destination": "/llms.txt"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/robots.txt"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/sitemap.xml"
+    },
+    {
       "source": "/",
       "destination": "/landing.html"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/((?!api/|\\.well-known/|llms\\.txt|robots\\.txt|sitemap\\.xml).*)",
       "destination": "/app.html"
     }
   ]

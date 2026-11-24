@@ -3,8 +3,7 @@ import type { BillingOverview } from '@aurelia-ops/shared';
 import { customElement, resolve } from 'aurelia';
 import type { IRouteViewModel, Params } from '@aurelia/router';
 import template from './billing-page.html';
-import { DEMO_BILLING } from '@/lib/demo-data';
-import { api, ApiError } from '@/services/api';
+import { api, emptyBilling, ApiError } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { I18nService, type MessageKey } from '@/services/i18n';
 import { ToastService } from '@/services/toast';
@@ -53,7 +52,7 @@ export class BillingPage implements IRouteViewModel {
 
   isLoading = true;
   busy = false;
-  demo = false;
+  loadError = false;
 
   /** Selected interval for pricing and checkout toggle */
   selectedInterval: 'monthly' | 'yearly' = 'monthly';
@@ -109,10 +108,10 @@ export class BillingPage implements IRouteViewModel {
     this.isLoading = true;
     try {
       this.overview = await api.billing();
-      this.demo = false;
+      this.loadError = false;
     } catch {
-      this.overview = DEMO_BILLING;
-      this.demo = true;
+      this.overview = emptyBilling();
+      this.loadError = true;
     } finally {
       this.isLoading = false;
     }

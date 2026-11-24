@@ -9,26 +9,12 @@ import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { getDb, schema } from '../db/client';
+import { isUniqueViolation } from '../lib/db-errors';
 import { HttpError, badRequest, conflict, forbidden, notFound } from '../lib/errors';
 import { slugify } from '@aurelia-ops/shared';
 import { tenantOf } from '../middleware/tenant';
 
 export const workspaceRoutes = new Hono();
-
-/**
- * A pre-check gives a friendly 409, but two concurrent requests can both pass
- * it. The unique index is the actual guarantee, so translate its violation
- * (Postgres 23505) into the same 409 instead of leaking a 500.
- */
-function isUniqueViolation(error: unknown): boolean {
-  // Drizzle 0.45 wraps driver errors in DrizzleQueryError; the Postgres code
-  // lives on `.cause`, so check both levels.
-  for (let current = error; current && typeof current === 'object'; ) {
-    if ('code' in current && (current as { code?: unknown }).code === '23505') return true;
-    current = (current as { cause?: unknown }).cause;
-  }
-  return false;
-}
 
 /**
  * `GET /api/workspaces` — every workspace the signed-in user belongs to.

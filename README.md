@@ -19,6 +19,7 @@ _A production-grade Multi-Tenant SaaS showcase, Edge SSR engines, `.aux` Single-
 <p align="center">
   <a href="#-author-preface--the-two-pillars">Author Preface</a> •
   <a href="#-the-architectural-paradigm-aurelia--angular-vs-react-and-vue">Aurelia vs React/Vue</a> •
+  <a href="#-philosophy-community-stewardship--convention-over-configuration-in-the-ai--llm-era">CoC in the AI Era</a> •
   <a href="#-pillar-1-personal-showcase-saas-application-apps">Showcase SaaS App</a> •
   <a href="#-pillar-2-upstream-open-source-framework-packages-packages">Upstream Packages</a> •
   <a href="#-interactive-developer-playground">Playground</a> •
@@ -104,6 +105,65 @@ Returning to Aurelia 2 after years in modern frontend development brought a powe
 
 ---
 
+## 🕊️ Philosophy, Community Stewardship & Convention-over-Configuration in the AI / LLM Era
+
+### 1. Why Convention-over-Configuration (CoC) is the Antidote to LLM Hallucination & Codebase Entropy
+
+In the modern era of generative artificial intelligence, Large Language Models (LLMs) and autonomous coding agents are writing an increasing percentage of real-world software. However, an unaddressed crisis has emerged: **without strict architectural conventions, LLMs cause codebase entropy to explode exponentially.**
+
+When a framework lacks strong, opinionated conventions—relying instead on endless ad-hoc configuration, fragmented libraries, competing state management dogmas, and arbitrary wrapper utilities—the search space for an LLM becomes infinite. The model hallucinates:
+
+- It mixes incompatible reactive paradigms across files;
+- It injects arbitrary third-party glue packages (`clsx`, `cva`, `zustand`, `redux`, bespoke wrappers) to solve problems the framework should handle natively;
+- It creates accidental architectural drift that turns maintainable applications into unnavigable legacy debt.
+
+**Convention-over-Configuration (CoC) is fundamentally aligned with Large Language Models:**
+
+- When conventions are deterministic (such as Aurelia 2's clean ViewModel + View pairing, declarative binding syntax, and native `@resolve()` Dependency Injection), the model's generation trajectory is constrained to idiomatic, predictable code.
+- The model does not have to guess how to manage state, wire DI, or structure components—the convention dictates the solution with surgical precision.
+
+### 2. The Engineer as an Architectural Steward: Wisdom, Ethics, and Long-Term Sustainability
+
+This realization redefines the true calling of the software engineer:
+
+> _The engineer's value is no longer measured by how much raw syntax they can type, but by the architectural wisdom they exercise._
+
+It is the engineer's responsibility to decide:
+
+1. **How to write truly clean, unbloated code** that respects the machine, the browser, and future maintainers;
+2. **How to design reproducible, standardized development environments** that eliminate friction for newcomers and AI assistants alike;
+3. **How to maintain documentation and living specifications** that tell the truth about the architecture rather than obscuring it;
+4. **How to cultivate an ethical, orderly, sustainable, and long-term community** that values collective progress over individual vanity.
+
+Web engineering is fundamentally an act of **digital interconnectedness and shared harmony**. Technology should not be driven by the selfish ego or hyper-opinionated dogmatism of a single party, but by an unwavering commitment to building open, interoperable web standards that serve humanity for the long haul.
+
+### 3. The Mutual Philosophical Alignment: Hono's Radical Simplicity & Aurelia 2's Direct-DOM Purity
+
+Although **Hono** and **Aurelia 2** emerged from different domains, they share an identical philosophical soul: **a devotion to native Web Standards and radical minimalism.**
+
+| Architectural Dimension     | **Hono** (Edge Cloud Runtime)                                               | **Aurelia 2** (Browser & SSR Runtime)                                     |
+| :-------------------------- | :-------------------------------------------------------------------------- | :------------------------------------------------------------------------ |
+| **Foundational Standard**   | Standard Web `Request`, `Response`, `Fetch API`, `Web Streams`              | Standard W3C HTML5 DOM, ES2022 Classes, TC39 Decorators                   |
+| **Overhead & Dependencies** | Zero external dependencies; runs on pure web primitives                     | Zero Virtual-DOM memory tax; binds directly to real DOM nodes             |
+| **Execution Boundary**      | Ultra-lightweight edge envelope (Cloudflare `workerd`, Bun, Deno, Node)     | Sub-millisecond server rendering via LinkeDOM + inert JSON hydration      |
+| **Framework Glue Code**     | Zero framework-specific wrapper abstractions; standard middleware pipelines | Zero custom reactivity compilers; native property observation             |
+| **Philosophical Focus**     | Extreme edge performance, zero-friction developer ergonomics, clarity       | Enterprise maintainability, robust Dependency Injection, clean separation |
+
+When composed together, **Hono + Aurelia 2** form an unbroken continuum of Web Standards: Hono guards the edge cloud gateway with blazing speed and type safety, while Aurelia 2 powers the UI with enterprise-grade dependency injection and instantaneous LinkeDOM SSR streaming—all with **zero glue code**.
+
+### 4. An Open Community Proposal & Living RFC: A Call to Collaborate, Not Dominate
+
+The architecture, packages (`@hono/aurelia`, `@aureliajs/ssr`, `@aureliajs/islands`, `@aureliajs/bridge`, `@aureliajs/vite-plugin-aux`), and patterns maintained in this repository by Sandiko Dev (`@sandikodev`) are **an open community proposal and a living RFC**.
+
+We do not present this as dogmatic gospel, but as a thoughtfully engineered invitation for healthy debate, constructive criticism, and collaborative evolution:
+
+- **For the Aurelia Community**: A concrete proof-of-concept showing how Aurelia 2 can effortlessly conquer modern Edge SSR, Single-File Components (`.aux`), and progressive hydration without compromising its enterprise DI roots.
+- **For the Hono Community**: A showcase of how Hono's universal web middleware model can host a full-fledged enterprise frontend meta-framework with zero impedance mismatch.
+
+We invite all engineers, framework authors, and contributors to test, critique, and contribute to upstream Aurelia 2 and Hono ecosystems. Together, we build a cleaner, simpler, and more sustainable web.
+
+---
+
 ## 🏢 PILLAR 1: Personal Showcase SaaS Application (`apps/`)
 
 Under [`apps/`](apps/), I built a production-shaped, multi-tenant SaaS admin platform named **Aurelia Ops**. It demonstrates how Aurelia 2 acts as the core client engine for high-performance SaaS applications.
@@ -121,10 +181,10 @@ _Throughput SVG sparklines, status breakdown distribution, period window switche
 
 #### 2. Projects Data Table & Native Dialog CRUD
 
-|                                      Projects Table (Tailwind v4 + Native Aurelia)                                      |                                       Accessible `<dialog>` Modal CRUD                                        |
-| :---------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------: |
-|                                 ![Projects table](docs/screenshots/projects-light.png)                                  |                         ![Project dialog](docs/screenshots/project-dialog-light.png)                          |
-| _1,000 seeded projects, debounced search, status filters, deterministic sorting, and CSV formula injection mitigation._ | _HTML5 native `<dialog>` element, keyboard traps, accessible ARIA attributes, and reactive currency binding._ |
+|                                          Projects Table (Tailwind v4 + Native Aurelia)                                          |                                       Accessible `<dialog>` Modal CRUD                                        |
+| :-----------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------: |
+|                                     ![Projects table](docs/screenshots/projects-light.png)                                      |                         ![Project dialog](docs/screenshots/project-dialog-light.png)                          |
+| _1,000 locally seeded projects, debounced search, status filters, deterministic sorting, and CSV formula injection mitigation._ | _HTML5 native `<dialog>` element, keyboard traps, accessible ARIA attributes, and reactive currency binding._ |
 
 ---
 
@@ -147,7 +207,7 @@ _Full mobile responsiveness with accessible drawer navigation, touch-friendly ta
 
 ### 🛠️ Architecture of `apps/`
 
-- **`apps/web` (Client SPA)**: Built with Aurelia 2, Vite, Tailwind CSS 4, and ported `.aux` Single-File Components. Features deterministic demo fallback when the backend API is offline (`demo = true`).
+- **`apps/web` (Client SPA)**: Built with Aurelia 2, Vite, Tailwind CSS 4, and ported `.aux` Single-File Components. Renders explicit empty/error states when the API is offline — no fabricated data. A public `/signup` page bootstraps real accounts.
 - **`apps/api` (REST Backend)**: Built with Hono, Drizzle ORM, PostgreSQL, and native Bun Argon2id password hashing (`Bun.password`).
 - **`apps/shared` (Domain Contract)**: Strict Zod schemas, DTOs, and plan entitlement matrices shared type-safely between client and server.
 - **Strict Multi-Tenancy**: Guaranteed at the database layer via `eq(schema.projects.workspaceId, tenant.workspaceId)` on every query.
@@ -293,7 +353,7 @@ bun install
 # Start Postgres and run migrations
 bun run db:up
 bun run db:migrate
-bun run db:seed       # Seeds Northwind Studio with 4 members and 1 000 projects
+bun run db:seed       # LOCAL ONLY: seeds Northwind Studio with 4 members and 1 000 projects
 
 # Run Web & API concurrently
 bun run dev           # Web on :4600, API on :4601
@@ -301,7 +361,7 @@ bun run dev           # Web on :4600, API on :4601
 
 - **Web Application**: [`http://localhost:4600`](http://localhost:4600)
 - **API Health Check**: [`http://localhost:4601/health`](http://localhost:4601/health)
-- **Demo Credentials**: `demo@aureliajs.dev` / `demo-password-123`
+- **First account**: open `/signup` and create your own owner account (no shared demo login)
 
 ### Deploying `apps/` to Vercel + Neon
 
@@ -322,15 +382,14 @@ Project settings: **Root Directory** `.`, **Install** `bun install --frozen-lock
 `TRUST_PROXY=1`, `APP_VERSION`, and the Stripe secrets/price IDs in the Vercel dashboard.
 Register `https://<project>.vercel.app/api/billing/webhook` in Stripe for webhooks.
 
-**Live deployment:** [https://aureliajs.vercel.app](https://aureliajs.vercel.app)
-(demo login: `demo@aureliajs.dev` / `demo-password-123`). Verified 2026-11-23:
-`GET /` returned **200** on the production alias. The Stripe webhook endpoint
-is `https://aureliajs.vercel.app/api/billing/webhook`.
+**Live deployment:** [https://aureliajs.vercel.app](https://aureliajs.vercel.app).
+Production starts empty: there is no demo login — create an account at `/signup`.
+The Stripe webhook endpoint is `https://aureliajs.vercel.app/api/billing/webhook`.
 
 Verify the live deployment with `bun run smoke:live` (read-only) or, with
 `NEON_DIRECT_URL`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `LIVE_RESEND_TEST_EMAIL` and
-`LIVE_WRITE=1`, the full 42-check suite that also exercises writes, real Resend delivery and
-signed Stripe webhooks, then cleans up after itself.
+`LIVE_WRITE=1`, the full suite that also exercises writes, real Resend delivery and
+signed Stripe webhooks, then cleans up the throwaway account it created.
 
 Full details — including the pooled-vs-direct connection strings, env table, third-party status
 and smoke tests — are in

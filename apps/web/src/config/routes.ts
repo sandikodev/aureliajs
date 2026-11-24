@@ -24,6 +24,11 @@ export const PUBLIC_ROUTES = [
     title: 'Sign in',
   },
   {
+    path: 'signup',
+    component: () => import('@/pages/signup-page').then((m) => m.SignupPage),
+    title: 'Create account',
+  },
+  {
     path: 'invite',
     component: () => import('@/pages/invite-page').then((m) => m.InvitePage),
     title: 'Accept invitation',
@@ -73,6 +78,7 @@ export const ROUTE_DESCRIPTIONS: Readonly<Record<string, string>> = {
   '': 'A production-shaped SaaS admin dashboard built with Aurelia 2, TypeScript, Tailwind CSS and Hono.',
   login:
     'Sign in to Aurelia Ops, a production-shaped SaaS admin dashboard with team workspaces and billing.',
+  signup: 'Create your own Aurelia Ops workspace and start with an empty, real dashboard.',
   invite: 'Accept your Aurelia Ops workspace invitation.',
   overview: 'Workspace overview: KPIs, throughput charts and recent activity.',
   projects: 'Browse, search and manage projects in your Aurelia Ops workspace.',

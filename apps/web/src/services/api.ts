@@ -9,11 +9,13 @@ import type {
   MembersResponse,
   Project,
   ProjectStatus,
+  RegisterInput,
   Role,
   UpdateProjectInput,
   UpdateWorkspaceInput,
   WorkspaceSummary,
 } from '@aurelia-ops/shared';
+import { PLAN_LIMITS } from '@aurelia-ops/shared/utils';
 
 export type OverviewStats = {
   total: number;
@@ -75,6 +77,44 @@ export type ProjectQuery = {
 };
 
 export type ApiIssue = { path: string; message: string };
+
+/**
+ * Honest zero state. A failed request must never be disguised as data: these
+ * factories keep the exact API shape while making it clear nothing was loaded.
+ */
+export function emptyOverview(period: Period = 'last-30'): Overview {
+  return {
+    period,
+    periodDays: period === 'last-7' ? 7 : period === 'quarter' ? 90 : 30,
+    stats: {
+      total: 0,
+      active: 0,
+      planning: 0,
+      paused: 0,
+      done: 0,
+      overdue: 0,
+      members: 0,
+      budgetCents: 0,
+    },
+    trend: [],
+    activity: [],
+  };
+}
+
+export function emptyBilling(): BillingOverview {
+  return {
+    plan: 'free',
+    limits: PLAN_LIMITS.free,
+    usage: { projects: 0, seats: 0 },
+    subscription: {
+      status: 'none',
+      currentPeriodEnd: null,
+      cancelAtPeriodEnd: false,
+    },
+    availablePrices: { monthly: false, yearly: false, scale: false },
+    invoices: [],
+  };
+}
 
 export class ApiError extends Error {
   constructor(
@@ -170,6 +210,12 @@ export const api = {
 
   login: (input: LoginInput) =>
     request<AuthSession>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+
+  signup: (input: RegisterInput) =>
+    request<AuthSession>('/api/auth/signup', {
       method: 'POST',
       body: JSON.stringify(input),
     }),

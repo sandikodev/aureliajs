@@ -1,7 +1,7 @@
 import { customElement, resolve } from 'aurelia';
 import type { Invite, Member, Role } from '@aurelia-ops/shared';
+import { PLAN_LIMITS } from '@aurelia-ops/shared/utils';
 import template from './members-page.html';
-import { DEMO_MEMBERS } from '@/lib/demo-data';
 import { api, ApiError } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { I18nService } from '@/services/i18n';
@@ -27,6 +27,7 @@ export class MembersPage {
   invite: InviteForm = { email: '', role: 'member' };
 
   isLoading = true;
+  loadError = false;
   isInviting = false;
   /** The last invite link we created, so the owner can copy it. */
   lastInviteUrl = '';
@@ -175,11 +176,13 @@ export class MembersPage {
       this.seatLimit = members.seatLimit;
       this.seatUsed = members.seatUsed;
       this.invites = invites;
+      this.loadError = false;
     } catch {
-      this.members = DEMO_MEMBERS.members;
-      this.seatLimit = DEMO_MEMBERS.seatLimit;
-      this.seatUsed = DEMO_MEMBERS.seatUsed;
+      this.members = [];
       this.invites = [];
+      this.seatLimit = PLAN_LIMITS[this.auth.workspace?.plan ?? 'free'].seats;
+      this.seatUsed = 0;
+      this.loadError = true;
     } finally {
       this.isLoading = false;
     }

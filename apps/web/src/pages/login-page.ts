@@ -7,9 +7,6 @@ import { ApiError } from '@/services/api';
 import { AuthService } from '@/services/auth';
 import { I18nService } from '@/services/i18n';
 
-const DEMO_EMAIL = 'demo@aureliajs.dev';
-const DEMO_PASSWORD = 'demo-password-123';
-
 @customElement({ name: 'login-page', template })
 export class LoginPage implements IRouteViewModel {
   private readonly auth = resolve(AuthService);
@@ -49,13 +46,6 @@ export class LoginPage implements IRouteViewModel {
     // Safety: only allow relative alphanumeric routes with query params, no protocols or double-slashes
     const safe = /^[a-z0-9-/?=&]+$/i.test(route) && !route.includes('//') && !route.includes(':');
     return safe && route ? route : 'overview';
-  }
-
-  useDemoAccount(): void {
-    this.email = DEMO_EMAIL;
-    this.password = DEMO_PASSWORD;
-    this.fieldErrors = {};
-    this.error = '';
   }
 
   async submit(): Promise<void> {

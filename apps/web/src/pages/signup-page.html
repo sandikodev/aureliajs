@@ -1,0 +1,123 @@
+<div class="grid min-h-dvh lg:h-dvh lg:overflow-hidden lg:grid-cols-2">
+  <!-- Brand panel — mirrors the login page so the two flows feel identical -->
+  <section
+    class="relative hidden h-full flex-col justify-between overflow-hidden bg-zinc-950 p-8 text-zinc-100 lg:flex xl:p-10"
+  >
+    <div class="login-ambient-gradient pointer-events-none absolute inset-0 opacity-70"></div>
+
+    <div class="relative flex items-center gap-2.5">
+      <span class="grid size-9 place-items-center rounded-lg bg-white text-zinc-900">
+        <ui-icon name="sparkles" size="18"></ui-icon>
+      </span>
+      <div class="leading-tight">
+        <p class="text-sm font-semibold">Aurelia Ops</p>
+        <p class="text-[11px] text-zinc-400">${copy['app.tagline']}</p>
+      </div>
+    </div>
+
+    <div class="relative max-w-md">
+      <p class="text-[11px] font-medium tracking-[0.18em] text-zinc-400 uppercase">Aurelia 2 · TypeScript · Hono</p>
+      <h1 class="mt-4 text-3xl font-semibold tracking-tight text-balance">${copy['signup.heroTitle']}</h1>
+      <p class="mt-4 text-sm leading-relaxed text-zinc-400">${copy['signup.heroBody']}</p>
+
+      <ul class="mt-8 space-y-3 text-sm text-zinc-300">
+        <li class="flex items-center gap-2.5"><ui-icon name="check" size="15"></ui-icon> ${copy['signup.pointOne']}</li>
+        <li class="flex items-center gap-2.5"><ui-icon name="check" size="15"></ui-icon> ${copy['signup.pointTwo']}</li>
+        <li class="flex items-center gap-2.5">
+          <ui-icon name="check" size="15"></ui-icon> ${copy['signup.pointThree']}
+        </li>
+      </ul>
+    </div>
+
+    <p class="relative text-[11px] text-zinc-500">${copy['signup.heroFooter']}</p>
+  </section>
+
+  <section class="flex h-full flex-col justify-center overflow-y-auto px-4 py-6 sm:px-8">
+    <div class="mx-auto my-auto w-full max-w-sm">
+      <div class="mb-6 flex items-center gap-2.5 lg:hidden">
+        <span class="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+          <ui-icon name="sparkles" size="16"></ui-icon>
+        </span>
+        <p class="text-sm font-semibold">Aurelia Ops</p>
+      </div>
+
+      <h2 class="text-xl font-semibold tracking-tight">${copy['signup.title']}</h2>
+      <p class="mt-1 text-sm text-muted-foreground">${copy['signup.subtitle']}</p>
+
+      <form class="mt-5 space-y-3.5" submit.trigger="submit()" novalidate>
+        <div class="space-y-1.5">
+          <ui-label for="signup-name">${copy['signup.name']}</ui-label>
+          <ui-input
+            id="signup-name"
+            type="text"
+            autocomplete="name"
+            placeholder="${copy['signup.namePlaceholder']}"
+            value.two-way="name"
+            invalid.bind="!!fieldErrors['name']"
+          ></ui-input>
+          <p if.bind="fieldErrors['name']" class="text-xs text-destructive">${fieldErrors['name']}</p>
+        </div>
+
+        <div class="space-y-1.5">
+          <ui-label for="signup-workspace">${copy['signup.workspaceName']}</ui-label>
+          <ui-input
+            id="signup-workspace"
+            type="text"
+            autocomplete="organization"
+            placeholder="${copy['signup.workspaceNamePlaceholder']}"
+            value.two-way="workspaceName"
+            invalid.bind="!!fieldErrors['workspaceName']"
+          ></ui-input>
+          <p if.bind="fieldErrors['workspaceName']" class="text-xs text-destructive">${fieldErrors['workspaceName']}</p>
+        </div>
+
+        <div class="space-y-1.5">
+          <ui-label for="signup-email">${copy['login.email']}</ui-label>
+          <ui-input
+            id="signup-email"
+            type="email"
+            autocomplete="username"
+            placeholder="${copy['login.emailPlaceholder']}"
+            value.two-way="email"
+            invalid.bind="!!fieldErrors['email']"
+          ></ui-input>
+          <p if.bind="fieldErrors['email']" class="text-xs text-destructive">${fieldErrors['email']}</p>
+        </div>
+
+        <div class="space-y-1.5">
+          <ui-label for="signup-password">${copy['login.password']}</ui-label>
+          <ui-input
+            id="signup-password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="${copy['login.passwordPlaceholder']}"
+            value.two-way="password"
+            invalid.bind="!!fieldErrors['password']"
+          ></ui-input>
+          <p if.bind="fieldErrors['password']" class="text-xs text-destructive">${fieldErrors['password']}</p>
+        </div>
+
+        <p
+          if.bind="error"
+          class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+          role="alert"
+        >
+          ${error}
+        </p>
+
+        <ui-button type="submit" full.bind="true" loading.bind="submitting"> ${copy['signup.submit']} </ui-button>
+      </form>
+
+      <p class="mt-4 text-[12px] text-muted-foreground">
+        ${copy['signup.hasAccount']}
+        <a href="/login" class="font-medium text-primary underline-offset-4 hover:underline"
+          >${copy['signup.signIn']}</a
+        >
+      </p>
+
+      <p class="mt-4 text-[11px] text-muted-foreground">
+        Sessions last 7 days and are stored as an opaque, hashed token. Password hashing uses Argon2id.
+      </p>
+    </div>
+  </section>
+</div>

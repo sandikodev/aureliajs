@@ -20,7 +20,7 @@ function db() {
   return client;
 }
 
-/** Detach the Stripe state a webhook may have written, restoring the demo. */
+/** Detach the Stripe state a webhook may have written, restoring the clean workspace. */
 export async function resetWorkspaceBilling(workspaceId: string): Promise<void> {
   const sql = db();
   await sql`

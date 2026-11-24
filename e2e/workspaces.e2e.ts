@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { signupOwner, type E2EOwner } from './helpers/auth';
 import { closeDb } from './helpers/db';
 
 /**
@@ -6,15 +7,12 @@ import { closeDb } from './helpers/db';
  *
  * Both used to be decoration: the switcher listed one hardcoded workspace
  * and the notification bell was a button with a permanent red dot that went
- * nowhere. These tests check that they now do something.
+ * nowhere. These tests check that they now do something. Each test creates its
+ * own owner account, so what the switcher lists is the real workspace.
  */
 
-async function login(page: Page) {
-  const response = await page.request.post('/api/auth/login', {
-    data: { email: 'demo@aureliajs.dev', password: 'demo-password-123' },
-    headers: { 'content-type': 'application/json' },
-  });
-  expect(response.ok()).toBeTruthy();
+async function createOwner(page: Parameters<typeof signupOwner>[0]): Promise<E2EOwner> {
+  return signupOwner(page);
 }
 
 test.describe('workspaces', () => {
@@ -23,19 +21,19 @@ test.describe('workspaces', () => {
   });
 
   test('the switcher lists the workspaces the user belongs to', async ({ page }) => {
-    await login(page);
+    const owner = await createOwner(page);
     await page.goto('/overview');
     await page.waitForLoadState('networkidle');
 
     await page.getByTestId('workspace-switcher').click();
 
     const menu = page.locator('aside details').first();
-    await expect(menu.getByRole('button', { name: /Northwind Studio/ })).toBeVisible();
+    await expect(menu.getByRole('button', { name: new RegExp(owner.workspaceName) })).toBeVisible();
     await expect(menu.getByRole('button', { name: /Create workspace/ })).toBeVisible();
   });
 
   test('a workspace can be created and switched into', async ({ page }) => {
-    await login(page);
+    await createOwner(page);
     await page.goto('/overview');
     await page.waitForLoadState('networkidle');
 
@@ -92,7 +90,7 @@ test.describe('workspaces', () => {
   });
 
   test('the activity feed shows real audit entries', async ({ page }) => {
-    await login(page);
+    await createOwner(page);
     await page.goto('/overview');
     await page.waitForLoadState('networkidle');
 
@@ -109,7 +107,7 @@ test.describe('workspaces', () => {
   });
 
   test('the workspace name and slug can be changed and persist', async ({ page }) => {
-    await login(page);
+    await createOwner(page);
     await page.goto('/settings');
     await page.waitForLoadState('networkidle');
 
@@ -133,7 +131,7 @@ test.describe('workspaces', () => {
   });
 
   test('the dashboard reporting period changes the numbers behind the cards', async ({ page }) => {
-    await login(page);
+    await createOwner(page);
     await page.goto('/overview');
     await page.waitForLoadState('networkidle');
 
@@ -154,7 +152,7 @@ test.describe('workspaces', () => {
   });
 
   test('two workspaces cannot claim the same slug in a race', async ({ page, browser }) => {
-    await login(page);
+    const owner = await createOwner(page);
     const a = page.request;
     const original = await (await a.get('/api/workspaces/current')).json();
     const stamp = Date.now();
@@ -176,7 +174,7 @@ test.describe('workspaces', () => {
       expect(
         (
           await b.post('/api/auth/login', {
-            data: { email: 'demo@aureliajs.dev', password: 'demo-password-123' },
+            data: { email: owner.email, password: owner.password },
           })
         ).ok(),
       ).toBeTruthy();
@@ -201,7 +199,7 @@ test.describe('workspaces', () => {
 
       expect([ra.status(), rb.status()].sort()).toEqual([200, 409]);
     } finally {
-      // Remove both temporary workspaces so later tests still see clean seed data.
+      // Remove both temporary workspaces so this test stays isolated.
       await a.post('/api/auth/switch-workspace', { data: { workspaceId: original.id } });
       await a.post('/api/auth/switch-workspace', { data: { workspaceId: workspaceA.id } });
       await a.delete('/api/workspaces/current');
@@ -213,10 +211,10 @@ test.describe('workspaces', () => {
   });
 
   test('the seat limit is enforced when inviting', async ({ page }) => {
-    await login(page);
+    await createOwner(page);
 
-    // The demo workspace is on the pro plan, so there is room. The check is
-    // that the API reports the limit and the UI shows it.
+    // A freshly signed-up workspace starts empty but still has a seat limit.
+    // The check is that the API reports it and the UI shows it.
     const members = await (await page.request.get('/api/members')).json();
     expect(members.seatLimit).toBeGreaterThan(0);
     expect(members.seatUsed).toBeLessThanOrEqual(members.seatLimit);

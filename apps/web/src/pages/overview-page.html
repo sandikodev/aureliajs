@@ -17,6 +17,14 @@
   </div>
 </div>
 
+<p
+  if.bind="loadError"
+  class="mt-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+  role="alert"
+>
+  ${copy['errors.loadFailed']}
+</p>
+
 <!-- Shimmer Loading State -->
 <div if.bind="isLoading" role="status" aria-busy="true" aria-label="${copy['common.loading']}">
   <!-- KPI Skeleton Cards -->

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { signupOwner, type E2EOwner } from './helpers/auth';
 import { closeDb } from './helpers/db';
 
 /**
@@ -6,17 +7,38 @@ import { closeDb } from './helpers/db';
  *
  * The invite flow is the piece most demos fake: creating an invitation,
  * opening the magic link and ending up signed in as the new member. These
- * tests walk the whole path against the real API.
+ * tests walk the whole path against the real API. Every test starts from a
+ * freshly signed-up owner, so there is no shared demo team to mutate.
  */
 
-const INVITEE_EMAIL = `e2e-invitee-${Date.now()}@northwind.test`;
+const INVITEE_EMAIL = `e2e-invitee-${Date.now()}@example.invalid`;
+let owner: E2EOwner;
 
 async function login(page: Page) {
-  const response = await page.request.post('/api/auth/login', {
-    data: { email: 'demo@aureliajs.dev', password: 'demo-password-123' },
+  owner = await signupOwner(page);
+}
+
+/** Invite a real member through the API and accept the link in a fresh context. */
+async function addMember(page: Page, role: 'member' | 'admin' = 'member') {
+  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const email = `e2e-member-${stamp}@example.invalid`;
+  const created = await page.request.post('/api/invites', {
+    data: { email, role },
     headers: { 'content-type': 'application/json' },
   });
-  expect(response.ok(), 'demo login should succeed').toBeTruthy();
+  expect(created.status(), 'invite should be created').toBe(201);
+  const { acceptUrl } = await created.json();
+
+  const context = await page.context().browser()!.newContext();
+  const memberPage = await context.newPage();
+  await memberPage.goto(acceptUrl);
+  await expect(memberPage.getByTestId('invite-accepted')).toBeVisible({ timeout: 10_000 });
+
+  const members = await (await page.request.get('/api/members')).json();
+  const member = members.members.find((m: { email: string }) => m.email === email);
+  expect(member, 'the invited member should exist').toBeTruthy();
+
+  return { email, id: member.id as string, context, memberPage };
 }
 
 /**
@@ -83,26 +105,25 @@ test.describe('team', () => {
     await page.goto('/members');
 
     await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
-    await expect(page.getByRole('table').getByText('demo@aureliajs.dev')).toBeVisible();
+    await expect(page.getByRole('table').getByText(owner.email)).toBeVisible();
     await expect(page.getByRole('table').getByText('Owner').first()).toBeVisible();
     await expect(page.getByText(/\d+ of \d+ seats/)).toBeVisible();
   });
 
   test('changing a role from the members page persists through the API', async ({ page }) => {
     await login(page);
+    const member = await addMember(page);
 
     const before = await (await page.request.get('/api/members')).json();
-    const target = before.members.find(
-      (m: { email: string }) => m.email === 'daniel@northwind.test',
-    );
-    expect(target, 'the seeded member should exist').toBeTruthy();
+    const target = before.members.find((m: { id: string }) => m.id === member.id);
+    expect(target, 'the invited member should exist').toBeTruthy();
     const originalRole = target.role as string;
 
     try {
       await page.goto('/members');
       await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
 
-      const row = page.getByRole('row').filter({ hasText: 'daniel@northwind.test' });
+      const row = page.getByRole('row').filter({ hasText: member.email });
       // <ui-select value.bind="member.role"> plus change.trigger both listen
       // to the native change event. If the two-way binding updates the source
       // first, changeRole() sees an unchanged role and returns early — so the
@@ -117,11 +138,11 @@ test.describe('team', () => {
         })
         .toBe('admin');
     } finally {
-      // Leave the seeded state intact for the rest of the suite.
       await page.request.patch(`/api/members/${target.id}`, {
         data: { role: originalRole },
         headers: { 'content-type': 'application/json' },
       });
+      await member.context.close();
     }
   });
 
@@ -133,7 +154,7 @@ test.describe('team', () => {
     await page.goto('/members');
 
     await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
-    await expect(page.getByRole('table').getByText('demo@aureliajs.dev')).toBeVisible();
+    await expect(page.getByRole('table').getByText(owner.email)).toBeVisible();
 
     const metrics = await page.evaluate(() => {
       const doc = document.documentElement;
@@ -225,7 +246,7 @@ test.describe('team', () => {
     await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
 
     const session = await (await page.request.get('/api/auth/me')).json();
-    const selfRow = page.getByRole('row').filter({ hasText: 'demo@aureliajs.dev' });
+    const selfRow = page.getByRole('row').filter({ hasText: owner.email });
     const select = selfRow.locator('select');
     await expect(select).toHaveValue('owner');
 
@@ -287,34 +308,26 @@ test.describe('team', () => {
 
   test('a member cannot invite or change roles', async ({ page }) => {
     await login(page);
+    const plainMember = await addMember(page);
 
-    const members = await (await page.request.get('/api/members')).json();
-    const plainMember = members.members.find((m: { role: string }) => m.role === 'member');
-    expect(plainMember, 'the demo workspace should have a plain member').toBeTruthy();
+    try {
+      const inviteAttempt = await plainMember.memberPage.request.post('/api/invites', {
+        data: { email: 'sneaky@example.invalid', role: 'member' },
+        headers: { 'content-type': 'application/json' },
+      });
+      expect(inviteAttempt.status()).toBe(403);
 
-    // Sign in as that member using the seeded demo password.
-    const memberContext = await page.context().browser()!.newContext();
-    const memberPage = await memberContext.newPage();
-
-    const signIn = await memberPage.request.post('/api/auth/login', {
-      data: { email: plainMember.email, password: 'demo-password-123' },
-      headers: { 'content-type': 'application/json' },
-    });
-    expect(signIn.ok(), 'seeded members share the demo password').toBeTruthy();
-
-    const inviteAttempt = await memberPage.request.post('/api/invites', {
-      data: { email: 'sneaky@northwind.test', role: 'member' },
-      headers: { 'content-type': 'application/json' },
-    });
-    expect(inviteAttempt.status()).toBe(403);
-
-    const roleAttempt = await memberPage.request.patch(`/api/members/${plainMember.id}`, {
-      data: { role: 'owner' },
-      headers: { 'content-type': 'application/json' },
-    });
-    expect(roleAttempt.status()).toBe(403);
-
-    await memberContext.close();
+      const roleAttempt = await plainMember.memberPage.request.patch(
+        `/api/members/${plainMember.id}`,
+        {
+          data: { role: 'owner' },
+          headers: { 'content-type': 'application/json' },
+        },
+      );
+      expect(roleAttempt.status()).toBe(403);
+    } finally {
+      await plainMember.context.close();
+    }
   });
 
   test('inviting more people than the plan allows is refused', async ({ page }) => {

@@ -1,6 +1,24 @@
 import { hashPassword } from '../lib/password';
 import { eq } from 'drizzle-orm';
+import { env } from '../env';
 import { getDb, closeDb, schema } from './client';
+
+/**
+ * Local-development fixture loader.
+ *
+ * Production starts empty and is bootstrapped exclusively through /signup.
+ * Refuse to run against a remote Neon endpoint so a stray `db:seed` can never
+ * repopulate live data. Escape hatch exists for explicit, deliberate test
+ * resets only.
+ */
+const dbHost = new URL(env.DATABASE_URL).hostname;
+if (/neon\.(tech|aws)$/.test(dbHost) && process.env.ALLOW_PROD_SEED !== '1') {
+  console.error(
+    `Refusing to seed ${dbHost}: this loader is for local development only. ` +
+      'Production is bootstrapped through POST /api/auth/signup.',
+  );
+  process.exit(1);
+}
 
 const DEMO_EMAIL = process.env.SEED_EMAIL ?? 'demo@aureliajs.dev';
 const DEMO_PASSWORD = process.env.SEED_PASSWORD ?? 'demo-password-123';
@@ -182,5 +200,7 @@ if (count < 100) {
   ]);
 }
 
-console.log(`✔ seeded workspace "${WORKSPACE_SLUG}" — login: ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
+console.log(
+  `✔ local-only: seeded workspace "${WORKSPACE_SLUG}" — login: ${DEMO_EMAIL} / ${DEMO_PASSWORD}`,
+);
 await closeDb();

@@ -17,15 +17,15 @@
 
     <div class="relative max-w-md">
       <p class="text-[11px] font-medium tracking-[0.18em] text-zinc-400 uppercase">Aurelia 2 · TypeScript · Hono</p>
-      <h1 class="mt-4 text-3xl font-semibold tracking-tight text-balance">An app that behaves like the real thing.</h1>
+      <h1 class="mt-4 text-3xl font-semibold tracking-tight text-balance">Your workspace. Your data. No fixtures.</h1>
       <p class="mt-4 text-sm leading-relaxed text-zinc-400">
-        Multi-tenant data, server-side search and pagination, role-aware actions, an audited domain object and an honest
-        empty state. Built as a work sample, not a mockup.
+        Multi-tenant data, server-side search and pagination, role-aware actions and an audited domain object. The
+        production database starts empty and only fills with what you create.
       </p>
 
       <ul class="mt-8 space-y-3 text-sm text-zinc-300">
         <li class="flex items-center gap-2.5">
-          <ui-icon name="check" size="15"></ui-icon> 1 000 seeded projects, filtered in SQL
+          <ui-icon name="check" size="15"></ui-icon> Server-side search, filters and pagination
         </li>
         <li class="flex items-center gap-2.5">
           <ui-icon name="check" size="15"></ui-icon> Session cookie + Argon2id password hashes
@@ -36,7 +36,7 @@
       </ul>
     </div>
 
-    <p class="relative text-[11px] text-zinc-500">Demo workspace · fictional data · no real customer information</p>
+    <p class="relative text-[11px] text-zinc-500">Your own workspace · data you create · no seeded content</p>
   </section>
 
   <!-- Form panel — independently scrollable only if viewport is extremely short -->
@@ -90,18 +90,12 @@
         <ui-button type="submit" full.bind="true" loading.bind="submitting"> ${copy['login.submit']} </ui-button>
       </form>
 
-      <div class="mt-4 rounded-lg border bg-muted/40 p-3">
-        <p class="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">${copy['login.demoHint']}</p>
-        <p class="mt-1 font-mono text-[12px]">demo@aureliajs.dev</p>
-        <p class="font-mono text-[12px]">demo-password-123</p>
-        <button
-          type="button"
-          class="mt-2 text-[12px] font-medium text-primary underline-offset-4 hover:underline"
-          click.trigger="useDemoAccount()"
+      <p class="mt-4 text-[12px] text-muted-foreground">
+        ${copy['login.noAccount']}
+        <a href="/signup" class="font-medium text-primary underline-offset-4 hover:underline"
+          >${copy['login.createAccount']}</a
         >
-          Fill demo credentials
-        </button>
-      </div>
+      </p>
 
       <p class="mt-4 text-[11px] text-muted-foreground">
         Sessions last 7 days and are stored as an opaque, hashed token. Password hashing uses Argon2id.

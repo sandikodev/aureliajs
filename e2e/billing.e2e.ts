@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { createHmac } from 'node:crypto';
+import { signupOwner } from './helpers/auth';
 import { clearStripeEvents, closeDb, countAuditRows, resetWorkspaceBilling } from './helpers/db';
 
 /**
@@ -19,17 +20,13 @@ function signPayload(payload: string, secret: string, timestamp: number): string
 }
 
 async function login(page: Page) {
-  const response = await page.request.post('/api/auth/login', {
-    data: { email: 'demo@aureliajs.dev', password: 'demo-password-123' },
-    headers: { 'content-type': 'application/json' },
-  });
-  expect(response.ok(), 'demo login should succeed').toBeTruthy();
+  await signupOwner(page);
 }
 
 async function workspaceIdOf(page: Page): Promise<string> {
   const session = await (await page.request.get('/api/auth/me')).json();
   const id = session.workspace?.id;
-  expect(id, 'demo user should belong to a workspace').toBeTruthy();
+  expect(id, 'the signed-up owner should belong to a workspace').toBeTruthy();
   return id as string;
 }
 

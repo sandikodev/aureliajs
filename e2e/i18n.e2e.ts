@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { signupOwner } from './helpers/auth';
 import { closeDb } from './helpers/db';
 
 /**
@@ -10,14 +11,6 @@ import { closeDb } from './helpers/db';
  * *calls* a function returned by a getter, so the first version of this
  * changed the locale without changing a single word on screen.
  */
-
-async function login(page: Page) {
-  const response = await page.request.post('/api/auth/login', {
-    data: { email: 'demo@aureliajs.dev', password: 'demo-password-123' },
-    headers: { 'content-type': 'application/json' },
-  });
-  expect(response.ok()).toBeTruthy();
-}
 
 /**
  * Switch the language from the account menu, which works on any page.
@@ -45,7 +38,7 @@ test.describe('i18n', () => {
   });
 
   test('the locale is persisted and applied on the next page load', async ({ page }) => {
-    await login(page);
+    await signupOwner(page);
     await page.goto('/overview');
     await page.waitForLoadState('networkidle');
 
@@ -65,7 +58,7 @@ test.describe('i18n', () => {
   });
 
   test('the page heading switches language without a reload', async ({ page }) => {
-    await login(page);
+    await signupOwner(page);
     await page.goto('/projects');
     await page.waitForLoadState('networkidle');
 
@@ -81,7 +74,7 @@ test.describe('i18n', () => {
   });
 
   test('the navigation labels switch language too', async ({ page }) => {
-    await login(page);
+    await signupOwner(page);
     await page.goto('/overview');
     await page.waitForLoadState('networkidle');
 
@@ -96,7 +89,7 @@ test.describe('i18n', () => {
   });
 
   test('every locale provides every message', async ({ page }) => {
-    await login(page);
+    await signupOwner(page);
 
     // A missing key renders as the key itself, which is the visible symptom
     // of a gap in a translation. Scan the rendered text for that pattern.
@@ -110,7 +103,7 @@ test.describe('i18n', () => {
   });
 
   test('the stored locale is used by the API-backed settings page', async ({ page }) => {
-    await login(page);
+    await signupOwner(page);
     await page.goto('/overview');
     await page.waitForLoadState('networkidle');
 

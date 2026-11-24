@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach } from 'bun:test';
+import { describe, expect, it, beforeEach, afterEach, spyOn } from 'bun:test';
 import { DI, Registration, CustomElement } from 'aurelia';
 import { IRouter, IRouterEvents } from '@aurelia/router';
 import { JSDOM } from 'jsdom';
@@ -11,6 +11,7 @@ import { ProjectsPage } from '../src/pages/projects-page';
 import { OverviewPage } from '../src/pages/overview-page';
 import { MembersPage } from '../src/pages/members-page';
 import { SettingsPage } from '../src/pages/settings-page';
+import { api, type ProjectQuery } from '../src/services/api';
 import {
   UiCard,
   UiCardContent,
@@ -168,26 +169,52 @@ describe('apps/web — Component & Logic Architecture Rigor', () => {
       expect(page.totalPages).toBe(1);
     });
 
-    it('sorts and filters projects deterministically in local fallback mode', () => {
+    it('delegates sorting and filtering to the API and renders its response', async () => {
       const page = createProjectsPageHarness();
+      const rows: Project[] = [
+        {
+          id: 'p-1',
+          workspaceId: 'w-1',
+          name: 'Alpha Project',
+          status: 'active',
+          budgetCents: 900000,
+          dueDate: null,
+          ownerName: 'Ada',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          id: 'p-2',
+          workspaceId: 'w-1',
+          name: 'Beta Project',
+          status: 'planning',
+          budgetCents: 400000,
+          dueDate: null,
+          ownerName: 'Grace',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ];
+      const calls: ProjectQuery[] = [];
+      const spy = spyOn(api, 'listProjects').mockImplementation(async (query) => {
+        calls.push({ ...query });
+        return { items: rows, page: 1, pageSize: 10, total: rows.length };
+      });
 
-      // Test budget sorting
-      page.sort = 'budget';
-      (page as unknown as { loadLocal(): void }).loadLocal();
-      expect(page.items.length).toBeGreaterThan(0);
-      for (let i = 1; i < page.items.length; i++) {
-        const prev = page.items[i - 1]!;
-        const curr = page.items[i]!;
-        expect(prev.budgetCents).toBeGreaterThanOrEqual(curr.budgetCents);
-      }
+      try {
+        // Budget sort is passed to the server, not applied to a local dataset.
+        page.sort = 'budget';
+        await page.load();
+        expect(calls[0]?.sort).toBe('budget');
+        expect(page.items.length).toBe(2);
 
-      // Test name search filter
-      page.q = 'Alpha';
-      (page as unknown as { loadLocal(): void }).loadLocal();
-      for (const item of page.items) {
-        const matchesName = item.name.toLowerCase().includes('alpha');
-        const matchesOwner = item.ownerName.toLowerCase().includes('alpha');
-        expect(matchesName || matchesOwner).toBe(true);
+        // Search text is forwarded verbatim as the API query.
+        page.q = 'Alpha';
+        await page.load();
+        expect(calls[1]?.q).toBe('Alpha');
+        expect(page.items.length).toBe(2);
+      } finally {
+        spy.mockRestore();
       }
     });
 
@@ -240,8 +267,17 @@ describe('apps/web — Component & Logic Architecture Rigor', () => {
 
     it('generates mathematically valid SVG sparkline coordinates and path commands', () => {
       const page = createOverviewPageHarness();
+      page.overview = {
+        ...page.overview,
+        trend: [
+          { month: 'Jan', value: 2 },
+          { month: 'Feb', value: 5 },
+          { month: 'Mar', value: 3 },
+          { month: 'Apr', value: 8 },
+        ],
+      };
       const points = page.trendPoints;
-      expect(points.length).toBeGreaterThan(0);
+      expect(points.length).toBe(4);
 
       // Verify coordinate constraints: width 480, height 150
       for (const pt of points) {
@@ -262,8 +298,20 @@ describe('apps/web — Component & Logic Architecture Rigor', () => {
 
     it('computes status breakdown percentages proportionally', () => {
       const page = createOverviewPageHarness();
+      page.overview = {
+        ...page.overview,
+        stats: {
+          ...page.overview.stats,
+          total: 10,
+          active: 5,
+          planning: 3,
+          paused: 2,
+          done: 0,
+        },
+      };
       const breakdown = page.statusBreakdown;
       expect(breakdown.length).toBe(4);
+      expect(breakdown.find((row) => row.key === 'active')?.percent).toBe(50);
 
       let totalPercent = 0;
       for (const row of breakdown) {
@@ -285,16 +333,8 @@ describe('apps/web — Component & Logic Architecture Rigor', () => {
       return container.get(MembersPage);
     }
 
-    it('calculates seats, roles, and relative joined dates accurately', async () => {
+    it('calculates seats, roles, and relative joined dates accurately', () => {
       const page = createMembersPageHarness();
-      await page.load();
-
-      expect(page.members.length).toBeGreaterThan(0);
-      expect(page.roleLabel('owner')).toBeDefined();
-      expect(page.roleVariant('owner')).toBe('default');
-      expect(page.roleVariant('admin')).toBe('secondary');
-      expect(page.roleVariant('member')).toBe('outline');
-
       const mockMember = {
         id: 'm1',
         name: 'Ada Lovelace',
@@ -302,7 +342,19 @@ describe('apps/web — Component & Logic Architecture Rigor', () => {
         role: 'owner' as const,
         joinedAt: new Date(Date.now() - 5 * 86_400_000).toISOString(),
       };
+      // Membership data is API-driven; inject a loaded state directly.
+      page.members = [mockMember];
+      page.seatUsed = 1;
+      page.seatLimit = 5;
+
+      expect(page.members.length).toBeGreaterThan(0);
+      expect(page.roleLabel('owner')).toBeDefined();
+      expect(page.roleVariant('owner')).toBe('default');
+      expect(page.roleVariant('admin')).toBe('secondary');
+      expect(page.roleVariant('member')).toBe('outline');
+
       expect(page.joined(mockMember)).toBe('joined 5 days ago');
+      expect(page.seatsPercent).toBe(20);
       expect(page.seatsPercent).toBeGreaterThanOrEqual(0);
       expect(page.seatsPercent).toBeLessThanOrEqual(100);
 

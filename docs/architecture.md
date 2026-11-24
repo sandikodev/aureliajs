@@ -50,7 +50,7 @@ Three rules keep this simple:
 | `workspaces`    | Tenant. `plan` (`free`/`pro`/`scale`), Stripe ids, subscription state. |
 | `memberships`   | (workspace, user) → role `owner` \| `admin` \| `member`.               |
 | `sessions`      | Opaque token **hash** + active workspace + expiry.                     |
-| `projects`      | The demo domain object: status, budget, due date, owner.               |
+| `projects`      | The example domain object: status, budget, due date, owner.            |
 | `invites`       | Token-hash invites with role + expiry + acceptance timestamp.          |
 | `audit_logs`    | Append-only activity feed rendered on the dashboard.                   |
 | `stripe_events` | Idempotency ledger: the Stripe event id is the primary key.            |
@@ -217,13 +217,16 @@ component anatomy (`cva` variants + `cn()` merging) were ported; the markup is n
 - Containerless components also **drop attributes on their host**, so `aria-label` has to be
   forwarded explicitly to the focusable element. `ui-select` and `ui-button` both do it.
 
-**Pages** — `dashboard`, `projects`, `members`, `billing`, `settings`, `invite`, `404 fallback`.
+**Pages** — `landing` (`/`), `overview`, `projects`, `members`, `billing`, `settings`, `invite`,
+`login`, `signup`, `404 fallback`.
 The projects page is the main proof: debounced search, status filter, sort, pagination, native
 `<dialog>` CRUD, CSV export, and inline validation errors.
 
-**Offline honesty** — `apps/web/src/lib/demo-data.ts` is deterministic sample data used **only**
-when the API is unreachable, and the UI renders a "Demo data" banner. A demo that silently fakes
-live data is worse than no demo.
+**Offline honesty** — there is no demo fixture in the client bundle. When the API is unreachable
+the pages render explicit empty/error states and say so. A dashboard that silently fakes live data
+is worse than no dashboard. Production starts empty; the only account bootstrap is the public
+`/signup` route, which creates the user, workspace, owner membership and session in one
+transaction.
 
 **Theming** — `styles/main.css` holds the tokens; `ThemeService` toggles `.dark` and persists to
 `localStorage`. A tiny inline script in `index.html` applies the theme before first paint, so
@@ -249,7 +252,7 @@ there is no flash.
 cp .env.example .env          # dev values only
 bun install
 bun run db:up                    # Postgres on 127.0.0.1:5544
-bun run db:generate && bun run db:migrate && bun run db:seed
+bun run db:generate && bun run db:migrate && bun run db:seed   # seed is local-only
 bun run dev                      # web :4600, api :4601
 ```
 
@@ -309,13 +312,15 @@ Runtime uses the **pooled** Neon string. `db/client.ts` detects `VERCEL=1` and u
 pool with `prepare: false`, required because Neon's pooler runs PgBouncer in transaction
 mode (named prepared statements cannot be reused across physical connections).
 
-Migrations and seed data are one-off commands that must use the **direct** Neon string:
+Migrations are a one-off command that must use the **direct** Neon string:
 
 ```bash
 DATABASE_URL='<direct-url>' bun run --filter @aureliajs/api db:migrate:prod
-# The live demo is seeded with the standard demo account:
-DATABASE_URL='<direct-url>' bun run --filter @aureliajs/api db:seed:prod
 ```
+
+Seeding is **local-only** and refuses to run against a `neon.tech` / `neon.aws` host. Production
+starts empty and is bootstrapped exclusively through `POST /api/auth/signup` — there is no demo
+account and no production seed.
 
 ### Environment variables
 
@@ -356,12 +361,12 @@ curl https://<project>.vercel.app/projects                   # SPA deep link →
 
 Both API signals matter: a JSON response from `/api/auth/me` (rather than a 404) proves the
 rewrite reached the Function, and a `401` from `/api/overview` proves the tenant/auth
-middleware ran. A full login + checkout smoke test against the live deployment passed:
+middleware ran. A full signup + checkout smoke test against the live deployment passed:
 
 ```bash
 curl -c cookies.txt -H 'content-type: application/json' \
-  -d '{"email":"demo@aureliajs.dev","password":"demo-password-123"}' \
-  https://<project>.vercel.app/api/auth/login
+  -d '{"email":"unique@example.com","password":"a-long-password","name":"Owner","workspaceName":"My Workspace"}' \
+  https://<project>.vercel.app/api/auth/signup                                # 201, sets session
 curl -b cookies.txt https://<project>.vercel.app/api/overview                # 200
 curl -b cookies.txt -H 'content-type: application/json' \
   -d '{"plan":"pro","interval":"monthly"}' \
@@ -370,12 +375,13 @@ curl -b cookies.txt -H 'content-type: application/json' \
 
 ### Full live smoke suite
 
-The committed runner covers all 42 checks (SPA routes, auth/RBAC, projects CRUD, team/invites,
-workspace settings, billing, third-party calls and cleanup):
+The committed runner covers 35 read-only checks (SPA routes, signup, auth/RBAC, projects,
+team/invites, workspaces, billing, third-party calls, direct Neon counts) plus opt-in write and
+cleanup checks:
 
 ```bash
-# Read-only — safe on production:
-bun run smoke:live
+# Read-only — signs up a throwaway account, then deletes it via NEON_DIRECT_URL:
+NEON_DIRECT_URL='<direct-neon-url>' bun run smoke:live
 
 # Full suite, including writes, Resend delivery and signed webhook events:
 NEON_DIRECT_URL='<direct-neon-url>' STRIPE_WEBHOOK_SECRET='<current webhook secret>' \
@@ -402,7 +408,7 @@ redacts Secret variables to `[SENSITIVE]`, so keep it outside the repo.
 
 | Milestone | Scope                                                                      | Primary files                                                |
 | --------- | -------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| M0 ✅     | Monorepo, UI kit, projects CRUD, overview, seed data                       | current tree                                                 |
+| M0 ✅     | Monorepo, UI kit, projects CRUD, overview, local-dev seed                  | current tree                                                 |
 | M1 ✅     | Argon2id login, session cookie, RBAC, guarded routes, tenancy from session | `middleware/tenant.ts`, `routes/auth.ts`, `services/auth.ts` |
 | M2 ✅     | Invites, member management persisted                                       | `routes/invites.ts`, `routes/members.ts`, `members-page.*`   |
 | M3 ✅     | Team/role enforcement in UI + API tests                                    | `e2e/team.spec.ts`, `routes/members.ts`                      |
