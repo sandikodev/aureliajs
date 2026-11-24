@@ -19,8 +19,8 @@ The Aurelia 2 + Hono meta-framework is organized into three decoupled, complemen
 ├────────────────────────────────────────────────────────────────────────┤
 │  1. @aureliajs/ssr (Engine Layer)                                      │
 │     - Pure Aurelia 2 SSR engine, framework-agnostic.                   │
-│     - JSDOM isolated environment, RenderMutex FIFO concurrency lock.   │
-│     - Environment snapshot/restore (globals, window, localStorage).     │
+│     - Platform-scoped BrowserPlatform per container, zero global mutex.│
+│     - Multi-request concurrent SSR (LinkeDOM on Workers, JSDOM on Node)│
 │     - State serialization & anti-XSS JSON stringification.             │
 │     - Core client hydrator (createClientHydrator) with DI activation.  │
 ├────────────────────────────────────────────────────────────────────────┤
@@ -59,9 +59,9 @@ The Aurelia 2 + Hono meta-framework is organized into three decoupled, complemen
 4. **Guard Against Dual-Package Hazard**:
    - Multiple versions of `@aurelia/kernel` or `@aurelia/runtime` across pnpm stores cause `resolve()` to look up null module-scoped variables.
    - Enforce peer dependencies on `aurelia: "^2.0.0"` and prefer assigning props directly onto instances.
-5. **Protect Global State with Mutex Locks**:
-   - Because Aurelia 2 mutates module-level `PLATFORM` globals during rendering, concurrent Node.js SSR calls will cross-contaminate if not synchronized.
-   - Always use `RenderMutex` FIFO queue around the JSDOM boot, render, and snapshot restoration critical section.
+5. **Platform-Scoped Isolation (Zero Global Mutexes)**:
+   - Use Aurelia 2's native per-container `BrowserPlatform(win)` and real `ISSRContext` from `@aurelia/runtime-html`.
+   - Never use global FIFO locks or mutate `globalThis`. Each request runs in an isolated container and platform scope, enabling true multi-request concurrent rendering on Node, Bun, and Cloudflare Workers (LinkeDOM/workerd).
 
 ---
 

@@ -57,7 +57,7 @@ console.assert(def.template.includes('au-slot') || def.template.length > 0, 'Emp
 ```
 
 ### 3. Concurrency Stress Testing
-Always stress-test concurrent requests to verify `RenderMutex` isolation:
+Always stress-test concurrent requests to verify platform-scoped concurrency isolation (zero mutex):
 ```bash
 # Execute 30 concurrent headless SSR renders
 bun test packages/ssr-playground/test/headless-diagnostics.test.ts
