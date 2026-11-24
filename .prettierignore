@@ -11,8 +11,8 @@ docs/screenshots
 # Git submodules — each owns its own repo, CI and formatter config
 packages/
 
-# Responsive projects-page markup is kept exactly as committed
-apps/web/src/pages/projects-page.html
+# Web templates are kept exactly as committed during the responsive pass
+apps/web/src/**/*.html
 
 # Historical snapshots — do not rewrite dated narrative
 docs/archive/
