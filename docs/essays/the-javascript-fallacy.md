@@ -5,7 +5,7 @@
 > **Target Pembaca**: Fullstack Architects, Systems Developers, dan Komunitas Rekayasa Web  
 > **Konteks**: Dokumen Pembelajaran & Landasan Disiplin Rekayasa Perangkat Lunak  
 > **Dokumen Pendamping**: [The Resumable Frontier](the-resumable-frontier.md) & [The Angular-Aurelia Heritage](the-angular-aurelia-heritage.md)  
-> **Repositori**: `/home/dev/project/aureliajs`
+> **Repositori**: `https://github.com/sandikodev/aureliajs`
 
 ---
 
@@ -230,7 +230,7 @@ Jawabannya adalah: **Jangan mengagungkannya, melainkan JINAKKAN IA dengan disipl
 
 ## 7. Prinsip Disiplin Sandikodev di Repositori Ini
 
-Di monorepo `/home/dev/project/aureliajs`, kita tidak membiarkan anomali JavaScript merusak produk kita. Kita menjinakkan JavaScript dengan 5 pilar disiplin:
+Di monorepo `aureliajs`, kita tidak membiarkan anomali JavaScript merusak produk kita. Kita menjinakkan JavaScript dengan 5 pilar disiplin:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐

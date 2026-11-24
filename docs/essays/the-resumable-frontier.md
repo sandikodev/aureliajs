@@ -4,7 +4,7 @@
 > **Pencetus & Inisiator**: Sandikodev (@sandikodev)  
 > **Target Pembaca**: Systems Architects, Compiler Engineers, Open-Source Contributors, dan Experimentor Komunitas  
 > **Status**: Living Architectural Manifesto & Community Research Blueprint  
-> **Repositori**: `/home/dev/project/aureliajs`
+> **Repositori**: `https://github.com/sandikodev/aureliajs`
 
 ---
 
@@ -37,7 +37,7 @@ Kedekatan sintaksis dan semantik antara Aurelia dan Angular bukanlah kebetulan b
 > Analisis komprehensif mengenai sejarah di balik layar di Google, perbandingan sintaksis *head-to-head* Angular vs Aurelia, serta dekonstruksi mental model warga React/Vue/Flutter dijabarkan secara khusus dalam dokumen pendamping:  
 > 👉 [**The Angular-Aurelia Heritage: Sejarah, Semantik, dan Rekonsiliasi Mental Model Frontend**](the-angular-aurelia-heritage.md).
 
-Eksperimen di repositori ini (`/home/dev/project/aureliajs`) lahir dari sebuah ambisi yang mungkin terdengar **radikal, ekstrim, atau tidak konvensional**:
+Eksperimen di repositori ini (`aureliajs`) lahir dari sebuah ambisi yang mungkin terdengar **radikal, ekstrim, atau tidak konvensional**:
 
 > **"Bagaimana jika kita mengambil fondasi Direct-DOM Aurelia 2 yang agnostik, memberikannya Developer Experience (DX) Single-File Component sebersih HTML biasa ala Svelte dan Astro (`.aux`), mengawinkannya dengan runtime super ringan modern (Hono), dan mengarahkannya menuju evolusi pamungkas: Resumability ala Qwik?"**
 

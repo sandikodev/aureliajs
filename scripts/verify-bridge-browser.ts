@@ -2,7 +2,7 @@ import { chromium } from '@playwright/test';
 
 const ARTIFACT_DIR =
   process.env.VERIFY_SCREENSHOT_DIR ??
-  '/home/dev/.gemini/antigravity-cli/brain/9cf757ca-8ddb-4b22-a135-b079a86dff15';
+  new URL('../artifacts', import.meta.url).pathname;
 const PORT = 3097;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 
@@ -14,7 +14,7 @@ function assert(condition: unknown, message: string): asserts condition {
 
 async function main() {
   const server = Bun.spawn(['bun', 'src/index.ts'], {
-    cwd: 'examples/fullstack-ssr',
+    cwd: 'packages/hono-aurelia/example',
     env: { ...process.env, PORT: String(PORT), NODE_ENV: 'production' },
     stdout: 'pipe',
     stderr: 'pipe',
@@ -34,7 +34,7 @@ async function main() {
     }
     await new Promise((r) => setTimeout(r, 150));
   }
-  assert(healthy, 'examples/fullstack-ssr server failed to start');
+  assert(healthy, 'packages/hono-aurelia/example server failed to start');
 
   const browser = await chromium.launch({ headless: true });
 

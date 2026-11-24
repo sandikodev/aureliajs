@@ -1,8 +1,8 @@
 # 📚 Aurelia 2 Ecosystem — Documentation & Architecture Index
 
 > **Arsitek & Penulis**: Sandikodev (@sandikodev)  
-> **Terakhir Diperbarui**: 2026-11-23  
-> **Repositori**: `/home/dev/project/aureliajs`
+> **Terakhir Diperbarui**: 2026-11-24  
+> **Repositori**: `https://github.com/sandikodev/aureliajs`
 
 Repositori ini adalah pusat inovasi rekayasa perangkat lunak Aurelia 2: menggabungkan kecepatan **Direct-DOM** murni, arsitektur enterprise berbasis **IoC & Dependency Injection**, runtime **Hono Edge Fullstack SSR**, format **`.aux` Single-File Components**, serta suite **Agnostic Bridge & Selective Hydration Islands**.
 

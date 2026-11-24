@@ -95,11 +95,10 @@ Run against a local static server serving `apps/web/dist` with the same
 signed-in path; the anonymous landing makes no API calls):
 
 ```bash
-CHROME_PATH=/home/dev/.cache/ms-playwright/chromium-1254/chrome-linux64/chrome \
-LD_LIBRARY_PATH=/home/dev/.local/lib/chrome-deps/usr/lib/x86_64-linux-gnu \
+CHROME_PATH="${CHROME_PATH:-google-chrome}" \
 bunx lighthouse http://localhost:5098/ --headless --no-sandbox \
   --only-categories=performance,accessibility,best-practices,seo \
-  --output=json --output-path=/tmp/lh.json \
+  --output=json --output-path=./lighthouse-report.json \
   --chrome-flags="--headless=new --no-sandbox --disable-dev-shm-usage"
 ```
 

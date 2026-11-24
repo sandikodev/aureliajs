@@ -4,7 +4,7 @@
 > **Penulis**: Sandikodev (@sandikodev)  
 > **Konteks**: Riset Historis, Analisis Komparatif Semantik, dan Dokumen Pembelajaran Komunitas  
 > **Dokumen Pendamping**: [The Resumable Frontier](the-resumable-frontier.md) & [The Reactive Continuum](the-reactive-continuum.md)  
-> **Repositori**: `/home/dev/project/aureliajs`
+> **Repositori**: `https://github.com/sandikodev/aureliajs`
 
 ---
 

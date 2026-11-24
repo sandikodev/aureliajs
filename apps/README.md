@@ -52,7 +52,7 @@ Together they form a **fullstack SaaS dashboard** — single-container Docker se
 ### 1. Full Stack (both packages)
 
 ```bash
-cd /home/dev/project/aureliajs
+cd aureliajs                 # navigate to repository root
 cp .env.example .env          # copy, edit as needed
 bun install                  # installs root deps + workspace
 bun run db:up                     # start Postgres (Docker)
@@ -66,7 +66,7 @@ Then open <http://localhost:4600>. The API health check is at <http://localhost:
 ### 2. API Only
 
 ```bash
-cd /home/dev/project/aureliajs
+cd aureliajs                 # navigate to repository root
 bun install
 bun run db:up                     # or point DATABASE_URL at existing Postgres
 bun run db:migrate
@@ -80,7 +80,7 @@ There is no mock backend. With the API down, pages render explicit empty/error s
 login need a running API.
 
 ```bash
-cd /home/dev/project/aureliajs
+cd aureliajs                 # navigate to repository root
 bun install
 bun run --filter @aureliajs/web dev   # :4600 only (empty states, no auth)
 ```

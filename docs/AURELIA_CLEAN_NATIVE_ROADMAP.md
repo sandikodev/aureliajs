@@ -243,7 +243,7 @@ cd examples/fullstack-ssr && bun test
 
 ## 6. Pernyataan Final Status Ekosistem (22 November 2026)
 
-Dengan terselesaikannya seluruh fase di atas, monorepo `/home/dev/project/aureliajs` kini beroperasi pada tingkat kematangan penuh (*production-grade*):
+Dengan terselesaikannya seluruh fase di atas, monorepo `aureliajs` kini beroperasi pada tingkat kematangan penuh (*production-grade*):
 1. **Zero AI Slop & Zero Speculative Code**: Setiap klaim arsitektur telah diverifikasi langsung oleh compiler TypeScript (`tsc --noEmit`), test runner native Bun (`bun test`), dan linter (`oxlint`).
 2. **Pemisahan Bounded Context yang Mutlak**:
    - Dokumentasi inti berfokus pada spesifikasi teknis dan implementasi monorepo.
