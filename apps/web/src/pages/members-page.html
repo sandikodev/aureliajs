@@ -215,12 +215,14 @@
   </div>
 </div>
 
-<!-- Invite link modal dialog -->
+<!-- Invite link modal dialog / mobile bottom drawer -->
 <dialog
   ref="inviteModalEl"
-  class="m-auto w-full max-w-md rounded-xl border bg-background p-0 text-foreground shadow-xl backdrop:bg-black/50 open:flex open:flex-col"
+  class="w-full max-w-full rounded-b-none rounded-t-2xl border-t border-border bg-background p-0 text-foreground shadow-xl backdrop:bg-black/50 sm:m-auto sm:max-w-md sm:rounded-xl sm:border open:flex open:flex-col"
   data-testid="invite-link"
 >
+  <!-- Mobile drawer pull-tab indicator -->
+  <div class="mx-auto mt-2.5 mb-1 h-1.5 w-10 shrink-0 rounded-full bg-muted-foreground/25 sm:hidden" aria-hidden="true"></div>
   <div class="flex items-center justify-between border-b px-5 py-4">
     <div class="flex items-center gap-2.5">
       <span class="grid size-8 place-items-center rounded-lg bg-primary/10 text-primary">

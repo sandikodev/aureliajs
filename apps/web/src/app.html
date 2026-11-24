@@ -295,12 +295,14 @@
     </main>
   </div>
 
-  <!-- Create workspace dialog — only exists while the app shell is visible -->
+  <!-- Create workspace dialog / mobile bottom drawer — only exists while the app shell is visible -->
   <dialog
     if.bind="showShell"
     ref="workspaceDialogEl"
-    class="m-auto w-full max-w-sm rounded-xl border bg-background p-0 text-foreground shadow-xl backdrop:bg-black/50 open:flex open:flex-col"
+    class="w-full max-w-full rounded-b-none rounded-t-2xl border-t border-border bg-background p-0 text-foreground shadow-xl backdrop:bg-black/50 sm:m-auto sm:max-w-sm sm:rounded-xl sm:border open:flex open:flex-col"
   >
+    <!-- Mobile drawer pull-tab indicator -->
+    <div class="mx-auto mt-2.5 mb-1 h-1.5 w-10 shrink-0 rounded-full bg-muted-foreground/25 sm:hidden" aria-hidden="true"></div>
     <div class="flex items-center justify-between border-b px-5 py-4">
       <h2 class="text-base font-semibold">${copy['app.createWorkspace']}</h2>
       <button

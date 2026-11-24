@@ -237,6 +237,16 @@ ui-card {
       transform: translateY(0);
     }
   }
+  @keyframes drawer-slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 @layer base {
@@ -339,13 +349,43 @@ ui-card {
   }
 
   dialog {
-    /* Center dialogs in the viewport. Without this, the browser default is
-       to position them at the top-left corner of the scrolling area. */
+    /* Mobile-first bottom drawer layout: docked to bottom, full width */
     position: fixed;
-    inset: 0;
-    margin: auto;
-    max-height: calc(100dvh - 2rem);
+    inset-inline: 0;
+    bottom: 0;
+    top: auto;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100dvh - 2.5rem);
+    border-top-left-radius: 1.25rem;
+    border-top-right-radius: 1.25rem;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top: 1px solid var(--border);
+    border-inline: none;
+    border-bottom: none;
     overflow-y: auto;
+  }
+
+  dialog[open] {
+    animation: drawer-slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @media (min-width: 640px) {
+    dialog {
+      /* Desktop & tablet: centered modal dialog */
+      inset: 0;
+      top: 0;
+      margin: auto;
+      max-height: calc(100dvh - 2rem);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    dialog[open] {
+      animation: slide-up 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
   }
 
   dialog::backdrop {
@@ -369,10 +409,6 @@ ui-card {
      layouts. Force it to block so it behaves like a <div>. */
   ui-card {
     display: block;
-  }
-
-  dialog[open] {
-    animation: slide-up 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   .login-ambient-gradient {

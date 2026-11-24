@@ -1,9 +1,11 @@
 <dialog
   ref="dialogEl"
-  class="w-[min(92vw,32rem)] rounded-xl border bg-background p-0 text-foreground shadow-2xl"
+  class="w-full max-w-full rounded-b-none rounded-t-2xl border-t border-border bg-background p-0 text-foreground shadow-2xl sm:w-[min(92vw,32rem)] sm:max-w-lg sm:rounded-xl sm:border"
   aria-labelledby="project-dialog-title"
 >
   <form submit.trigger="save()">
+    <!-- Mobile drawer pull-tab indicator -->
+    <div class="mx-auto mt-2.5 mb-1 h-1.5 w-10 shrink-0 rounded-full bg-muted-foreground/25 sm:hidden" aria-hidden="true"></div>
     <div class="border-b px-5 py-4">
       <h2 id="project-dialog-title" class="text-base font-semibold">${dialogTitle}</h2>
       <p class="mt-0.5 text-xs text-muted-foreground">${copy['projects.dialogHint']}</p>
