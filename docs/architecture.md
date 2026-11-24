@@ -288,7 +288,7 @@ Bun is deliberate: `hashPassword()` uses `Bun.password` (Argon2id) directly, so 
 Function has no native N-API addon to bundle. `vercel.json` rewrites every `/api/:path*`
 request to the single `api/index.ts` Function and adds the SPA fallback for every other
 path. API routes always win over the rewrite, so `/api/auth/me` reaches Hono while a deep
-link such as `/projects` returns `index.html`.
+link such as `/projects` returns the SPA shell (`app.html`). `/` is served by the prerendered static `landing.html`.
 
 The live deployment is **https://aureliajs.vercel.app** (production alias). Its Stripe
 webhook endpoint is `https://aureliajs.vercel.app/api/billing/webhook` with the five
@@ -350,8 +350,8 @@ curl https://<project>.vercel.app/api/health                 # {"ok":true,...}
 curl https://<project>.vercel.app/api/ready                  # {"db":"up",...}
 curl https://<project>.vercel.app/api/auth/me                # 200, null user (no session)
 curl -i https://<project>.vercel.app/api/overview            # 401 unauthorized
-curl https://<project>.vercel.app/                           # SPA index.html
-curl https://<project>.vercel.app/projects                   # SPA deep link → index.html
+curl https://<project>.vercel.app/                           # static landing.html
+curl https://<project>.vercel.app/projects                   # SPA deep link → app.html
 ```
 
 Both API signals matter: a JSON response from `/api/auth/me` (rather than a 404) proves the

@@ -11,11 +11,14 @@ import { log, serviceInfo } from './lib/log';
  *
  * One container serves both halves of the app: the API under `/api` and the
  * built Aurelia bundle as static files, with an SPA fallback so a deep link
- * such as `/projects` returns `index.html` instead of a 404.
+ * such as `/projects` returns the SPA shell (`app.html`) instead of a 404.
+ * `/` itself is served by the prerendered static landing page.
  */
 
 const webRoot = join(process.cwd(), 'web');
-const hasWeb = existsSync(join(webRoot, 'index.html'));
+const appShell = existsSync(join(webRoot, 'app.html')) ? 'app.html' : 'index.html';
+const landingPage = existsSync(join(webRoot, 'landing.html')) ? 'landing.html' : null;
+const hasWeb = existsSync(join(webRoot, appShell)) || landingPage !== null;
 
 if (hasWeb) {
   app.use(
@@ -29,7 +32,10 @@ if (hasWeb) {
     }),
   );
 
-  app.get('*', serveStatic({ root: webRoot, path: 'index.html' }));
+  if (landingPage) {
+    app.get('/', serveStatic({ root: webRoot, path: landingPage }));
+  }
+  app.get('*', serveStatic({ root: webRoot, path: appShell }));
 }
 
 const server = serve({ fetch: app.fetch, port: env.PORT }, (info) => {

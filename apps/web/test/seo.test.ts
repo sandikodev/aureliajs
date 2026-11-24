@@ -13,7 +13,8 @@ const built = existsSync(new URL('landing.html', dist));
  */
 describe.skipIf(!built)('production SEO output', () => {
   const landing = readFileSync(new URL('landing.html', dist), 'utf8');
-  const index = readFileSync(new URL('index.html', dist), 'utf8');
+  const shellName = existsSync(new URL('app.html', dist)) ? 'app.html' : 'index.html';
+  const shell = readFileSync(new URL(shellName, dist), 'utf8');
 
   test('landing.html contains real, server-rendered landing content', () => {
     // The app shell normally supplies <main>; the standalone static page needs
@@ -35,7 +36,7 @@ describe.skipIf(!built)('production SEO output', () => {
   });
 
   test('the shell exposes canonical, Open Graph and structured data', () => {
-    for (const html of [index, landing]) {
+    for (const html of [shell, landing]) {
       expect(html).toContain('rel="canonical"');
       expect(html).toContain('property="og:title"');
       expect(html).toContain('property="og:image"');
@@ -68,7 +69,7 @@ describe.skipIf(!built)('production SEO output', () => {
     );
     for (const name of ['overview-page', 'projects-page', 'members-page', 'billing-page']) {
       expect(chunks.some((chunk) => chunk.startsWith(`${name}-`))).toBe(true);
-      expect(index).not.toContain(`modulepreload crossorigin href="/assets/${name}-`);
+      expect(shell).not.toContain(`modulepreload crossorigin href="/assets/${name}-`);
     }
   });
 });

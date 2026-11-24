@@ -67,7 +67,7 @@ export const PUBLIC_ROUTE_PATHS = new Set<string>(PUBLIC_ROUTES.map((r) => r.pat
 
 /**
  * Per-route description used by `app.ts` when the router settles. Crawlers
- * that do not run JavaScript only ever see the landing copy from index.html.
+ * that do not run JavaScript only ever see the static landing copy at `/`.
  */
 export const ROUTE_DESCRIPTIONS: Readonly<Record<string, string>> = {
   '': 'A production-shaped SaaS admin dashboard built with Aurelia 2, TypeScript, Tailwind CSS and Hono.',

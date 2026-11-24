@@ -66,6 +66,10 @@ recommended. Fix the technical SEO first, then measure.
 - The landing page is rendered with the real Aurelia component through
   `@aureliajs/ssr` at **build time** (`scripts/prerender-landing.ts`) and
   written to `dist/landing.html`. `vercel.json` rewrites `/` to that file.
+  The Vite-built shell is renamed to `dist/app.html` after prerendering:
+  Vercel's `filesystem` handler resolves `/` to `index.html` before rewrites
+  run, so leaving that file in place made the landing rewrite unreachable.
+  Deep links still fall back to the renamed shell.
   A full Vercel Function would add cold starts to a page whose content never
   changes, so static prerender is the right form of SSR here.
 - The prerendered file is **static-first**: the SPA entry script and its

@@ -10,17 +10,23 @@
  * - carries a ~20-line bootstrap for the two CTA buttons and the signed-in
  *   redirect, which are the only interactive behaviours the page needs.
  *
- * `vercel.json` rewrites `/` to this file. Other routes still serve index.html
+ * `vercel.json` rewrites `/` to this file. Other routes still serve app.html
  * and boot the SPA normally.
  */
-import { readFile, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { readFile, rename, writeFile } from 'node:fs/promises';
 // Relative import: this script lives at the workspace root, while the SSR
 // package is a devDependency of apps/web. `build:packages` always runs first.
 import { renderAurelia } from '../packages/aurelia-ssr/dist/server.js';
 import { LandingPage } from '../apps/web/src/pages/landing-page';
 
 const root = new URL('../', import.meta.url);
-const shellPath = new URL('apps/web/dist/index.html', root);
+const indexShellPath = new URL('apps/web/dist/index.html', root);
+const appShellPath = new URL('apps/web/dist/app.html', root);
+// Vite writes index.html; once prerendered we rename it so Vercel's
+// `filesystem` handler cannot serve it for `/` ahead of the landing rewrite.
+const shellIsIndex = existsSync(indexShellPath);
+const shellPath = shellIsIndex ? indexShellPath : appShellPath;
 const landingPath = new URL('apps/web/dist/landing.html', root);
 
 const markup = await renderAurelia({
@@ -67,7 +73,7 @@ const bootstrap = `<script>
 const shell = await readFile(shellPath, 'utf8');
 const host = '<app-root></app-root>';
 if (!shell.includes(host)) {
-  throw new Error(`Expected ${host} in apps/web/dist/index.html`);
+  throw new Error(`Expected ${host} in ${shellPath.pathname.split('/dist/')[1] ?? 'app.html'}`);
 }
 
 // The SPA entry and its preloads are useless on a page that never mounts the
@@ -90,3 +96,8 @@ await writeFile(landingPath, landing);
 console.log(
   `[prerender] ${landingPath.pathname.split('/dist/')[1] ?? 'landing.html'} (${landing.length} bytes, static)`,
 );
+
+if (shellIsIndex) {
+  await rename(indexShellPath, appShellPath);
+  console.log('[prerender] SPA shell renamed to app.html');
+}

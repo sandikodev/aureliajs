@@ -131,11 +131,11 @@ await check('SPA root serves the app shell', async () => {
   const res = await owner.request('/');
   expectStatus(res, 200, 'GET /');
   assert.match(res.text, /<app-root/i);
-  return 'index.html';
+  return 'static landing shell';
 });
 
 for (const path of ['overview', 'projects', 'members', 'billing', 'settings', 'login', 'invite']) {
-  await check(`SPA deep link /${path} falls back to index.html`, async () => {
+  await check(`SPA deep link /${path} falls back to app shell`, async () => {
     const res = await owner.request(`/${path}`);
     expectStatus(res, 200, `GET /${path}`);
     assert.match(res.text, /<app-root/i);
