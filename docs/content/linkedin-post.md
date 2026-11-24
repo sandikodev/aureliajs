@@ -1,124 +1,106 @@
 # LinkedIn — Sandikodev
 
-Urutan ini sengaja dua fase. Tiga posting pertama bicara Aurelia 2 saja. Tidak ada Hono, tidak ada Vercel, tidak ada link repo. Tujuannya supaya timeline LinkedIn terbiasa melihat nama Aurelia 2 dari saya sebelum saya memperkenalkan kerjaan saya sendiri.
+Lima posting yang disusun dari pengalaman nyata: keliling ke banyak frontend, teringat lagi ke Aurelia, melihat ulang hubungan Aurelia dan Angular, baru setelah itu memperkenalkan eksperimen fullstack yang sudah terpasang di Vercel.
 
-Baru di posting 4 dan 5 saya masukkan scaffold fullstack Aurelia 2 + Hono dan fakta bahwa sudah terdeploy di Vercel.
+Aurelia bukan topik yang dipaksakan di setiap posting. Di tiga posting pertama ia muncul sebagai bagian dari perjalanan, bukan sebagai barang yang dijual.
 
-Aturan untuk seri ini:
+## Prinsip yang dipakai
 
-- Satu posting, satu ide. Jangan gabungkan semua proof point di satu status.
-- Pakai Bahasa Indonesia. Istilah teknis dibiarkan bahasa Inggris.
-- Tidak ada "saya senang mengumumkan", "game changer", atau "perjalanan saya".
-- Tidak ada em dash.
-- Kalimat pendek. Kalau satu paragraf lebih dari tiga kalimat, dipotong.
-- Link repo baru muncul di posting 5, dan ditaruh di komentar pertama.
-
----
-
-## Fase 1 — Aurelia 2 dulu
-
-### Posting 1
-
-**Tujuan:** jawab langsung isu "Aurelia 2 sudah mati" tanpa terdengar defensif.
-
-Aurelia 2 masih saya pakai.
-
-Kabar di timeline bilang Aurelia sudah mati. Saya paham kenapa orang berpikir begitu. Komunitasnya kecil. Aktivitasnya tidak sebering ekosistem lain. Tutorial yang kebanyakan ada sudah usang.
-
-Saya pakai Aurelia sejak 2017, waktu versi 1 masih baru. Yang bikin saya tetap di sini bukan harapan bahwa Aurelia akan sepopuler React. Itu tidak akan terjadi, dan saya tidak butuh itu.
-
-Yang saya butuhkan sederhana. Template HTML tetap HTML. Logikanya class TypeScript biasa. Binding-nya langsung menyentuh DOM, bukan lewat Virtual DOM yang di-diff setiap perubahan.
-
-Saat saya menulis form dengan dua puluh field dan aturan validasi, saya tidak perlu memikirkan store, memo, atau dependency array.
-
-Aurelia 2 menyimpan semua itu. Beberapa bagian malah lebih rapi dari versi 1.
-
-Saya tidak akan menyuruh siapa pun pindah. Saya cuma mau bilang, "Aurelia mati" bukan alasan untuk tidak pernah mencoba versi 2.
-
-Kalau Anda pernah dengar isu itu tapi belum pernah buka dokumentasinya, coba sekarang.
+- Tulis sebagai orang yang sedang bercerita, bukan sedang menjalankan campaign.
+- Tidak menjelaskan strategi konten kepada pembaca. Mereka tidak sedang mengikuti rangkaian kita.
+- Tidak menaruh disclaimer sebelum orang bertanya.
+- Istilah teknis boleh ada, tapi pembaca awam tetap harus menangkap maksudnya.
+- Tiap posting punya bentuk berbeda. Jangan lima kali memakai pola pembuka, masalah, argumen, kesimpulan, pertanyaan.
+- Tidak memaksakan pertanyaan engagement di akhir.
+- Tidak ada buzzword, tidak ada klaim bombastis.
+- Orang yang tidak pernah pakai Aurelia, tidak tahu Hono, dan tidak berniat jadi programmer tetap harus bisa menikmatinya.
 
 ---
 
-### Posting 2
+## Posting 1
 
-**Tujuan:** kasih satu hal konkret yang berubah dari Aurelia 1 ke 2. Masih tidak sebut repo.
+Beberapa bulan terakhir saya banyak berpindah tempat.
 
-Dulu saya kira Aurelia 2 cuma Aurelia 1 yang lebih cepat.
+React, Vue, Svelte, Astro, Qwik, Preact, Solid, Lit. Saya baca, saya coba, saya bandingkan. Ada yang bikin saya cepat paham. Ada yang bikin saya berhenti di tengah karena cara berpikirnya tidak cocok dengan kepala saya.
 
-Ternyata yang berubah justru cara saya menulis komponen.
+Suatu hari saya sadar saya terlalu sibuk melihat ke kanan dan kiri. Saya jadi lupa bahwa dulu saya pernah kenal satu framework yang cara kerjanya masih saya ingat sampai sekarang.
 
-Di Aurelia 1 saya menulis ViewModel, template, lalu memastikan keduanya ketemu lewat konvensi nama. Di Aurelia 2 alurnya mirip, tapi dependency injection dan binding-nya lebih konsisten. Saya lebih jarang menulis kode hanya untuk menyambung dua bagian.
+Aurelia.
 
-Bagian yang tetap saya suka: `if.bind`, `repeat.for`, dan `class.bind` terbaca seperti HTML. Bukan seperti ekspresi di dalam string.
+Saya tidak langsung menulis tentangnya waktu itu. Saya baca ulang dulu. Saya bandingkan dengan catatan lama saya. Kesannya tidak berubah, tapi alasan saya tertarik jadi berbeda.
 
-Aurelia juga tetap langsung menyentuh DOM. Untuk aplikasi dengan tabel dan form yang banyak, ini terasa.
+Dulu saya tertarik karena cara menulis kodenya rapi. Sekarang saya tertarik karena setelah keliling tadi saya jadi bisa melihat pola yang sama di tempat lain.
 
-Yang bikin orang kecewa biasanya ekspektasi. Aurelia 2 bukan React dengan sintaks lain. Kalau yang Anda cari adalah ekosistem besar dan library untuk semua kebutuhan, Anda akan kecewa.
-
-Kalau yang Anda cari adalah cara menulis aplikasi yang rapi tanpa banyak glue code, coba lagi.
+Kadang yang kita cari bukan yang paling baru. Kadang yang kita butuhkan adalah melihat lagi sesuatu yang sudah kita kenal, dengan mata yang sudah berubah.
 
 ---
 
-### Posting 3
+## Posting 2
 
-**Tujuan:** tunjukkan alasan pakai Aurelia 2 berdasarkan kerjaan nyata, bukan nostalgia. Tutup dengan undangan diskusi.
+Saya dulu agak alergi sama Angular.
 
-Alasan saya tetap pakai Aurelia 2 tahun ini sederhana. Saya bisa menyelesaikan kerjaan tanpa menambah library.
+Bukan karena Angular buruk. Waktu itu saya lihat banyak aturan, banyak struktur, dan banyak hal yang harus dipahami sebelum bisa menulis baris pertama. Saya merasa rumit.
 
-Contoh kecil. Saya perlu aturan validasi yang sama persis antara browser dan server. Saya tulis satu schema Zod, lalu dipakai di dua tempat. Pesan errornya pun sama. Di frontend saya tinggal petakan `issues[].path` ke field yang bersangkutan.
+Belakangan saya baca ulang sejarahnya. Aurelia lahir dari orang-orang yang terlibat dalam revolusi Angular 2 jamannya. Rob Eisenberg keluar dari tim inti Angular, lalu membangun Aurelia dengan ide yang sedikit beda. Tampilannya HTML biasa. Logikanya class biasa. Tidak perlu banyak upacara untuk memulai.
 
-Contoh lain. State dan warna tombol saya tulis langsung di class binding. Tidak ada `clsx`. Tidak ada `class-variance-authority`. Itu bukan penemuan baru. Itu memang sudah ada di Aurelia dari awal.
+Saya menemukan ini bukan dari tulisan yang mengatakan Aurelia hebat. Saya menemukannya setelah keliling ke banyak framework dan akhirnya punya dasar untuk membandingkan.
 
-Orang sering bertanya soal komunitas dan lowongan kerja. Itu pertanyaan jujur. Ekosistem Aurelia kecil. Saya tidak menyarankan siapa pun memilih framework hanya karena saya menggunakannya.
+Yang bikin saya berhenti sejenak: dua framework yang berasal dari masa yang sama bisa berakhir di tempat yang berbeda. Satu jadi pilihan besar di banyak perusahaan. Satu tetap kecil, tapi tetap dipakai orang.
 
-Saya pakai karena kerjaan saya selesai. Itu saja.
+Mana yang lebih besar tidak terlalu penting bagi saya. Yang lebih menarik adalah kebutuhan apa yang dijawab masing-masing.
 
-Kalau Anda punya pengalaman sebaliknya, saya mau dengar. Komentar yang tidak setuju biasanya lebih berguna daripada yang setuju.
-
----
-
-## Fase 2 — baru sekarang perkenalkan scaffold
-
-### Posting 4
-
-**Tujuan:** mulai shows work, tapi masih simpan link dan detail deployment.
-
-Tiga posting terakhir saya bicara Aurelia 2 tanpa pernah menunjukkan apa yang saya bangun. Sekarang saya cerita.
-
-Saya bikin satu repo untuk menjawab pertanyaan saya sendiri: apakah Aurelia 2 bisa dipakai untuk aplikasi penuh, bukan cuma tampilan depan.
-
-Isinya tiga bagian. `apps/web` untuk antarmuka Aurelia 2. `apps/api` untuk backend Hono, Postgres, dan Stripe. `apps/shared` untuk satu set schema yang dipakai dua-duanya.
-
-Saya sengaja tidak menyatukan semuanya jadi satu framework besar. Aurelia mengurus tampilan. Hono mengurus HTTP. Keduanya dipisah, lalu disambung lewat kontrak yang sama.
-
-Satu hal yang saya jaga sejak awal: package di folder `packages/` tidak pernah mengimpor apa pun dari `apps/`. Kalau aturan itu dilanggar, dua bagian tadi akan melekat lagi.
-
-Repo ini sudah jalan di Vercel. Bukan proyek yang cuma bisa dijalankan di localhost.
-
-Saya belum mau menjelaskan detail arsitekturnya sekarang. Satu posting cukup untuk satu ide.
-
-Nanti saya cerita bagian yang paling sering bikin orang salah paham.
+Sejak itu saya jadi lebih suka membaca sejarah teknologi. Alasan kenapa kita memakai sesuatu sering tersimpan di sana.
 
 ---
 
-### Posting 5
+## Posting 3
 
-**Tujuan:** baru sekarang sebut Vercel secara konkret dan taruh link di komentar pertama.
+Setelah keliling tadi, saya mulai melihat tiap frontend punya kebiasaan sendiri.
 
-Scaffold Aurelia 2 + Hono yang saya sebut kemarin sudah terdeploy di Vercel.
+React mengajarkan orang membangun dari fungsi dan state. Vue menawarkan jalan masuk yang lebih ringan. Svelte menggeser sebagian kerja ke compiler. Astro mengubah kebiasaan soal apa yang dikirim ke browser. Qwik, Preact, Solid, Lit, masing-masing punya penekanan sendiri.
 
-Yang jalan bukan cuma halaman statis. Ada landing page yang di-build dari Aurelia SSR lalu dikirim sebagai HTML biasa. Ada SPA untuk bagian yang benar-benar butuh interaksi. Ada API Hono di belakangnya.
+Angular punya penawaran khusus. Ia mengatur banyak hal sejak awal, dan itu masuk akal untuk tim besar yang butuh keseragaman.
 
-Satu hal yang saya perbaiki kemarin: landing page tidak mengunduh runtime SPA. File-nya terpisah dari app shell. Lighthouse di mobile 100/100/100/100. LCP 1,2 detik.
+Aurelia jalan di bawah radar. Ia berasal dari ruang yang sama dengan Angular, tapi punya cara sendiri memandang HTML, class, dan binding.
 
-Saya juga membuang semua data demo dari database produksi. Sekarang kalau ada yang kosong, itu memang kosong. Pendaftaran adalah satu-satunya jalan masuk.
+Yang saya bawa pulang dari perjalanan ini: framework ikut membentuk cara tim berpikir, cara orang baru bergabung, dan biaya yang dibayar bertahun-tahun kemudian.
 
-Ini bukan pengumuman produk. Ini catatan bahwa stack ini bisa dipakai untuk kerjaan nyata.
+Itu jarang masuk dalam perbandingan singkat di internet.
 
-Link repo ada di komentar pertama.
+Buat yang bekerja di tim atau memegang keputusan teknis, ini bahan obrolan yang lebih luas dari sekadar memilih library.
 
 ---
 
-## Setelah seri ini
+## Posting 4
 
-Kalau kelima posting di atas sudah berjalan dan ada yang nanya soal detail teknis, baru masuk ke topik yang lebih dalam: tenancy di satu middleware file, 401 versus 403, ledger idempotency Stripe, dan adapter SSR berbasis Web Standards. Jangan mulai dari situ. Orang belum akan peduli.
+Saya coba satu eksperimen setelah itu.
+
+Saya penasaran apakah Aurelia bisa dipakai untuk seluruh aplikasi, sampai ke bagian yang tidak terlihat. Saya bangun satu dari awal. Tampilannya Aurelia 2. Servernya Hono. Datanya Postgres. Aturan validasinya ditulis sekali, lalu dipakai di dua tempat.
+
+Depan dan belakang saya pisahkan. Aurelia mengurus apa yang dilihat orang. Hono mengurus permintaan yang masuk. Keduanya disambung lewat kontrak yang sama.
+
+Yang paling saya perhatikan adalah konsekuensinya. Kalau aturan validasi ditulis dua kali, satu hari nanti pasti ada perbedaan. Kalau ditulis sekali, perbedaan itu tidak pernah muncul.
+
+Waktu itu eksperimen ini masih berhenti di localhost. Saya belum tahu apakah akan saya lanjutkan.
+
+---
+
+## Posting 5
+
+Eksperimen tadi akhirnya saya pasang di Vercel.
+
+Yang jalan di sana bukan satu halaman contoh. Ada halaman depan yang dikirim sebagai HTML biasa, ada bagian aplikasi yang baru aktif kalau orang benar-benar butuh interaksi, dan ada server Hono yang melayani datanya.
+
+Halaman depan sengaja dibuat tanpa membawa kode aplikasi. Orang yang cuma mampir tidak perlu mengunduh apa yang tidak dipakai. Alat pengukur halaman Google memberi angka 100 untuk empat kategori sekaligus, dan isi utamanya muncul dalam sekitar satu detik di mobile.
+
+Saya juga mengosongkan database produksi dari data contoh. Orang yang mau mencoba harus mendaftar seperti biasa.
+
+Tautan repo saya taruh di komentar pertama, untuk yang ingin membaca sendiri.
+
+Dari seluruh perjalanan ini saya ambil satu hal. Teknologi yang tidak sedang ramai dibicarakan tetap bisa dipelajari, tetap bisa dipakai, dan tetap bisa menghasilkan sesuatu yang bisa ditunjukkan.
+
+---
+
+## Yang belum masuk
+
+Topik yang lebih dalam, seperti cara memisahkan tenant di satu middleware, beda antara 401 dan 403, atau adapter SSR di atas Web Standards, sengaja ditahan dulu. Ia baru relevan kalau ada yang bertanya setelah kelima posting ini.

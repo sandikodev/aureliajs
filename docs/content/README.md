@@ -10,7 +10,7 @@ This folder holds the publish-ready drafts and the earlier community launch kit.
 | `devto-articles.md`            | dev.to                              | English    | Three technical articles. Invites architecture review.           |
 | `reddit-post.md`               | r/aurelia, r/webdev                 | English    | Non-promotional discussion post. Link goes in the first comment. |
 | `facebook-post.md`             | Facebook                            | Indonesian | Community storytelling in Bahasa Indonesia.                      |
-| `linkedin-post.md`             | LinkedIn                            | Indonesian | Five-post sequence. Aurelia 2 first, scaffold and Vercel later.  |
+| `linkedin-post.md`             | LinkedIn                            | Indonesian | Five-post sequence. Framework journey first, scaffold and Vercel last. |
 | `community-launch-posts.md`    | dev.to, LinkedIn, Facebook, Discord | Mixed      | Earlier launch kit. Kept as a separate set of drafts.            |
 
 ## Proof points and where they come from
