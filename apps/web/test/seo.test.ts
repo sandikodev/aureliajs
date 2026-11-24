@@ -29,7 +29,7 @@ describe.skipIf(!built)('production SEO output', () => {
     // Static-first: the landing page never downloads or mounts the SPA.
     expect(landing).not.toContain('type="module"');
     expect(landing).not.toContain('rel="modulepreload"');
-    expect(landing).toContain('rel="stylesheet"');
+    expect(landing).toMatch(/rel="stylesheet"|<style[^>]*>/);
     // Its two CTAs and the signed-in redirect are wired by a tiny inline script.
     expect(landing).toContain('data-ssr-login');
     expect(landing).toContain('aurelia_ops_authed=1');

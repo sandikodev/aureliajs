@@ -85,7 +85,30 @@ if (stripped.includes('type="module"')) {
   throw new Error('Failed to strip SPA entry script from the static landing page');
 }
 
-const landing = stripped
+// Eliminate render-blocking CSS on landing: inline critical CSS and preload font
+const cssMatch = stripped.match(/<link\s+rel="stylesheet"\s+crossorigin\s+href="(\/assets\/[^"]+\.css)">/i) ||
+  stripped.match(/<link\s+rel="stylesheet"\s+href="(\/assets\/[^"]+\.css)"[^>]*>/i);
+
+let inlinedHeadStyle = '';
+let processedShell = stripped;
+
+if (cssMatch && cssMatch[1]) {
+  const cssHref = cssMatch[1];
+  const cssRel = cssHref.replace(/^\//, '');
+  const cssDiskPath = new URL(`apps/web/dist/${cssRel}`, root);
+  if (existsSync(cssDiskPath)) {
+    const cssContent = await readFile(cssDiskPath, 'utf8');
+    const fontMatch = cssContent.match(/\/assets\/inter-latin-wght-normal-[a-zA-Z0-9_-]+\.woff2/);
+    const fontPreload = fontMatch
+      ? `<link rel="preload" href="${fontMatch[0]}" as="font" type="font/woff2" crossorigin />\n    `
+      : '';
+    inlinedHeadStyle = `${fontPreload}<style>/* Critical Inlined CSS for Zero Render-Blocking LCP */\n${cssContent}</style>`;
+    processedShell = processedShell.replace(cssMatch[0], inlinedHeadStyle);
+    console.log(`[prerender] Inlined ${cssHref} (${cssContent.length} bytes) & preloaded font into landing.html`);
+  }
+}
+
+const landing = processedShell
   .replace(
     host,
     `<app-root><main id="main-content"><div data-ssr-landing>${markup}</div></main></app-root>`,
