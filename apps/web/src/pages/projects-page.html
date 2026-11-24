@@ -1,204 +1,207 @@
-<div class="flex flex-wrap items-end justify-between gap-3">
-  <div>
-    <h1 class="text-2xl font-semibold tracking-tight">${copy['projects.title']}</h1>
-    <p class="mt-1 text-sm text-muted-foreground">${subtitleText}</p>
-  </div>
-  <div class="flex items-center gap-2">
-    <ui-button variant="outline" size="sm" click.trigger="exportCsv()">
-      <ui-icon name="download" size="15"></ui-icon> ${copy['projects.export']}
-    </ui-button>
-    <ui-button size="sm" click.trigger="openCreate()">
-      <ui-icon name="plus" size="15"></ui-icon> ${copy['projects.new']}
-    </ui-button>
-  </div>
-</div>
-
-<!-- Filters -->
-<div class="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
-  <div class="relative flex-1">
-    <span class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-muted-foreground">
-      <ui-icon name="search" size="15"></ui-icon>
-    </span>
-    <input
-      type="search"
-      class="h-9 w-full rounded-md border border-input bg-transparent pr-3 pl-8 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 dark:bg-input/30"
-      placeholder="${copy['projects.searchPlaceholder']}"
-      aria-label="${copy['projects.search']}"
-      autocomplete="off"
-      value.two-way="q"
-      input.trigger="onSearchInput() & debounce:300"
-    />
-  </div>
-  <div class="w-full sm:w-44">
-    <ui-select
-      value.two-way="status"
-      options.bind="statusOptions"
-      change.trigger="onFilterChange()"
-      aria-label.bind="copy['projects.filterStatus']"
-    ></ui-select>
-  </div>
-  <div class="w-full sm:w-44">
-    <ui-select
-      value.two-way="sort"
-      options.bind="sortOptions"
-      change.trigger="onFilterChange()"
-      aria-label.bind="copy['projects.sort']"
-    ></ui-select>
-  </div>
-</div>
-
-<p
-  if.bind="loadError"
-  class="mt-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
-  role="alert"
->
-  ${copy['errors.loadFailed']}
-</p>
-
-<!-- Table -->
-<ui-card class="mt-4">
-  <div class="overflow-x-auto">
-    <table class="w-full min-w-[840px] caption-bottom text-sm">
-      <thead>
-        <tr class="border-y bg-muted/40">
-          <th
-            class="h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
-          >
-            ${copy['projects.columnName']}
-          </th>
-          <th
-            class="h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
-          >
-            ${copy['projects.columnStatus']}
-          </th>
-          <th
-            class="h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
-          >
-            ${copy['projects.columnOwner']}
-          </th>
-          <th
-            class="h-10 px-4 text-right align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
-          >
-            ${copy['projects.columnBudget']}
-          </th>
-          <th
-            class="h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
-          >
-            ${copy['projects.columnDue']}
-          </th>
-          <th
-            class="h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
-          >
-            ${copy['projects.columnUpdated']}
-          </th>
-          <th class="h-10 w-20 px-4 text-right">
-            <span class="sr-only">${copy['projects.columnActions']}</span>
-          </th>
-        </tr>
-      </thead>
-      <tbody aria-busy.bind="isLoading">
-        <template repeat.for="i of [1,2,3,4,5,6]">
-          <tr if.bind="isLoading" class="border-b last:border-0">
-            <td class="px-4 py-3"><div class="h-4 w-40 animate-pulse rounded bg-muted"></div></td>
-            <td class="px-4 py-3"><div class="h-5 w-16 animate-pulse rounded bg-muted"></div></td>
-            <td class="px-4 py-3"><div class="h-4 w-28 animate-pulse rounded bg-muted"></div></td>
-            <td class="px-4 py-3"><div class="ml-auto h-4 w-16 animate-pulse rounded bg-muted"></div></td>
-            <td class="px-4 py-3"><div class="h-4 w-20 animate-pulse rounded bg-muted"></div></td>
-            <td class="px-4 py-3"><div class="h-4 w-16 animate-pulse rounded bg-muted"></div></td>
-            <td class="px-4 py-3"></td>
-          </tr>
-        </template>
-
-        <tr if.bind="!isLoading && items.length === 0">
-          <td colspan="7" class="px-4 py-14 text-center">
-            <div class="mx-auto flex max-w-sm flex-col items-center gap-2">
-              <span class="grid size-11 place-items-center rounded-full bg-muted text-muted-foreground">
-                <ui-icon name="inbox" size="20"></ui-icon>
-              </span>
-              <p class="text-sm font-medium">${copy['projects.empty']}</p>
-              <p class="text-xs text-muted-foreground">${copy['projects.emptyHint']}</p>
-              <ui-button variant="outline" size="sm" click.trigger="resetFilters()">
-                ${copy['projects.clearFilters']}
-              </ui-button>
-            </div>
-          </td>
-        </tr>
-
-        <template repeat.for="project of items">
-          <tr if.bind="!isLoading" class="border-b transition-colors last:border-0 hover:bg-muted/40">
-            <td class="px-4 py-3">
-              <div class="flex items-center gap-2.5">
-                <span
-                  class="grid size-8 shrink-0 place-items-center rounded-md border bg-muted/50 text-muted-foreground"
-                >
-                  <ui-icon name="folder" size="15"></ui-icon>
-                </span>
-                <div class="min-w-0">
-                  <p class="truncate font-medium">${project.name}</p>
-                  <p class="text-[11px] text-muted-foreground">#${project.id.slice(0, 8)}</p>
-                </div>
-              </div>
-            </td>
-            <td class="px-4 py-3">
-              <ui-badge variant.bind="statusMeta[project.status].variant">
-                ${statusMeta[project.status].label}
-              </ui-badge>
-            </td>
-            <td class="px-4 py-3">
-              <div class="flex items-center gap-2">
-                <ui-avatar name.bind="project.ownerName" size="sm"></ui-avatar>
-                <span class="truncate text-[13px]">${project.ownerName}</span>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-right font-medium tabular-nums">${budget(project)}</td>
-            <td class="px-4 py-3">
-              <span class="${isOverdue(project) ? 'text-destructive' : 'text-muted-foreground'} text-[13px]">
-                ${due(project)}
-              </span>
-            </td>
-            <td class="px-4 py-3 text-[13px] text-muted-foreground">${updated(project)}</td>
-            <td class="px-4 py-3 text-right">
-              <div role="group" aria-label="${copy['projects.actions']}" class="flex items-center justify-end gap-1">
-                <button
-                  type="button"
-                  class="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer select-none"
-                  title="${copy['projects.edit']}"
-                  aria-label="${copy['projects.edit']}"
-                  click.trigger="openEdit(project)"
-                >
-                  <ui-icon name="settings" size="15"></ui-icon>
-                </button>
-                <button
-                  if.bind="auth.canManage"
-                  type="button"
-                  class="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer select-none"
-                  title="${copy['projects.delete']}"
-                  aria-label="${copy['projects.delete']}"
-                  click.trigger="remove(project)"
-                >
-                  <ui-icon name="trash" size="15"></ui-icon>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </template>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3">
-    <p class="text-xs text-muted-foreground">${showingLabel}</p>
+<div class="w-full min-w-0 space-y-4">
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-semibold tracking-tight">${copy['projects.title']}</h1>
+      <p class="mt-1 text-sm text-muted-foreground">${subtitleText}</p>
+    </div>
     <div class="flex items-center gap-2">
-      <ui-button variant="outline" size="sm" disabled.bind="!canPrev" click.trigger="goToPage(page - 1)">
-        Previous
+      <ui-button variant="outline" size="sm" click.trigger="exportCsv()">
+        <ui-icon name="download" size="15"></ui-icon> ${copy['projects.export']}
       </ui-button>
-      <span class="text-xs text-muted-foreground tabular-nums">Page ${page} / ${totalPages}</span>
-      <ui-button variant="outline" size="sm" disabled.bind="!canNext" click.trigger="goToPage(page + 1)">
-        Next
+      <ui-button size="sm" click.trigger="openCreate()">
+        <ui-icon name="plus" size="15"></ui-icon> ${copy['projects.new']}
       </ui-button>
     </div>
   </div>
-</ui-card>
 
-<!-- Create / edit dialog -->
-<project-dialog component.ref="dialog" saved.trigger="onProjectSaved($event.detail)"></project-dialog>
+  <!-- Filters -->
+  <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+    <div class="relative flex-1 min-w-0">
+      <span class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-muted-foreground">
+        <ui-icon name="search" size="15"></ui-icon>
+      </span>
+      <input
+        type="search"
+        class="h-9 w-full rounded-md border border-input bg-transparent pr-3 pl-8 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 dark:bg-input/30"
+        placeholder="${copy['projects.searchPlaceholder']}"
+        aria-label="${copy['projects.search']}"
+        autocomplete="off"
+        value.two-way="q"
+        input.trigger="onSearchInput() & debounce:300"
+      />
+    </div>
+    <div class="w-full sm:w-44">
+      <ui-select
+        value.two-way="status"
+        options.bind="statusOptions"
+        change.trigger="onFilterChange()"
+        aria-label.bind="copy['projects.filterStatus']"
+      ></ui-select>
+    </div>
+    <div class="w-full sm:w-44">
+      <ui-select
+        value.two-way="sort"
+        options.bind="sortOptions"
+        change.trigger="onFilterChange()"
+        aria-label.bind="copy['projects.sort']"
+      ></ui-select>
+    </div>
+  </div>
+
+  <p
+    if.bind="loadError"
+    class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+    role="alert"
+  >
+    ${copy['errors.loadFailed']}
+  </p>
+
+  <!-- Table -->
+  <ui-card class="w-full min-w-0 overflow-hidden">
+    <div class="w-full min-w-0 overflow-x-auto">
+      <table class="w-full min-w-0 table-auto caption-bottom text-sm">
+        <thead>
+          <tr class="border-y bg-muted/40">
+            <th
+              class="h-10 px-3 sm:px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
+            >
+              ${copy['projects.columnName']}
+            </th>
+            <th
+              class="h-10 px-2 sm:px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
+            >
+              ${copy['projects.columnStatus']}
+            </th>
+            <th
+              class="hidden sm:table-cell h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
+            >
+              ${copy['projects.columnOwner']}
+            </th>
+            <th
+              class="hidden md:table-cell h-10 px-4 text-right align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
+            >
+              ${copy['projects.columnBudget']}
+            </th>
+            <th
+              class="hidden lg:table-cell h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
+            >
+              ${copy['projects.columnDue']}
+            </th>
+            <th
+              class="hidden lg:table-cell h-10 px-4 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground uppercase"
+            >
+              ${copy['projects.columnUpdated']}
+            </th>
+            <th class="h-10 w-16 sm:w-20 px-2 sm:px-4 text-right">
+              <span class="sr-only">${copy['projects.columnActions']}</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody aria-busy.bind="isLoading">
+          <template repeat.for="i of [1,2,3,4,5,6]">
+            <tr if.bind="isLoading" class="border-b last:border-0">
+              <td class="px-3 sm:px-4 py-3"><div class="h-4 w-32 sm:w-40 animate-pulse rounded bg-muted"></div></td>
+              <td class="px-2 sm:px-4 py-3"><div class="h-5 w-16 animate-pulse rounded bg-muted"></div></td>
+              <td class="hidden sm:table-cell px-4 py-3"><div class="h-4 w-28 animate-pulse rounded bg-muted"></div></td>
+              <td class="hidden md:table-cell px-4 py-3"><div class="ml-auto h-4 w-16 animate-pulse rounded bg-muted"></div></td>
+              <td class="hidden lg:table-cell px-4 py-3"><div class="h-4 w-20 animate-pulse rounded bg-muted"></div></td>
+              <td class="hidden lg:table-cell px-4 py-3"><div class="h-4 w-16 animate-pulse rounded bg-muted"></div></td>
+              <td class="px-2 sm:px-4 py-3"></td>
+            </tr>
+          </template>
+
+          <tr if.bind="!isLoading && items.length === 0">
+            <td colspan="7" class="px-4 py-14 text-center">
+              <div class="mx-auto flex max-w-sm flex-col items-center gap-2">
+                <span class="grid size-11 place-items-center rounded-full bg-muted text-muted-foreground">
+                  <ui-icon name="inbox" size="20"></ui-icon>
+                </span>
+                <p class="text-sm font-medium">${copy['projects.empty']}</p>
+                <p class="text-xs text-muted-foreground">${copy['projects.emptyHint']}</p>
+                <ui-button variant="outline" size="sm" click.trigger="resetFilters()">
+                  ${copy['projects.clearFilters']}
+                </ui-button>
+              </div>
+            </td>
+          </tr>
+
+          <template repeat.for="project of items">
+            <tr if.bind="!isLoading" class="border-b transition-colors last:border-0 hover:bg-muted/40">
+              <td class="px-3 sm:px-4 py-3">
+                <div class="flex items-center gap-2.5">
+                  <span
+                    class="grid size-8 shrink-0 place-items-center rounded-md border bg-muted/50 text-muted-foreground"
+                  >
+                    <ui-icon name="folder" size="15"></ui-icon>
+                  </span>
+                  <div class="min-w-0">
+                    <p class="truncate font-medium">${project.name}</p>
+                    <p class="text-[11px] text-muted-foreground">#${project.id.slice(0, 8)}</p>
+                    <p class="text-[11px] text-muted-foreground sm:hidden mt-0.5 truncate">${project.ownerName} &middot; ${budget(project)}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="px-2 sm:px-4 py-3">
+                <ui-badge variant.bind="statusMeta[project.status].variant">
+                  ${statusMeta[project.status].label}
+                </ui-badge>
+              </td>
+              <td class="hidden sm:table-cell px-4 py-3">
+                <div class="flex items-center gap-2">
+                  <ui-avatar name.bind="project.ownerName" size="sm"></ui-avatar>
+                  <span class="truncate text-[13px]">${project.ownerName}</span>
+                </div>
+              </td>
+              <td class="hidden md:table-cell px-4 py-3 text-right font-medium tabular-nums">${budget(project)}</td>
+              <td class="hidden lg:table-cell px-4 py-3">
+                <span class="${isOverdue(project) ? 'text-destructive' : 'text-muted-foreground'} text-[13px]">
+                  ${due(project)}
+                </span>
+              </td>
+              <td class="hidden lg:table-cell px-4 py-3 text-[13px] text-muted-foreground">${updated(project)}</td>
+              <td class="px-2 sm:px-4 py-3 text-right">
+                <div role="group" aria-label="${copy['projects.actions']}" class="flex items-center justify-end gap-1">
+                  <button
+                    type="button"
+                    class="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer select-none"
+                    title="${copy['projects.edit']}"
+                    aria-label="${copy['projects.edit']}"
+                    click.trigger="openEdit(project)"
+                  >
+                    <ui-icon name="settings" size="15"></ui-icon>
+                  </button>
+                  <button
+                    if.bind="auth.canManage"
+                    type="button"
+                    class="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer select-none"
+                    title="${copy['projects.delete']}"
+                    aria-label="${copy['projects.delete']}"
+                    click.trigger="remove(project)"
+                  >
+                    <ui-icon name="trash" size="15"></ui-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 border-t px-4 py-3">
+      <p class="text-xs text-muted-foreground text-center sm:text-left">${showingLabel}</p>
+      <div class="flex items-center gap-2">
+        <ui-button variant="outline" size="sm" disabled.bind="!canPrev" click.trigger="goToPage(page - 1)">
+          Previous
+        </ui-button>
+        <span class="text-xs text-muted-foreground tabular-nums">Page ${page} / ${totalPages}</span>
+        <ui-button variant="outline" size="sm" disabled.bind="!canNext" click.trigger="goToPage(page + 1)">
+          Next
+        </ui-button>
+      </div>
+    </div>
+  </ui-card>
+
+  <!-- Create / edit dialog -->
+  <project-dialog component.ref="dialog" saved.trigger="onProjectSaved($event.detail)"></project-dialog>
+</div>

@@ -34,11 +34,24 @@ body {
 au-viewport {
   display: block;
   width: 100%;
+  min-width: 0;
 }
 
 app-root {
   display: block;
   min-height: 100dvh;
+}
+
+/* Route page custom elements must be full-width blocks with zero min-width */
+projects-page,
+overview-page,
+members-page,
+billing-page,
+settings-page,
+not-found-page {
+  display: block;
+  width: 100%;
+  min-width: 0;
 }
 
 /* ui-* components that are grid/flex children must be block */
@@ -67,8 +80,11 @@ ui-icon {
   line-height: 0;
 }
 
-/* Cards must fill grid cell height so all cards in a row are equal */
+/* Cards must fill container/grid width and cell height */
 ui-card {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   height: auto;
 }
 
