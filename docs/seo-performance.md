@@ -120,7 +120,7 @@ for.
 
 ```bash
 bun run build                       # produces apps/web/dist/landing.html
-bun test                            # 268 tests, including 4 SEO-output checks and 2 session-cookie checks
+bun test                            # 275 tests, including 4 SEO-output checks and 2 session-cookie checks
 bun run typecheck && bun run lint
 vercel build                        # inspect .vercel/output/config.json locally
 ```

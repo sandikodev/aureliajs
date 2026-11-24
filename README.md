@@ -421,7 +421,7 @@ bun run typecheck
 # 2. Fast linting with Oxlint (0 warnings / 0 errors)
 bun run lint
 
-# 3. Full test suites (268 tests passing, 1,660 assertions across 41 files)
+# 3. Full test suites (275 tests passing, 1,651 assertions across 41 files)
 bun run test
 
 # 4. Terminal DevTools & JSDOM Aurelia 2 live hydration emulator

@@ -70,7 +70,7 @@ textarea, label, separator, skeleton, avatar, alert, icon, theme toggle. Seven p
 fallback route. The projects page carries the interactive weight: debounced search, filters,
 sort, pagination, native `<dialog>` CRUD, CSV export, inline field errors.
 
-**Verification** — TypeScript strict on all three packages, oxlint clean, and 17 Playwright tests
+**Verification** — TypeScript strict on all three packages, oxlint clean, and 49 Playwright E2E tests
 over the shell, routing, filtering, theme toggle, the 404 fallback, a create → row appears → delete
 round trip, the invite → accept → role change → removal path, and the billing webhook (invalid
 signature rejected, valid event applied exactly once).
@@ -170,7 +170,7 @@ There are no invented metrics here. What is verified directly from production co
   - A new user can be invited, receive an email (or preview magic link), accept, and be signed in against the real API.
   - Stripe webhooks verify idempotency via `stripe_events.id`: duplicate events answer 200 without side effects.
 - **Automated Regression Suite**:
-  - **268 unit & integration tests** pass across 41 test files (1 660 assertions, 0 failures in ~4.5s).
+  - **275 unit & integration tests** pass across 41 test files (1 651 assertions, 0 failures in ~3.9s).
   - 49 Playwright E2E tests across 6 spec files verify real browser navigation, modal creation, theme toggling, team/billing flows, role changes through the UI, concurrent slug races and accessibility.
 
 ---

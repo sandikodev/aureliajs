@@ -151,7 +151,7 @@ import type { UserProfile } from './types';
 
 ## I'd Love Your Feedback & Critique!
 
-Building meta-framework primitives on top of Aurelia 2 has been an exhilarating engineering journey. The code is tested across 158 automated integration and unit tests.
+Building meta-framework primitives on top of Aurelia 2 has been an exhilarating engineering journey. The code is tested across 275 automated integration and unit tests.
 
 I am actively seeking:
 
@@ -204,7 +204,7 @@ Seamlessly mount React, Vue, Svelte, Preact, Solid, or Qwik components (and HTMX
 🔹 Modern DX: Extensionless Bundler Standard
 We completely eradicated the legacy "phantom .js" import tax across the monorepo, adopting TypeScript’s modern `"moduleResolution": "bundler"` standard for clean, idiomatic developer experience.
 
-All 158 automated tests are green across unit, integration, and high-concurrency stress suites.
+All 275 automated tests are green across unit, integration, and high-concurrency stress suites.
 
 Architecture without peer review is incomplete. I would deeply appreciate feedback, critical reviews, and thoughts from fellow software architects, frontend engineers, and open-source maintainers.
 
@@ -254,7 +254,7 @@ Adapter untuk web framework Hono. Mendukung Web Streams streaming SSR (header HT
 Komponen bridge untuk menyatukan komponen React, Vue, Svelte, Solid, hingga Qwik dan HTMX di dalam Aurelia 2 tanpa glue code rumit.
 
 5️⃣ Pembersihan Monorepo Menyeluruh
-Seluruh monorepo telah distandarkan menggunakan TypeScript modern (`moduleResolution: "bundler"`), sehingga tidak ada lagi impor `.js` palsu di file `.ts`. Semua 158 test suite otomatis saat ini lulus 100%.
+Seluruh monorepo telah distandarkan menggunakan TypeScript modern (`moduleResolution: "bundler"`), sehingga tidak ada lagi impor `.js` palsu di file `.ts`. Semua 275 test suite otomatis saat ini lulus 100%.
 
 Karya ini tentunya belum sempurna dan masih butuh banyak masukan dari teman-teman praktisi di lapangan. Saya sangat mengharapkan:
 👉 Kritik pedas, saran, feedback arsitektur, atau usulan fitur dari teman-teman sekalian.
@@ -293,7 +293,7 @@ I've been working on modernizing the fullstack developer experience for Aurelia 
 2. **`@aureliajs/islands`**: Zero-JS selective hydration with shorthand overloads (`renderIsland(Component, props)`). Automatically infers element tags, bundle assets, and triggers (`visible`, `idle`, `interaction`, `media`).
 3. **`@hono/aurelia`**: Zero-config `aureliaRenderer()` middleware with full `c.render(Component)` support and true Web Streams streaming SSR (`ReadableStream`).
 4. **`@aureliajs/bridge`**: Polyglot bridge (`<au-bridge>`, `<au-react>`, `au-htmx`) integrating React, Vue, Svelte, Solid, and Qwik directly into Aurelia 2.
-5. **Clean Bundler Standards**: Eradicated all phantom `.js` import extensions across all `.ts` files in the monorepo via `"moduleResolution": "bundler"`. All 158 unit and integration tests are passing green.
+5. **Clean Bundler Standards**: Eradicated all phantom `.js` import extensions across all `.ts` files in the monorepo via `"moduleResolution": "bundler"`. All 275 unit and integration tests are passing green.
 
 🔗 **Repos for review:**
 
