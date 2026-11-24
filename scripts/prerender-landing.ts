@@ -86,7 +86,8 @@ if (stripped.includes('type="module"')) {
 }
 
 // Eliminate render-blocking CSS on landing: inline critical CSS and preload font
-const cssMatch = stripped.match(/<link\s+rel="stylesheet"\s+crossorigin\s+href="(\/assets\/[^"]+\.css)">/i) ||
+const cssMatch =
+  stripped.match(/<link\s+rel="stylesheet"\s+crossorigin\s+href="(\/assets\/[^"]+\.css)">/i) ||
   stripped.match(/<link\s+rel="stylesheet"\s+href="(\/assets\/[^"]+\.css)"[^>]*>/i);
 
 let inlinedHeadStyle = '';
@@ -104,7 +105,9 @@ if (cssMatch && cssMatch[1]) {
       : '';
     inlinedHeadStyle = `${fontPreload}<style>/* Critical Inlined CSS for Zero Render-Blocking LCP */\n${cssContent}</style>`;
     processedShell = processedShell.replace(cssMatch[0], inlinedHeadStyle);
-    console.log(`[prerender] Inlined ${cssHref} (${cssContent.length} bytes) & preloaded font into landing.html`);
+    console.log(
+      `[prerender] Inlined ${cssHref} (${cssContent.length} bytes) & preloaded font into landing.html`,
+    );
   }
 }
 
