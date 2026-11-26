@@ -188,7 +188,7 @@ Seluruh prinsip dalam manifesto ini telah diimplementasikan dan diverifikasi sec
 
 - **Eliminasi Build Scripts**: Folder `examples/aurelia-ssr/scripts` dan `examples/aurelia-islands/scripts` telah dimusnahkan.
 - **Pembersihan Impor `.js`**: Seluruh modul pada kelima example telah bersih tanpa residu ekstensi.
-- **UI/UX Modern Responsif**: Scaffold `examples/fullstack-ssr` telah memiliki arsitektur mobile-first dengan tab-bar segmented control dan canvas bacaan artikel yang mulus.
+- **UI/UX Modern Responsif**: Scaffold `packages/hono-aurelia/example` telah memiliki arsitektur mobile-first dengan tab-bar segmented control dan canvas bacaan artikel yang mulus.
 - **Integritas Monorepo 100% Green**:
   - `bun run typecheck`: 9 dari 9 workspace terkonsolidasi lulus 100% (0 errors).
   - `bun run test`: 148 automated tests pass across 27 files, 0 failed, 999 assertions.

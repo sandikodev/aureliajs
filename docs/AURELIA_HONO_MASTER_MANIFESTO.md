@@ -45,7 +45,7 @@ Aurelia 2 was never missing features—its core runtime has always been extraord
 1. **Monolithic Proxy Leaks**: `@hono/aurelia` was re-exporting the entire `@aureliajs/ssr` core engine and client hydrator, forcing every consumer to pull in JSDOM and server runtimes even on client bundles.
 2. **Artificial Glue Code**: Helper factories like `createAuthMiddleware()` and `createAureliaRouteGroup()` imposed arbitrary multi-tenant schemas (`User`, `Workspace`, `role`) instead of letting developers write idiomatic Hono middleware.
 3. **Redundant Hydration Parsing**: Component classes were bloated with manual `attached()` hooks calling `hydrateFromServer()` and parsing JSON payloads manually, despite `createClientHydrator` already injecting data onto instances automatically.
-4. **Toolchain Fragmentation**: Custom 40-line build scripts in user applications (`examples/fullstack-ssr/scripts/build.ts`) manually re-implemented esbuild AST caching.
+4. **Toolchain Fragmentation**: Custom 40-line build scripts in user applications (`packages/hono-aurelia/example/scripts/build.ts`) manually re-implemented esbuild AST caching.
 
 ### What Is Now Solved (Milestone Commits `5148c72`, `cddcf91`, & `d3de0d5`):
 - **`@hono/aurelia` is a Pure Thin Adapter**: Stripped down to `aurelia()`, `aureliaAction()`, and request-scoped `aureliaDefaults()` (backed by `WeakMap<Request>`). Zero JSDOM, zero SSR proxies, zero global mutable state (`setAureliaDefaults` killed), and zero `node:fs` asset leaks (`serveAureliaAssets` replaced by native Hono static serving).
@@ -212,7 +212,7 @@ gantt
 - **Action**:
   1. Implement `auxBunPlugin()` utilizing Bun's native plugin API (`Bun.plugin`).
   2. Enable `Bun.build({ entrypoints: ['./src/client.ts'], plugins: [auxBunPlugin({ isServer: false })] })`.
-  3. Update `examples/fullstack-ssr` to use `bun run dev` and `bun run build` with zero external bundler dependencies.
+  3. Update `packages/hono-aurelia/example` to use `bun run dev` and `bun run build` with zero external bundler dependencies.
 
 ### Day 4: Deep Island Hydration Engine in `@aureliajs/ssr`
 - **Problem**: Currently, hydrating a page hydrates the outer document.

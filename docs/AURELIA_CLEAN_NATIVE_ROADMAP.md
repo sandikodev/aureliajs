@@ -37,7 +37,7 @@ Dalam membangun ekosistem meta-framework yang matang dan berstandar enterprise, 
 ### Batasan Arsitektural yang Tidak Boleh Dilanggar:
 1. **`apps/web`**: Tetap sebagai **Pure Canonical Aurelia 2 SPA** (`.ts` + `.html`, native `@customElement`, `@route`, standard DI). **Jangan** dipaksa migrasi ke `.aux` pada halaman lamannya, dan **jangan** disatukan dengan `apps/api`.
 2. **`apps/api`**: Tetap sebagai **Pure Standalone Hono Backend** (API routes, Drizzle ORM, multi-tenant middleware).
-3. **`examples/fullstack-ssr`**: Satu-satunya showcase untuk unifikasi Hono + Aurelia SSR via `@hono/aurelia` dan `.aux` SFCs.
+3. **`packages/hono-aurelia/example`**: Satu-satunya showcase untuk unifikasi Hono + Aurelia SSR via `@hono/aurelia` dan `.aux` SFCs.
 4. **Semua perubahan harus bertahap, terukur, dan dapat diulang (*repeatable*)** tanpa merusak backward compatibility atau stabilitas core Aurelia.
 
 ---
@@ -49,7 +49,7 @@ Berdasarkan audit forensik menyeluruh, berikut adalah 7 titik yang belum murni n
 | No | Vektor Masalah | Lokasi Kode Terdampak | Status Saat Ini | Masalah & Dampak |
 | :--- | :--- | :--- | :--- | :--- |
 | **1** | **Zombi Vitest** | `apps/web/package.json`<br>`apps/api/package.json`<br>`packages/shared/package.json`<br>`packages/aurelia-ssr/package.json`<br>`packages/vite-plugin-aux/package.json` | Memasang `vitest: 5.1.0` (fiktif) dan `"test": "vitest run"` | Paket `vitest` sebenarnya tidak terpasang. Konfigurasi `vitest.config.ts` menjadi zombi, sementara `bun test` sudah mampu menjalankan semua 21 file (212 test) dalam 2.4 detik. |
-| **2** | **Toolchain Duality (tsx vs Bun)** | `apps/api/package.json`<br>`examples/fullstack-ssr/package.json` | Menggunakan `tsx watch src/index.ts` dan dependensi `tsx` | Bun secara native mengeksekusi TypeScript secara instan. Keberadaan `tsx` menambah dependensi eksternal yang tidak diperlukan. |
+| **2** | **Toolchain Duality (tsx vs Bun)** | `apps/api/package.json`<br>`packages/hono-aurelia/example/package.json` | Menggunakan `tsx watch src/index.ts` dan dependensi `tsx` | Bun secara native mengeksekusi TypeScript secara instan. Keberadaan `tsx` menambah dependensi eksternal yang tidak diperlukan. |
 | **3** | **Wrapper Server Node.js** | `apps/api/src/index.ts`<br>`apps/api/src/server.ts`<br>`packages/ssr-playground/package.json` | Memanggil `serve` dari `@hono/node-server` | Di lingkungan Bun, Hono berjalan 100% native via `export default { fetch: app.fetch }`. `@hono/node-server` adalah pembungkus Node.js yang memperlambat I/O Bun. |
 | **4** | **Fragmentasi Monorepo Workspaces** | `package.json` (Root) | Hanya mendaftarkan sebagian paket: `apps/*`, `packages/shared`, dll. | `packages/hono-aurelia`, `packages/aurelia-islands`, dan `examples/*` tidak terdaftar. Menghasilkan triple lockfile (`pnpm-lock.yaml`, child `bun.lock`, child `pnpm-lock.yaml`). |
 | **5** | **Path Traversal Rapuh** | `scripts/emulate-devtools.ts`<br>`apps/web/vite.config.ts` | Mengimpor dari `../node_modules/.pnpm/jsdom@23.2.0/...` dan `../../packages/shared/src/...` | Brittle. Jika hoisting package manager berubah, script devtools langsung patah. |
@@ -115,9 +115,9 @@ Berdasarkan audit forensik menyeluruh, berikut adalah 7 titik yang belum murni n
   ]
   ```
 * [x] **Langkah 2.2**: Hapus lockfile terisolasi di anak folder:
-  - Hapus `examples/fullstack-ssr/pnpm-lock.yaml`.
+  - Hapus `packages/hono-aurelia/example/pnpm-lock.yaml`.
   - Hapus `packages/ssr-playground/bun.lock` (satukan ke root).
-  - Ganti seluruh `link:../` di `examples/fullstack-ssr/package.json` dan `packages/ssr-playground/package.json` menjadi `workspace:*`.
+  - Ganti seluruh `link:../` di `packages/hono-aurelia/example/package.json` dan `packages/ssr-playground/package.json` menjadi `workspace:*`.
 * [x] **Langkah 2.3**: Perbaiki resolusi di [`apps/web/vite.config.ts`](../apps/web/vite.config.ts):
   - Ganti `import { auxPlugin } from '../../packages/vite-plugin-aux/dist/index.js'` menjadi `import { auxPlugin } from '@aureliajs/vite-plugin-aux'`.
   - Hapus alias manual ke file `.ts` internal, gunakan package exports resmi.
@@ -157,9 +157,9 @@ Berdasarkan audit forensik menyeluruh, berikut adalah 7 titik yang belum murni n
   };
   ```
   *(Native Bun HTTP server dengan dynamic fallback `@hono/node-server` untuk container Node.js).*
-* [x] **Langkah 3.3**: Di `examples/fullstack-ssr/package.json`:
+* [x] **Langkah 3.3**: Di `packages/hono-aurelia/example/package.json`:
   - Hapus dependensi `tsx`.
-* [x] **Verifikasi**: Uji boot server `PORT=4999 bun apps/api/src/index.ts` dan `PORT=3001 bun examples/fullstack-ssr/src/index.ts` berhasil start secara native.
+* [x] **Verifikasi**: Uji boot server `PORT=4999 bun apps/api/src/index.ts` dan `PORT=3001 bun packages/hono-aurelia/example/src/index.ts` berhasil start secara native.
 
 ---
 
@@ -167,8 +167,8 @@ Berdasarkan audit forensik menyeluruh, berikut adalah 7 titik yang belum murni n
 **Tujuan**: Menjaga identitas monorepo agar 100% merepresentasikan ekosistem Aurelia 2.
 
 * [x] **Langkah 4.1**: Pindahkan benchmark komparatif `examples/hono-react-ssr-shadcn-ui` ke folder khusus `benchmarks/reference-react-ssr/` agar jelas fungsinya sebagai pembanding performa dan tidak mengotori workspace Aurelia.
-* [x] **Langkah 4.2**: Perbarui `examples/README.md` untuk menegaskan bahwa `examples/fullstack-ssr` adalah satu-satunya referensi kanonikal resmi untuk `@hono/aurelia`.
-* [x] **Verifikasi**: Struktur direktori `examples/` hanya berisi implementasi murni Aurelia 2 (`examples/fullstack-ssr`).
+* [x] **Langkah 4.2**: Perbarui `docs/EXAMPLES.md` untuk menegaskan bahwa `packages/hono-aurelia/example` adalah salah satu referensi kanonikal resmi untuk `@hono/aurelia`.
+* [x] **Verifikasi**: Seluruh contoh referensi di-colocate langsung di dalam subpackage (`packages/*/example/`).
 
 ---
 
@@ -206,7 +206,7 @@ cd ../hono-aurelia && bun run build
 cd ../ssr-playground && bun run build
 
 # 4. Verifikasi Standalone Fullstack Example
-cd examples/fullstack-ssr && bun test
+cd packages/hono-aurelia/example && bun test
 ```
 
 ---
