@@ -1,6 +1,6 @@
 # RFC: Consolidate Linter and Formatter (`oxlint` + `prettier`) into Unified `biome` Tooling
 
-**Status:** 📝 Proposed / Under Community Review  
+**Status:** ✅ Implemented — Biome (`@biomejs/biome` 2.6.9) is installed with `biome.json` configured for ultra-fast formatting and validation (Tailwind CSS directives enabled, submodules and `.aux` SFCs preserved), accessible via `bun run format:biome` and `bun run check:biome`.  
 **Area:** Monorepo Root (`package.json`)  
 **Tags:** `tooling`, `developer-experience`, `speed`
 

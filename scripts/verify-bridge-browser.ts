@@ -1,8 +1,7 @@
 import { chromium } from '@playwright/test';
 
 const ARTIFACT_DIR =
-  process.env.VERIFY_SCREENSHOT_DIR ??
-  new URL('../artifacts', import.meta.url).pathname;
+  process.env.VERIFY_SCREENSHOT_DIR ?? new URL('../artifacts', import.meta.url).pathname;
 const PORT = 3097;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 

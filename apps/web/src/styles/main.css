@@ -4,15 +4,15 @@
  * this UI is English/Indonesian (both Latin script).
  */
 @font-face {
-  font-family: 'Inter Variable';
+  font-family: "Inter Variable";
   font-style: normal;
   font-display: swap;
   font-weight: 100 900;
-  src: url('@fontsource-variable/inter/files/inter-latin-wght-normal.woff2')
-    format('woff2-variations');
+  src: url("@fontsource-variable/inter/files/inter-latin-wght-normal.woff2")
+    format("woff2-variations");
 }
 
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -212,8 +212,8 @@ ui-card {
   --color-sidebar-ring: var(--sidebar-ring);
 
   --font-sans:
-    'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -266,7 +266,7 @@ ui-card {
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
-    font-feature-settings: 'cv11', 'ss01';
+    font-feature-settings: "cv11", "ss01";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -328,7 +328,7 @@ ui-card {
     transparent 65%
   );
   animation: shimmer 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  content: '';
+  content: "";
 }
 
 .dark .animate-shimmer::after {
@@ -427,7 +427,7 @@ ui-card {
 
   button,
   summary,
-  [role='button'],
+  [role="button"],
   a {
     cursor: pointer;
     user-select: none;
@@ -435,7 +435,7 @@ ui-card {
   }
 
   button:disabled,
-  [role='button'][aria-disabled='true'] {
+  [role="button"][aria-disabled="true"] {
     cursor: not-allowed;
   }
 
@@ -467,7 +467,7 @@ ui-card {
   a:focus-visible,
   button:focus-visible,
   summary:focus-visible,
-  [role='button']:focus-visible,
+  [role="button"]:focus-visible,
   input:focus-visible,
   select:focus-visible,
   textarea:focus-visible {
