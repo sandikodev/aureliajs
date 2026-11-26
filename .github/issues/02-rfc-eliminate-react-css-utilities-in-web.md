@@ -1,6 +1,6 @@
 # RFC: Eliminate React-Centric CSS Utilities (`cva`, `clsx`, `tailwind-merge`) in Favor of Aurelia 2 Native Bindings
 
-**Status:** 📝 Proposed / Under Community Review  
+**Status:** ✅ Implemented — React-centric CSS utilities (`clsx`, `cva`, `tailwind-merge`) have been completely eliminated from `apps/web`. The UI uses pure native template string bindings and a lightweight zero-dependency `cn()` helper in `apps/web/src/lib/utils.ts`.  
 **Area:** `apps/web`  
 **Tags:** `native`, `yagni`, `framework-identity`
 

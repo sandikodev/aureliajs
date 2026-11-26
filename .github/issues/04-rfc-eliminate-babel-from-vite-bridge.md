@@ -1,6 +1,6 @@
 # RFC: Eliminate Babel Dependencies from `aurelia-bridge` in Favor of Vite Native / Esbuild
 
-**Status:** 📝 Proposed / Under Community Review  
+**Status:** ✅ Implemented — Zero Babel dependencies are declared in `package.json` or workspace manifests. SolidJS/foreign framework transforms delegate cleanly to Vite native plugins or optional runtime helpers without hard dependencies.  
 **Area:** `packages/aurelia-bridge`, root `package.json`  
 **Tags:** `native`, `tooling`, `delete`
 
