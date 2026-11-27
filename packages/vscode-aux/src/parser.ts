@@ -24,8 +24,10 @@ export function parseAuxBlocks(content: string): AuxParsedBlocks {
   let serverScriptBlock: AuxBlock | null = null;
   const styleBlocks: AuxBlock[] = [];
 
-  // Match <template ...> ... </template> handling nested tags by tracking depth
-  const templateStartRegex = /<template\b([^>]*)>/i;
+  // Match <template ...> ... </template> handling nested tags by tracking depth.
+  // Attribute patterns are quote-aware so `>` inside a quoted attribute is not treated
+  // as the end of the opening tag.
+  const templateStartRegex = /<template\b((?:"[^"]*"|'[^']*'|[^>])*)>/i;
   const templateStartMatch = templateStartRegex.exec(content);
 
   if (templateStartMatch) {
@@ -38,7 +40,7 @@ export function parseAuxBlocks(content: string): AuxParsedBlocks {
     let currentIdx = contentStart;
     let endIdx = -1;
 
-    const tagRegex = /<\/?template\b[^>]*>/gi;
+    const tagRegex = /<\/?template\b(?:"[^"]*"|'[^']*'|[^>])*>/gi;
     tagRegex.lastIndex = currentIdx;
 
     let tagMatch: RegExpExecArray | null;
@@ -66,14 +68,15 @@ export function parseAuxBlocks(content: string): AuxParsedBlocks {
   }
 
   // Match all <script ...> ... </script> blocks (class script, <script setup>, <script server>)
-  const scriptRegex = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+  const scriptRegex = /<script\b((?:"[^"]*"|'[^']*'|[^>])*)>([\s\S]*?)<\/script>/gi;
   let scriptMatch: RegExpExecArray | null;
   while ((scriptMatch = scriptRegex.exec(content)) !== null) {
     const fullTag = scriptMatch[0];
     const attrsStr = scriptMatch[1] ?? '';
     const innerContent = scriptMatch[2] ?? '';
-    const openTagLength = fullTag.indexOf('>') + 1;
-    const contentStart = scriptMatch.index + openTagLength;
+    // Derive offsets from the full match instead of indexOf('>'), which would stop
+    // at a `>` inside a quoted attribute.
+    const contentStart = scriptMatch.index + fullTag.length - innerContent.length - '</script>'.length;
     const contentEnd = contentStart + innerContent.length;
     const attrs = parseAttributes(attrsStr);
 
@@ -95,14 +98,13 @@ export function parseAuxBlocks(content: string): AuxParsedBlocks {
   }
 
   // Match all <style ...> ... </style>
-  const styleRegex = /<style\b([^>]*)>([\s\S]*?)<\/style>/gi;
+  const styleRegex = /<style\b((?:"[^"]*"|'[^']*'|[^>])*)>([\s\S]*?)<\/style>/gi;
   let styleMatch: RegExpExecArray | null;
   while ((styleMatch = styleRegex.exec(content)) !== null) {
     const fullTag = styleMatch[0];
     const attrsStr = styleMatch[1] ?? '';
     const innerContent = styleMatch[2] ?? '';
-    const openTagLength = fullTag.indexOf('>') + 1;
-    const contentStart = styleMatch.index + openTagLength;
+    const contentStart = styleMatch.index + fullTag.length - innerContent.length - '</style>'.length;
     const contentEnd = contentStart + innerContent.length;
 
     styleBlocks.push({

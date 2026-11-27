@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'bun:test';
 import { analyzeAuxDocument } from '../src/analyzer';
+import { parseAuxBlocks } from '../src/parser';
 
 describe('Aurelia AUX Analyzer', () => {
   it('analyzes script ViewModel members and template bindings', () => {
@@ -130,5 +131,31 @@ let headline: string = 'From setup';
     expect(analysis.script.members.get('org')?.isBindable).toBe(true);
     expect(analysis.script.members.get('headline')?.typeString).toBe('string');
     expect(analysis.script.members.get('headline')?.isBindable).toBe(true);
+  });
+
+  it('keeps `>` inside quoted attributes and preserves exact block offsets', () => {
+    const sfc = [
+      '<template lang="ts" data-note="a>b">',
+      '  <p>${msg}</p>',
+      '</template>',
+      '<script setup lang="ts" data-guard="x > y">',
+      "const msg = 'hi';",
+      '</script>',
+      '<style scoped data-query="a>b">',
+      'p{color:red}',
+      '</style>',
+    ].join('\n');
+
+    const blocks = parseAuxBlocks(sfc);
+    expect(blocks.template?.attrs['data-note']).toBe('a>b');
+    expect(blocks.template?.content).toContain('<p>');
+    expect(blocks.setupScript?.attrs['data-guard']).toBe('x > y');
+    expect(sfc.slice(blocks.setupScript!.startOffset, blocks.setupScript!.endOffset)).toBe(
+      "\nconst msg = 'hi';\n"
+    );
+    expect(blocks.styles[0]?.attrs['data-query']).toBe('a>b');
+    expect(sfc.slice(blocks.styles[0]!.startOffset, blocks.styles[0]!.endOffset)).toBe(
+      '\np{color:red}\n'
+    );
   });
 });
