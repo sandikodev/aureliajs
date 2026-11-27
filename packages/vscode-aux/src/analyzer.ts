@@ -16,8 +16,39 @@ import { parseAuxBlocks } from './parser';
 export function analyzeAuxDocument(content: string): AuxDocumentAnalysis {
   const blocks = parseAuxBlocks(content);
 
-  const scriptAnalysis = analyzeScript(blocks.script?.content ?? '', blocks.script?.startOffset ?? 0);
-  const templateAnalysis = analyzeTemplate(blocks.template?.content ?? '', blocks.template?.startOffset ?? 0);
+  let scriptAnalysis: ScriptAnalysis;
+  if (blocks.script?.content.trim()) {
+    scriptAnalysis = analyzeClassScript(blocks.script.content, blocks.script.startOffset);
+    if (blocks.setupScript?.content.trim()) {
+      const setup = analyzeSetupScript(blocks.setupScript.content, blocks.setupScript.startOffset);
+      for (const [name, member] of setup.members) {
+        scriptAnalysis.members.set(name, member);
+      }
+    }
+  } else if (blocks.setupScript?.content.trim()) {
+    scriptAnalysis = analyzeSetupScript(blocks.setupScript.content, blocks.setupScript.startOffset);
+  } else {
+    scriptAnalysis = {
+      className: 'Component',
+      members: new Map(),
+      scriptStartOffset: blocks.script?.startOffset ?? blocks.setupScript?.startOffset ?? 0,
+      scriptEndOffset: blocks.script?.endOffset ?? blocks.setupScript?.endOffset ?? 0,
+      hasScript: false,
+    };
+  }
+
+  if (blocks.serverScript?.content.trim()) {
+    augmentWithServerLoaderMembers(
+      scriptAnalysis.members,
+      blocks.serverScript.content,
+      blocks.serverScript.startOffset
+    );
+  }
+
+  const templateAnalysis = analyzeTemplate(
+    blocks.template?.content ?? '',
+    blocks.template?.startOffset ?? 0
+  );
 
   return {
     script: scriptAnalysis,
@@ -26,9 +57,9 @@ export function analyzeAuxDocument(content: string): AuxDocumentAnalysis {
 }
 
 /**
- * Analyzes the TypeScript code in the <script> block using the TypeScript Compiler API.
+ * Analyzes standard class-based TypeScript code in `<script>` using the TypeScript Compiler API.
  */
-function analyzeScript(scriptContent: string, startOffset: number): ScriptAnalysis {
+function analyzeClassScript(scriptContent: string, startOffset: number): ScriptAnalysis {
   const members = new Map<string, ViewModelMember>();
   let className = 'Component';
   let hasScript = Boolean(scriptContent.trim());
@@ -132,6 +163,215 @@ function analyzeScript(scriptContent: string, startOffset: number): ScriptAnalys
     scriptEndOffset: startOffset + scriptContent.length,
     hasScript: true,
   };
+}
+
+/**
+ * Analyzes `<script setup>` top-level bindings (`let` -> bindable props unless `_`-prefixed,
+ * `const` -> internal properties/methods, `function` -> methods, `defineProps<...>()` / `defineProps([...])`).
+ */
+function analyzeSetupScript(setupContent: string, startOffset: number): ScriptAnalysis {
+  const members = new Map<string, ViewModelMember>();
+  const sourceFile = ts.createSourceFile(
+    'setup.ts',
+    setupContent,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS
+  );
+
+  for (const stmt of sourceFile.statements) {
+    if (ts.isVariableStatement(stmt)) {
+      const isLet = (stmt.declarationList.flags & ts.NodeFlags.Let) !== 0;
+      for (const decl of stmt.declarationList.declarations) {
+        if (!ts.isIdentifier(decl.name)) continue;
+        const name = decl.name.text;
+        const pos = decl.name.getStart(sourceFile);
+        const { line, character } = ts.getLineAndCharacterOfPosition(sourceFile, pos);
+
+        if (decl.initializer && (ts.isArrowFunction(decl.initializer) || ts.isFunctionExpression(decl.initializer))) {
+          const fn = decl.initializer;
+          const returnType = fn.type ? fn.type.getText(sourceFile) : 'unknown';
+          const params = fn.parameters.map((p) => ({
+            name: p.name.getText(sourceFile),
+            type: p.type ? p.type.getText(sourceFile) : 'any',
+          }));
+          members.set(name, {
+            name,
+            kind: 'method',
+            typeString: `(${params.map((p) => `${p.name}: ${p.type}`).join(', ')}) => ${returnType}`,
+            isBindable: false,
+            parameters: params,
+            offset: startOffset + pos,
+            length: decl.name.getWidth(sourceFile),
+            line,
+            column: character,
+          });
+          continue;
+        }
+
+        const typeString = decl.type
+          ? decl.type.getText(sourceFile)
+          : inferTypeFromInitializer(decl.initializer, sourceFile);
+
+        members.set(name, {
+          name,
+          kind: 'property',
+          typeString,
+          isBindable: isLet && !name.startsWith('_'),
+          offset: startOffset + pos,
+          length: decl.name.getWidth(sourceFile),
+          line,
+          column: character,
+        });
+      }
+      continue;
+    }
+
+    if (ts.isFunctionDeclaration(stmt) && stmt.name) {
+      const name = stmt.name.text;
+      const pos = stmt.name.getStart(sourceFile);
+      const { line, character } = ts.getLineAndCharacterOfPosition(sourceFile, pos);
+      const returnType = stmt.type ? stmt.type.getText(sourceFile) : 'void';
+      const params = stmt.parameters.map((p) => ({
+        name: p.name.getText(sourceFile),
+        type: p.type ? p.type.getText(sourceFile) : 'any',
+      }));
+      members.set(name, {
+        name,
+        kind: 'method',
+        typeString: `(${params.map((p) => `${p.name}: ${p.type}`).join(', ')}) => ${returnType}`,
+        isBindable: false,
+        parameters: params,
+        offset: startOffset + pos,
+        length: stmt.name.getWidth(sourceFile),
+        line,
+        column: character,
+      });
+      continue;
+    }
+
+    if (
+      ts.isExpressionStatement(stmt) &&
+      ts.isCallExpression(stmt.expression) &&
+      ts.isIdentifier(stmt.expression.expression) &&
+      stmt.expression.expression.text === 'defineProps'
+    ) {
+      const call = stmt.expression;
+      if (call.typeArguments && call.typeArguments[0] && ts.isTypeLiteralNode(call.typeArguments[0])) {
+        for (const prop of call.typeArguments[0].members) {
+          if (ts.isPropertySignature(prop) && prop.name) {
+            const name = prop.name.getText(sourceFile);
+            const pos = prop.name.getStart(sourceFile);
+            const { line, character } = ts.getLineAndCharacterOfPosition(sourceFile, pos);
+            members.set(name, {
+              name,
+              kind: 'property',
+              typeString: prop.type ? prop.type.getText(sourceFile) : 'unknown',
+              isBindable: true,
+              offset: startOffset + pos,
+              length: prop.name.getWidth(sourceFile),
+              line,
+              column: character,
+            });
+          }
+        }
+      } else if (call.arguments[0] && ts.isArrayLiteralExpression(call.arguments[0])) {
+        for (const el of call.arguments[0].elements) {
+          if (ts.isStringLiteral(el)) {
+            const name = el.text;
+            const pos = el.getStart(sourceFile);
+            const { line, character } = ts.getLineAndCharacterOfPosition(sourceFile, pos);
+            members.set(name, {
+              name,
+              kind: 'property',
+              typeString: 'unknown',
+              isBindable: true,
+              offset: startOffset + pos,
+              length: el.getWidth(sourceFile),
+              line,
+              column: character,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  return {
+    className: 'SetupComponent',
+    members,
+    scriptStartOffset: startOffset,
+    scriptEndOffset: startOffset + setupContent.length,
+    hasScript: Boolean(setupContent.trim()),
+  };
+}
+
+/**
+ * Extracts returned property names/types from `export async function loader(...)` inside `<script server>`
+ * so template bindings to server-hydrated fields receive IDE completions and avoid false lint warnings.
+ */
+function augmentWithServerLoaderMembers(
+  members: Map<string, ViewModelMember>,
+  serverContent: string,
+  startOffset: number
+): void {
+  const sourceFile = ts.createSourceFile(
+    'server.ts',
+    serverContent,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS
+  );
+
+  for (const stmt of sourceFile.statements) {
+    if (!ts.isFunctionDeclaration(stmt) || stmt.name?.text !== 'loader' || !stmt.body) {
+      continue;
+    }
+
+    const visitReturn = (node: ts.Node) => {
+      if (ts.isFunctionLike(node) && node !== stmt) return;
+      if (ts.isReturnStatement(node) && node.expression && ts.isObjectLiteralExpression(node.expression)) {
+        for (const prop of node.expression.properties) {
+          if (ts.isPropertyAssignment(prop) && prop.name) {
+            const name = prop.name.getText(sourceFile);
+            if (!members.has(name) || members.get(name)?.typeString === 'any' || members.get(name)?.typeString === 'null') {
+              const pos = prop.name.getStart(sourceFile);
+              const { line, character } = ts.getLineAndCharacterOfPosition(sourceFile, pos);
+              members.set(name, {
+                name,
+                kind: 'property',
+                typeString: inferTypeFromInitializer(prop.initializer, sourceFile),
+                isBindable: true,
+                offset: startOffset + pos,
+                length: prop.name.getWidth(sourceFile),
+                line,
+                column: character,
+              });
+            }
+          } else if (ts.isShorthandPropertyAssignment(prop)) {
+            const name = prop.name.text;
+            if (!members.has(name) || members.get(name)?.typeString === 'any' || members.get(name)?.typeString === 'null') {
+              const pos = prop.name.getStart(sourceFile);
+              const { line, character } = ts.getLineAndCharacterOfPosition(sourceFile, pos);
+              members.set(name, {
+                name,
+                kind: 'property',
+                typeString: 'unknown',
+                isBindable: true,
+                offset: startOffset + pos,
+                length: prop.name.getWidth(sourceFile),
+                line,
+                column: character,
+              });
+            }
+          }
+        }
+      }
+      ts.forEachChild(node, visitReturn);
+    };
+
+    visitReturn(stmt.body);
+  }
 }
 
 function hasBindableDecorator(node: ts.PropertyDeclaration): boolean {

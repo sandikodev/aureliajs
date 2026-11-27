@@ -64,4 +64,71 @@ export class UiLabel {
     expect(analysis.template.interpolations.length).toBe(1);
     expect(analysis.template.interpolations[0]?.expression).toBe('label');
   });
+
+  it('analyzes <script setup> bindings, private state, methods, and <script server> loader properties', () => {
+    const sfc = `
+<template>
+  <article>
+    <h1>\${title}</h1>
+    <p>\${serverTimestamp}</p>
+    <button click.trigger="endorse()">\${points}</button>
+  </article>
+</template>
+
+<script server lang="ts">
+export async function loader() {
+  return {
+    serverTimestamp: '2026-11-28T00:00:00Z',
+  };
+}
+</script>
+
+<script setup lang="ts">
+let title: string = 'Hello';
+let points = 0;
+let _submitting = false;
+
+function endorse(): void {
+  points += 1;
+}
+</script>
+`;
+
+    const analysis = analyzeAuxDocument(sfc);
+    expect(analysis.script.hasScript).toBe(true);
+
+    const members = analysis.script.members;
+    expect(members.get('title')?.isBindable).toBe(true);
+    expect(members.get('title')?.typeString).toBe('string');
+    expect(members.get('points')?.isBindable).toBe(true);
+    expect(members.get('points')?.typeString).toBe('number');
+    expect(members.get('_submitting')?.isBindable).toBe(false);
+    expect(members.get('endorse')?.kind).toBe('method');
+    expect(members.get('serverTimestamp')?.isBindable).toBe(true);
+    expect(members.get('serverTimestamp')?.typeString).toBe('string');
+  });
+
+  it('keeps setup bindings when a class script also has import statements', () => {
+    const sfc = `
+<template><span>\${headline}</span></template>
+
+<script lang="ts">
+import { bindable } from 'aurelia';
+
+export class MixedPage {
+  @bindable org = 'Aurelia';
+}
+</script>
+
+<script setup lang="ts">
+let headline: string = 'From setup';
+</script>
+`;
+
+    const analysis = analyzeAuxDocument(sfc);
+    expect(analysis.script.className).toBe('MixedPage');
+    expect(analysis.script.members.get('org')?.isBindable).toBe(true);
+    expect(analysis.script.members.get('headline')?.typeString).toBe('string');
+    expect(analysis.script.members.get('headline')?.isBindable).toBe(true);
+  });
 });

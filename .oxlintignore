@@ -7,3 +7,5 @@ node_modules
 packages/*/example/public/**
 packages/*/example/dist/**
 benchmarks/**
+packages/upstream/**
+packages/aurelia/**

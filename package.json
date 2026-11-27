@@ -54,7 +54,14 @@
   },
   "workspaces": [
     "apps/*",
-    "packages/*",
+    "packages/aurelia-bridge",
+    "packages/aurelia-islands",
+    "packages/aurelia-ssr",
+    "packages/hono-aurelia",
+    "packages/skills",
+    "packages/ssr-playground",
+    "packages/vite-plugin-aux",
+    "packages/vscode-aux",
     "packages/*/example"
   ]
 }

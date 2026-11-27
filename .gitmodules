@@ -16,3 +16,6 @@
 [submodule "packages/vite-plugin-aux"]
 	path = packages/vite-plugin-aux
 	url = git@github.com:sandikodev/vite-plugin-aux.git
+[submodule "packages/aurelia"]
+	path = packages/aurelia
+	url = git@github.com:sandikodev/aurelia.git

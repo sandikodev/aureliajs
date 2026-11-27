@@ -9,6 +9,8 @@ export interface AuxBlock {
 export interface AuxParsedBlocks {
   template: AuxBlock | null;
   script: AuxBlock | null;
+  setupScript: AuxBlock | null;
+  serverScript: AuxBlock | null;
   styles: AuxBlock[];
 }
 
@@ -18,6 +20,8 @@ export interface AuxParsedBlocks {
 export function parseAuxBlocks(content: string): AuxParsedBlocks {
   let templateBlock: AuxBlock | null = null;
   let scriptBlock: AuxBlock | null = null;
+  let setupScriptBlock: AuxBlock | null = null;
+  let serverScriptBlock: AuxBlock | null = null;
   const styleBlocks: AuxBlock[] = [];
 
   // Match <template ...> ... </template> handling nested tags by tracking depth
@@ -61,24 +65,33 @@ export function parseAuxBlocks(content: string): AuxParsedBlocks {
     }
   }
 
-  // Match <script ...> ... </script>
-  const scriptRegex = /<script\b([^>]*)>([\s\S]*?)<\/script>/i;
-  const scriptMatch = scriptRegex.exec(content);
-  if (scriptMatch) {
+  // Match all <script ...> ... </script> blocks (class script, <script setup>, <script server>)
+  const scriptRegex = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+  let scriptMatch: RegExpExecArray | null;
+  while ((scriptMatch = scriptRegex.exec(content)) !== null) {
     const fullTag = scriptMatch[0];
     const attrsStr = scriptMatch[1] ?? '';
     const innerContent = scriptMatch[2] ?? '';
     const openTagLength = fullTag.indexOf('>') + 1;
     const contentStart = scriptMatch.index + openTagLength;
     const contentEnd = contentStart + innerContent.length;
+    const attrs = parseAttributes(attrsStr);
 
-    scriptBlock = {
+    const block: AuxBlock = {
       type: 'script',
       content: innerContent,
       startOffset: contentStart,
       endOffset: contentEnd,
-      attrs: parseAttributes(attrsStr),
+      attrs,
     };
+
+    if (attrs['server']) {
+      if (!serverScriptBlock) serverScriptBlock = block;
+    } else if (attrs['setup']) {
+      if (!setupScriptBlock) setupScriptBlock = block;
+    } else {
+      if (!scriptBlock) scriptBlock = block;
+    }
   }
 
   // Match all <style ...> ... </style>
@@ -104,6 +117,8 @@ export function parseAuxBlocks(content: string): AuxParsedBlocks {
   return {
     template: templateBlock,
     script: scriptBlock,
+    setupScript: setupScriptBlock,
+    serverScript: serverScriptBlock,
     styles: styleBlocks,
   };
 }
