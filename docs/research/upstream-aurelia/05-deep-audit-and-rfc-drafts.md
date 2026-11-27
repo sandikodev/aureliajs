@@ -118,8 +118,8 @@ Penelusuran `git log -S "adoptNode"` di `packages/aurelia` menemukan commit `623
 Seluruh draf bahasa Inggris di bawah ini telah disaring mengikuti disiplin anti-slop:
 - **Nol basa-basi pembuka/penutup bot** (tidak ada *"First of all, thank you for your incredible work"*, *"I hope this helps"*, *"Let's dive in"*).
 - **Nol kata sifat kosong** (tidak ada *seamless, robust, game-changer, pivotal, comprehensive, unlock*).
-- **Nol em-dash (`—`)**, **nol paralelisme negatif** (*"It's not just X, it's Y"*), dan **nol daftar ber-header tebal mekanis**.
-- Gaya kalimat lugas, spesifik pada baris kode, mencantumkan bukti reproduksi pendek, dan diakhiri pertanyaan singkat layaknya sesama kontributor teknis.
+- **Nol em-dash (`—`)**, **nol emoji**, **nol paralelisme negatif** (*"It's not just X, it's Y"*), dan **nol daftar ber-header tebal mekanis**.
+- Gaya kalimat lugas, spesifik pada baris kode, mencantumkan bukti reproduksi pendek, dan diakhiri pertanyaan singkat layaknya sesama kontributor teknis. Deskripsi teknis boleh padat, tetapi tidak boleh terlalu rapi sampai terasa disusun mesin.
 
 ---
 
@@ -128,21 +128,19 @@ Seluruh draf bahasa Inggris di bawah ini telah disaring mengikuti disiplin anti-
 **Tujuan**: Mengonfirmasi dampak `AUR0757` di SSR multi-request, memberi konteks konkret `rendering.ts:132`, dan menanyakan apakah `Vheissu` sudah menyiapkan branch dari benchmark `#2538` atau terbuka menerima PR.
 
 ```markdown
-Ran into this exact issue while running concurrent SSR requests with per-request DOM instances.
+Ran into this exact issue with concurrent SSR requests, each with its own DOM instance.
 
-One extra detail on how it surfaces at runtime: on the second request (`win2`), `TemplateCompiler.compile()` gets the cloned `<template>` from `markupCache` whose `ownerDocument` (and `Node` constructor) still belongs to `win1`. Compilation inserts the `<!--au-->` markers fine (`rowCount > 0`), but when `Rendering.createNodes()` runs in `packages/runtime-html/src/templating/rendering.ts#L132`:
+Concretely, on the second request (`win2`), `TemplateCompiler.compile()` takes the cloned `<template>` from `markupCache`, and that node still has `win1` as its `ownerDocument` and `Node` constructor. The `<!--au-->` markers get inserted (`rowCount > 0`), but `Rendering.createNodes()` in `packages/runtime-html/src/templating/rendering.ts#L132` does:
 
 ```ts
 } else if (template instanceof p.Node) {
 ```
 
-`template instanceof win2.Node` evaluates to `false`, so it falls through to the `else` branch (`isString(template)` is also `false`) and returns an empty `DocumentFragment` (`targetCount = 0`), throwing `AUR0757` (`0 !== rowCount`).
+`template instanceof win2.Node` is false, `isString(template)` is false as well, and the branch returns an empty `DocumentFragment`. `targetCount` ends at 0, so you get `AUR0757` (`0 !== rowCount`).
 
-Between the two options you mentioned:
-1. Moving the cache onto the `TemplateElementFactory` instance (`Map<string, HTMLTemplateElement>` with a simple FIFO cap) keeps everything scoped to the root container's `IPlatform` with zero module state, and drops automatically when an SSR container is disposed.
-2. `WeakMap<Document, Map<string, HTMLTemplateElement>>` (also size-capped per document) would additionally share cached templates if a browser page mounts multiple independent `Aurelia` roots against the same `document`.
+Of the two options you mentioned, I would lean toward putting the cache on `TemplateElementFactory`. A `Map<string, HTMLTemplateElement>` there stays with the root container's `IPlatform` and goes away when the SSR container is disposed. The `WeakMap<Document, Map<string, HTMLTemplateElement>>` version would also let multiple Aurelia roots on one page share templates, if that matters to you.
 
-I noticed in #2538 that your benchmark baseline already had a local `#2494` fix applied. Do you already have that patch queued to push, or would you like a small PR for it?
+I saw in #2538 that your benchmark baseline already had a local fix for #2494. Do you have that patch queued, or would you like a small PR for it?
 ```
 
 ---
@@ -152,41 +150,37 @@ I noticed in #2538 that your benchmark baseline already had a local `#2494` fix 
 **Tujuan**: Melaporkan 3 friksi spesifik yang membuat Aurelia 2 membutuhkan monkey-patch saat berjalan di atas `linkedom` (Cloudflare Workers / Bun / Node SSR ringan), sambil menghormati fix Safari 16 (`#1680`) dan PR `#2560` (`defer`).
 
 **Judul:**
-`[SSR] Three DOM assumptions in template-compiler and runtime-html that break on LinkeDOM / non-browser DOMs`
+`[SSR] LinkeDOM breaks three DOM assumptions in template-compiler and runtime-html`
 
 **Isi:**
 ```markdown
-# 🐛 Bug Report
+# Bug report
 
-## 🤔 Expected Behavior
+## Expected behavior
 
-Compiling and rendering standard templates on lightweight SSR DOM implementations such as `linkedom` (commonly used on Cloudflare Workers and edge runtimes where `jsdom` cannot run) should work without patching DOM prototypes.
+Templates should compile and render on lightweight SSR DOMs such as `linkedom` without anyone patching DOM prototypes first. This matters on Cloudflare Workers and other edge runtimes where `jsdom` will not run.
 
-## 😯 Current Behavior
+## Current behavior
 
-When running Aurelia 2 SSR with `BrowserPlatform` backed by `linkedom`, three places fail unless patched externally:
+Running Aurelia 2 SSR with `BrowserPlatform(window)` backed by `linkedom` hits three spots:
 
-1. `TemplateCompiler._classifyAttributes` (`packages/template-compiler/src/template-compiler.ts#L743-L779`) caches `const attrs = el.attributes` and adjusts loop indices with `--i; --ii` inside `removeAttr()`. `linkedom` returns a static `Array` snapshot from the `el.attributes` getter rather than a live `NamedNodeMap`. After `el.removeAttribute(attrName)` runs, `attrs` still holds the removed item at the old index, so `--i` causes the preceding attribute (for example `repeat.for` or a bindable) to be compiled twice.
-2. `CompilationContext.h` (`packages/template-compiler/src/template-compiler.ts#L1592`) and `Rendering.createNodes` (`packages/runtime-html/src/templating/rendering.ts#L160`) call `document.adoptNode(...)` unconditionally. `linkedom` implements `document.importNode`, and `tpl.content.ownerDocument === document` is already `true` there, so the Safari 16 inert template document mismatch from #1680 does not occur, but `document.adoptNode` is `undefined`.
-3. `Show.update` (`packages/runtime-html/src/resources/custom-attributes/show.ts#L68`) calls `this.el.style.getPropertyPriority('display')`. In `linkedom`, `el.style` is a `Proxy` that returns `""` (a string, not `undefined`) for unknown property names, so calling `getPropertyPriority('display')` throws `TypeError: this.el.style.getPropertyPriority is not a function` whenever `show.bind="false"` or `hide.bind="true"` runs during SSR. (Note that optional chaining `?.()` also throws there because `typeof el.style.getPropertyPriority === 'string'`.)
+- `TemplateCompiler._classifyAttributes` (`packages/template-compiler/src/template-compiler.ts#L743-L779`) caches `const attrs = el.attributes` and decrements loop indices in `removeAttr()`. In `linkedom`, `el.attributes` is a static array, not a live `NamedNodeMap`. After `removeAttribute(attrName)`, `attrs` still contains the removed item, so the preceding attribute gets compiled twice.
+- `CompilationContext.h` (`packages/template-compiler/src/template-compiler.ts#L1592`) and `Rendering.createNodes` (`packages/runtime-html/src/templating/rendering.ts#L160`) call `document.adoptNode()` without checking it exists. `linkedom` has `importNode` instead. Its `tpl.content.ownerDocument` is already the same document, so the Safari 16 mismatch from #1680 is not involved here.
+- `Show.update` (`packages/runtime-html/src/resources/custom-attributes/show.ts#L68`) calls `this.el.style.getPropertyPriority('display')`. In `linkedom`, `el.style` is a proxy that returns `""` for unknown members, so the call throws when `show.bind="false"` or `hide.bind="true"` renders. Optional chaining does not help because `typeof el.style.getPropertyPriority` is `"string"`.
 
-## 💁 Possible Solution
+## Possible solution
 
-All three are small guards:
+Guard the first case by snapshotting `const attrs = Array.from(rawAttrs)` and dropping the index decrements. For `adoptNode`, call it only when `content.ownerDocument !== this.p.document && typeof this.p.document.adoptNode === 'function'`, and fall back to `doc.importNode(fragment, true)` in `Rendering.createNodes`. In `Show.update`, check `typeof style.getPropertyPriority === 'function'` before calling it.
 
-1. In `_classifyAttributes`: return early when `el.attributes.length === 0` (which also avoids allocating the `removeAttr` closure on attribute-less elements), otherwise snapshot `const attrs = Array.from(rawAttrs)` and drop `--i; --ii` from `removeAttr`.
-2. In `CompilationContext.h`: only call `adoptNode` when `content.ownerDocument !== this.p.document && typeof this.p.document.adoptNode === 'function'`. In `Rendering.createNodes`: fall back to `doc.importNode(fragment, true)` when `typeof doc.adoptNode !== 'function'`.
-3. In `Show.update`: check `typeof style.getPropertyPriority === 'function' ? style.getPropertyPriority('display') : ''`.
+## Context
 
-## 🔦 Context
+We have been running request-scoped Aurelia 2 SSR on Node, Bun, and Cloudflare Workers with `BrowserPlatform(window)` plus `ISSRContext`. With those guards and a per-container `ITemplateElementFactory` for #2494, `linkedom` renders standard components, template controllers, and custom attributes. It runs in `workerd` and rendered at roughly 10x the throughput of `jsdom` in our tests.
 
-We have been testing concurrent request-scoped Aurelia 2 SSR on Node, Bun, and Cloudflare Workers using `BrowserPlatform(window)` + `ISSRContext`. With those three shims (plus a per-container `ITemplateElementFactory` for #2494), `linkedom` renders standard Aurelia components, template controllers, and custom attributes cleanly at ~10x the throughput of `jsdom` and runs in `workerd`.
+#2560 (`defer`) touches `template-compiler.ts` just above `_classifyAttributes`, which is why I am filing this before a PR. Happy to send a focused patch if this direction works for you.
 
-Filing this as an issue first before opening a PR since #2560 (`defer`) touches `template-compiler.ts` right above `_classifyAttributes`. Happy to put up a focused PR (either split or combined, and either before or after #2560 lands) if this direction looks reasonable to you.
+## Code sample
 
-## 💻 Code Sample
-
-Minimal check showing all three behaviors on `linkedom@0.18.15`:
+Quick check on `linkedom@0.18.15`:
 
 ```js
 import { parseHTML } from 'linkedom';
@@ -194,30 +188,20 @@ import { parseHTML } from 'linkedom';
 const { document } = parseHTML('<div><span a="1" b="2" style="color: red"></span></div>');
 const el = document.querySelector('span');
 
-// 1. Static el.attributes snapshot
 const attrs = el.attributes;
 el.removeAttribute('a');
-console.log(attrs.length, el.attributes.length); // 2, 1 (live NamedNodeMap would be 1, 1)
+console.log(attrs.length, el.attributes.length); // 2, 1; live NamedNodeMap would be 1, 1
 
-// 2. adoptNode vs importNode and template.content.ownerDocument
 const tpl = document.createElement('template');
 console.log(tpl.content.ownerDocument === document); // true
 console.log(typeof document.adoptNode, typeof document.importNode); // "undefined", "function"
 
-// 3. style Proxy returns "" for unknown methods
 console.log(typeof el.style.getPropertyPriority); // "string"
 ```
 
-## 🌍 Your Environment
+## Environment
 
-| Software         | Version(s) |
-| ---------------- | ---------- |
-| Aurelia          | `2.0.0-rc.2` / `master` (`af6288674`) |
-| Language         | TypeScript 5.9 |
-| Browser          | N/A (SSR with `linkedom` 0.18.15) |
-| Bundler          | Vite 8 / Bun 1.4 |
-| Operating System | Linux |
-| NPM/Node/Yarn    | Node 22.22 / Bun 1.4 |
+Aurelia 2.0.0-rc.2 / master (`af6288674`), TypeScript 5.9, `linkedom` 0.18.15, Node 22.22, Bun 1.4, Vite 8, Linux.
 ```
 
 ---
@@ -227,9 +211,9 @@ console.log(typeof el.style.getPropertyPriority); // "string"
 **Mengapa perlu RFC, bukan PR langsung**: Menyentuh kontrak publik `IAppRootConfig` (`packages/runtime-html/src/app-root.ts:17-42`) dan beririsan dengan cara komponen menerima state awal saat SSR/hydration.
 
 ```markdown
-# 💬 RFC: Passing initial root component properties in `IAppRootConfig` / `IHydrateConfig`
+# RFC: Passing initial root component properties in `IAppRootConfig` / `IHydrateConfig`
 
-## 🔦 Context
+## Context
 
 When rendering a page component on the server or mounting an isolated island on the client, a route handler or island loader often already has resolved input data (for example route params or preloaded props) to pass into the root component.
 
@@ -240,7 +224,7 @@ Today `IAppRootConfig<T>` (`packages/runtime-html/src/app-root.ts`) accepts `com
 
 #2574 (`ITransferState`) solves server-to-client state transfer cleanly when data is loaded through DI services or `getOrLoad()`. The remaining case is passing bindable/input properties from outside Aurelia into the root view-model right after `childCtn.invoke(component)` and before `hydrating` / `binding` hooks run.
 
-## 💻 Examples
+## Examples
 
 One minimal option on `IAppRootConfig<T>` (and `IHydrateConfig<T>`):
 
