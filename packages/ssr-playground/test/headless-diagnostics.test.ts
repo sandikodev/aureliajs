@@ -146,6 +146,23 @@ describe('Headless Reversing & Diagnostics Suite', () => {
       expect(html).toContain('au-card');
       expect(html).toContain('id="__HYDRATION__"');
     });
+
+    it('probes GET /preview/aux-component and GET /preview/streaming-deferred', async () => {
+      const auxRes = await app.request('/preview/aux-component');
+      expect(auxRes.status).toBe(200);
+      const auxHtml = await auxRes.text();
+      expect(auxHtml).toContain('Aurelia in HTML');
+      expect(auxHtml).toContain('.aux SFC');
+
+      const streamRes = await app.request('/preview/streaming-deferred?delay=15');
+      expect(streamRes.status).toBe(200);
+      expect(streamRes.headers.get('transfer-encoding')).toBe('chunked');
+      const streamHtml = await streamRes.text();
+      expect(streamHtml).toContain('Aurelia 2 Deferred Streaming');
+      expect(streamHtml).toContain('["$p","d1"]');
+      expect(streamHtml).toContain('data-au-deferred="d1"');
+      expect(streamHtml).toContain('ap-southeast-1');
+    });
   });
 
   // --------------------------------------------------------------------------

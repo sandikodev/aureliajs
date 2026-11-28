@@ -14,8 +14,20 @@
     "vscode": "^1.90.0"
   },
   "main": "./dist/extension.js",
+  "exports": {
+    ".": "./dist/extension.js",
+    "./check": {
+      "types": "./src/check.ts",
+      "import": "./dist/check.js",
+      "default": "./dist/check.js"
+    }
+  },
+  "bin": {
+    "aux-check": "./dist/check.js"
+  },
   "scripts": {
     "build": "node build.js",
+    "typecheck": "tsc --noEmit",
     "test": "bun test"
   },
   "categories": [

@@ -158,4 +158,89 @@ let headline: string = 'From setup';
       '\np{color:red}\n'
     );
   });
+
+  it('infers <script server> loader members from arrow/function expressions, Promise<{...}>, as const, and satisfies', () => {
+    const arrowPromiseSfc = `
+<template>
+  <h1>\${heading}</h1>
+  <span>\${count}</span>
+  <p>\${role}</p>
+  <ul><li repeat.for="tag of tags">\${tag}</li></ul>
+</template>
+
+<script server lang="ts">
+interface LoaderMeta {
+  region: string;
+}
+
+export const loader = async (): Promise<{ heading: string; count: number; meta: LoaderMeta }> => {
+  const heading = await Promise.resolve('Dashboard');
+  return {
+    heading,
+    count: 42 as const,
+    meta: { region: 'id' },
+  };
+};
+</script>
+`;
+    const arrowAnalysis = analyzeAuxDocument(arrowPromiseSfc);
+    expect(arrowAnalysis.script.hasScript).toBe(true);
+    expect(arrowAnalysis.script.members.get('heading')?.typeString).toBe('string');
+    expect(arrowAnalysis.script.members.get('count')?.typeString).toBe('number');
+    expect(arrowAnalysis.script.members.get('meta')?.typeString).toBe('LoaderMeta');
+
+    const conciseSatisfiesSfc = `
+<template>
+  <span>\${role}</span>
+  <span>\${score}</span>
+  <span>\${label}</span>
+</template>
+
+<script server lang="ts">
+type BadgePayload = {
+  role: 'admin' | 'member';
+  score: number;
+  label: string;
+};
+
+export const loader = () => ({
+  role: 'admin' as const,
+  score: 100 satisfies number,
+  label: 'Verified',
+} as const satisfies BadgePayload);
+</script>
+`;
+    const conciseAnalysis = analyzeAuxDocument(conciseSatisfiesSfc);
+    expect(conciseAnalysis.script.members.get('role')?.typeString).toBe("'admin' | 'member'");
+    expect(conciseAnalysis.script.members.get('score')?.typeString).toBe('number');
+    expect(conciseAnalysis.script.members.get('label')?.typeString).toBe('string');
+
+    const asConstOnlySfc = `
+<template><p>\${mode}</p></template>
+<script server lang="ts">
+export const loader = () => ({ mode: 'dark' as const });
+</script>
+`;
+    const asConstAnalysis = analyzeAuxDocument(asConstOnlySfc);
+    expect(asConstAnalysis.script.members.get('mode')?.typeString).toBe('string');
+
+    const funcExprInterfaceSfc = `
+<template><p>\${userName}</p></template>
+
+<script server lang="ts">
+interface UserLoaderResult {
+  userName: string;
+  isAdmin: boolean;
+}
+
+export const loader = async function (): Promise<UserLoaderResult> {
+  const payload = await fetchUser();
+  return payload;
+};
+</script>
+`;
+    const funcExprAnalysis = analyzeAuxDocument(funcExprInterfaceSfc);
+    expect(funcExprAnalysis.script.members.get('userName')?.typeString).toBe('string');
+    expect(funcExprAnalysis.script.members.get('isAdmin')?.typeString).toBe('boolean');
+  });
 });

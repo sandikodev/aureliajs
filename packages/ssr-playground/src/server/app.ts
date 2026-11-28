@@ -4,6 +4,8 @@
  */
 
 import { Hono } from 'hono';
+import { CustomElement } from 'aurelia';
+import { aurelia } from '@hono/aurelia';
 import { FIXTURES, CounterCard } from '../fixtures/index';
 import { inspectAureliaSsr } from '../engine/inspector';
 import { compilePlaygroundExample, type CompileRequest } from '../engine/compiler';
@@ -154,6 +156,93 @@ export function createPlaygroundApp(): Hono {
       );
     }
   });
+
+  const StreamingDeferredCard = CustomElement.define(
+    {
+      name: 'streaming-deferred-card',
+      template: `<div class="au-card" data-testid="streaming-deferred-card">
+        <div class="au-card-header">
+          <div>
+            <h3 class="au-card-title">\${heading}</h3>
+            <p class="au-card-subtitle">Shell flushed first via Web Streams; deferred payload resolves asynchronously.</p>
+          </div>
+          <span class="au-tag au-tag-cyan">Streaming SSR</span>
+        </div>
+        <div class="au-card-body">
+          <div data-deferred-status="d1" data-testid="deferred-slot">Streaming from server...</div>
+        </div>
+      </div>`,
+    },
+    class StreamingDeferredCard {
+      heading = 'Aurelia 2 Deferred Streaming';
+    }
+  );
+
+  app.get('/assets/deferred-client.js', (c) => {
+    c.header('Content-Type', 'application/javascript; charset=utf-8');
+    c.header('Cache-Control', 'no-cache');
+    return c.body(`(function () {
+  function applyDeferred() {
+    var scripts = document.querySelectorAll('script[type="application/json"][data-au-deferred]');
+    scripts.forEach(function (el) {
+      var id = el.getAttribute('data-au-deferred');
+      var raw = el.textContent || '{}';
+      el.remove();
+      if (!id) return;
+      try {
+        var parsed = JSON.parse(raw);
+        var target = document.querySelector('[data-deferred-status="' + id + '"]');
+        if (target) {
+          target.setAttribute('data-deferred-resolved', parsed.ok === false ? 'error' : 'ok');
+          target.textContent = parsed.ok === false
+            ? 'Deferred error: ' + (parsed.error || 'unknown')
+            : 'Resolved [' + id + ']: ' + JSON.stringify(parsed.data);
+        }
+        window.__DEFERRED_RESOLVED__ = window.__DEFERRED_RESOLVED__ || {};
+        window.__DEFERRED_RESOLVED__[id] = parsed;
+      } catch (err) {
+        console.error('[Playground Deferred] Failed to parse deferred chunk', id, err);
+      }
+    });
+  }
+
+  applyDeferred();
+  var observer = new MutationObserver(function () { applyDeferred(); });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+})();`);
+  });
+
+  app.get(
+    '/preview/streaming-deferred',
+    aurelia({
+      component: StreamingDeferredCard,
+      title: 'Streaming Deferred — Preview',
+      streaming: true,
+      preserveMarkers: false,
+      document: {
+        cssBundle: '/assets/main.css',
+        jsBundle: '/assets/deferred-client.js',
+      },
+      loader: (c) => {
+        const rawDelay = Number(c.req.query('delay') ?? '40');
+        const delayMs = Number.isFinite(rawDelay) && rawDelay >= 0 && rawDelay <= 2000 ? rawDelay : 40;
+        return {
+          heading: 'Aurelia 2 Deferred Streaming',
+          telemetry: new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  region: 'ap-southeast-1',
+                  status: 'resolved',
+                  delayMs,
+                }),
+              delayMs
+            )
+          ),
+        };
+      },
+    })
+  );
 
   // Iframe Preview Route: Renders complete HTML document for browser inspection
   app.get('/preview/:fixture', async (c) => {

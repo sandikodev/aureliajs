@@ -16,7 +16,19 @@ async function build() {
     sourcemap: true,
     minify: false,
   });
-  console.log('✓ Successfully built packages/vscode-aux/dist/extension.js');
+  await esbuild.build({
+    entryPoints: [resolve(__dirname, 'src/check.ts')],
+    bundle: true,
+    format: 'esm',
+    platform: 'node',
+    target: 'node18',
+    external: ['typescript'],
+    banner: { js: '#!/usr/bin/env node' },
+    outfile: resolve(__dirname, 'dist/check.js'),
+    sourcemap: true,
+    minify: false,
+  });
+  console.log('✓ Successfully built packages/vscode-aux/dist/extension.js and dist/check.js');
 }
 
 build().catch((err) => {

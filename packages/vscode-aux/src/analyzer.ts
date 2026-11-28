@@ -43,12 +43,24 @@ export function analyzeAuxDocument(content: string): AuxDocumentAnalysis {
       blocks.serverScript.content,
       blocks.serverScript.startOffset
     );
+    scriptAnalysis.hasScript = true;
   }
 
   const templateAnalysis = analyzeTemplate(
     blocks.template?.content ?? '',
     blocks.template?.startOffset ?? 0
   );
+
+  // Include template-declared bindables (<template bindable="a, b"> and <bindable name="a">)
+  // so template-only components with bindables are validated accurately.
+  if (blocks.template) {
+    augmentWithTemplateBindables(
+      scriptAnalysis.members,
+      blocks.template.attrs,
+      blocks.template.content,
+      blocks.template.startOffset,
+    );
+  }
 
   return {
     script: scriptAnalysis,
@@ -306,9 +318,53 @@ function analyzeSetupScript(setupContent: string, startOffset: number): ScriptAn
   };
 }
 
+function unwrapExpression(expr: ts.Expression): ts.Expression {
+  let current = expr;
+  while (true) {
+    if (
+      ts.isParenthesizedExpression(current) ||
+      ts.isAsExpression(current) ||
+      ts.isSatisfiesExpression(current) ||
+      ts.isTypeAssertionExpression(current)
+    ) {
+      current = current.expression;
+    } else {
+      return current;
+    }
+  }
+}
+
+function isAsConstType(typeNode: ts.TypeNode): boolean {
+  return (
+    ts.isTypeReferenceNode(typeNode) &&
+    ts.isIdentifier(typeNode.typeName) &&
+    typeNode.typeName.text === 'const'
+  );
+}
+
+function upsertLoaderMember(
+  members: Map<string, ViewModelMember>,
+  member: ViewModelMember,
+  preferExplicit = false,
+): void {
+  const existing = members.get(member.name);
+  if (
+    !existing ||
+    existing.typeString === 'any' ||
+    existing.typeString === 'null' ||
+    existing.typeString === 'unknown' ||
+    (preferExplicit && member.typeString !== 'unknown' && member.typeString !== 'any')
+  ) {
+    members.set(member.name, member);
+  }
+}
+
 /**
- * Extracts returned property names/types from `export async function loader(...)` inside `<script server>`
- * so template bindings to server-hydrated fields receive IDE completions and avoid false lint warnings.
+ * Extracts returned property names/types from `<script server>` `loader` declarations:
+ * - `export [async] function loader(...)`
+ * - `export const loader = [async] (...) => ...` / `function(...) { ... }`
+ * - Explicit return type annotations (`Promise<{ ... }>`, `{ ... }`, local `interface`/`type`)
+ * - `as const` and `satisfies` expressions in return statements and concise arrow bodies
  */
 function augmentWithServerLoaderMembers(
   members: Map<string, ViewModelMember>,
@@ -323,54 +379,314 @@ function augmentWithServerLoaderMembers(
     ts.ScriptKind.TS
   );
 
+  const localTypes = new Map<string, ts.InterfaceDeclaration | ts.TypeAliasDeclaration>();
   for (const stmt of sourceFile.statements) {
-    if (!ts.isFunctionDeclaration(stmt) || stmt.name?.text !== 'loader' || !stmt.body) {
-      continue;
+    if (ts.isInterfaceDeclaration(stmt)) {
+      localTypes.set(stmt.name.text, stmt);
+    } else if (ts.isTypeAliasDeclaration(stmt)) {
+      localTypes.set(stmt.name.text, stmt);
+    }
+  }
+
+  const extractFromTypeNode = (
+    rawTypeNode: ts.TypeNode | undefined,
+    preferExplicit: boolean,
+    visited = new Set<string>(),
+  ): void => {
+    if (!rawTypeNode) return;
+    let typeNode = rawTypeNode;
+    while (ts.isParenthesizedTypeNode(typeNode)) {
+      typeNode = typeNode.type;
+    }
+
+    if (ts.isTypeReferenceNode(typeNode)) {
+      const refName = ts.isIdentifier(typeNode.typeName)
+        ? typeNode.typeName.text
+        : typeNode.typeName.getText(sourceFile);
+
+      if ((refName === 'Promise' || refName === 'Awaited') && typeNode.typeArguments?.[0]) {
+        extractFromTypeNode(typeNode.typeArguments[0], preferExplicit, visited);
+        return;
+      }
+
+      if (!visited.has(refName)) {
+        visited.add(refName);
+        const decl = localTypes.get(refName);
+        if (decl && ts.isInterfaceDeclaration(decl)) {
+          for (const member of decl.members) {
+            if (ts.isPropertySignature(member) && member.name) {
+              const name = getPropertyNameText(member.name, sourceFile);
+              if (!name) continue;
+              const pos = member.name.getStart(sourceFile);
+              const { line, character } = ts.getLineAndCharacterOfPosition(sourceFile, pos);
+              upsertLoaderMember(
+                members,
+                {
+                  name,
+                  kind: 'property',
+                  typeString: member.type ? member.type.getText(sourceFile) : 'unknown',
+                  isBindable: true,
+                  offset: startOffset + pos,
+                  length: member.name.getWidth(sourceFile),
+                  line,
+                  column: character,
+                },
+                preferExplicit,
+              );
+            }
+          }
+        } else if (decl && ts.isTypeAliasDeclaration(decl)) {
+          extractFromTypeNode(decl.type, preferExplicit, visited);
+        }
+      }
+      return;
+    }
+
+    if (ts.isTypeLiteralNode(typeNode)) {
+      for (const member of typeNode.members) {
+        if (ts.isPropertySignature(member) && member.name) {
+          const name = getPropertyNameText(member.name, sourceFile);
+          if (!name) continue;
+          const pos = member.name.getStart(sourceFile);
+          const { line, character } = ts.getLineAndCharacterOfPosition(sourceFile, pos);
+          upsertLoaderMember(
+            members,
+            {
+              name,
+              kind: 'property',
+              typeString: member.type ? member.type.getText(sourceFile) : 'unknown',
+              isBindable: true,
+              offset: startOffset + pos,
+              length: member.name.getWidth(sourceFile),
+              line,
+              column: character,
+            },
+            preferExplicit,
+          );
+        }
+      }
+      return;
+    }
+
+    if (ts.isIntersectionTypeNode(typeNode)) {
+      for (const part of typeNode.types) {
+        extractFromTypeNode(part, preferExplicit, visited);
+      }
+    }
+  };
+
+  const extractFunctionReturnType = (typeNode: ts.TypeNode | undefined): ts.TypeNode | undefined => {
+    if (!typeNode) return undefined;
+    if (ts.isFunctionTypeNode(typeNode)) {
+      return typeNode.type;
+    }
+    if (ts.isTypeReferenceNode(typeNode)) {
+      const refName = ts.isIdentifier(typeNode.typeName) ? typeNode.typeName.text : '';
+      const alias = localTypes.get(refName);
+      if (alias && ts.isTypeAliasDeclaration(alias) && ts.isFunctionTypeNode(alias.type)) {
+        return alias.type.type;
+      }
+    }
+    return undefined;
+  };
+
+  const extractFromObjectLiteral = (
+    obj: ts.ObjectLiteralExpression,
+    localTypesMap: Map<string, string>,
+  ): void => {
+    for (const prop of obj.properties) {
+      if (ts.isPropertyAssignment(prop) && prop.name) {
+        const name = getPropertyNameText(prop.name, sourceFile);
+        if (!name) continue;
+        const pos = prop.name.getStart(sourceFile);
+        const { line, character } = ts.getLineAndCharacterOfPosition(sourceFile, pos);
+        upsertLoaderMember(members, {
+          name,
+          kind: 'property',
+          typeString: inferTypeFromInitializer(prop.initializer, sourceFile),
+          isBindable: true,
+          offset: startOffset + pos,
+          length: prop.name.getWidth(sourceFile),
+          line,
+          column: character,
+        });
+      } else if (ts.isShorthandPropertyAssignment(prop)) {
+        const name = prop.name.text;
+        const pos = prop.name.getStart(sourceFile);
+        const { line, character } = ts.getLineAndCharacterOfPosition(sourceFile, pos);
+        upsertLoaderMember(members, {
+          name,
+          kind: 'property',
+          typeString: localTypesMap.get(name) ?? 'unknown',
+          isBindable: true,
+          offset: startOffset + pos,
+          length: prop.name.getWidth(sourceFile),
+          line,
+          column: character,
+        });
+      }
+    }
+  };
+
+  const extractFromReturnedExpression = (
+    expr: ts.Expression,
+    localVars: Map<string, ts.Expression>,
+    localTypesMap: Map<string, string>,
+  ): void => {
+    // Check explicit `as Type` or `satisfies Type` wrappers along the chain
+    let wrapper: ts.Expression = expr;
+    while (
+      ts.isParenthesizedExpression(wrapper) ||
+      ts.isAsExpression(wrapper) ||
+      ts.isSatisfiesExpression(wrapper) ||
+      ts.isTypeAssertionExpression(wrapper)
+    ) {
+      if (ts.isAsExpression(wrapper) && !isAsConstType(wrapper.type)) {
+        extractFromTypeNode(wrapper.type, true);
+      } else if (ts.isSatisfiesExpression(wrapper)) {
+        extractFromTypeNode(wrapper.type, false);
+      }
+      wrapper = wrapper.expression;
+    }
+
+    const unwrapped = unwrapExpression(expr);
+    if (ts.isObjectLiteralExpression(unwrapped)) {
+      extractFromObjectLiteral(unwrapped, localTypesMap);
+    } else if (ts.isIdentifier(unwrapped)) {
+      const localInit = localVars.get(unwrapped.text);
+      if (localInit) {
+        extractFromReturnedExpression(localInit, localVars, localTypesMap);
+      }
+    }
+  };
+
+  const analyzeLoaderBody = (
+    fn: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression,
+    extraReturnType?: ts.TypeNode,
+  ): void => {
+    extractFromTypeNode(extraReturnType ?? fn.type, true);
+    if (!fn.body) return;
+
+    const localVars = new Map<string, ts.Expression>();
+    const localTypesMap = new Map<string, string>();
+
+    if (!ts.isBlock(fn.body)) {
+      extractFromReturnedExpression(fn.body, localVars, localTypesMap);
+      return;
+    }
+
+    // Collect top-level variable types/initializers inside loader body for shorthand & return tracking
+    for (const innerStmt of fn.body.statements) {
+      if (ts.isVariableStatement(innerStmt)) {
+        for (const decl of innerStmt.declarationList.declarations) {
+          if (!ts.isIdentifier(decl.name)) continue;
+          if (decl.type) {
+            localTypesMap.set(decl.name.text, decl.type.getText(sourceFile));
+          } else if (decl.initializer) {
+            localTypesMap.set(decl.name.text, inferTypeFromInitializer(decl.initializer, sourceFile));
+          }
+          if (decl.initializer) {
+            localVars.set(decl.name.text, decl.initializer);
+          }
+        }
+      }
     }
 
     const visitReturn = (node: ts.Node) => {
-      if (ts.isFunctionLike(node) && node !== stmt) return;
-      if (ts.isReturnStatement(node) && node.expression && ts.isObjectLiteralExpression(node.expression)) {
-        for (const prop of node.expression.properties) {
-          if (ts.isPropertyAssignment(prop) && prop.name) {
-            const name = prop.name.getText(sourceFile);
-            if (!members.has(name) || members.get(name)?.typeString === 'any' || members.get(name)?.typeString === 'null') {
-              const pos = prop.name.getStart(sourceFile);
-              const { line, character } = ts.getLineAndCharacterOfPosition(sourceFile, pos);
-              members.set(name, {
-                name,
-                kind: 'property',
-                typeString: inferTypeFromInitializer(prop.initializer, sourceFile),
-                isBindable: true,
-                offset: startOffset + pos,
-                length: prop.name.getWidth(sourceFile),
-                line,
-                column: character,
-              });
-            }
-          } else if (ts.isShorthandPropertyAssignment(prop)) {
-            const name = prop.name.text;
-            if (!members.has(name) || members.get(name)?.typeString === 'any' || members.get(name)?.typeString === 'null') {
-              const pos = prop.name.getStart(sourceFile);
-              const { line, character } = ts.getLineAndCharacterOfPosition(sourceFile, pos);
-              members.set(name, {
-                name,
-                kind: 'property',
-                typeString: 'unknown',
-                isBindable: true,
-                offset: startOffset + pos,
-                length: prop.name.getWidth(sourceFile),
-                line,
-                column: character,
-              });
-            }
-          }
-        }
+      if (ts.isFunctionLike(node) && node !== fn) return;
+      if (ts.isReturnStatement(node) && node.expression) {
+        extractFromReturnedExpression(node.expression, localVars, localTypesMap);
       }
       ts.forEachChild(node, visitReturn);
     };
 
-    visitReturn(stmt.body);
+    visitReturn(fn.body);
+  };
+
+  for (const stmt of sourceFile.statements) {
+    if (ts.isFunctionDeclaration(stmt) && stmt.name?.text === 'loader') {
+      analyzeLoaderBody(stmt);
+      continue;
+    }
+
+    if (ts.isVariableStatement(stmt)) {
+      for (const decl of stmt.declarationList.declarations) {
+        if (!ts.isIdentifier(decl.name) || decl.name.text !== 'loader') continue;
+
+        let annotatedReturnType = extractFunctionReturnType(decl.type);
+        if (!decl.initializer) {
+          extractFromTypeNode(annotatedReturnType, true);
+          continue;
+        }
+
+        let wrapper: ts.Expression = decl.initializer;
+        while (
+          ts.isParenthesizedExpression(wrapper) ||
+          ts.isAsExpression(wrapper) ||
+          ts.isSatisfiesExpression(wrapper) ||
+          ts.isTypeAssertionExpression(wrapper)
+        ) {
+          if (ts.isAsExpression(wrapper) || ts.isSatisfiesExpression(wrapper)) {
+            annotatedReturnType ??= extractFunctionReturnType(wrapper.type);
+          }
+          wrapper = wrapper.expression;
+        }
+
+        const fn = unwrapExpression(decl.initializer);
+        if (ts.isArrowFunction(fn) || ts.isFunctionExpression(fn)) {
+          analyzeLoaderBody(fn, annotatedReturnType);
+        } else {
+          extractFromTypeNode(annotatedReturnType, true);
+        }
+      }
+    }
+  }
+}
+
+function getPropertyNameText(nameNode: ts.PropertyName, sourceFile: ts.SourceFile): string {
+  if (ts.isIdentifier(nameNode) || ts.isStringLiteral(nameNode) || ts.isNumericLiteral(nameNode)) {
+    return nameNode.text;
+  }
+  return nameNode.getText(sourceFile);
+}
+
+function augmentWithTemplateBindables(
+  members: Map<string, ViewModelMember>,
+  templateAttrs: Record<string, string | boolean>,
+  templateContent: string,
+  templateStartOffset: number,
+): void {
+  const addBindable = (name: string, offset: number) => {
+    const trimmed = name.trim();
+    if (!trimmed || members.has(trimmed)) return;
+    members.set(trimmed, {
+      name: trimmed,
+      kind: 'property',
+      typeString: 'unknown',
+      isBindable: true,
+      offset,
+      length: trimmed.length,
+      line: 0,
+      column: 0,
+    });
+  };
+
+  const bindableAttr = templateAttrs['bindable'];
+  if (typeof bindableAttr === 'string') {
+    for (const part of bindableAttr.split(',')) {
+      addBindable(part, templateStartOffset);
+    }
+  }
+
+  const tagRegex = /<bindable\b([^>]*?)(?:\/>|>\s*<\/bindable>|>)/gi;
+  let match: RegExpExecArray | null;
+  while ((match = tagRegex.exec(templateContent)) !== null) {
+    const attrsStr = match[1] ?? '';
+    const nameMatch = /(?:name|property)\s*=\s*(?:"([^"]*)"|'([^']*)')/i.exec(attrsStr);
+    const propName = nameMatch?.[1] ?? nameMatch?.[2];
+    if (propName) {
+      addBindable(propName, templateStartOffset + match.index);
+    }
   }
 }
 
@@ -388,8 +704,29 @@ function hasBindableDecorator(node: ts.PropertyDeclaration): boolean {
 
 function inferTypeFromInitializer(init: ts.Expression | undefined, sourceFile: ts.SourceFile): string {
   if (!init) return 'any';
-  if (ts.isStringLiteral(init)) return 'string';
-  if (ts.isNumericLiteral(init)) return 'number';
+  if (ts.isParenthesizedExpression(init)) {
+    return inferTypeFromInitializer(init.expression, sourceFile);
+  }
+  if (ts.isAsExpression(init)) {
+    return isAsConstType(init.type)
+      ? inferTypeFromInitializer(init.expression, sourceFile)
+      : init.type.getText(sourceFile);
+  }
+  if (ts.isSatisfiesExpression(init)) {
+    if (ts.isIdentifier(init.expression) || ts.isCallExpression(init.expression)) {
+      return init.type.getText(sourceFile);
+    }
+    return inferTypeFromInitializer(init.expression, sourceFile);
+  }
+  if (ts.isStringLiteral(init) || ts.isNoSubstitutionTemplateLiteral(init) || ts.isTemplateExpression(init)) {
+    return 'string';
+  }
+  if (
+    ts.isNumericLiteral(init) ||
+    (ts.isPrefixUnaryExpression(init) && ts.isNumericLiteral(init.operand))
+  ) {
+    return 'number';
+  }
   if (init.kind === ts.SyntaxKind.TrueKeyword || init.kind === ts.SyntaxKind.FalseKeyword) return 'boolean';
   if (ts.isArrayLiteralExpression(init)) return 'any[]';
   return init.getText(sourceFile);
