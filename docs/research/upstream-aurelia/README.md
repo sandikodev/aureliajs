@@ -28,7 +28,13 @@ Direktori ini menyimpan hasil audit terstruktur untuk menyelaraskan ekosistem pa
 
 ## Status Implementasi
 
-Tahap 1 dan 2 dari roadmap di [`06-internal-packages-deep-audit-and-rfc.md`](./06-internal-packages-deep-audit-and-rfc.md) sudah ada di working tree: enam perbaikan fondasi, RFC-01 sampai RFC-05, dan test-nya. Gate `build:packages`, `typecheck`, `lint`, serta `test` (284 pass) lolos. Belum ada commit, dan Draf A/B di [`05`](./05-deep-audit-and-rfc-drafts.md) masih ditahan sebelum dipublikasikan ke `aurelia/aurelia`.
+Tahap 1 dan 2 dari roadmap di [`06-internal-packages-deep-audit-and-rfc.md`](./06-internal-packages-deep-audit-and-rfc.md) sudah di-commit dan di-push ke fork masing-masing. Enam perbaikan fondasi, RFC-01 sampai RFC-05, dan test-nya masuk dalam perubahan tersebut. Gate `build:packages`, `typecheck` (14/14), `lint`, dan `test` (294 pass, 1783 assertions) lolos.
+
+Draf A dan B di [`05`](./05-deep-audit-and-rfc-drafts.md) sudah dipublikasikan ke `aurelia/aurelia`. Sesuai [`07`](./07-upstream-signal-map.md), tidak ada aksi upstream lanjutan: Draf C ditahan, `#2588` tidak diedit, dan tidak ada PR yang memakai audit ini sebagai pembenaran.
+
+Satu kandidat bug kecil di luar batch audit maintainer, `#2586` tentang literal angka eksponen, sudah diperbaiki di branch `fix/exponent-number-literals` pada fork `sandikodev/aurelia` (`2f6df6ccd`) lengkap dengan test parser dan test render DOM. Branch sudah di-push, belum ada PR.
+
+Commit peta sinyal `1797751` masih lokal di superproject.
 
 ---
 
